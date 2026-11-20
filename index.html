@@ -103,7 +103,30 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #help h2{font-family:var(--display);letter-spacing:.2em;text-transform:uppercase;margin:0 0 14px;font-size:20px}
 #help dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:7px 28px;font-family:var(--mono);font-size:13px;margin:0 0 16px}
 #help dl div{display:flex;gap:12px}#help dt{color:var(--amber);min-width:7.5em}#help dd{margin:0;color:var(--ink)}
+#map{position:absolute;inset:0;z-index:25;display:flex;flex-direction:column;background:rgba(2,5,10,.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#map header{display:flex;align-items:center;gap:8px 22px;flex-wrap:wrap;padding:calc(14px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) 12px max(20px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+#map h2{font-family:var(--display);font-size:22px;letter-spacing:.2em;text-transform:uppercase;margin:0;line-height:1}
+#map .sub{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;flex:1;min-width:0}
+#map .sub b{color:var(--amber);font-weight:400}
+#map-close{font-size:12px;padding:9px 16px}
+#map-main{flex:1;min-height:0;display:flex}
+#map-view{flex:1;min-width:0;position:relative}
+#map-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#map-list{width:300px;overflow:auto;border-left:1px solid var(--line);background:var(--glass);padding:8px max(8px,env(safe-area-inset-right,0px)) 8px 8px;display:flex;flex-direction:column;gap:4px}
+.mrow{display:grid;grid-template-columns:18px 1fr auto;gap:2px 10px;align-items:center;text-align:left;background:transparent;border:1px solid transparent;border-radius:2px;padding:8px 10px;color:var(--ink);font:inherit}
+.mrow:hover{background:var(--glass-2);border-color:var(--line)}
+.mrow.tg{border-color:var(--amber);background:rgba(255,180,84,.08)}
+.mrow i{width:16px;height:16px;border-radius:50%;grid-row:1/3}
+.mrow .n{font-family:var(--display);font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:14px}
+.mrow.tg .n{color:var(--amber)}
+.mrow .d{font-family:var(--mono);font-size:12px;color:var(--cyan);font-variant-numeric:tabular-nums}
+.mrow .p{grid-column:2/4;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em}
+.mrow .b{grid-column:2/4;display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.mrow em{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--line);color:var(--dim)}
+.mrow em.t{color:var(--amber);border-color:var(--amber)}.mrow em.c{color:var(--good);border-color:var(--good)}.mrow em.h{color:#1a1206;background:var(--amber);border-color:var(--amber)}
+#map footer{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;padding:10px max(20px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));border-top:1px solid var(--line)}
 #fade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:10;transition:opacity .5s}
+@media (max-width:760px){#map-list{display:none}#map h2{font-size:17px}}
 @media (max-width:640px){
   #title{background:linear-gradient(0deg,rgba(2,4,8,.94) 0%,rgba(2,4,8,.6) 70%,rgba(2,4,8,.2) 100%);padding-left:max(16px,env(safe-area-inset-left,0px))}
   .card{grid-template-columns:48px 1fr}.card canvas{width:48px;height:48px}.card .right{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
@@ -119,7 +142,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
   <button id="skip" hidden>Skip ▸ Space</button>
   <div id="toasts" aria-live="polite"></div>
   <div id="tooltip" hidden></div>
-  <div id="keys" hidden>? Help · Double-click to zoom · Drag to look</div>
+  <div id="keys" hidden>? Help · M Map · Double-click to zoom · Drag to look</div>
 
   <section id="comms" hidden aria-label="Comms link">
     <canvas id="comms-face" width="192" height="192"></canvas>
@@ -142,6 +165,12 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
     <footer><span id="port-foot"></span><button class="big" id="launch">Launch</button></footer>
   </section>
 
+  <section id="map" hidden aria-label="System map">
+    <header><h2>System map</h2><div class="sub" id="map-sub"></div><button class="big ghost" id="map-close">Close · M</button></header>
+    <div id="map-main"><div id="map-view"><canvas id="map-cv"></canvas></div><aside id="map-list" aria-label="Worlds"></aside></div>
+    <footer id="map-foot"></footer>
+  </section>
+
   <section id="title">
     <div class="eyebrow">Independent freight · nine worlds · no questions</div>
     <h1>Long <span>Haul</span></h1>
@@ -156,7 +185,8 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
       <div><dt>Z</dt><dd>Warp drive</dd></div>
       <div><dt>T</dt><dd>Next destination</dd></div>
       <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
-      <div><dt>Double-click</dt><dd>Zoom on the cockpit</dd></div>
+      <div><dt>M</dt><dd>System map</dd></div>
+      <div><dt>Double-click</dt><dd>Zoom in, and back out</dd></div>
     </dl>
   </section>
 
@@ -175,7 +205,9 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
         <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
         <div><dt>G</dt><dd>Horn</dd></div>
         <div><dt>Drag / arrows</dt><dd>Look around</dd></div>
-        <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit</dd></div>
+        <div><dt>M</dt><dd>System map (click a world to set destination)</dd></div>
+        <div><dt>N</dt><dd>Cabin music on / off</dd></div>
+        <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit; again to return</dd></div>
         <div><dt>C / Esc</dt><dd>Centre the view</dd></div>
         <div><dt>Click, drag, scroll</dt><dd>Work any knob, switch or lever</dd></div>
       </dl>
@@ -1584,11 +1616,11 @@ const Cockpit = {
   /* ---------- view + interaction ---------- */
   zoomOut(){ const H=G.head; H.posT.set(0,0,0); H.yawT=0; H.pitchT=H.basePitch; H.fovT=72; H.zoomed=null; },
   zoomAt(nd){
-    const H=G.head; this.ray.setFromCamera(nd,World.cockCam); const hs=this.ray.intersectObject(this.group,true); if(!hs.length){ this.zoomOut(); return; }
+    const H=G.head; if(H.zoomed){ this.zoomOut(); return; }
+    this.ray.setFromCamera(nd,World.cockCam); const hs=this.ray.intersectObject(this.group,true); if(!hs.length) return;
     const h=hs[0], L=this.group.worldToLocal(h.point.clone());
     const aim=(d)=>{ H.yawT=Math.atan2(-d.x,-d.z); H.pitchT=Math.atan2(d.y,Math.hypot(d.x,d.z)); };
-    if(h.object.userData.glass){ if(H.zoomed==='glass'){ this.zoomOut(); return; } aim(L.clone().sub(H.pos)); H.posT.set(0,0,0); H.fovT=24; H.zoomed='glass'; return; }
-    if(H.zoomed==='panel' && H.zoomPt && L.distanceTo(H.zoomPt)<0.07){ this.zoomOut(); return; }
+    if(h.object.userData.glass){ aim(L.clone().sub(H.pos)); H.posT.set(0,0,0); H.fovT=24; H.zoomed='glass'; return; }
     const len=L.length(); H.posT.copy(L).multiplyScalar(Math.max(0,1-0.3/len)); aim(L); H.fovT=46; H.zoomed='panel'; H.zoomPt=L.clone();
   },
   pick(nd){ this.ray.setFromCamera(nd,World.cockCam); const hs=this.ray.intersectObjects(this.hits,false); return hs.length?hs[0].object.userData.ctrl:null; },
@@ -1777,6 +1809,110 @@ const Cine = {
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },
 };
+/* ===================== SYSTEM MAP ===================== */
+/* Top-down chart of the system. M toggles it in flight and in port; click a world to set the destination. */
+const SysMap = {
+  open:false, f:0, hover:-1, pts:[], listT:0, maxR:0,
+  toggle(){ if(this.open) this.close(); else this.show(); },
+  show(){
+    if(this.open) return; this.open=true; this.hover=-1; this.f=0; this.listT=0.5;
+    if(!this.maxR){ PLANETS.forEach(P=>{ this.maxR=Math.max(this.maxR,P.orbit); }); this.maxR*=1.05; }
+    $('map').hidden=false; $('tooltip').hidden=true; if(Sfx.ok()) Sfx.beep(760); this.list(); this.draw(Game.time);
+  },
+  close(){ if(!this.open) return; this.open=false; $('map').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
+  pick(i){ if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
+  colors(P){ const p=P.pal; if(P.type==='gas') return [p.a,p.b,p.d]; if(P.lava>0.2) return [p.shal,p.deep,p.a]; if(P.sea>0.4) return [p.shal,p.deep,p.b]; return [p.d||p.a,p.a,p.c]; },
+  cargoFor(i){ let n=0; G.cargo.forEach(c=>{ if(c.to===i) n+=c.qty; }); return n; },
+  dist(P){ return Math.max(0,P.pos.distanceTo(G.ship.pos)-P.r); },
+  eta(d){ const s=d/SHIPS[G.shipId].warp; return s<90?'≈ '+Math.max(1,Math.round(s))+' s at warp':'≈ '+(s/60).toFixed(1)+' min at warp'; },
+
+  bind(){
+    const cv=$('map-cv');
+    const at=e=>{ const r=cv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top; let best=-1, bd=1e9; this.pts.forEach(p=>{ const d=Math.hypot(p.x-mx,p.y-my); if(d<Math.max(p.r+12,20)&&d<bd){ bd=d; best=p.i; } }); return best; };
+    cv.addEventListener('pointermove',e=>{ const h=at(e); if(h!==this.hover){ this.hover=h; cv.style.cursor=h>=0?'pointer':'default'; this.draw(Game.time); } });
+    cv.addEventListener('pointerleave',()=>{ if(this.hover!==-1){ this.hover=-1; this.draw(Game.time); } });
+    cv.addEventListener('click',e=>{ const h=at(e); if(h>=0) this.pick(h); });
+    $('map-list').addEventListener('click',e=>{ const b=e.target.closest('[data-i]'); if(b) this.pick(+b.dataset.i); });
+    $('map-close').onclick=()=>this.close();
+  },
+
+  update(dt,t){
+    if(!this.open) return;
+    if(G.mode!=='flight'&&G.mode!=='port'){ this.close(); return; }
+    if((this.f++%2)===0) this.draw(t);
+    this.listT-=dt; if(this.listT<=0){ this.listT=0.5; this.list(); }
+  },
+
+  list(){
+    const T=PLANETS[G.target], docked=G.mode==='port'&&G.docked>=0, dT=this.dist(T);
+    $('map-sub').innerHTML=`Destination <b>${esc(T.name)}</b> · ${docked&&G.docked===T.idx?'docked here':fmtDist(dT)+' · '+this.eta(dT)}`;
+    const rows=PLANETS.slice().sort((a,b)=>a.orbit-b.orbit).map(P=>{
+      const here=docked&&G.docked===P.idx, n=this.cargoFor(P.idx), col=this.colors(P);
+      let tags=''; if(P.idx===G.target) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Paying +50%</em>'; if(here) tags+='<em>Docked</em>';
+      return `<button class="mrow${P.idx===G.target?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
+    });
+    $('map-list').innerHTML=rows.join('');
+    const nT=G.mode==='flight'?Npc.list.length:0;
+    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+' · Click a world to set your destination · M or Esc to close';
+  },
+
+  draw(t){
+    const cv=$('map-cv'), box=cv.parentNode, w=box.clientWidth, h=box.clientHeight; if(w<20||h<20) return;
+    const dpr=Math.min(window.devicePixelRatio||1,2), W=Math.round(w*dpr), Hh=Math.round(h*dpr); if(cv.width!==W||cv.height!==Hh){ cv.width=W; cv.height=Hh; }
+    const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
+    const cx=w/2, cy=h/2, R=Math.max(70,Math.min(w,h)/2-34), k=R/this.maxR, TAU=Math.PI*2;
+    const s=G.ship, docked=G.mode==='port'&&G.docked>=0, T=PLANETS[G.target];
+    x.lineWidth=1; x.textBaseline='middle';
+
+    // range rings, one per light-second
+    x.font=`10px ${FONT_MONO}`; x.textAlign='center';
+    for(let ls=1; ls*LS<=this.maxR; ls++){ const r=ls*LS*k; x.setLineDash([2,6]); x.strokeStyle='rgba(98,226,255,.16)'; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.stroke(); x.setLineDash([]);
+      x.fillStyle='rgba(134,162,174,.7)'; x.fillText(ls+' LS',cx,cy-r-7); }
+    // orbits
+    PLANETS.forEach(P=>{ x.strokeStyle=P.idx===G.target?'rgba(255,180,84,.28)':'rgba(220,237,243,.09)'; x.beginPath(); x.arc(cx,cy,P.orbit*k,0,TAU); x.stroke(); });
+    // sun
+    const sr=Math.max(9,SUN_R*k*4); let g=x.createRadialGradient(cx,cy,0,cx,cy,sr*3.2); g.addColorStop(0,'rgba(255,246,216,1)'); g.addColorStop(0.22,'rgba(255,214,130,.9)'); g.addColorStop(0.45,'rgba(255,160,60,.28)'); g.addColorStop(1,'rgba(255,140,40,0)');
+    x.fillStyle=g; x.beginPath(); x.arc(cx,cy,sr*3.2,0,TAU); x.fill();
+
+    // ship position on the chart
+    const sx=cx+s.pos.x*k, sy=cy+s.pos.z*k;
+    // course line to the destination
+    const tx=cx+T.pos.x*k, ty=cy+T.pos.z*k, cl=Math.hypot(tx-sx,ty-sy);
+    if(cl>16){ x.strokeStyle='rgba(255,180,84,.75)'; x.setLineDash([7,6]); x.lineDashOffset=-t*18; x.beginPath(); x.moveTo(sx,sy); x.lineTo(tx,ty); x.stroke(); x.setLineDash([]); x.lineDashOffset=0;
+      if(cl>90){ const mx=(sx+tx)/2, my=(sy+ty)/2, lab=fmtDist(this.dist(T)); x.font=`11px ${FONT_MONO}`; const tw=x.measureText(lab).width+12; x.fillStyle='rgba(4,6,11,.85)'; x.fillRect(mx-tw/2,my-9,tw,18); x.fillStyle='#ffb454'; x.textAlign='center'; x.fillText(lab,mx,my+1); } }
+
+    // worlds
+    this.pts.length=0;
+    PLANETS.forEach(P=>{
+      const px=cx+P.pos.x*k, py=cy+P.pos.z*k, rad=clamp(3.5+P.r/850,6,13), col=this.colors(P), tg=P.idx===G.target, hv=P.idx===this.hover;
+      const ux=(px-cx)/(Math.hypot(px-cx,py-cy)||1), uy=(py-cy)/(Math.hypot(px-cx,py-cy)||1);
+      this.pts.push({i:P.idx,x:px,y:py,r:rad});
+      if(P.ring){ x.strokeStyle='rgba(240,220,180,.75)'; x.lineWidth=2; x.beginPath(); x.ellipse(px,py,rad*1.9,rad*0.62,-0.4,0,TAU); x.stroke(); x.lineWidth=1; }
+      g=x.createRadialGradient(px-ux*rad*0.45,py-uy*rad*0.45,rad*0.1,px,py,rad); g.addColorStop(0,col[0]); g.addColorStop(0.6,col[1]); g.addColorStop(1,col[2]);
+      x.fillStyle=g; x.beginPath(); x.arc(px,py,rad,0,TAU); x.fill();
+      x.strokeStyle=P.pal.atm; x.globalAlpha=0.7; x.beginPath(); x.arc(px,py,rad+1.5,0,TAU); x.stroke(); x.globalAlpha=1;
+      if(P.ring){ x.strokeStyle='rgba(240,220,180,.9)'; x.lineWidth=2; x.beginPath(); x.ellipse(px,py,rad*1.9,rad*0.62,-0.4,0.15,Math.PI-0.15); x.stroke(); x.lineWidth=1; }
+      if(hv&&!tg){ x.strokeStyle='rgba(220,237,243,.9)'; x.beginPath(); x.arc(px,py,rad+7,0,TAU); x.stroke(); }
+      if(tg){ const rr=rad+8+Math.sin(t*3)*1.2; x.strokeStyle='#ffb454'; x.lineWidth=1.5; x.beginPath(); x.arc(px,py,rr,0,TAU); x.stroke();
+        for(let q=0;q<4;q++){ const a=t*0.6+q*Math.PI/2; x.beginPath(); x.moveTo(px+Math.cos(a)*(rr+2),py+Math.sin(a)*(rr+2)); x.lineTo(px+Math.cos(a)*(rr+8),py+Math.sin(a)*(rr+8)); x.stroke(); } x.lineWidth=1; }
+      // label: name, port, badges
+      const n=this.cargoFor(P.idx), hot=G.hot===P.idx, name=P.name.toUpperCase(); let badge=''; if(n) badge+='  ▣ '+n; if(hot) badge+='  +50%';
+      x.font=`600 13px ${FONT_DISP}`; const nw=x.measureText(name).width; x.font=`11px ${FONT_MONO}`; const bw=badge?x.measureText(badge).width:0; x.font=`10px ${FONT_MONO}`; const pw=x.measureText(P.port.toUpperCase()).width;
+      const lw=Math.max(nw+bw,pw), off=rad+(tg?20:12), left=px+off+lw>w-6, lx=left?px-off-lw:px+off; x.textAlign='left';
+      x.fillStyle='rgba(4,6,11,.6)'; x.fillRect(lx-4,py-15,lw+8,30);
+      x.font=`600 13px ${FONT_DISP}`; x.fillStyle=tg?'#ffb454':hv?'#ffffff':'#dcedf3'; x.fillText(name,lx,py-6);
+      if(badge){ x.font=`11px ${FONT_MONO}`; let bx=lx+nw; if(n){ const s1='  ▣ '+n; x.fillStyle='#7dffa8'; x.fillText(s1,bx,py-6); bx+=x.measureText(s1).width; } if(hot){ x.fillStyle='#ffb454'; x.fillText('  +50%',bx,py-6); } }
+      x.font=`10px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(P.port.toUpperCase(),lx,py+8);
+    });
+
+    // you
+    const pulse=(t*0.9)%1; x.strokeStyle=`rgba(98,226,255,${0.6*(1-pulse)})`; x.beginPath(); x.arc(sx,sy,6+pulse*16,0,TAU); x.stroke();
+    if(docked){ x.strokeStyle='#62e2ff'; x.lineWidth=1.5; x.beginPath(); x.arc(sx,sy,4,0,TAU); x.stroke(); x.lineWidth=1; }
+    else { const f=new V3(0,0,-1).applyQuaternion(s.quat), a=Math.atan2(f.z,f.x); x.save(); x.translate(sx,sy); x.rotate(a); x.fillStyle='#62e2ff'; x.strokeStyle='#04060b'; x.beginPath(); x.moveTo(10,0); x.lineTo(-6,6); x.lineTo(-3,0); x.lineTo(-6,-6); x.closePath(); x.fill(); x.stroke(); x.restore(); }
+    x.font=`10px ${FONT_MONO}`; x.textAlign='center'; const yl=docked?'DOCKED':s.warpF>0.3?'YOU · WARP':'YOU'; const yw=x.measureText(yl).width+8, yy=sy+(sy>h-34?-20:20);
+    x.fillStyle='rgba(4,6,11,.7)'; x.fillRect(sx-yw/2,yy-8,yw,16); x.fillStyle='#62e2ff'; x.fillText(yl,sx,yy+1);
+  },
+};
 /* ===================== UI: toasts, port, comms, radio ===================== */
 const el = (tag, cls, html) => { const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e; };
 const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1902,7 +2038,7 @@ window.G = G;
 
 const Game = {
   clock:new THREE.Clock(), time:0, flash:0, fade:0, fadeCol:new THREE.Color(0,0,0), towFee:0, towing:false, hintT:0, hintI:99, mk:0,
-  HINTS:[[2.5,'Steer with W A S D until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press Z for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in. Every control works'],[38,'H hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically']],
+  HINTS:[[2.5,'Steer with W A S D until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press Z for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in, and again to lean back. Every control works'],[38,'H hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically'],[66,'M opens the system map. Click a world there to set your destination']],
 
   cruiseSpeed(n){ return SHIPS[G.shipId].cruise*Math.pow(n/10,1.5); },
   setThrottle(n){ n=clamp(Math.round(n),0,10); if(!G.sys.power||G.mode!=='flight') return; if(n!==G.ship.throttle){ G.ship.throttle=n; Sfx.click(); } },
@@ -1997,6 +2133,7 @@ const Game = {
       this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
       World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=0.75+s.warpF*0.7;
     } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    SysMap.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
     World.render();
@@ -2030,12 +2167,14 @@ const Game = {
       if(!$('help').hidden){ if(c==='Escape'||c==='Slash'||c==='F1'){ help(false); e.preventDefault(); } return; }
       if(c==='F1'||(c==='Slash'&&e.shiftKey)){ if(G.mode!=='title'&&G.mode!=='boot'){ help(true); e.preventDefault(); } return; }
       if(G.mode==='landing'||G.mode==='takeoff'){ if(c==='Space'||c==='Enter'||c==='Escape') Cine.skip(); return; }
+      if(c==='KeyM'&&!(e.metaKey||e.ctrlKey||e.altKey)){ if(!e.repeat&&(G.mode==='flight'||G.mode==='port')) SysMap.toggle(); return; }
+      if(SysMap.open&&c==='Escape'){ SysMap.close(); return; }
       if(G.mode!=='flight'||e.repeat&&!/^Key[WASDQE]$|^Arrow/.test(c)) return; G.keys[c]=true; if(e.metaKey||e.ctrlKey||e.altKey) return;
       const dm=c.match(/^(?:Digit|Numpad)(\d)$/);
       if(dm){ const n=+dm[1]; if(Comms.open&&n>=1&&n<=5) Comms.choose(n-1); else this.setThrottle(n===0?10:n); return; }
       switch(c){ case 'KeyX': this.setThrottle(0); break; case 'KeyZ': this.toggleWarp(); break; case 'KeyT': this.setTarget(G.target+(e.shiftKey?-1:1)); break; case 'KeyP': this.setAutopilot(!G.sys.autopilot); break;
         case 'KeyH': Comms.hail(); break; case 'KeyG': this.honk(); break; case 'KeyC': Cockpit.zoomOut(); break; case 'Escape': if(Comms.open) Comms.close(); else Cockpit.zoomOut(); break;
-        case 'KeyM': G.sys.music=G.sys.music>0.02?0:0.45; Sfx.setMusicVol(G.sys.music); break; }
+        case 'KeyN': G.sys.music=G.sys.music>0.02?0:0.45; Sfx.setMusicVol(G.sys.music); break; }
     });
     window.addEventListener('keyup',e=>{ G.keys[e.code]=false; });
     window.addEventListener('blur',()=>{ G.keys={}; });
@@ -2045,7 +2184,7 @@ const Game = {
   async boot(){
     try{ await Promise.race([document.fonts&&document.fonts.load?Promise.all([document.fonts.load(`600 20px ${FONT_DISP}`),document.fonts.load(`20px ${FONT_MONO}`)]):0,new Promise(r=>setTimeout(r,2500))]); }catch(e){}
     try{ World.init($('gl')); }catch(err){ console.error(err); const b=$('btn-new'); b.textContent='This browser cannot start WebGL'; return; }
-    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); this.bind(); this.setupTitle(); this.loop();
+    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); this.bind(); this.setupTitle(); this.loop();
   },
 };
 Game.boot();

@@ -361,11 +361,11 @@ const Cockpit = {
   /* ---------- view + interaction ---------- */
   zoomOut(){ const H=G.head; H.posT.set(0,0,0); H.yawT=0; H.pitchT=H.basePitch; H.fovT=72; H.zoomed=null; },
   zoomAt(nd){
-    const H=G.head; this.ray.setFromCamera(nd,World.cockCam); const hs=this.ray.intersectObject(this.group,true); if(!hs.length){ this.zoomOut(); return; }
+    const H=G.head; if(H.zoomed){ this.zoomOut(); return; }
+    this.ray.setFromCamera(nd,World.cockCam); const hs=this.ray.intersectObject(this.group,true); if(!hs.length) return;
     const h=hs[0], L=this.group.worldToLocal(h.point.clone());
     const aim=(d)=>{ H.yawT=Math.atan2(-d.x,-d.z); H.pitchT=Math.atan2(d.y,Math.hypot(d.x,d.z)); };
-    if(h.object.userData.glass){ if(H.zoomed==='glass'){ this.zoomOut(); return; } aim(L.clone().sub(H.pos)); H.posT.set(0,0,0); H.fovT=24; H.zoomed='glass'; return; }
-    if(H.zoomed==='panel' && H.zoomPt && L.distanceTo(H.zoomPt)<0.07){ this.zoomOut(); return; }
+    if(h.object.userData.glass){ aim(L.clone().sub(H.pos)); H.posT.set(0,0,0); H.fovT=24; H.zoomed='glass'; return; }
     const len=L.length(); H.posT.copy(L).multiplyScalar(Math.max(0,1-0.3/len)); aim(L); H.fovT=46; H.zoomed='panel'; H.zoomPt=L.clone();
   },
   pick(nd){ this.ray.setFromCamera(nd,World.cockCam); const hs=this.ray.intersectObjects(this.hits,false); return hs.length?hs[0].object.userData.ctrl:null; },

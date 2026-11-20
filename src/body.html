@@ -6,7 +6,7 @@
   <button id="skip" hidden>Skip ▸ Space</button>
   <div id="toasts" aria-live="polite"></div>
   <div id="tooltip" hidden></div>
-  <div id="keys" hidden>? Help · Double-click to zoom · Drag to look</div>
+  <div id="keys" hidden>? Help · M Map · Double-click to zoom · Drag to look</div>
 
   <section id="comms" hidden aria-label="Comms link">
     <canvas id="comms-face" width="192" height="192"></canvas>
@@ -29,6 +29,12 @@
     <footer><span id="port-foot"></span><button class="big" id="launch">Launch</button></footer>
   </section>
 
+  <section id="map" hidden aria-label="System map">
+    <header><h2>System map</h2><div class="sub" id="map-sub"></div><button class="big ghost" id="map-close">Close · M</button></header>
+    <div id="map-main"><div id="map-view"><canvas id="map-cv"></canvas></div><aside id="map-list" aria-label="Worlds"></aside></div>
+    <footer id="map-foot"></footer>
+  </section>
+
   <section id="title">
     <div class="eyebrow">Independent freight · nine worlds · no questions</div>
     <h1>Long <span>Haul</span></h1>
@@ -43,7 +49,8 @@
       <div><dt>Z</dt><dd>Warp drive</dd></div>
       <div><dt>T</dt><dd>Next destination</dd></div>
       <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
-      <div><dt>Double-click</dt><dd>Zoom on the cockpit</dd></div>
+      <div><dt>M</dt><dd>System map</dd></div>
+      <div><dt>Double-click</dt><dd>Zoom in, and back out</dd></div>
     </dl>
   </section>
 
@@ -62,7 +69,9 @@
         <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
         <div><dt>G</dt><dd>Horn</dd></div>
         <div><dt>Drag / arrows</dt><dd>Look around</dd></div>
-        <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit</dd></div>
+        <div><dt>M</dt><dd>System map (click a world to set destination)</dd></div>
+        <div><dt>N</dt><dd>Cabin music on / off</dd></div>
+        <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit; again to return</dd></div>
         <div><dt>C / Esc</dt><dd>Centre the view</dd></div>
         <div><dt>Click, drag, scroll</dt><dd>Work any knob, switch or lever</dd></div>
       </dl>

@@ -18,7 +18,9 @@ Play it at https://space-cruiser.johnshawler.com
 | H | Hail the nearest pilot |
 | G | Horn |
 | Arrows or drag | Look around |
-| Double-click | Lean in to any part of the cockpit |
+| M | System map (click a world to set your destination) |
+| N | Cabin music on / off |
+| Double-click | Lean in to any part of the cockpit; double-click again to lean back |
 | ? | Help |
 
 Every gauge, knob, switch and lever in the cockpit works. Landing is automatic. Progress saves in the browser at each port.

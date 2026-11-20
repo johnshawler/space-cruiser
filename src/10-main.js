@@ -9,7 +9,7 @@ window.G = G;
 
 const Game = {
   clock:new THREE.Clock(), time:0, flash:0, fade:0, fadeCol:new THREE.Color(0,0,0), towFee:0, towing:false, hintT:0, hintI:99, mk:0,
-  HINTS:[[2.5,'Steer with W A S D until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press Z for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in. Every control works'],[38,'H hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically']],
+  HINTS:[[2.5,'Steer with W A S D until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press Z for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in, and again to lean back. Every control works'],[38,'H hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically'],[66,'M opens the system map. Click a world there to set your destination']],
 
   cruiseSpeed(n){ return SHIPS[G.shipId].cruise*Math.pow(n/10,1.5); },
   setThrottle(n){ n=clamp(Math.round(n),0,10); if(!G.sys.power||G.mode!=='flight') return; if(n!==G.ship.throttle){ G.ship.throttle=n; Sfx.click(); } },
@@ -104,6 +104,7 @@ const Game = {
       this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
       World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=0.75+s.warpF*0.7;
     } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    SysMap.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
     World.render();
@@ -137,12 +138,14 @@ const Game = {
       if(!$('help').hidden){ if(c==='Escape'||c==='Slash'||c==='F1'){ help(false); e.preventDefault(); } return; }
       if(c==='F1'||(c==='Slash'&&e.shiftKey)){ if(G.mode!=='title'&&G.mode!=='boot'){ help(true); e.preventDefault(); } return; }
       if(G.mode==='landing'||G.mode==='takeoff'){ if(c==='Space'||c==='Enter'||c==='Escape') Cine.skip(); return; }
+      if(c==='KeyM'&&!(e.metaKey||e.ctrlKey||e.altKey)){ if(!e.repeat&&(G.mode==='flight'||G.mode==='port')) SysMap.toggle(); return; }
+      if(SysMap.open&&c==='Escape'){ SysMap.close(); return; }
       if(G.mode!=='flight'||e.repeat&&!/^Key[WASDQE]$|^Arrow/.test(c)) return; G.keys[c]=true; if(e.metaKey||e.ctrlKey||e.altKey) return;
       const dm=c.match(/^(?:Digit|Numpad)(\d)$/);
       if(dm){ const n=+dm[1]; if(Comms.open&&n>=1&&n<=5) Comms.choose(n-1); else this.setThrottle(n===0?10:n); return; }
       switch(c){ case 'KeyX': this.setThrottle(0); break; case 'KeyZ': this.toggleWarp(); break; case 'KeyT': this.setTarget(G.target+(e.shiftKey?-1:1)); break; case 'KeyP': this.setAutopilot(!G.sys.autopilot); break;
         case 'KeyH': Comms.hail(); break; case 'KeyG': this.honk(); break; case 'KeyC': Cockpit.zoomOut(); break; case 'Escape': if(Comms.open) Comms.close(); else Cockpit.zoomOut(); break;
-        case 'KeyM': G.sys.music=G.sys.music>0.02?0:0.45; Sfx.setMusicVol(G.sys.music); break; }
+        case 'KeyN': G.sys.music=G.sys.music>0.02?0:0.45; Sfx.setMusicVol(G.sys.music); break; }
     });
     window.addEventListener('keyup',e=>{ G.keys[e.code]=false; });
     window.addEventListener('blur',()=>{ G.keys={}; });
@@ -152,7 +155,7 @@ const Game = {
   async boot(){
     try{ await Promise.race([document.fonts&&document.fonts.load?Promise.all([document.fonts.load(`600 20px ${FONT_DISP}`),document.fonts.load(`20px ${FONT_MONO}`)]):0,new Promise(r=>setTimeout(r,2500))]); }catch(e){}
     try{ World.init($('gl')); }catch(err){ console.error(err); const b=$('btn-new'); b.textContent='This browser cannot start WebGL'; return; }
-    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); this.bind(); this.setupTitle(); this.loop();
+    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); this.bind(); this.setupTitle(); this.loop();
   },
 };
 Game.boot();
