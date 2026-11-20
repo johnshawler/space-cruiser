@@ -1,0 +1,73 @@
+<div id="app">
+  <canvas id="gl" tabindex="0" aria-label="Flight view"></canvas>
+  <div id="fade"></div>
+  <div id="lb-top" class="lb"></div><div id="lb-bot" class="lb"></div>
+  <div id="cine-title"><h2 id="cine-h"></h2><p id="cine-p"></p></div>
+  <button id="skip" hidden>Skip ▸ Space</button>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="tooltip" hidden></div>
+  <div id="keys" hidden>? Help · Double-click to zoom · Drag to look</div>
+
+  <section id="comms" hidden aria-label="Comms link">
+    <canvas id="comms-face" width="192" height="192"></canvas>
+    <div>
+      <div class="who" id="comms-who"></div>
+      <canvas id="comms-glyph" width="900" height="52"></canvas>
+      <div id="comms-text"></div>
+    </div>
+    <div id="comms-opts"></div>
+  </section>
+
+  <section id="port" hidden aria-label="Spaceport">
+    <header>
+      <h2 id="port-name"></h2>
+      <div class="sub" id="port-sub"></div>
+      <div class="stats" id="port-stats"></div>
+    </header>
+    <nav id="port-tabs"></nav>
+    <div id="port-body"></div>
+    <footer><span id="port-foot"></span><button class="big" id="launch">Launch</button></footer>
+  </section>
+
+  <section id="title">
+    <div class="eyebrow">Independent freight · nine worlds · no questions</div>
+    <h1>Long <span>Haul</span></h1>
+    <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
+    <div class="row">
+      <button class="big" id="btn-new" disabled>Loading…</button>
+      <button class="big ghost" id="btn-continue" hidden>Continue</button>
+    </div>
+    <dl>
+      <div><dt>W A S D</dt><dd>Steer</dd></div>
+      <div><dt>1 – 0</dt><dd>Throttle, slow to full</dd></div>
+      <div><dt>Z</dt><dd>Warp drive</dd></div>
+      <div><dt>T</dt><dd>Next destination</dd></div>
+      <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
+      <div><dt>Double-click</dt><dd>Zoom on the cockpit</dd></div>
+    </dl>
+  </section>
+
+  <section id="help" hidden>
+    <div class="box">
+      <h2>Flight manual</h2>
+      <dl>
+        <div><dt>W / S</dt><dd>Pitch up / down</dd></div>
+        <div><dt>A / D</dt><dd>Yaw left / right</dd></div>
+        <div><dt>Q / E</dt><dd>Roll</dd></div>
+        <div><dt>1 – 9, 0</dt><dd>Throttle 1 (slowest) to 10</dd></div>
+        <div><dt>X</dt><dd>Full stop</dd></div>
+        <div><dt>Z</dt><dd>Warp drive on / off</dd></div>
+        <div><dt>T / Shift+T</dt><dd>Next / previous destination</dd></div>
+        <div><dt>P</dt><dd>Autopilot (steers to destination)</dd></div>
+        <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
+        <div><dt>G</dt><dd>Horn</dd></div>
+        <div><dt>Drag / arrows</dt><dd>Look around</dd></div>
+        <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit</dd></div>
+        <div><dt>C / Esc</dt><dd>Centre the view</dd></div>
+        <div><dt>Click, drag, scroll</dt><dd>Work any knob, switch or lever</dd></div>
+      </dl>
+      <p class="note">Point at your destination, set throttle, press Z. The drive drops out by itself near a planet. Fly on toward it and the port brings you down automatically. Deliveries pay on landing.</p>
+      <button class="big" id="help-close">Back to the cockpit</button>
+    </div>
+  </section>
+</div>
