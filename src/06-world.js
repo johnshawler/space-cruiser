@@ -77,17 +77,17 @@ const World = {
         const q=new Q4(); rm.getWorldQuaternion(q); rm.material.uniforms.uSunL.value.copy(P.sunDir).applyQuaternion(q.invert()); P.ringMesh=rm;
       }
       // HUD marker
-      P.mk={cv:makeCanvas(384,160)}; P.mk.tex=canvasTex(P.mk.cv); P.mk.sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:P.mk.tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
-      P.mk.sprite.scale.set(0.24,0.1,1); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(P.mk.sprite); P.mk.key='';
+      P.mk={cv:makeCanvas(384,240)}; P.mk.tex=canvasTex(P.mk.cv); P.mk.sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:P.mk.tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
+      P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(P.mk.sprite); P.mk.key='';
     });
   },
   drawMarker(P, isTarget, dist){
     const key=(isTarget?'T':'')+(isTarget?fmtDist(dist):''); if(P.mk.key===key) return; P.mk.key=key;
-    const x=P.mk.cv.getContext('2d'); x.clearRect(0,0,384,160); const col=isTarget?'#ffc060':'#58c8e8', cx=192, cy=56, s=isTarget?38:22;
+    const x=P.mk.cv.getContext('2d'); x.clearRect(0,0,384,240); const col=isTarget?'#ffc060':'#58c8e8', cx=192, cy=158, s=isTarget?38:22;
     x.strokeStyle=col; x.lineWidth=isTarget?4:2.5; x.globalAlpha=isTarget?1:0.7;
     for(const [sx,sy] of [[-1,-1],[1,-1],[1,1],[-1,1]]){ x.beginPath(); x.moveTo(cx+sx*s,cy+sy*(s-14)); x.lineTo(cx+sx*s,cy+sy*s); x.lineTo(cx+sx*(s-14),cy+sy*s); x.stroke(); }
-    x.fillStyle=col; x.textAlign='center'; x.font=`600 ${isTarget?30:22}px ${FONT_DISP}`; x.fillText(P.name.toUpperCase(),cx,cy+s+32);
-    if(isTarget){ x.font=`24px ${FONT_MONO}`; x.fillText(fmtDist(dist),cx,cy+s+60); }
+    x.fillStyle=col; x.textAlign='center'; x.font=`600 ${isTarget?58:46}px ${FONT_DISP}`; x.fillText(P.name.toUpperCase(),cx,cy-s-(isTarget?64:14),376);   // label sits above the bracket so the dash never hides it
+    if(isTarget){ x.font=`46px ${FONT_MONO}`; x.fillText(fmtDist(dist),cx,cy-s-14,376); }
     P.mk.tex.needsUpdate=true;
   },
   buildDust(){
@@ -173,7 +173,7 @@ const Npc = {
     const m=Models.build(idx,scheme); m.scale.setScalar(3); World.universe.add(m);
     const cv=makeCanvas(384,96), x=cv.getContext('2d'); x.strokeStyle=S.col; x.fillStyle=S.col; x.lineWidth=3; x.beginPath(); x.moveTo(192,8); x.lineTo(206,22); x.lineTo(192,36); x.lineTo(178,22); x.closePath(); x.stroke();
     x.font=`600 24px ${FONT_DISP}`; x.textAlign='center'; x.fillText(pl.ship.toUpperCase(),192,66); x.font=`18px ${FONT_MONO}`; x.globalAlpha=0.8; x.fillText(S.name+' · '+pl.name,192,88);
-    const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(cv),transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending})); mk.scale.set(0.2,0.05,1); mk.center.set(0.5,0.78); mk.renderOrder=21; World.universe.add(mk);
+    const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(cv),transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending})); mk.scale.set(0.4,0.1,1); mk.center.set(0.5,0.78); mk.renderOrder=21; World.universe.add(mk);
     const n=Object.assign({m,mk,pos:pos.clone(),vel:vel.clone(),kind,pilot:pl,age:0,dist:0},extra||{}); this.list.push(n); return n;
   },
   remove(n){ World.universe.remove(n.m); World.universe.remove(n.mk); n.mk.material.map.dispose(); n.mk.material.dispose(); const i=this.list.indexOf(n); if(i>=0) this.list.splice(i,1); },

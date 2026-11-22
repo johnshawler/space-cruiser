@@ -83,7 +83,7 @@ const Game = {
   },
   markers(){
     const show=G.mode==='flight'&&G.sys.hud&&G.sys.power;
-    for(const P of PLANETS){ const tg=P.idx===G.target; P.mk.sprite.visible=show&&P.px<(tg?90:40); if(!show) continue; World.drawMarker(P,tg,P.dist); P.mk.sprite.scale.set(tg?0.3:0.22,tg?0.125:0.092,1); P.mk.sprite.material.opacity=tg?1:0.6; }
+    for(const P of PLANETS){ const tg=P.idx===G.target; P.mk.sprite.visible=show&&P.px<(tg?90:40); if(!show) continue; World.drawMarker(P,tg,P.dist); P.mk.sprite.scale.set(tg?0.3:0.22,tg?0.1875:0.1375,1); P.mk.sprite.material.opacity=tg?1:0.6; }
   },
 
   loop(){

@@ -49,14 +49,14 @@ const SysMap = {
     const cv=$('map-cv'), box=cv.parentNode, w=box.clientWidth, h=box.clientHeight; if(w<20||h<20) return;
     const dpr=Math.min(window.devicePixelRatio||1,2), W=Math.round(w*dpr), Hh=Math.round(h*dpr); if(cv.width!==W||cv.height!==Hh){ cv.width=W; cv.height=Hh; }
     const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
-    const cx=w/2, cy=h/2, R=Math.max(70,Math.min(w,h)/2-34), k=R/this.maxR, TAU=Math.PI*2;
+    const cx=w/2, cy=h/2, R=Math.max(70,Math.min(w,h)/2-44), k=R/this.maxR, TAU=Math.PI*2;
     const s=G.ship, docked=G.mode==='port'&&G.docked>=0, T=PLANETS[G.target];
     x.lineWidth=1; x.textBaseline='middle';
 
     // range rings, one per light-second
-    x.font=`10px ${FONT_MONO}`; x.textAlign='center';
+    x.font=`20px ${FONT_MONO}`; x.textAlign='center';
     for(let ls=1; ls*LS<=this.maxR; ls++){ const r=ls*LS*k; x.setLineDash([2,6]); x.strokeStyle='rgba(98,226,255,.16)'; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.stroke(); x.setLineDash([]);
-      x.fillStyle='rgba(134,162,174,.7)'; x.fillText(ls+' LS',cx,cy-r-7); }
+      x.fillStyle='rgba(134,162,174,.7)'; x.fillText(ls+' LS',cx,cy-r-13); }
     // orbits
     PLANETS.forEach(P=>{ x.strokeStyle=P.idx===G.target?'rgba(255,180,84,.28)':'rgba(220,237,243,.09)'; x.beginPath(); x.arc(cx,cy,P.orbit*k,0,TAU); x.stroke(); });
     // sun
@@ -65,10 +65,11 @@ const SysMap = {
 
     // ship position on the chart
     const sx=cx+s.pos.x*k, sy=cy+s.pos.z*k;
+    const boxes=PLANETS.map(P=>{ const ax=cx+P.pos.x*k, ay=cy+P.pos.z*k; return [ax-13,ay-13,ax+13,ay+13]; }); boxes.push([sx-16,sy-16,sx+16,sy+44]);
     // course line to the destination
     const tx=cx+T.pos.x*k, ty=cy+T.pos.z*k, cl=Math.hypot(tx-sx,ty-sy);
     if(cl>16){ x.strokeStyle='rgba(255,180,84,.75)'; x.setLineDash([7,6]); x.lineDashOffset=-t*18; x.beginPath(); x.moveTo(sx,sy); x.lineTo(tx,ty); x.stroke(); x.setLineDash([]); x.lineDashOffset=0;
-      if(cl>90){ const mx=(sx+tx)/2, my=(sy+ty)/2, lab=fmtDist(this.dist(T)); x.font=`11px ${FONT_MONO}`; const tw=x.measureText(lab).width+12; x.fillStyle='rgba(4,6,11,.85)'; x.fillRect(mx-tw/2,my-9,tw,18); x.fillStyle='#ffb454'; x.textAlign='center'; x.fillText(lab,mx,my+1); } }
+      if(cl>90){ const mx=(sx+tx)/2, my=(sy+ty)/2, lab=fmtDist(this.dist(T)); x.font=`22px ${FONT_MONO}`; const tw=x.measureText(lab).width+18; x.fillStyle='rgba(4,6,11,.85)'; x.fillRect(mx-tw/2,my-16,tw,32); boxes.push([mx-tw/2,my-16,mx+tw/2,my+16]); x.fillStyle='#ffb454'; x.textAlign='center'; x.fillText(lab,mx,my+1); } }
 
     // worlds
     this.pts.length=0;
@@ -86,19 +87,22 @@ const SysMap = {
         for(let q=0;q<4;q++){ const a=t*0.6+q*Math.PI/2; x.beginPath(); x.moveTo(px+Math.cos(a)*(rr+2),py+Math.sin(a)*(rr+2)); x.lineTo(px+Math.cos(a)*(rr+8),py+Math.sin(a)*(rr+8)); x.stroke(); } x.lineWidth=1; }
       // label: name, port, badges
       const n=this.cargoFor(P.idx), hot=G.hot===P.idx, name=P.name.toUpperCase(); let badge=''; if(n) badge+='  ▣ '+n; if(hot) badge+='  +50%';
-      x.font=`600 13px ${FONT_DISP}`; const nw=x.measureText(name).width; x.font=`11px ${FONT_MONO}`; const bw=badge?x.measureText(badge).width:0; x.font=`10px ${FONT_MONO}`; const pw=x.measureText(P.port.toUpperCase()).width;
-      const lw=Math.max(nw+bw,pw), off=rad+(tg?20:12), left=px+off+lw>w-6, lx=left?px-off-lw:px+off; x.textAlign='left';
-      x.fillStyle='rgba(4,6,11,.6)'; x.fillRect(lx-4,py-15,lw+8,30);
-      x.font=`600 13px ${FONT_DISP}`; x.fillStyle=tg?'#ffb454':hv?'#ffffff':'#dcedf3'; x.fillText(name,lx,py-6);
-      if(badge){ x.font=`11px ${FONT_MONO}`; let bx=lx+nw; if(n){ const s1='  ▣ '+n; x.fillStyle='#7dffa8'; x.fillText(s1,bx,py-6); bx+=x.measureText(s1).width; } if(hot){ x.fillStyle='#ffb454'; x.fillText('  +50%',bx,py-6); } }
-      x.font=`10px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(P.port.toUpperCase(),lx,py+8);
+      x.font=`600 26px ${FONT_DISP}`; const nw=x.measureText(name).width; x.font=`22px ${FONT_MONO}`; const bw=badge?x.measureText(badge).width:0; x.font=`20px ${FONT_MONO}`; const pw=x.measureText(P.port.toUpperCase()).width;
+      const lw=Math.max(nw+bw,pw), off=rad+(tg?20:12); let lx=px+off+lw>w-6?px-off-lw:px+off, ly=py; x.textAlign='left';
+      // keep labels off each other: try right, left, below, above
+      for(const [ax,ay] of [[px+off,py],[px-off-lw,py],[px-lw/2,py+off+30],[px-lw/2,py-off-30]]){ if(ax<6||ax+lw>w-6||ay<34||ay>h-34) continue; if(!boxes.some(b=>ax-8<b[2]&&ax+lw+8>b[0]&&ay-30<b[3]&&ay+30>b[1])){ lx=ax; ly=ay; break; } }
+      boxes.push([lx-6,ly-28,lx+lw+6,ly+28]);
+      x.fillStyle='rgba(4,6,11,.66)'; x.fillRect(lx-6,ly-28,lw+12,56);
+      x.font=`600 26px ${FONT_DISP}`; x.fillStyle=tg?'#ffb454':hv?'#ffffff':'#dcedf3'; x.fillText(name,lx,ly-11);
+      if(badge){ x.font=`22px ${FONT_MONO}`; let bx=lx+nw; if(n){ const s1='  ▣ '+n; x.fillStyle='#7dffa8'; x.fillText(s1,bx,ly-11); bx+=x.measureText(s1).width; } if(hot){ x.fillStyle='#ffb454'; x.fillText('  +50%',bx,ly-11); } }
+      x.font=`20px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(P.port.toUpperCase(),lx,ly+15);
     });
 
     // you
     const pulse=(t*0.9)%1; x.strokeStyle=`rgba(98,226,255,${0.6*(1-pulse)})`; x.beginPath(); x.arc(sx,sy,6+pulse*16,0,TAU); x.stroke();
     if(docked){ x.strokeStyle='#62e2ff'; x.lineWidth=1.5; x.beginPath(); x.arc(sx,sy,4,0,TAU); x.stroke(); x.lineWidth=1; }
     else { const f=new V3(0,0,-1).applyQuaternion(s.quat), a=Math.atan2(f.z,f.x); x.save(); x.translate(sx,sy); x.rotate(a); x.fillStyle='#62e2ff'; x.strokeStyle='#04060b'; x.beginPath(); x.moveTo(10,0); x.lineTo(-6,6); x.lineTo(-3,0); x.lineTo(-6,-6); x.closePath(); x.fill(); x.stroke(); x.restore(); }
-    x.font=`10px ${FONT_MONO}`; x.textAlign='center'; const yl=docked?'DOCKED':s.warpF>0.3?'YOU · WARP':'YOU'; const yw=x.measureText(yl).width+8, yy=sy+(sy>h-34?-20:20);
-    x.fillStyle='rgba(4,6,11,.7)'; x.fillRect(sx-yw/2,yy-8,yw,16); x.fillStyle='#62e2ff'; x.fillText(yl,sx,yy+1);
+    x.font=`20px ${FONT_MONO}`; x.textAlign='center'; const yl=docked?'DOCKED':s.warpF>0.3?'YOU · WARP':'YOU'; const yw=x.measureText(yl).width+14, yy=sy+(sy>h-50?-30:30);
+    x.fillStyle='rgba(4,6,11,.7)'; x.fillRect(sx-yw/2,yy-14,yw,28); x.fillStyle='#62e2ff'; x.fillText(yl,sx,yy+1);
   },
 };
