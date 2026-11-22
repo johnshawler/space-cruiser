@@ -9,13 +9,13 @@ const Cockpit = {
     const g=this.group=new THREE.Group(); World.cock.add(g);
     this.hits=[]; this.ctrls={}; this.screens={}; this.glowMats=[]; this.screenMats=[]; this.gauges={}; this.strips=[];
     const ck=def.ck, bump=panelBumpTex(), self=this;
-    const std=(hex,rough,metal,extra)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:rough,metalness:metal},extra||{}));
+    const std=(hex,rough,metal,extra)=>Toon.mat(Object.assign({color:C(hex),roughness:rough,metalness:metal},extra||{}));
     const M={ frame:std(ck.frame,0.55,0.55,{bumpMap:bump,bumpScale:0.0015}), panel:std(ck.panel,0.7,0.3,{bumpMap:bump,bumpScale:0.001}), trim:std(ck.trim,0.32,0.9),
-      rubber:std('#0c0c0d',0.95,0), leather:std(ck.leather,0.62,0.05,{bumpMap:bump,bumpScale:0.0008}), knob:std('#141416',0.42,0.25), alu:std('#b9bdc4',0.28,0.95),
+      rubber:std('#2c2840',0.95,0), leather:std(ck.leather,0.62,0.05), knob:std('#34304a',0.42,0.25), alu:std('#cfd3e6',0.28,0.95),
       ptr:new THREE.MeshBasicMaterial({color:new THREE.Color(1.3,1.3,1.3)}), needle:new THREE.MeshBasicMaterial({color:HDR('#ff8a30',2.2)}),
       hit:new THREE.MeshBasicMaterial({visible:false}), wallDS:std(ck.frame,0.6,0.5,{side:THREE.DoubleSide}),
-      glass:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.22,transparent:true,opacity:0.06,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.6}),
-      canopy:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.4,transparent:true,opacity:0.045,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.8}) };
+      glass:new THREE.MeshBasicMaterial({color:C('#bfeaff'),transparent:true,opacity:0.07,depthWrite:false,side:THREE.DoubleSide}),
+      canopy:new THREE.MeshBasicMaterial({color:C('#9fdcff'),transparent:true,opacity:0.018,depthWrite:false,side:THREE.DoubleSide}) };
     this.M=M;
     const add=(m,cast=true,parent=g)=>{ m.castShadow=cast; m.receiveShadow=true; parent.add(m); return m; };
     const bx=(w,h,d,mat,x,y,z,parent)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); return add(m,true,parent||g); };
@@ -67,7 +67,7 @@ const Cockpit = {
       for(const [sx,sy] of [[28,28],[cw-28,28],[28,ch-28],[cw-28,ch-28]]){ ctx.fillStyle='#8a8e94'; ctx.beginPath(); ctx.arc(sx,sy,9,0,7); ctx.fill(); ctx.strokeStyle='#222'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(sx-6,sy-3); ctx.lineTo(sx+6,sy+3); ctx.stroke(); }
       gctx.fillStyle='#000'; gctx.fillRect(0,0,cw,ch);
       const tex=canvasTex(cv), gtex=canvasTex(gv);
-      const mat=new THREE.MeshStandardMaterial({map:tex,emissiveMap:gtex,emissive:C(ck.glow),emissiveIntensity:1,roughness:0.6,metalness:0.35});
+      const mat=Toon.mat({map:tex,emissiveMap:gtex,emissive:C(ck.glow),emissiveIntensity:1,roughness:0.6,metalness:0.35});
       const pg=new THREE.Group(); const face=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat); face.receiveShadow=true; pg.add(face);
       bx(w+0.014,h+0.014,0.05,M.frame,0,0,-0.0262,pg); this.glowMats.push(mat); g.add(pg);
       const P={g:pg,w,h,px,ctx,gctx,tex,gtex, xy:(x,y)=>[(x+w/2)*px,(h/2-y)*px],
@@ -105,7 +105,7 @@ const Cockpit = {
       P.text(x,y-r-0.012,o.label,0.0085);
       const grp=new THREE.Group(); grp.position.set(x,y,0); P.g.add(grp);
       const bz=new THREE.Mesh(cylZ(r*1.2,r*1.28,0.006),M.alu); bz.position.z=0.003; add(bz,false,grp);
-      const mat=new THREE.MeshStandardMaterial({color:C(o.color),emissive:C(o.color),emissiveIntensity:0.15,roughness:0.35,metalness:0.1});
+      const mat=Toon.mat({color:C(o.color),emissive:C(o.color),emissiveIntensity:0.15,roughness:0.35,metalness:0.1});
       const cap=new THREE.Mesh(cylZ(r*0.94,r,0.012),mat); cap.position.z=0.011; add(cap,true,grp);
       const hit=new THREE.Mesh(cylZ(r*1.3,r*1.3,0.04,10),M.hit); hit.position.z=0.02; grp.add(hit);
       return reg(Object.assign({type:'button',cap,mat,down:0},o),[hit]);
@@ -212,7 +212,7 @@ const Cockpit = {
 
     /* ---- manifest clipboard ---- */
     { const cv=makeCanvas(400,560); const tex=canvasTex(cv); const board=new THREE.Group(); board.position.set(-0.81,-0.412,-0.32); board.rotation.y=0.18; g.add(board);
-      bx(0.2,0.008,0.28,std('#5a4026',0.8,0),0,0,0,board); const pm=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.252),new THREE.MeshStandardMaterial({map:tex,roughness:0.9,metalness:0})); pm.rotation.x=-Math.PI/2; pm.position.y=0.0046; pm.receiveShadow=true; board.add(pm);
+      bx(0.2,0.008,0.28,std('#5a4026',0.8,0),0,0,0,board); const pm=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.252),Toon.mat({map:tex,roughness:0.9,metalness:0})); pm.rotation.x=-Math.PI/2; pm.position.y=0.0046; pm.receiveShadow=true; board.add(pm);
       bx(0.07,0.012,0.02,M.alu,0,0.008,-0.125,board); this.screens.manifest={cv,ctx:cv.getContext('2d'),tex,w:400,h:560}; }
 
     /* ---- wipers ---- */
@@ -227,6 +227,7 @@ const Cockpit = {
       for(const s of [-1,0,1]){ const e=new THREE.Mesh(new THREE.SphereGeometry(0.0065,8,6),std('#ffffff',0.2,0)); e.position.set(s*0.012,0.026+(s?0:0.008),0.02); head.add(e); const p=new THREE.Mesh(new THREE.SphereGeometry(0.003,6,6),std('#000000',0.2,0)); p.position.set(s*0.012,0.026+(s?0:0.008),0.0255); head.add(p); }
       this.bobble=head; this.bobV=new THREE.Vector2(); this.bobA=new THREE.Vector2(); }
 
+    Toon.ink.mark(g);
     this.drawManifest(); this.frame=0;
   },
 
@@ -261,7 +262,7 @@ const Cockpit = {
     if(f%10===5){ this.drawRadio(); this.drawThr(); } if(f%30===7){ this.drawClock(t); this.drawHold(); }
   },
   blank(k){ const s=this.screens[k]; s.ctx.fillStyle='#000'; s.ctx.fillRect(0,0,s.w,s.h); s.tex.needsUpdate=true; },
-  targetLocal(){ const P=PLANETS[G.target], s=G.ship; const v=new V3().subVectors(P.pos,s.pos); const d=v.length(); v.normalize().applyQuaternion(s.quat.clone().invert()); return {P,d,v,ang:Math.acos(clamp(-v.z,-1,1))}; },
+  targetLocal(){ const P=Nav.target(), s=G.ship; const v=new V3().subVectors(P.pos,s.pos); const d=v.length(); v.normalize().applyQuaternion(s.quat.clone().invert()); return {P,d,v,ang:Math.acos(clamp(-v.z,-1,1))}; },
 
   drawMFD(t){
     const S=this.screens.mfd, x=S.ctx, W=S.w, H=S.h, s=G.ship, def=SHIPS[G.shipId], page=G.sys.mfdPage;
@@ -280,7 +281,7 @@ const Cockpit = {
       x.textAlign='left'; const row=(lab,val,y,col)=>{ x.fillStyle='#5f8fa0'; x.font=`42px ${FONT_MONO}`; x.fillText(lab,226,y); x.fillStyle=col||'#dcedf3'; x.font=`60px ${FONT_MONO}`; x.fillText(val,226,y+58,W-240); };
       row(behind?'BEHIND YOU':'DISTANCE',fmtDist(T.d),234,behind?'#ff6f61':null); const eta=s.speed>5?T.d/s.speed:Infinity; row('ETA',eta===Infinity?'--:--':eta>5999?'>99 min':String(Math.floor(eta/60)).padStart(2,'0')+':'+String(Math.floor(eta%60)).padStart(2,'0'),346);
       const cw=Game.canWarp(); let msg, col='#62e2ff';
-      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
+      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.isWp&&P.dist<P.arriveR*4){ msg='ARRIVING'; col='#7dffa8'; } else if(!P.isWp&&P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
       else if(T.ang<0.14){ msg='ALIGNED · PRESS Z TO WARP'; col='#7dffa8'; } else msg='TURN TO DESTINATION';
       if(Math.floor(t*2)%2||col!=='#7dffa8'){ x.fillStyle=col; x.font=`42px ${FONT_MONO}`; x.textAlign='center'; x.fillText(msg,W/2,H-12,W-24); }
     } else if(page===1){
@@ -289,12 +290,12 @@ const Cockpit = {
       x.font=`40px ${FONT_MONO}`;
       if(!G.cargo.length){ x.fillStyle='#5f8fa0'; x.fillText('Hold is empty.',18,214); x.fillText('Take a job at a port.',18,266,W-36); }
       const show=G.cargo.length>3?2:3;
-      G.cargo.slice(0,show).forEach((c,i)=>{ const y=200+i*98; x.textAlign='left'; x.fillStyle='#dcedf3'; x.fillText(`${c.qty}× ${c.good}`,18,y,W-36);
-        x.fillStyle=c.to===G.target?'#ffb454':'#5f8fa0'; x.fillText('→ '+PLANETS[c.to].name,18,y+46); x.fillStyle='#7dffa8'; x.textAlign='right'; x.fillText(fmtCr(c.pay),W-18,y+46); x.textAlign='left'; });
+      G.cargo.slice(0,show).forEach((c,i)=>{ const y=200+i*98; x.textAlign='left'; x.fillStyle='#dcedf3'; x.fillText(c.kind==='escort'?c.good:`${c.qty}× ${c.good}`,18,y,W-36);
+        x.fillStyle=c.to===G.target?'#ffb454':'#5f8fa0'; x.fillText('→ '+Ev.cargoDest(c),18,y+46); x.fillStyle='#7dffa8'; x.textAlign='right'; x.fillText(fmtCr(c.pay),W-18,y+46); x.textAlign='left'; });
       if(G.cargo.length>show){ x.fillStyle='#5f8fa0'; x.fillText(`+ ${G.cargo.length-show} more aboard`,18,H-22,W-36); }
     } else {
       x.textAlign='left'; x.fillStyle='#ffb454'; x.font=`600 48px ${FONT_DISP}`; x.fillText(def.name.toUpperCase(),18,132,W-36);
-      const rows=[['FUEL',Math.round(G.fuel/def.fuel*100)+' %'],['SPEED',s.warpF>0.3?(s.speed/LS).toFixed(2)+' c':Math.round(s.speed)+' km/s'],['CORE TEMP',Math.round(s.temp*100)+' %'],['EARNED',fmtCr(G.stats.earned)],['HOT TIP',G.hot!=null?PLANETS[G.hot].name+' +50%':'none']];
+      const rows=[['FUEL',Math.round(G.fuel/def.fuel*100)+' %'],['HULL',Math.round(G.hull)+' %'],['CORE TEMP',Math.round(s.temp*100)+' %'],['REP',Rep.label()+' '+(G.rep>0?'+':'')+G.rep],['HOT TIP',G.hot!=null?PLANETS[G.hot].name+' +50%':'none']];
       x.font=`42px ${FONT_MONO}`; rows.forEach((r,i)=>{ const y=200+i*62; x.fillStyle='#5f8fa0'; x.textAlign='left'; x.fillText(r[0],18,y); const lw=x.measureText(r[0]).width; x.fillStyle='#dcedf3'; x.textAlign='right'; x.fillText(r[1],W-18,y,W-60-lw); });
       x.textAlign='left';
     }
@@ -302,9 +303,9 @@ const Cockpit = {
   },
   drawAnn(t){
     const S=this.screens.ann, x=S.ctx, s=G.ship, def=SHIPS[G.shipId]; x.fillStyle='#050608'; x.fillRect(0,0,S.w,S.h); const bl=Math.floor(t*3)%2;
-    const lamps=[['WARP',s.warp,'#6ab8ff'],['MASS LOCK',Game.massLock()&&!s.warp,'#ffb454'],['AUTO PILOT',G.sys.autopilot,'#7dffa8'],['FUEL LOW',G.fuel/def.fuel<0.2&&bl,'#ff6f61'],['COMMS',Radio.cur&&Radio.cur.t<Radio.cur.dur,'#62e2ff']];
-    lamps.forEach((l,i)=>{ const y=8+i*78, w=l[0].split(' '); x.fillStyle=l[1]?l[2]:'#12181c'; x.fillRect(8,y,S.w-16,68); x.fillStyle=l[1]?'#041018':'#2c3a42'; x.textAlign='center'; x.textBaseline='middle';
-      if(w.length>1){ x.font=`600 33px ${FONT_DISP}`; x.fillText(w[0],S.w/2,y+20,S.w-24); x.fillText(w[1],S.w/2,y+50,S.w-24); } else { x.font=`600 44px ${FONT_DISP}`; x.fillText(l[0],S.w/2,y+36,S.w-26); } });
+    const lamps=[['WARP',s.warp,'#6ab8ff'],['MASS LOCK',Game.massLock()&&!s.warp,'#ffb454'],['AUTO PILOT',G.sys.autopilot,'#7dffa8'],['FUEL LOW',G.fuel/def.fuel<0.2&&bl,'#ff6f61'],['HULL LOW',G.hull<35&&bl,'#ff6f61'],[Escort.npc?'ESCORT':'COMMS',Escort.npc?(Game.escortAlarm?bl:true):(Radio.cur&&Radio.cur.t<Radio.cur.dur),Game.escortAlarm?'#ff6f61':'#62e2ff']];
+    lamps.forEach((l,i)=>{ const y=6+i*65, w=l[0].split(' '); x.fillStyle=l[1]?l[2]:'#12181c'; x.fillRect(8,y,S.w-16,58); x.fillStyle=l[1]?'#041018':'#2c3a42'; x.textAlign='center'; x.textBaseline='middle';
+      if(w.length>1){ x.font=`600 28px ${FONT_DISP}`; x.fillText(w[0],S.w/2,y+17,S.w-24); x.fillText(w[1],S.w/2,y+43,S.w-24); } else { x.font=`600 40px ${FONT_DISP}`; x.fillText(l[0],S.w/2,y+31,S.w-26); } });
     S.tex.needsUpdate=true;
   },
   drawRadar(t){
@@ -362,7 +363,7 @@ const Cockpit = {
     const S=this.screens.manifest; if(!S) return; const x=S.ctx; x.fillStyle='#efe8d6'; x.fillRect(0,0,400,560); x.fillStyle='#222'; x.font=`700 30px ${FONT_DISP}`; x.textAlign='left'; x.textBaseline='alphabetic'; x.fillText('CARGO MANIFEST',24,50);
     x.strokeStyle='#222'; x.lineWidth=2; x.beginPath(); x.moveTo(24,62); x.lineTo(376,62); x.stroke(); x.font=`17px ${FONT_MONO}`;
     if(!G.cargo.length){ x.fillStyle='#666'; x.fillText('(nothing aboard)',24,100); }
-    G.cargo.slice(0,9).forEach((c,i)=>{ const y=96+i*50; x.fillStyle='#111'; let nm=`${c.qty}x ${c.good}`; if(nm.length>34) nm=nm.slice(0,33)+'…'; x.fillText(nm,24,y); x.fillStyle='#8a1c1c'; x.fillText(`to ${PLANETS[c.to].name} — ${fmtCr(c.pay)}`,40,y+20); });
+    G.cargo.slice(0,9).forEach((c,i)=>{ const y=96+i*50; x.fillStyle='#111'; let nm=c.kind==='escort'?c.good:`${c.qty}x ${c.illegal?'Personal Effects (honest)':c.good}`; if(nm.length>34) nm=nm.slice(0,33)+'…'; x.fillText(nm,24,y); x.fillStyle='#8a1c1c'; x.fillText(`${c.kind==='ore'?'sell anywhere':'to '+PLANETS[c.to].name} — ${fmtCr(c.pay)}`,40,y+20); });
     x.fillStyle='#8a1c1c'; x.font=`italic 18px ${FONT_MONO}`; x.save(); x.translate(250,520); x.rotate(-0.12); x.fillText('do NOT shake',0,0); x.restore(); S.tex.needsUpdate=true;
   },
 

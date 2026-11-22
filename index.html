@@ -98,6 +98,18 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .opt:hover{border-color:var(--amber);color:var(--amber)}
 .opt b{color:var(--amber);font-weight:400;margin-right:6px}
 
+#dlg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(4% + env(safe-area-inset-bottom,0px));width:min(1180px,calc(100% - 32px));z-index:28;background:var(--glass);border:1px solid var(--line);border-top:3px solid var(--amber);padding:20px 22px;display:grid;grid-template-columns:160px 1fr;gap:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#dlg.alert{border-top-color:var(--bad)}
+#dlg-face{width:160px;height:160px;border:1px solid var(--line)}
+#dlg .who{font-family:var(--mono);font-size:24px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase}
+#dlg.alert .who{color:var(--bad)}
+#dlg-text{font-size:32px;line-height:1.3;margin-top:8px}
+#dlg-time{height:6px;background:var(--glass-2);margin-top:12px}#dlg-bar{display:block;height:100%;width:0;background:var(--amber);transition:width .2s linear}
+#dlg-opts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px}
+.opt small{display:block;color:var(--dim);font-size:20px;margin-top:4px;letter-spacing:.04em}
+.opt:disabled{opacity:.45;cursor:default}
+.tag.bad{border-color:var(--bad);color:var(--bad)}.tag.esc{border-color:var(--cyan);color:var(--cyan)}
+.card.shady{border-color:rgba(255,111,97,.45)}
 #help{position:absolute;inset:0;z-index:30;background:rgba(2,4,8,.88);display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #help .box{max-width:1280px;width:100%;max-height:100%;overflow:auto;border:1px solid var(--line);background:var(--glass);padding:24px}
 #help h2{font-family:var(--display);letter-spacing:.2em;text-transform:uppercase;margin:0 0 14px;font-size:36px}
@@ -133,6 +145,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
   #port h2{font-size:32px}#port .sub,#port nav button,.card .meta,.btn,#port footer span{font-size:16px}#port .stats,.card p,.note,.ledger{font-size:18px}.card h3{font-size:22px}.pay{font-size:24px}.tag{font-size:13px}
   .quote .who,.quote .alien{font-size:15px}.quote .say{font-size:21px}
   #comms{padding:14px 16px;gap:14px}#comms-text{font-size:22px}.opt,#comms .who{font-size:16px}#comms-glyph{height:30px}
+  #dlg{grid-template-columns:64px 1fr;padding:14px 16px;gap:14px}#dlg-face{width:64px;height:64px}#dlg-text{font-size:22px}#dlg .who{font-size:16px}.opt small{font-size:14px}
   #help h2{font-size:24px}#help dl{font-size:17px;grid-template-columns:1fr}#map h2{font-size:20px}#map .sub,#map footer{font-size:14px}#map-close{font-size:15px}
 }
 @media (max-width:640px){
@@ -173,6 +186,12 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
     <footer><span id="port-foot"></span><button class="big" id="launch">Launch</button></footer>
   </section>
 
+  <section id="dlg" hidden aria-label="Decision" aria-live="polite">
+    <canvas id="dlg-face" width="192" height="192"></canvas>
+    <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
+    <div id="dlg-opts"></div>
+  </section>
+
   <section id="map" hidden aria-label="System map">
     <header><h2>System map</h2><div class="sub" id="map-sub"></div><button class="big ghost" id="map-close">Close · M</button></header>
     <div id="map-main"><div id="map-view"><canvas id="map-cv"></canvas></div><aside id="map-list" aria-label="Worlds"></aside></div>
@@ -194,6 +213,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
       <div><dt>T</dt><dd>Next destination</dd></div>
       <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
       <div><dt>M</dt><dd>System map</dd></div>
+      <div><dt>F (hold)</dt><dd>Mining laser</dd></div>
       <div><dt>Double-click</dt><dd>Zoom in, and back out</dd></div>
     </dl>
   </section>
@@ -215,11 +235,14 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
         <div><dt>Drag / arrows</dt><dd>Look around</dd></div>
         <div><dt>M</dt><dd>System map (click a world to set destination)</dd></div>
         <div><dt>N</dt><dd>Cabin music on / off</dd></div>
+        <div><dt>F (hold)</dt><dd>Mining laser, aimed at a rock in your sights</dd></div>
+        <div><dt>1 – 4</dt><dd>Pick an answer when a message pops up</dd></div>
         <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit; again to return</dd></div>
         <div><dt>C / Esc</dt><dd>Centre the view</dd></div>
         <div><dt>Click, drag, scroll</dt><dd>Work any knob, switch or lever</dd></div>
       </dl>
       <p class="note">Point at your destination, set throttle, press Z. The drive drops out by itself near a planet. Fly on toward it and the port brings you down automatically. Deliveries pay on landing.</p>
+      <p class="note">Side work: answer maydays (or don't), mine the asteroid fields on the map and sell ore at any port, take risky contraband runs, or escort nervous VIPs. Your reputation changes what people pay you and how hard customs look at you.</p>
       <button class="big" id="help-close">Back to the cockpit</button>
     </div>
   </section>
@@ -372,15 +395,15 @@ const GOODS = [
 /* speeds in km/s; one light-second = 300,000 km */
 const SHIPS = [
   {name:'Rustbucket Mk I', tag:'It flies. Mostly forward.', price:0, hold:6, cruise:900, warp:55000, fuel:100, turn:0.8, model:0,
-   ck:{frame:'#3d3a36',panel:'#23211f',trim:'#b5651d',glow:'#ffb060',leather:'#4a3426',cage:true}},
+   ck:{frame:'#c8693a',panel:'#24464f',trim:'#f2c14e',glow:'#ffb060',leather:'#8c3b2f',cage:true}},
   {name:'Dromedary 400', tag:'A box with ambitions.', price:4500, hold:14, cruise:1000, warp:65000, fuel:140, turn:0.8, model:1,
-   ck:{frame:'#34383c',panel:'#1d2024',trim:'#e0b000',glow:'#ffd27a',leather:'#2e2e30',cage:true}},
+   ck:{frame:'#e2a92f',panel:'#243a5c',trim:'#ff6b35',glow:'#ffd27a',leather:'#6b4226',cage:true}},
   {name:'Stellar Stoat', tag:'Sleek, quick, slightly smug.', price:16000, hold:30, cruise:1200, warp:80000, fuel:180, turn:1.0, model:2,
-   ck:{frame:'#2a3238',panel:'#161b20',trim:'#19b8a6',glow:'#7ff5e6',leather:'#1e2a30',cage:false}},
+   ck:{frame:'#dfe9ee',panel:'#1d4a6a',trim:'#22b8a8',glow:'#7ff5e6',leather:'#2d6a4f',cage:false}},
   {name:'Opulent Manatee', tag:'Heated seats. Heated everything.', price:52000, hold:60, cruise:1350, warp:95000, fuel:240, turn:0.9, model:3,
-   ck:{frame:'#33252a',panel:'#1a1416',trim:'#c9a24a',glow:'#ffd9a0',leather:'#5a1f28',cage:false}},
+   ck:{frame:'#9c2f4d',panel:'#3a1d3a',trim:'#f4c95d',glow:'#ffd9a0',leather:'#d0506e',cage:false}},
   {name:'Quasar Empress', tag:'The last ship you will ever need to brag about.', price:180000, hold:120, cruise:1600, warp:120000, fuel:320, turn:1.1, model:4,
-   ck:{frame:'#9aa1aa',panel:'#1b1f26',trim:'#3fd0ff',glow:'#9fe8ff',leather:'#e8e4dc',cage:false}},
+   ck:{frame:'#c9ccdd',panel:'#27294a',trim:'#7a5cff',glow:'#9fe8ff',leather:'#f1ece2',cage:false}},
 ];
 
 const PLANETS = [
@@ -741,60 +764,57 @@ uniform vec3 uSun; uniform float uTime,uSeed,uSea,uIce,uCloud,uLava,uCity,uAtm,u
 uniform vec3 cDeep,cShal,cA,cB,cC,cD,cAtm,cCloud,cEmis;
 varying vec3 vP; varying vec3 vN; varying vec3 vW;
 ${GLSL.noise}
+#define STEP(x,t) smoothstep((t)-0.012,(t)+0.012,(x))
 void main(){
   int oct=int(uOct);
-  vec3 N0=normalize(vN); vec3 V=normalize(cameraPosition-vW);
+  vec3 N=normalize(vN); vec3 V=normalize(cameraPosition-vW);
   vec3 p=vP*1.7+uSeed;
   vec3 w=vec3(fbm(p*1.2+11.0,3),fbm(p*1.2+37.0,3),fbm(p*1.2+71.0,3));
-  float cont=fbm(p+w*0.7,oct);
-  float h=0.5+0.6*cont;
-  float ridge=1.0-abs(snoise(p*3.1+w*1.3)); ridge*=ridge;
-  float land=smoothstep(uSea-0.004,uSea+0.012,h);
-  h+=land*(ridge-0.35)*0.16*smoothstep(uSea,uSea+0.25,h);
+  float h=0.5+0.6*fbm(p+w*0.7,oct);
+  float fw=fwidth(h);
+  float land=smoothstep(uSea-fw,uSea+fw,h);
   float t=clamp((h-uSea)/max(0.001,1.0-uSea)*1.7,0.0,1.0);
-  float bio=fbm(p*2.6+50.0,min(oct,4))*0.5+0.5;
-  vec3 landC=mix(cA,cB,smoothstep(0.03,0.22,t+bio*0.12));
-  landC=mix(landC,cC,smoothstep(0.25,0.55,t+(bio-0.5)*0.3));
-  landC=mix(landC,cD,smoothstep(0.62,0.9,t+(ridge-0.5)*0.2));
+  float bio=fbm(p*2.6+50.0,3)*0.5+0.5;
+  float ridge=1.0-abs(snoise(p*3.1+w*1.3));
+  float q=t+bio*0.15-0.07;
+  // flat colour patches with crisp edges, like a painted cel
+  vec3 landC=mix(cA,cB,STEP(q,0.12));
+  landC=mix(landC,cC,STEP(q,0.42));
+  landC=mix(landC,cD,STEP(q+(ridge-0.5)*0.2,0.8));
   float depth=clamp((uSea-h)/0.25,0.0,1.0);
-  vec3 seaC=mix(cShal,cDeep,smoothstep(0.0,0.6,depth));
+  vec3 seaC=mix(cShal,cDeep,STEP(depth,0.16));
   vec3 alb=mix(seaC,landC,land);
-  float ice=smoothstep(uIce-0.06,uIce+0.04,abs(vP.y)+0.12*fbm(p*4.0,3)+land*(h-uSea)*0.25);
+  float ice=STEP(abs(vP.y)+0.12*fbm(p*4.0,3)+land*(h-uSea)*0.25,uIce);
   alb=mix(alb,cD,ice);
   float wet=(1.0-land)*(1.0-ice);
-  // bump from height derivatives
-  vec3 N=N0;
-  if(uBump>0.0){
-    float hb=h*(land+ice*0.3);
-    vec3 dpx=dFdx(vW), dpy=dFdy(vW); float dhx=dFdx(hb), dhy=dFdy(hb);
-    vec3 r1=cross(dpy,N0), r2=cross(N0,dpx); float det=dot(dpx,r1);
-    vec3 grad=sign(det)*(dhx*r1+dhy*r2);
-    N=normalize(abs(det)*N0-uBump*grad);
-  }
-  float ndl0=dot(N0,uSun); float ndl=dot(N,uSun);
-  float day=smoothstep(-0.12,0.22,ndl0);
-  vec3 sunC=mix(vec3(1.0,0.42,0.18),vec3(1.0,0.97,0.92),smoothstep(-0.05,0.4,ndl0))*1.45;
-  vec3 col=alb*max(ndl,0.0)*sunC*day;
-  vec3 H=normalize(uSun+V);
-  col+=sunC*pow(max(dot(N0,H),0.0),160.0)*0.45*wet*(1.0-uLava)*day;
-  // molten seas and cracks
-  float crack=pow(1.0-abs(snoise(p*4.5+w*1.7)),7.0)*land;
-  float glow=(wet*(0.55+0.45*fbm(p*8.0+uTime*0.02,3))+crack*1.4)*uLava;
-  col+=cEmis*glow*3.2;
-  // city lights
-  float city=smoothstep(0.55,0.85,snoise(vP*38.0+uSeed)*0.5+0.5)*smoothstep(0.35,0.65,snoise(vP*7.0+uSeed*3.0)*0.5+0.5);
-  city*=land*(1.0-ice)*(1.0-smoothstep(0.05,0.5,t));
-  // clouds
+  // three-band cartoon light: night, shade, full sun
+  float ndl=dot(N,uSun);
+  float L=smoothstep(-0.03,0.03,ndl), M=smoothstep(0.26,0.32,ndl);
+  vec3 night=vec3(0.10,0.12,0.30);
+  vec3 lightC=mix(night,mix(vec3(0.80,0.82,1.0),vec3(1.0),M)*1.2,L);
+  vec3 col=alb*lightC;
+  // a hard little glint on the water
+  vec3 H=normalize(uSun+V); col=mix(col,vec3(1.5),smoothstep(0.984,0.988,dot(N,H))*wet*(1.0-uLava)*L*0.85);
+  // lava seas and cracks
+  float crack=STEP(pow(1.0-abs(snoise(p*4.5+w*1.7)),7.0),0.35)*land;
+  float glow=(wet*(0.75+0.25*STEP(fbm(p*8.0+uTime*0.02,3),0.1))+crack)*uLava;
+  col=mix(col,cEmis*2.2,clamp(glow,0.0,1.0)*0.9);
+  // city lights as crisp dots on the night side
+  float city=STEP(snoise(vP*38.0+uSeed)*0.5+0.5,0.72)*STEP(snoise(vP*7.0+uSeed*3.0)*0.5+0.5,0.5);
+  city*=land*(1.0-ice)*(1.0-STEP(t,0.3));
+  // puffy clouds with a shaded rim
   vec3 cp=vP*2.3+w*0.9+vec3(uTime*0.006,0.0,uTime*0.003)+uSeed*2.0;
-  float cl=smoothstep(1.0-uCloud,1.25-uCloud,fbm(cp,oct)*0.62+0.5+0.12*snoise(cp*5.0));
-  col+=cEmis*city*uCity*(1.0-day)*(1.0-cl*0.85)*2.4;
-  vec3 cloudLit=cCloud*max(ndl0+0.08,0.0)*sunC*day*0.78;
-  col=mix(col,cloudLit,cl*0.94);
-  col*=1.0-0.25*cl*uLava;
-  // atmosphere limb
-  float fr=pow(1.0-max(dot(N0,V),0.0),3.2);
-  col+=cAtm*fr*(0.06+1.5*day)*uAtm;
-  col+=alb*0.006;
+  float cn=fbm(cp,min(oct,5))*0.62+0.5+0.08*snoise(cp*4.0);
+  float cl=STEP(cn,1.05-uCloud), core=STEP(cn,1.13-uCloud);
+  col+=cEmis*city*uCity*(1.0-L)*(1.0-cl)*2.2;
+  // dark coastline, drawn like an inked border
+  float coast=1.0-smoothstep(fw*0.8,fw*1.9,abs(h-uSea));
+  col=mix(col,vec3(0.05,0.04,0.11),coast*0.75*(1.0-ice));
+  vec3 cloudC=cCloud*mix(night*1.6,vec3(1.12),L);
+  col=mix(col,mix(cloudC*0.78,cloudC,core),cl*0.96*(1.0-0.2*uLava));
+  // flat atmosphere band around the edge
+  float fr=1.0-max(dot(N,V),0.0);
+  col=mix(col,cAtm*mix(0.3,1.25,L),smoothstep(0.6,0.65,fr)*0.7*uAtm);
   gl_FragColor=vec4(col,1.0);
 }`;
 
@@ -803,27 +823,27 @@ uniform vec3 uSun; uniform float uTime,uSeed,uBands,uTurb,uAtm,uOct;
 uniform vec3 cA,cB,cC,cD,cAtm;
 varying vec3 vP; varying vec3 vN; varying vec3 vW;
 ${GLSL.noise}
+#define STEP(x,t) smoothstep((t)-0.015,(t)+0.015,(x))
 void main(){
   int oct=int(uOct);
-  vec3 N0=normalize(vN); vec3 V=normalize(cameraPosition-vW);
+  vec3 N=normalize(vN); vec3 V=normalize(cameraPosition-vW);
   vec3 q=vec3(vP.x*1.6,vP.y*5.5,vP.z*1.6)+uSeed+vec3(uTime*0.003,0.0,0.0);
-  float turb=fbm(q,oct);
-  float sw=fbm(vP*3.2+uSeed*2.0+turb*1.5,oct);
-  float lat=vP.y*uBands+turb*uTurb+sw*0.9;
-  float t=sin(lat)*0.5+0.5; float t2=sin(lat*2.63+1.3)*0.5+0.5; float t3=sin(lat*0.37+4.0)*0.5+0.5;
-  vec3 alb=mix(cA,cB,smoothstep(0.2,0.8,t));
-  alb=mix(alb,cC,t2*0.45);
-  alb=mix(alb,cD,smoothstep(0.55,0.95,t3)*0.55);
-  alb=mix(alb,cD,smoothstep(0.25,0.7,fbm(vP*vec3(2.0,11.0,2.0)+5.0+uSeed,oct))*0.35);
-  vec3 sp=normalize(vec3(0.62,-0.33,0.71)); vec3 dv=vP-sp; float d=length(dv*vec3(1.0,2.4,1.0));
-  float storm=(1.0-smoothstep(0.08,0.24,d+0.04*sw)); alb=mix(alb,mix(cD,cC,0.3+0.3*sin(d*40.0+turb*6.0)),storm*0.85);
-  alb*=1.0-0.35*pow(abs(vP.y),6.0);
-  float ndl=dot(N0,uSun); float day=smoothstep(-0.1,0.25,ndl);
-  vec3 sunC=mix(vec3(1.0,0.45,0.2),vec3(1.0,0.97,0.92),smoothstep(-0.05,0.4,ndl))*1.45;
-  vec3 col=alb*pow(max(ndl,0.0),0.85)*sunC*day;
-  float fr=pow(1.0-max(dot(N0,V),0.0),3.0);
-  col+=cAtm*fr*(0.04+1.2*day)*uAtm;
-  col+=alb*0.004;
+  float turb=fbm(q,min(oct,4));
+  float sw=fbm(vP*3.2+uSeed*2.0+turb*1.5,min(oct,4));
+  float lat=vP.y*uBands+turb*uTurb*0.8+sw*0.7;
+  vec3 alb=mix(cA,cB,STEP(sin(lat)*0.5+0.5,0.5));
+  alb=mix(alb,cC,STEP(sin(lat*2.63+1.3)*0.5+0.5,0.72)*0.85);
+  alb=mix(alb,cD,STEP(sin(lat*0.37+4.0)*0.5+0.5,0.78)*0.75);
+  vec3 sp=normalize(vec3(0.62,-0.33,0.71)); vec3 dv=vP-sp; float d=length(dv*vec3(1.0,2.4,1.0))+0.03*sw;
+  float storm=1.0-STEP(d,0.19), eye=1.0-STEP(d,0.1);
+  alb=mix(alb,cD,storm); alb=mix(alb,cC,eye*0.9);
+  alb=mix(alb,vec3(0.05,0.04,0.11),(STEP(d,0.17)-STEP(d,0.2))*0.6);
+  float ndl=dot(N,uSun);
+  float L=smoothstep(-0.03,0.03,ndl), M=smoothstep(0.26,0.32,ndl);
+  vec3 night=vec3(0.10,0.11,0.28);
+  vec3 col=alb*mix(night,mix(vec3(0.8,0.82,1.0),vec3(1.0),M)*1.2,L);
+  float fr=1.0-max(dot(N,V),0.0);
+  col=mix(col,cAtm*mix(0.3,1.2,L),smoothstep(0.62,0.67,fr)*0.6*uAtm);
   gl_FragColor=vec4(col,1.0);
 }`;
 
@@ -831,9 +851,10 @@ GLSL.atmoFrag = `
 uniform vec3 uSun; uniform vec3 cAtm; uniform float uEdge,uAtm;
 varying vec3 vP; varying vec3 vN; varying vec3 vW;
 void main(){ vec3 V=normalize(cameraPosition-vW); vec3 N=normalize(vN);
-  float g=pow(clamp(-dot(N,V)/uEdge,0.0,1.0),2.6);
-  float lit=smoothstep(-0.45,0.35,dot(N,uSun)+0.25*dot(-V,uSun));
-  gl_FragColor=vec4(cAtm*g*lit*1.6*uAtm,1.0); }`;
+  float g=clamp(-dot(N,V)/uEdge,0.0,1.0);
+  float halo=smoothstep(0.45,0.49,g)*0.2+smoothstep(0.72,0.76,g)*0.22;
+  float lit=smoothstep(-0.25,0.05,dot(N,uSun)+0.25*dot(-V,uSun));
+  gl_FragColor=vec4(cAtm*halo*(0.12+0.88*lit)*uAtm,1.0); }`;
 
 GLSL.ringVert = `varying vec3 vL; void main(){ vL=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.ringFrag = `
@@ -841,21 +862,22 @@ uniform vec3 uSunL; uniform vec3 c1,c2; uniform float uIn,uOut,uR,uSeed;
 varying vec3 vL;
 ${GLSL.noise}
 void main(){ float r=length(vL.xy); float t=(r-uIn)/(uOut-uIn);
-  float a=0.55+0.45*snoise(vec3(t*14.0,uSeed,0.0)); a*=0.6+0.4*snoise(vec3(t*61.0,uSeed,3.0)); a*=0.8+0.2*snoise(vec3(t*240.0,uSeed,7.0));
-  a*=smoothstep(0.0,0.04,t)*(1.0-smoothstep(0.93,1.0,t)); a*=1.0-0.85*(1.0-smoothstep(0.0,0.03,abs(t-0.58))); a=clamp(a,0.0,1.0);
-  vec3 col=mix(c1,c2,0.5+0.5*snoise(vec3(t*7.0,uSeed,11.0)));
-  float tt=dot(vL,uSunL); float d=length(vL-uSunL*tt); float sh=(tt<0.0 && d<uR)?0.06:1.0;
-  float lit=0.35+0.65*abs(uSunL.z);
-  gl_FragColor=vec4(col*lit*sh*1.7,a*0.92); }`;
+  float a=0.55+0.45*snoise(vec3(t*9.0,uSeed,0.0));
+  a=smoothstep(0.36,0.4,a)*0.55+smoothstep(0.66,0.7,a)*0.35;
+  a*=smoothstep(0.0,0.02,t)*(1.0-smoothstep(0.97,1.0,t)); a*=1.0-step(abs(t-0.58),0.025);
+  vec3 col=mix(c1,c2,step(0.0,snoise(vec3(t*5.0,uSeed,11.0))));
+  float tt=dot(vL,uSunL); float d=length(vL-uSunL*tt); float sh=(tt<0.0 && d<uR)?0.25:1.0;
+  float lit=0.5+0.5*abs(uSunL.z);
+  gl_FragColor=vec4(col*lit*sh*1.5,a*0.95); }`;
 
 GLSL.sunFrag = `
 uniform float uTime; varying vec3 vP; varying vec3 vN; varying vec3 vW;
 ${GLSL.noise}
 void main(){ vec3 V=normalize(cameraPosition-vW); float mu=max(dot(normalize(vN),V),0.0);
-  float n=fbm(vP*6.0+vec3(0.0,uTime*0.03,0.0),5)*0.5+0.5; float n2=fbm(vP*22.0+uTime*0.05,4)*0.5+0.5;
-  vec3 col=mix(vec3(1.0,0.45,0.08),vec3(1.0,0.92,0.7),n*0.7+n2*0.3);
-  col*=(0.55+0.45*pow(mu,0.5))*9.0;
-  gl_FragColor=vec4(col,1.0); }`;
+  float n=fbm(vP*4.0+vec3(0.0,uTime*0.03,0.0),3)*0.5+0.5;
+  vec3 col=mix(vec3(1.0,0.42,0.05),vec3(1.0,0.78,0.18),smoothstep(0.3,0.34,mu+n*0.18));
+  col=mix(col,vec3(1.0,0.95,0.62),smoothstep(0.74,0.78,mu+n*0.1));
+  gl_FragColor=vec4(col*2.4,1.0); }`;
 
 GLSL.skyVert = `varying vec3 vD; void main(){ vD=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.skyFrag = `
@@ -865,34 +887,31 @@ vec3 starLayer(vec3 d,float scale,float thresh,float bright){
   vec3 q=d*scale; vec3 id=floor(q); vec3 f=fract(q)-0.5; float h=hash13(id);
   if(h<thresh) return vec3(0.0);
   vec3 off=vec3(hash13(id+7.1),hash13(id+13.7),hash13(id+29.3))-0.5;
-  float s=(1.0-smoothstep(0.0,0.22,length(f-off*0.5)));
-  float tcol=hash13(id+3.3);
-  vec3 c=mix(vec3(1.0,0.72,0.5),vec3(0.65,0.8,1.0),tcol);
-  return c*s*s*bright*(0.3+2.0*pow(hash13(id+91.0),6.0));
+  float s=1.0-smoothstep(0.12,0.16,length(f-off*0.5));
+  vec3 c=mix(vec3(1.0,0.85,0.6),vec3(0.75,0.88,1.0),hash13(id+3.3));
+  return c*s*bright;
 }
 void main(){
   vec3 d=normalize(vD);
-  vec3 axis=normalize(vec3(0.25,1.0,0.35));
-  float band=exp(-pow(dot(d,axis)*3.2,2.0));
-  float n1=fbm(d*1.4+3.0,6)*0.5+0.5; float n2=fbm(d*2.3+n1*1.6+20.0,6)*0.5+0.5; float n3=fbm(d*3.1+n2*2.0+60.0,6)*0.5+0.5;
-  vec3 col=vec3(0.0);
-  col+=vec3(0.30,0.07,0.42)*pow(n1,3.5)*0.9;
-  col+=vec3(0.04,0.26,0.42)*pow(n2,4.5)*1.3;
-  col+=vec3(0.55,0.18,0.10)*pow(n3,6.0)*1.1*(0.3+band);
-  float dust=fbm(d*6.0+7.0,5)*0.5+0.5;
-  col+=band*vec3(0.34,0.29,0.24)*(0.15+0.85*dust)*0.32;
-  col*=1.0-band*smoothstep(0.42,0.75,fbm(d*4.5+40.0,5)*0.5+0.5)*0.8;
-  col*=0.55;
-  float dens=0.35+band*1.3;
-  col+=starLayer(d,160.0,1.0-0.012*dens,1.2);
-  col+=starLayer(d,330.0,1.0-0.02*dens,0.55);
-  col+=starLayer(d,520.0,1.0-0.03*dens,0.25);
+  vec3 axis=normalize(vec3(0.25,1.0,0.35)); float band=exp(-pow(dot(d,axis)*2.6,2.0));
+  vec3 col=mix(vec3(0.016,0.02,0.075),vec3(0.045,0.03,0.11),band);
+  float n1=fbm(d*1.6+3.0,4)*0.5+0.5; float n2=fbm(d*2.4+n1*1.2+20.0,4)*0.5+0.5;
+  float a1=smoothstep(0.6,0.612,n1), b1=smoothstep(0.69,0.702,n1);
+  col=mix(col,vec3(0.13,0.04,0.2),a1); col=mix(col,vec3(0.24,0.07,0.28),b1);
+  float a2=smoothstep(0.64,0.652,n2)*(1.0-a1), b2=smoothstep(0.72,0.732,n2)*(1.0-a1);
+  col=mix(col,vec3(0.025,0.13,0.2),a2); col=mix(col,vec3(0.05,0.24,0.3),b2);
+  col+=starLayer(d,140.0,1.0-0.012*(0.5+band),0.9);
+  col+=starLayer(d,300.0,1.0-0.02*(0.5+band),0.4);
   gl_FragColor=vec4(col*uBoost,1.0);
 }`;
 
-GLSL.starVert = `attribute float size; attribute vec3 color; varying vec3 vC; uniform float uPx;
-void main(){ vC=color; gl_PointSize=size*uPx; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
-GLSL.starFrag = `varying vec3 vC; void main(){ vec2 c=gl_PointCoord-0.5; float d=length(c); float a=(1.0-smoothstep(0.0,0.5,d)); gl_FragColor=vec4(vC*a*a,1.0); }`;
+GLSL.starVert = `attribute float size; attribute vec3 color; varying vec3 vC; varying float vS; uniform float uPx;
+void main(){ vC=color; vS=step(6.0,size); gl_PointSize=size*uPx; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+GLSL.starFrag = `varying vec3 vC; varying float vS;
+void main(){ vec2 c=gl_PointCoord-0.5; float d=length(c);
+  float dotv=1.0-smoothstep(0.13,0.19,d);
+  float cr=(1.0-smoothstep(0.02,0.06,abs(c.x)))*(1.0-smoothstep(0.15,0.5,abs(c.y)))+(1.0-smoothstep(0.02,0.06,abs(c.y)))*(1.0-smoothstep(0.15,0.5,abs(c.x)));
+  gl_FragColor=vec4(vC*max(dotv,cr*vS),1.0); }`;
 
 GLSL.tunnelVert = `varying vec2 vUv; varying vec3 vL; void main(){ vUv=uv; vL=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.tunnelFrag = `
@@ -900,9 +919,9 @@ uniform float uTime,uWarp; varying vec2 vUv; varying vec3 vL;
 ${GLSL.noise}
 void main(){ float a=vUv.x*6.2831853; vec2 ring=vec2(cos(a),sin(a))*3.0;
   float n=snoise(vec3(ring*2.2,vUv.y*5.0+uTime*3.5)); float n2=snoise(vec3(ring*7.0,vUv.y*16.0+uTime*9.0));
-  float s=pow(max(n*0.6+n2*0.4,0.0),2.2);
+  float s=smoothstep(0.4,0.44,n*0.6+n2*0.4);
   float fade=smoothstep(0.0,0.25,vUv.y)*(1.0-smoothstep(0.5,1.0,vUv.y));
-  vec3 col=mix(vec3(0.15,0.35,1.0),vec3(0.75,0.5,1.0),n2*0.5+0.5)*s*fade*uWarp*2.4;
+  vec3 col=mix(vec3(0.2,0.55,1.0),vec3(1.0,0.4,0.95),step(0.0,n2))*s*fade*uWarp*1.5;
   gl_FragColor=vec4(col,1.0); }`;
 
 GLSL.plasmaVert = `varying vec3 vN; varying vec3 vL; varying vec3 vV; void main(){ vL=normalize(position); vec4 mv=modelViewMatrix*vec4(position,1.0); vN=normalize(normalMatrix*normal); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`;
@@ -918,12 +937,16 @@ GLSL.groundSkyFrag = `
 uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax; varying vec3 vD;
 ${GLSL.noise}
 void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
-  vec3 col=mix(cHor,cZen,pow(h,0.55));
+  float hb=floor(pow(h,0.55)*5.0+0.5)/5.0;
+  vec3 col=mix(cHor,cZen,hb);
   col=mix(col,cHor*0.85,(1.0-smoothstep(-0.25,0.0,d.y)));
   float s=max(dot(d,uSun),0.0);
-  col*=0.72; col+=cSun*(pow(s,8.0)*0.10+pow(s,64.0)*0.5+pow(s,1400.0)*30.0);
-  float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),5); col=mix(col,mix(cHor,vec3(1.0),0.6)*0.85,smoothstep(0.1,0.6,cl)*smoothstep(0.0,0.25,d.y)*0.55);
-  vec3 q=d*220.0; float st=step(0.992,hash13(floor(q)))*(1.0-smoothstep(0.0,0.35,length(fract(q)-0.5))); col+=vec3(st)*uStars*h;
+  col*=0.78; col+=cSun*(smoothstep(0.965,0.968,s)*0.35+smoothstep(0.9975,0.998,s)*6.0);
+  float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),4);
+  float cm=smoothstep(0.0,0.25,d.y);
+  col=mix(col,mix(cHor,vec3(1.0),0.55)*0.85,smoothstep(0.3,0.33,cl)*cm*0.85);
+  col=mix(col,mix(cHor,vec3(1.0),0.8),smoothstep(0.42,0.45,cl)*cm*0.85);
+  vec3 q=d*220.0; float st=step(0.992,hash13(floor(q)))*(1.0-smoothstep(0.2,0.3,length(fract(q)-0.5))); col+=vec3(st)*uStars*h;
   col=clamp(col,vec3(0.0),vec3(uMax));
   gl_FragColor=vec4(col,1.0); }`;
 
@@ -931,38 +954,125 @@ GLSL.postVert = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMa
 GLSL.postFrag = `
 uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash; uniform vec3 uFadeCol;
 varying vec2 vUv;
-vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }
-float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 void main(){
   vec2 c=vUv-0.5; float r2=dot(c,c);
-  float ca=(0.0035+uWarp*0.02)*r2;
+  float ca=uWarp*0.02*r2;
   vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-c*ca).b);
-  col=mix(col,col*vec3(0.75,0.9,1.35),uWarp*0.5);
+  col=mix(col,col*vec3(0.8,0.9,1.3),uWarp*0.4);
   col+=vec3(0.7,0.85,1.0)*uFlash*2.0;
   col*=uExposure;
-  col=aces(col);
+  col=1.0-exp(-col*1.4);            // soft clip that keeps flat cartoon colours flat
   col=pow(col,vec3(1.0/2.2));
-  col*=1.0-r2*0.75;
-  col+=(h21(vUv*vec2(1920.0,1080.0)+fract(uTime)*91.7)-0.5)*0.03;
+  float l=dot(col,vec3(0.299,0.587,0.114)); col=clamp(mix(vec3(l),col,1.2),0.0,1.0);
+  col*=1.0-r2*0.35;
   col=mix(col,uFadeCol,uFade);
   gl_FragColor=vec4(col,1.0);
 }`;
+/* ===================== CARTOON LOOK ===================== */
+/* Toon materials (three flat light bands) and an ink pass that draws comic-book outlines
+   wherever surface normals or depth jump. Meshes opt in to outlines with Toon.ink.mark(). */
+const Toon = {
+  _grad:null,
+  grad(){
+    if(this._grad) return this._grad;
+    const n=32, d=new Uint8Array(n*4);
+    // coordinate is dot(N,L)*0.5+0.5: shadow side, a mid band, then full light
+    for(let i=0;i<n;i++){ const c=(i+0.5)/n, v=c<0.47?0.34:c<0.64?0.66:1.0; d[i*4]=d[i*4+1]=d[i*4+2]=Math.round(v*255); d[i*4+3]=255; }
+    const t=new THREE.DataTexture(d,n,1,THREE.RGBAFormat); t.minFilter=t.magFilter=THREE.NearestFilter; t.generateMipmaps=false; t.needsUpdate=true;
+    return this._grad=t;
+  },
+  /* drop-in for MeshStandardMaterial: keeps colour, maps, emissive and transparency; ignores PBR-only settings */
+  mat(p){
+    p=Object.assign({},p||{});
+    for(const k of ['roughness','metalness','envMapIntensity','envMap','bumpMap','bumpScale','roughnessMap','metalnessMap']) delete p[k];
+    p.gradientMap=this.grad();
+    return new THREE.MeshToonMaterial(p);
+  },
+};
+
+Toon.ink = {
+  on:true, rt:null, mat:null, pass:null, _c:new THREE.Color(),
+  init(){
+    this.rt=new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:true,stencilBuffer:false});
+    this.mat=new THREE.ShaderMaterial({
+      vertexShader:`#include <common>
+varying vec3 vN; varying float vZ;
+void main(){
+#include <beginnormal_vertex>
+#include <defaultnormal_vertex>
+#include <begin_vertex>
+#include <project_vertex>
+  vN=transformedNormal; vZ=-mvPosition.z; }`,
+      fragmentShader:`varying vec3 vN; varying float vZ;
+void main(){ vec3 n=normalize(vN); if(!gl_FrontFacing) n=-n;
+  gl_FragColor=vec4(n*0.5+0.5, clamp((log2(max(vZ,1e-4))+8.0)/34.0,0.0,0.995)); }`,
+      side:THREE.DoubleSide });
+  },
+  /* opt a model (and its children) into outlines; skips see-through, hidden and glow-only parts */
+  mark(root){
+    root.traverse(o=>{ if(!o.isMesh || o.userData.noInk) return; const m=o.material; if(!m || Array.isArray(m)) return;
+      if(m.visible===false || m.transparent || m.depthWrite===false || m.blending===THREE.AdditiveBlending) return; o.layers.enable(1); });
+    return root;
+  },
+  /* normals + log depth of every outlined mesh, for the same scenes the colour pass drew */
+  renderNormals(r){
+    const list=World.scenes.list; if(!list.length) return;
+    r.getClearColor(this._c); const ca=r.getClearAlpha(), au=r.shadowMap.autoUpdate;
+    r.shadowMap.autoUpdate=false; r.setRenderTarget(this.rt); r.setClearColor(0x808080,1); r.clear(true,true,false);
+    for(let i=0;i<list.length;i++){ const {scene,camera}=list[i]; if(i>0) r.clearDepth();
+      const bg=scene.background, ov=scene.overrideMaterial, mask=camera.layers.mask;
+      scene.background=null; scene.overrideMaterial=this.mat; camera.layers.set(1);
+      r.render(scene,camera);
+      scene.background=bg; scene.overrideMaterial=ov; camera.layers.mask=mask; }
+    r.setClearColor(this._c,ca); r.shadowMap.autoUpdate=au;
+  },
+  shader(){ return {
+    uniforms:{tDiffuse:{value:null},tN:{value:null},uPx:{value:new THREE.Vector2(1/1280,1/720)},uW:{value:1.5},uOn:{value:1},uInk:{value:new THREE.Color('#17112a')}},
+    vertexShader:GLSL.postVert,
+    fragmentShader:`uniform sampler2D tDiffuse,tN; uniform vec2 uPx; uniform float uW,uOn; uniform vec3 uInk; varying vec2 vUv;
+float bg(vec4 s){ return step(0.994,s.w); }
+float nd(vec4 a,vec4 b){ float ba=bg(a), bb=bg(b); if(ba>0.5&&bb>0.5) return 0.0; if(abs(ba-bb)>0.5) return 1.0; return 1.0-dot(a.xyz*2.0-1.0,b.xyz*2.0-1.0); }
+void main(){
+  vec3 col=texture2D(tDiffuse,vUv).rgb;
+  vec4 c=texture2D(tN,vUv);
+  vec4 l=texture2D(tN,vUv+vec2(-uPx.x,0.0)*uW), r=texture2D(tN,vUv+vec2(uPx.x,0.0)*uW), u=texture2D(tN,vUv+vec2(0.0,uPx.y)*uW), d=texture2D(tN,vUv+vec2(0.0,-uPx.y)*uW);
+  float n=max(max(nd(c,l),nd(c,r)),max(nd(c,u),nd(c,d)));
+  float z=c.w*34.0, dz=max(abs(l.w+r.w-2.0*c.w),abs(u.w+d.w-2.0*c.w))*34.0;
+  float any=1.0-bg(c)*bg(l)*bg(r)*bg(u)*bg(d);
+  float e=max(smoothstep(0.22,0.42,n), smoothstep(0.05,0.11,dz)*any);
+  gl_FragColor=vec4(mix(col,uInk,e*uOn*0.94),1.0);
+}` }; },
+};
+
+/* composer pass that fills the normal buffer; draws nothing to the colour chain */
+function InkPrepass(){ this.enabled=true; this.needsSwap=false; this.clear=false; this.renderToScreen=false; }
+InkPrepass.prototype.setSize=function(w,h){ Toon.ink.rt.setSize(w,h); };
+InkPrepass.prototype.render=function(renderer){ if(Toon.ink.on) Toon.ink.renderNormals(renderer); };
+
+/* cartoon sun rays for the corona sprite */
+function sunburstTex(){
+  const n=512, cv=makeCanvas(n,n), x=cv.getContext('2d'), c=n/2;
+  let g=x.createRadialGradient(c,c,0,c,c,c); g.addColorStop(0,'rgba(255,240,170,1)'); g.addColorStop(0.16,'rgba(255,214,90,0.9)'); g.addColorStop(0.17,'rgba(255,190,60,0.45)'); g.addColorStop(0.3,'rgba(255,160,40,0.18)'); g.addColorStop(1,'rgba(255,140,30,0)');
+  x.fillStyle=g; x.fillRect(0,0,n,n);
+  for(let i=0;i<16;i++){ const a=i/16*Math.PI*2, L=(i%2?0.62:0.9)*c, w=i%2?0.07:0.1;
+    x.fillStyle=i%2?'rgba(255,200,80,0.35)':'rgba(255,225,120,0.5)'; x.beginPath(); x.moveTo(c+Math.cos(a-w)*c*0.18,c+Math.sin(a-w)*c*0.18); x.lineTo(c+Math.cos(a)*L,c+Math.sin(a)*L); x.lineTo(c+Math.cos(a+w)*c*0.18,c+Math.sin(a+w)*c*0.18); x.closePath(); x.fill(); }
+  return canvasTex(cv);
+}
 /* ===================== SHIP MODELS ===================== */
 /* All models: nose toward -Z, roughly 20-40 units long, origin near centre of mass. */
 const Models = (() => {
   const SCHEMES = [
-    {hull:'#8a5a3c',trim:'#3a3a3c',glow:'#ffb060',wear:1.0},
-    {hull:'#c9a21e',trim:'#2a2a2c',glow:'#ffd27a',wear:0.7},
-    {hull:'#e8eef0',trim:'#19a898',glow:'#7ff5e6',wear:0.25},
-    {hull:'#7a1f2c',trim:'#c9a24a',glow:'#ffcf8a',wear:0.15},
-    {hull:'#f4f6f8',trim:'#30363c',glow:'#5fd8ff',wear:0.05},
+    {hull:'#d9733a',trim:'#3d6f8e',glow:'#ffb060',wear:1.0},
+    {hull:'#f0c22e',trim:'#2f4a7d',glow:'#ffd27a',wear:0.7},
+    {hull:'#eef4f6',trim:'#18b0a0',glow:'#7ff5e6',wear:0.25},
+    {hull:'#b3304d',trim:'#f2c55a',glow:'#ffcf8a',wear:0.15},
+    {hull:'#f6f7fb',trim:'#7552c9',glow:'#5fd8ff',wear:0.05},
   ];
   function mats(s){
-    const bump=panelBumpTex();
-    const hull=new THREE.MeshStandardMaterial({map:hullTex(s.hull,s.wear),bumpMap:bump,bumpScale:0.06,roughness:0.5+s.wear*0.3,metalness:0.55-s.wear*0.25,color:0xffffff,side:THREE.DoubleSide});
-    const trim=new THREE.MeshStandardMaterial({map:hullTex(s.trim,s.wear*0.6),bumpMap:bump,bumpScale:0.05,roughness:0.45,metalness:0.7});
-    const dark=new THREE.MeshStandardMaterial({color:C('#15171a'),roughness:0.6,metalness:0.6});
-    const glass=new THREE.MeshStandardMaterial({color:C('#0a1420'),roughness:0.08,metalness:0.9,envMapIntensity:2});
+    const hull=Toon.mat({color:C(s.hull),side:THREE.DoubleSide});
+    const trim=Toon.mat({color:C(s.trim)});
+    const dark=Toon.mat({color:C('#3a3550')});
+    const glass=Toon.mat({color:C('#7fe0ff'),emissive:C('#1d6a8a'),emissiveIntensity:0.6});
     const glow=new THREE.MeshBasicMaterial({color:HDR(s.glow,6)});
     const win=new THREE.MeshBasicMaterial({color:HDR('#ffe6b0',2.2)});
     return {hull,trim,dark,glass,glow,win};
@@ -1040,7 +1150,7 @@ const Models = (() => {
     const G=new THREE.Group(); G.userData={engines:[],blinkers:[]}; const s=scheme||SCHEMES[Math.min(idx,4)]; const M=mats(s);
     builders[idx](G,M); G.userData.glow=s.glow;
     G.traverse(o=>{ if(o.isMesh && !o.material.isMeshBasicMaterial){ o.castShadow=true; o.receiveShadow=true; } });
-    return G;
+    return Toon.ink.mark(G);
   }
   /* throttle 0..1 drives exhaust; time drives nav light blink */
   function animate(G, thr, t){
@@ -1068,13 +1178,13 @@ const World = {
     this.universe=new THREE.Group(); this.space.add(this.universe);
     this.shipFrame=new THREE.Group(); this.space.add(this.shipFrame);
     // lights
-    this.sunLight=new THREE.DirectionalLight(C('#fff3e0'),3.0); this.space.add(this.sunLight); this.space.add(this.sunLight.target);
-    this.space.add(new THREE.AmbientLight(C('#8090b0'),0.10));
+    this.sunLight=new THREE.DirectionalLight(C('#fff3e0'),2.4); this.space.add(this.sunLight); this.space.add(this.sunLight.target);
+    this.space.add(new THREE.AmbientLight(C('#8a90c8'),0.55));
     this.bounce=new THREE.DirectionalLight(0xffffff,0); this.space.add(this.bounce); this.space.add(this.bounce.target);
-    this.cSun=new THREE.DirectionalLight(C('#fff1dc'),2.3); this.cSun.castShadow=true; const sh=this.cSun.shadow; sh.mapSize.set(2048,2048);
+    this.cSun=new THREE.DirectionalLight(C('#fff1dc'),1.7); this.cSun.castShadow=true; const sh=this.cSun.shadow; sh.mapSize.set(2048,2048);
     sh.camera.left=-1.9; sh.camera.right=1.9; sh.camera.top=1.9; sh.camera.bottom=-1.9; sh.camera.near=0.5; sh.camera.far=14; sh.bias=-0.0006; sh.normalBias=0.012; sh.radius=3;
     this.cock.add(this.cSun); this.cock.add(this.cSun.target);
-    this.cHemi=new THREE.HemisphereLight(C('#7a8cb0'),C('#2a2018'),0.22); this.cock.add(this.cHemi);
+    this.cHemi=new THREE.HemisphereLight(C('#b8c4ff'),C('#5a4a68'),0.75); this.cock.add(this.cHemi);
     this.cBounce=new THREE.DirectionalLight(0xffffff,0); this.cock.add(this.cBounce); this.cock.add(this.cBounce.target);
     this.buildSky(); this.buildStars(); this.buildSun(); this.buildPlanets(); this.buildDust(); this.buildTunnel();
     this.buildComposer(); this.resize();
@@ -1093,7 +1203,7 @@ const World = {
   buildStars(){
     const n=2600, pos=new Float32Array(n*3), col=new Float32Array(n*3), size=new Float32Array(n), rr=mulberry32(4242);
     for(let i=0;i<n;i++){ const u=rr()*2-1, a=rr()*6.283, s=Math.sqrt(1-u*u); pos[i*3]=s*Math.cos(a)*9e6; pos[i*3+1]=u*9e6; pos[i*3+2]=s*Math.sin(a)*9e6;
-      const b=Math.pow(rr(),7)*5+0.35, t=rr(); const c=t<0.3?[1,0.75,0.55]:t<0.75?[1,0.97,0.92]:[0.7,0.82,1]; col[i*3]=c[0]*b; col[i*3+1]=c[1]*b; col[i*3+2]=c[2]*b; size[i]=1.4+Math.pow(rr(),5)*3.2; }
+      const b=Math.pow(rr(),7)*3+0.5, t=rr(); const c=t<0.3?[1,0.75,0.55]:t<0.75?[1,0.97,0.92]:[0.7,0.82,1]; col[i*3]=c[0]*b; col[i*3+1]=c[1]*b; col[i*3+2]=c[2]*b; size[i]=2.2+Math.pow(rr(),6)*9; }
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3)); g.setAttribute('size',new THREE.BufferAttribute(size,1));
     this.starMat=new THREE.ShaderMaterial({vertexShader:GLSL.starVert,fragmentShader:GLSL.starFrag,uniforms:{uPx:{value:this.dpr}},blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,transparent:true});
     const p=new THREE.Points(g,this.starMat); p.frustumCulled=false; this.space.add(p);
@@ -1101,7 +1211,7 @@ const World = {
   buildSun(){
     this.sunMat=new THREE.ShaderMaterial({vertexShader:GLSL.planetVert,fragmentShader:GLSL.sunFrag,uniforms:{uTime:{value:0}}});
     this.universe.add(new THREE.Mesh(new THREE.SphereGeometry(SUN_R,64,40),this.sunMat));
-    const corona=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:new THREE.Color(3,2.1,1.2),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); corona.scale.setScalar(SUN_R*11); this.universe.add(corona);
+    const corona=new THREE.Sprite(new THREE.SpriteMaterial({map:sunburstTex(),color:new THREE.Color(1.6,1.3,0.9),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); corona.scale.setScalar(SUN_R*9); this.universe.add(corona);
     const far=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:new THREE.Color(2.2,1.9,1.5),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,sizeAttenuation:false})); far.scale.setScalar(0.22); this.universe.add(far);
   },
   buildPlanets(){
@@ -1117,7 +1227,7 @@ const World = {
           cDeep:{value:C(pal.deep)},cShal:{value:C(pal.shal)},cA:{value:C(pal.a)},cB:{value:C(pal.b)},cC:{value:C(pal.c)},cD:{value:C(pal.d)},cAtm:{value:C(pal.atm)},cCloud:{value:C(pal.cloud)},cEmis:{value:C(pal.emis)}};
       }
       P.mat=new THREE.ShaderMaterial({vertexShader:GLSL.planetVert,fragmentShader:P.type==='gas'?GLSL.gasFrag:GLSL.rockFrag,uniforms:u,extensions:{derivatives:true}});
-      P.mesh=new THREE.Mesh(new THREE.SphereGeometry(P.r,160,96),P.mat); g.add(P.mesh);
+      P.mesh=new THREE.Mesh(new THREE.SphereGeometry(P.r,160,96),P.mat); g.add(P.mesh); Toon.ink.mark(P.mesh);
       const ar=1.09; P.atmo=new THREE.Mesh(new THREE.SphereGeometry(P.r*ar,96,48),new THREE.ShaderMaterial({vertexShader:GLSL.planetVert,fragmentShader:GLSL.atmoFrag,
         uniforms:{uSun:{value:P.sunDir},cAtm:{value:C(pal.atm)},uEdge:{value:Math.sqrt(1-1/(ar*ar))},uAtm:{value:P.atm}},side:THREE.BackSide,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));
       g.add(P.atmo);
@@ -1167,11 +1277,12 @@ const World = {
     const r=this.renderer; this.scenes=new ScenesPass();
     if(!THREE.EffectComposer || !THREE.UnrealBloomPass){ this.composer=null; r.toneMapping=THREE.ACESFilmicToneMapping; r.outputEncoding=THREE.sRGBEncoding; return; }
     const rt=new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
-    this.composer=new THREE.EffectComposer(r,rt); this.composer.addPass(this.scenes);
-    this.bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256),0.75,0.6,1.0);
+    this.composer=new THREE.EffectComposer(r,rt); this.composer.addPass(this.scenes); Toon.ink.init(); this.composer.addPass(new InkPrepass());
+    this.bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256),0.2,0.25,1.1);
     this.composer.addPass(this.bloom);
     this.post=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uExposure:{value:1},uWarp:{value:0},uFade:{value:0},uFlash:{value:0},uFadeCol:{value:new THREE.Color(0,0,0)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.postFrag});
     this.composer.addPass(this.post);
+    this.ink=new THREE.ShaderPass(Toon.ink.shader()); this.ink.uniforms.tN.value=Toon.ink.rt.texture; this.composer.addPass(this.ink);
     if(THREE.FXAAShader){ this.fxaa=new THREE.ShaderPass(THREE.FXAAShader); this.composer.addPass(this.fxaa); }
   },
   resize(){
@@ -1180,7 +1291,7 @@ const World = {
     for(const c of [this.spaceCam,this.cockCam]){ c.aspect=w/h; c.updateProjectionMatrix(); }
     if(typeof Cine!=='undefined' && Cine.cam){ Cine.cam.aspect=w/h; Cine.cam.updateProjectionMatrix(); }
     const pw=Math.round(w*this.dpr), ph=Math.round(h*this.dpr);
-    if(this.composer){ this.composer.setSize(pw,ph); if(this.fxaa) this.fxaa.material.uniforms.resolution.value.set(1/pw,1/ph); }
+    if(this.composer){ this.composer.setSize(pw,ph); if(this.fxaa) this.fxaa.material.uniforms.resolution.value.set(1/pw,1/ph); if(this.ink){ this.ink.uniforms.uPx.value.set(1/pw,1/ph); this.ink.uniforms.uW.value=Math.max(1,ph/620); this.ink.uniforms.tN.value=Toon.ink.rt.texture; } }
     if(this.starMat) this.starMat.uniforms.uPx.value=this.dpr;
   },
   setFov(f){ for(const c of [this.spaceCam,this.cockCam]){ if(Math.abs(c.fov-f)>0.01){ c.fov=f; c.updateProjectionMatrix(); } } },
@@ -1196,7 +1307,7 @@ const World = {
       const d=P.pos.distanceTo(shipPos); P.dist=d; if(d<nd){ nd=d; near=P; }
       P.mesh.rotation.y+=dt*(P.type==='gas'?0.006:0.0035);
       const px=P.r/d/tanH*this.h*0.5; P.px=px; const u=P.mat.uniforms; u.uTime.value=t;
-      u.uOct.value=clamp(Math.floor(Math.log2(Math.max(px,1)))-2,3,7); if(u.uBump) u.uBump.value=px>120?P.r*0.22:0;
+      u.uOct.value=clamp(Math.floor(Math.log2(Math.max(px,1)))-2,3,6); P.mesh.layers[px>7?'enable':'disable'](1);
     }
     this.nearest=near;
     if(near){ const k=clamp(Math.pow(near.r/nd,2)*3,0,0.9), day=clamp(new V3().subVectors(shipPos,near.pos).normalize().dot(near.sunDir)*0.6+0.5,0.08,1);
@@ -1219,7 +1330,7 @@ const Npc = {
   pilot(){ const sp=pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9); return {sp, seed, name:alienName(sp,seed), ship:shipName(seed), cargo:pick(GOODS)[0]}; },
   spawn(kind, pos, vel, extra){
     const pl=this.pilot(), S=SPECIES[pl.sp]; const idx=pl.sp==='ooloo'?5:pl.sp==='zkthar'?6:Math.floor(Math.random()*5);
-    const hue=Math.floor(Math.random()*360); const scheme={hull:`hsl(${hue},${Math.round(20+Math.random()*45)}%,${Math.round(35+Math.random()*40)}%)`,trim:`hsl(${(hue+180)%360},25%,${Math.round(18+Math.random()*25)}%)`,glow:S.col,wear:Math.random()*0.8};
+    const hue=Math.floor(Math.random()*360); const scheme={hull:`hsl(${hue},${Math.round(50+Math.random()*40)}%,${Math.round(50+Math.random()*22)}%)`,trim:`hsl(${(hue+150+Math.floor(Math.random()*60))%360},${Math.round(45+Math.random()*35)}%,${Math.round(35+Math.random()*25)}%)`,glow:S.col,wear:Math.random()*0.8};
     scheme.hull='#'+new THREE.Color(scheme.hull).getHexString(); scheme.trim='#'+new THREE.Color(scheme.trim).getHexString();
     const m=Models.build(idx,scheme); m.scale.setScalar(3); World.universe.add(m);
     const cv=makeCanvas(384,96), x=cv.getContext('2d'); x.strokeStyle=S.col; x.fillStyle=S.col; x.lineWidth=3; x.beginPath(); x.moveTo(192,8); x.lineTo(206,22); x.lineTo(192,36); x.lineTo(178,22); x.closePath(); x.stroke();
@@ -1227,6 +1338,9 @@ const Npc = {
     const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(cv),transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending})); mk.scale.set(0.4,0.1,1); mk.center.set(0.5,0.78); mk.renderOrder=21; World.universe.add(mk);
     const n=Object.assign({m,mk,pos:pos.clone(),vel:vel.clone(),kind,pilot:pl,age:0,dist:0},extra||{}); this.list.push(n); return n;
   },
+  label(n, l1, l2, col){ const S=SPECIES[n.pilot.sp], cv=n.mk.material.map.image, x=cv.getContext('2d'); col=col||S.col; x.clearRect(0,0,cv.width,cv.height); x.globalAlpha=1;
+    x.strokeStyle=col; x.fillStyle=col; x.lineWidth=3; x.beginPath(); x.moveTo(192,8); x.lineTo(206,22); x.lineTo(192,36); x.lineTo(178,22); x.closePath(); x.stroke();
+    x.font=`600 24px ${FONT_DISP}`; x.textAlign='center'; x.fillText((l1||n.pilot.ship).toUpperCase(),192,66,376); x.font=`18px ${FONT_MONO}`; x.globalAlpha=0.85; x.fillText(l2||(S.name+' · '+n.pilot.name),192,88,376); x.globalAlpha=1; n.mk.material.map.needsUpdate=true; },
   remove(n){ World.universe.remove(n.m); World.universe.remove(n.mk); n.mk.material.map.dispose(); n.mk.material.dispose(); const i=this.list.indexOf(n); if(i>=0) this.list.splice(i,1); },
   clear(){ while(this.list.length) this.remove(this.list[0]); },
   count(k){ let c=0; for(const n of this.list) if(n.kind===k) c++; return c; },
@@ -1255,9 +1369,9 @@ const Npc = {
       else n.pos.addScaledVector(n.vel,dt);
       n.dist=n.pos.distanceTo(s.pos); n.m.position.copy(n.pos); n.mk.position.copy(n.pos);
       if(n.vel.lengthSq()>1){ n.m.quaternion.copy(lookQuat(n.vel.clone().normalize())); }
-      Models.animate(n.m,0.75,t+i);
-      n.mk.visible=show && n.dist<9000 && n.dist>120; n.mk.material.opacity=n===Comms.target?1:0.75;
-      const far=n.kind==='warp'?70000:32000; if(n.dist>far || n.age>120 && n.dist>9000) this.remove(n);
+      Models.animate(n.m,n.kind==='derelict'?0:0.75,t+i);
+      n.mk.visible=show && n.dist>120 && (n.keep||n.dist<9000); n.mk.material.opacity=n===Comms.target?1:0.75;
+      const far=n.kind==='warp'?70000:32000; if(!n.keep&&(n.dist>far || n.age>120 && n.dist>9000)) this.remove(n);
     }
   },
 };
@@ -1272,13 +1386,13 @@ const Cockpit = {
     const g=this.group=new THREE.Group(); World.cock.add(g);
     this.hits=[]; this.ctrls={}; this.screens={}; this.glowMats=[]; this.screenMats=[]; this.gauges={}; this.strips=[];
     const ck=def.ck, bump=panelBumpTex(), self=this;
-    const std=(hex,rough,metal,extra)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:rough,metalness:metal},extra||{}));
+    const std=(hex,rough,metal,extra)=>Toon.mat(Object.assign({color:C(hex),roughness:rough,metalness:metal},extra||{}));
     const M={ frame:std(ck.frame,0.55,0.55,{bumpMap:bump,bumpScale:0.0015}), panel:std(ck.panel,0.7,0.3,{bumpMap:bump,bumpScale:0.001}), trim:std(ck.trim,0.32,0.9),
-      rubber:std('#0c0c0d',0.95,0), leather:std(ck.leather,0.62,0.05,{bumpMap:bump,bumpScale:0.0008}), knob:std('#141416',0.42,0.25), alu:std('#b9bdc4',0.28,0.95),
+      rubber:std('#2c2840',0.95,0), leather:std(ck.leather,0.62,0.05), knob:std('#34304a',0.42,0.25), alu:std('#cfd3e6',0.28,0.95),
       ptr:new THREE.MeshBasicMaterial({color:new THREE.Color(1.3,1.3,1.3)}), needle:new THREE.MeshBasicMaterial({color:HDR('#ff8a30',2.2)}),
       hit:new THREE.MeshBasicMaterial({visible:false}), wallDS:std(ck.frame,0.6,0.5,{side:THREE.DoubleSide}),
-      glass:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.22,transparent:true,opacity:0.06,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.6}),
-      canopy:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.4,transparent:true,opacity:0.045,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.8}) };
+      glass:new THREE.MeshBasicMaterial({color:C('#bfeaff'),transparent:true,opacity:0.07,depthWrite:false,side:THREE.DoubleSide}),
+      canopy:new THREE.MeshBasicMaterial({color:C('#9fdcff'),transparent:true,opacity:0.018,depthWrite:false,side:THREE.DoubleSide}) };
     this.M=M;
     const add=(m,cast=true,parent=g)=>{ m.castShadow=cast; m.receiveShadow=true; parent.add(m); return m; };
     const bx=(w,h,d,mat,x,y,z,parent)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); return add(m,true,parent||g); };
@@ -1330,7 +1444,7 @@ const Cockpit = {
       for(const [sx,sy] of [[28,28],[cw-28,28],[28,ch-28],[cw-28,ch-28]]){ ctx.fillStyle='#8a8e94'; ctx.beginPath(); ctx.arc(sx,sy,9,0,7); ctx.fill(); ctx.strokeStyle='#222'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(sx-6,sy-3); ctx.lineTo(sx+6,sy+3); ctx.stroke(); }
       gctx.fillStyle='#000'; gctx.fillRect(0,0,cw,ch);
       const tex=canvasTex(cv), gtex=canvasTex(gv);
-      const mat=new THREE.MeshStandardMaterial({map:tex,emissiveMap:gtex,emissive:C(ck.glow),emissiveIntensity:1,roughness:0.6,metalness:0.35});
+      const mat=Toon.mat({map:tex,emissiveMap:gtex,emissive:C(ck.glow),emissiveIntensity:1,roughness:0.6,metalness:0.35});
       const pg=new THREE.Group(); const face=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat); face.receiveShadow=true; pg.add(face);
       bx(w+0.014,h+0.014,0.05,M.frame,0,0,-0.0262,pg); this.glowMats.push(mat); g.add(pg);
       const P={g:pg,w,h,px,ctx,gctx,tex,gtex, xy:(x,y)=>[(x+w/2)*px,(h/2-y)*px],
@@ -1368,7 +1482,7 @@ const Cockpit = {
       P.text(x,y-r-0.012,o.label,0.0085);
       const grp=new THREE.Group(); grp.position.set(x,y,0); P.g.add(grp);
       const bz=new THREE.Mesh(cylZ(r*1.2,r*1.28,0.006),M.alu); bz.position.z=0.003; add(bz,false,grp);
-      const mat=new THREE.MeshStandardMaterial({color:C(o.color),emissive:C(o.color),emissiveIntensity:0.15,roughness:0.35,metalness:0.1});
+      const mat=Toon.mat({color:C(o.color),emissive:C(o.color),emissiveIntensity:0.15,roughness:0.35,metalness:0.1});
       const cap=new THREE.Mesh(cylZ(r*0.94,r,0.012),mat); cap.position.z=0.011; add(cap,true,grp);
       const hit=new THREE.Mesh(cylZ(r*1.3,r*1.3,0.04,10),M.hit); hit.position.z=0.02; grp.add(hit);
       return reg(Object.assign({type:'button',cap,mat,down:0},o),[hit]);
@@ -1475,7 +1589,7 @@ const Cockpit = {
 
     /* ---- manifest clipboard ---- */
     { const cv=makeCanvas(400,560); const tex=canvasTex(cv); const board=new THREE.Group(); board.position.set(-0.81,-0.412,-0.32); board.rotation.y=0.18; g.add(board);
-      bx(0.2,0.008,0.28,std('#5a4026',0.8,0),0,0,0,board); const pm=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.252),new THREE.MeshStandardMaterial({map:tex,roughness:0.9,metalness:0})); pm.rotation.x=-Math.PI/2; pm.position.y=0.0046; pm.receiveShadow=true; board.add(pm);
+      bx(0.2,0.008,0.28,std('#5a4026',0.8,0),0,0,0,board); const pm=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.252),Toon.mat({map:tex,roughness:0.9,metalness:0})); pm.rotation.x=-Math.PI/2; pm.position.y=0.0046; pm.receiveShadow=true; board.add(pm);
       bx(0.07,0.012,0.02,M.alu,0,0.008,-0.125,board); this.screens.manifest={cv,ctx:cv.getContext('2d'),tex,w:400,h:560}; }
 
     /* ---- wipers ---- */
@@ -1490,6 +1604,7 @@ const Cockpit = {
       for(const s of [-1,0,1]){ const e=new THREE.Mesh(new THREE.SphereGeometry(0.0065,8,6),std('#ffffff',0.2,0)); e.position.set(s*0.012,0.026+(s?0:0.008),0.02); head.add(e); const p=new THREE.Mesh(new THREE.SphereGeometry(0.003,6,6),std('#000000',0.2,0)); p.position.set(s*0.012,0.026+(s?0:0.008),0.0255); head.add(p); }
       this.bobble=head; this.bobV=new THREE.Vector2(); this.bobA=new THREE.Vector2(); }
 
+    Toon.ink.mark(g);
     this.drawManifest(); this.frame=0;
   },
 
@@ -1524,7 +1639,7 @@ const Cockpit = {
     if(f%10===5){ this.drawRadio(); this.drawThr(); } if(f%30===7){ this.drawClock(t); this.drawHold(); }
   },
   blank(k){ const s=this.screens[k]; s.ctx.fillStyle='#000'; s.ctx.fillRect(0,0,s.w,s.h); s.tex.needsUpdate=true; },
-  targetLocal(){ const P=PLANETS[G.target], s=G.ship; const v=new V3().subVectors(P.pos,s.pos); const d=v.length(); v.normalize().applyQuaternion(s.quat.clone().invert()); return {P,d,v,ang:Math.acos(clamp(-v.z,-1,1))}; },
+  targetLocal(){ const P=Nav.target(), s=G.ship; const v=new V3().subVectors(P.pos,s.pos); const d=v.length(); v.normalize().applyQuaternion(s.quat.clone().invert()); return {P,d,v,ang:Math.acos(clamp(-v.z,-1,1))}; },
 
   drawMFD(t){
     const S=this.screens.mfd, x=S.ctx, W=S.w, H=S.h, s=G.ship, def=SHIPS[G.shipId], page=G.sys.mfdPage;
@@ -1543,7 +1658,7 @@ const Cockpit = {
       x.textAlign='left'; const row=(lab,val,y,col)=>{ x.fillStyle='#5f8fa0'; x.font=`42px ${FONT_MONO}`; x.fillText(lab,226,y); x.fillStyle=col||'#dcedf3'; x.font=`60px ${FONT_MONO}`; x.fillText(val,226,y+58,W-240); };
       row(behind?'BEHIND YOU':'DISTANCE',fmtDist(T.d),234,behind?'#ff6f61':null); const eta=s.speed>5?T.d/s.speed:Infinity; row('ETA',eta===Infinity?'--:--':eta>5999?'>99 min':String(Math.floor(eta/60)).padStart(2,'0')+':'+String(Math.floor(eta%60)).padStart(2,'0'),346);
       const cw=Game.canWarp(); let msg, col='#62e2ff';
-      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
+      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.isWp&&P.dist<P.arriveR*4){ msg='ARRIVING'; col='#7dffa8'; } else if(!P.isWp&&P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
       else if(T.ang<0.14){ msg='ALIGNED · PRESS Z TO WARP'; col='#7dffa8'; } else msg='TURN TO DESTINATION';
       if(Math.floor(t*2)%2||col!=='#7dffa8'){ x.fillStyle=col; x.font=`42px ${FONT_MONO}`; x.textAlign='center'; x.fillText(msg,W/2,H-12,W-24); }
     } else if(page===1){
@@ -1552,12 +1667,12 @@ const Cockpit = {
       x.font=`40px ${FONT_MONO}`;
       if(!G.cargo.length){ x.fillStyle='#5f8fa0'; x.fillText('Hold is empty.',18,214); x.fillText('Take a job at a port.',18,266,W-36); }
       const show=G.cargo.length>3?2:3;
-      G.cargo.slice(0,show).forEach((c,i)=>{ const y=200+i*98; x.textAlign='left'; x.fillStyle='#dcedf3'; x.fillText(`${c.qty}× ${c.good}`,18,y,W-36);
-        x.fillStyle=c.to===G.target?'#ffb454':'#5f8fa0'; x.fillText('→ '+PLANETS[c.to].name,18,y+46); x.fillStyle='#7dffa8'; x.textAlign='right'; x.fillText(fmtCr(c.pay),W-18,y+46); x.textAlign='left'; });
+      G.cargo.slice(0,show).forEach((c,i)=>{ const y=200+i*98; x.textAlign='left'; x.fillStyle='#dcedf3'; x.fillText(c.kind==='escort'?c.good:`${c.qty}× ${c.good}`,18,y,W-36);
+        x.fillStyle=c.to===G.target?'#ffb454':'#5f8fa0'; x.fillText('→ '+Ev.cargoDest(c),18,y+46); x.fillStyle='#7dffa8'; x.textAlign='right'; x.fillText(fmtCr(c.pay),W-18,y+46); x.textAlign='left'; });
       if(G.cargo.length>show){ x.fillStyle='#5f8fa0'; x.fillText(`+ ${G.cargo.length-show} more aboard`,18,H-22,W-36); }
     } else {
       x.textAlign='left'; x.fillStyle='#ffb454'; x.font=`600 48px ${FONT_DISP}`; x.fillText(def.name.toUpperCase(),18,132,W-36);
-      const rows=[['FUEL',Math.round(G.fuel/def.fuel*100)+' %'],['SPEED',s.warpF>0.3?(s.speed/LS).toFixed(2)+' c':Math.round(s.speed)+' km/s'],['CORE TEMP',Math.round(s.temp*100)+' %'],['EARNED',fmtCr(G.stats.earned)],['HOT TIP',G.hot!=null?PLANETS[G.hot].name+' +50%':'none']];
+      const rows=[['FUEL',Math.round(G.fuel/def.fuel*100)+' %'],['HULL',Math.round(G.hull)+' %'],['CORE TEMP',Math.round(s.temp*100)+' %'],['REP',Rep.label()+' '+(G.rep>0?'+':'')+G.rep],['HOT TIP',G.hot!=null?PLANETS[G.hot].name+' +50%':'none']];
       x.font=`42px ${FONT_MONO}`; rows.forEach((r,i)=>{ const y=200+i*62; x.fillStyle='#5f8fa0'; x.textAlign='left'; x.fillText(r[0],18,y); const lw=x.measureText(r[0]).width; x.fillStyle='#dcedf3'; x.textAlign='right'; x.fillText(r[1],W-18,y,W-60-lw); });
       x.textAlign='left';
     }
@@ -1565,9 +1680,9 @@ const Cockpit = {
   },
   drawAnn(t){
     const S=this.screens.ann, x=S.ctx, s=G.ship, def=SHIPS[G.shipId]; x.fillStyle='#050608'; x.fillRect(0,0,S.w,S.h); const bl=Math.floor(t*3)%2;
-    const lamps=[['WARP',s.warp,'#6ab8ff'],['MASS LOCK',Game.massLock()&&!s.warp,'#ffb454'],['AUTO PILOT',G.sys.autopilot,'#7dffa8'],['FUEL LOW',G.fuel/def.fuel<0.2&&bl,'#ff6f61'],['COMMS',Radio.cur&&Radio.cur.t<Radio.cur.dur,'#62e2ff']];
-    lamps.forEach((l,i)=>{ const y=8+i*78, w=l[0].split(' '); x.fillStyle=l[1]?l[2]:'#12181c'; x.fillRect(8,y,S.w-16,68); x.fillStyle=l[1]?'#041018':'#2c3a42'; x.textAlign='center'; x.textBaseline='middle';
-      if(w.length>1){ x.font=`600 33px ${FONT_DISP}`; x.fillText(w[0],S.w/2,y+20,S.w-24); x.fillText(w[1],S.w/2,y+50,S.w-24); } else { x.font=`600 44px ${FONT_DISP}`; x.fillText(l[0],S.w/2,y+36,S.w-26); } });
+    const lamps=[['WARP',s.warp,'#6ab8ff'],['MASS LOCK',Game.massLock()&&!s.warp,'#ffb454'],['AUTO PILOT',G.sys.autopilot,'#7dffa8'],['FUEL LOW',G.fuel/def.fuel<0.2&&bl,'#ff6f61'],['HULL LOW',G.hull<35&&bl,'#ff6f61'],[Escort.npc?'ESCORT':'COMMS',Escort.npc?(Game.escortAlarm?bl:true):(Radio.cur&&Radio.cur.t<Radio.cur.dur),Game.escortAlarm?'#ff6f61':'#62e2ff']];
+    lamps.forEach((l,i)=>{ const y=6+i*65, w=l[0].split(' '); x.fillStyle=l[1]?l[2]:'#12181c'; x.fillRect(8,y,S.w-16,58); x.fillStyle=l[1]?'#041018':'#2c3a42'; x.textAlign='center'; x.textBaseline='middle';
+      if(w.length>1){ x.font=`600 28px ${FONT_DISP}`; x.fillText(w[0],S.w/2,y+17,S.w-24); x.fillText(w[1],S.w/2,y+43,S.w-24); } else { x.font=`600 40px ${FONT_DISP}`; x.fillText(l[0],S.w/2,y+31,S.w-26); } });
     S.tex.needsUpdate=true;
   },
   drawRadar(t){
@@ -1625,7 +1740,7 @@ const Cockpit = {
     const S=this.screens.manifest; if(!S) return; const x=S.ctx; x.fillStyle='#efe8d6'; x.fillRect(0,0,400,560); x.fillStyle='#222'; x.font=`700 30px ${FONT_DISP}`; x.textAlign='left'; x.textBaseline='alphabetic'; x.fillText('CARGO MANIFEST',24,50);
     x.strokeStyle='#222'; x.lineWidth=2; x.beginPath(); x.moveTo(24,62); x.lineTo(376,62); x.stroke(); x.font=`17px ${FONT_MONO}`;
     if(!G.cargo.length){ x.fillStyle='#666'; x.fillText('(nothing aboard)',24,100); }
-    G.cargo.slice(0,9).forEach((c,i)=>{ const y=96+i*50; x.fillStyle='#111'; let nm=`${c.qty}x ${c.good}`; if(nm.length>34) nm=nm.slice(0,33)+'…'; x.fillText(nm,24,y); x.fillStyle='#8a1c1c'; x.fillText(`to ${PLANETS[c.to].name} — ${fmtCr(c.pay)}`,40,y+20); });
+    G.cargo.slice(0,9).forEach((c,i)=>{ const y=96+i*50; x.fillStyle='#111'; let nm=c.kind==='escort'?c.good:`${c.qty}x ${c.illegal?'Personal Effects (honest)':c.good}`; if(nm.length>34) nm=nm.slice(0,33)+'…'; x.fillText(nm,24,y); x.fillStyle='#8a1c1c'; x.fillText(`${c.kind==='ore'?'sell anywhere':'to '+PLANETS[c.to].name} — ${fmtCr(c.pay)}`,40,y+20); });
     x.fillStyle='#8a1c1c'; x.font=`italic 18px ${FONT_MONO}`; x.save(); x.translate(250,520); x.rotate(-0.12); x.fillText('do NOT shake',0,0); x.restore(); S.tex.needsUpdate=true;
   },
 
@@ -1695,7 +1810,7 @@ const Cine = {
     const es=new THREE.Scene(); es.add(new THREE.Mesh(sky.geometry,skyMat)); const crt=new THREE.WebGLCubeRenderTarget(128,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,generateMipmaps:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
     new THREE.CubeCamera(10,60000,crt).update(World.renderer,es); const pm=new THREE.PMREMGenerator(World.renderer); const env=pm.fromCubemap(crt.texture).texture; pm.dispose(); crt.dispose(); scn.environment=env; skyU.uMax.value=40;
     scn.fog=new THREE.FogExp2(C(S.hor),S.fog);
-    scn.add(new THREE.HemisphereLight(C(S.hor),C(S.g[0]),0.32));
+    scn.add(new THREE.HemisphereLight(C(S.hor),C(S.g[0]),0.7));
     const sun=new THREE.DirectionalLight(C('#fff2dc'),S.lava?1.1:1.9); sun.position.copy(sunDir).multiplyScalar(320); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
     const sc=sun.shadow.camera; sc.left=-110; sc.right=110; sc.top=110; sc.bottom=-110; sc.near=60; sc.far=800; sun.shadow.bias=-0.0005; sun.shadow.normalBias=0.4; sun.shadow.radius=3; scn.add(sun); scn.add(sun.target);
     const liq=S.liquid?-20:-1e9;
@@ -1708,8 +1823,8 @@ const Cine = {
     tg.setAttribute('color',new THREE.BufferAttribute(cols,3)); tg.computeVertexNormals();
     const gcv=makeCanvas(256,256), gx=gcv.getContext('2d'), gi=gx.createImageData(256,256), gr=mulberry32(3); for(let i=0;i<gi.data.length;i+=4){ const v=222+gr()*33; gi.data[i]=gi.data[i+1]=gi.data[i+2]=v; gi.data[i+3]=255; } gx.putImageData(gi,0,0);
     const gt=canvasTex(gcv); gt.wrapS=gt.wrapT=THREE.RepeatWrapping; gt.repeat.set(90,90);
-    const terr=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,map:gt,roughness:cloud?1:0.94,metalness:0})); terr.receiveShadow=true; scn.add(terr);
-    if(S.liquid){ const lm=S.lava?new THREE.MeshBasicMaterial({color:HDR(S.liquid,2.6)}):new THREE.MeshStandardMaterial({color:C(S.liquid),roughness:0.06,metalness:0.55,envMapIntensity:1.4});
+    const terr=new THREE.Mesh(tg,Toon.mat({vertexColors:true,map:gt,roughness:cloud?1:0.94,metalness:0})); terr.receiveShadow=true; scn.add(terr);
+    if(S.liquid){ const lm=S.lava?new THREE.MeshBasicMaterial({color:HDR(S.liquid,2.6)}):Toon.mat({color:C(S.liquid),roughness:0.06,metalness:0.55,envMapIntensity:1.4});
       const l=new THREE.Mesh(new THREE.PlaneGeometry(26000,26000),lm); l.rotation.x=-Math.PI/2; l.position.y=liq; scn.add(l); if(S.lava){ const ll=new THREE.HemisphereLight(C('#000000'),C(S.liquid),1.1); scn.add(ll); } }
     // pad
     const pcv=makeCanvas(512,512), px=pcv.getContext('2d'); px.fillStyle='#34363a'; px.fillRect(0,0,512,512); const pr=mulberry32(seed+1);
@@ -1717,12 +1832,12 @@ const Cine = {
     px.strokeStyle='#e8b820'; px.lineWidth=14; px.beginPath(); px.arc(256,256,214,0,7); px.stroke(); px.lineWidth=6; px.beginPath(); px.arc(256,256,120,0,7); px.stroke();
     for(let i=0;i<24;i++){ const a=i/24*6.283; px.save(); px.translate(256+Math.cos(a)*238,256+Math.sin(a)*238); px.rotate(a); px.fillStyle=i%2?'#e8b820':'#1a1a1a'; px.fillRect(-10,-16,20,32); px.restore(); }
     drawGlyphs(px,P.port.slice(0,3),190,210,90,P.species,'#f2f2f2',200);
-    const padTop=new THREE.MeshStandardMaterial({map:canvasTex(pcv),roughness:0.85,metalness:0.1}), padSide=new THREE.MeshStandardMaterial({color:C('#2a2c30'),roughness:0.8,metalness:0.3});
+    const padTop=Toon.mat({map:canvasTex(pcv),roughness:0.85,metalness:0.1}), padSide=Toon.mat({color:C('#2a2c30'),roughness:0.8,metalness:0.3});
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(50,54,5,56),[padSide,padTop,padSide]); pad.position.y=-2.5; pad.receiveShadow=true; scn.add(pad);
     if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(9,16,900,20),padSide); py.position.y=-455; scn.add(py); const rg=new THREE.Mesh(new THREE.TorusGeometry(58,3,10,48),padSide); rg.rotation.x=Math.PI/2; rg.position.y=-6; scn.add(rg); }
     const lamps=[]; for(let i=0;i<20;i++){ const a=i/20*6.283, lm=new THREE.Mesh(new THREE.SphereGeometry(0.45,8,6),new THREE.MeshBasicMaterial({color:0xffffff})); lm.position.set(Math.cos(a)*47,0.35,Math.sin(a)*47); scn.add(lm); lamps.push(lm); }
     // buildings
-    const bm=(hex,rough=0.7,metal=0.2,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:rough,metalness:metal},ex||{}));
+    const bm=(hex,rough=0.7,metal=0.2,ex)=>Toon.mat(Object.assign({color:C(hex),roughness:rough,metalness:metal},ex||{}));
     const win=new THREE.MeshBasicMaterial({color:HDR(spc.col,1.8)}), warm=new THREE.MeshBasicMaterial({color:HDR('#ffd9a0',2)});
     const mk=(geo,mat,x=0,y=0,z=0)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; };
     const building=()=>{ const b=new THREE.Group(), st=S.style;
@@ -1747,6 +1862,7 @@ const Cine = {
     const dn=380, dp=new Float32Array(dn*3), dseed=new Float32Array(dn*3); for(let i=0;i<dn;i++){ dseed[i*3]=rr()*6.283; dseed[i*3+1]=rr(); dseed[i*3+2]=rr(); }
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
+    Toon.ink.mark(scn);
     this.surf={scene:scn,env,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
   updateSurface(dt, t, alt){
@@ -1825,6 +1941,362 @@ const Cine = {
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },
 };
+/* ===================== EVENTS ===================== */
+/* Reputation, hull, waypoints, decision dialogs, and the four side activities:
+   distress calls, asteroid mining, contraband runs and escort missions. */
+
+const CONTRABAND = [
+  ['Undeclared Joy','It giggles inside the crate. Do not open the crate.'],
+  ['Bootleg Gravity','Slightly heavier than the legal limit.'],
+  ['Unlicensed Puns','Groan-grade. Dangerously habit-forming.'],
+  ['Smuggled Sunsets','Taken from Verdanthia one evening at a time.'],
+  ['Black-Market Socks','Unmatched. Untraceable.'],
+  ['Forbidden Soup','The recipe is a state secret. So is the smell.'],
+  ['Grey-Area Glitter','Gets everywhere, including into court.'],
+  ['Pirated Lullabies','Puts customs officers to sleep. Allegedly.'],
+];
+const STRICT = {zkthar:0.6, beepul:0.45, ooloo:0.35, vrell:0.3, momwump:0.3, grondar:0.25, blorpax:0.2, qeeble:0.15, sporrin:0.1};
+const VIPS = [
+  {sp:'qeeble', title:'Duchess Plimm of the Wobbly Isles'},
+  {sp:'momwump', title:'Grand-Auntie Floof the Fourth'},
+  {sp:'zkthar', title:'Sub-Deputy Auditor Krrrx'},
+  {sp:'vrell', title:'Ulloweth, the Tragic Poet'},
+  {sp:'blorpax', title:'Chef Gloopy of the Soup Barge'},
+  {sp:'beepul', title:'Ambassador Unit 7-B'},
+  {sp:'sporrin', title:'The Very Relaxed Elder Moss'},
+  {sp:'grondar', title:'Pebblemaster Gronk'},
+];
+const FIELDS = [
+  {name:'The Gravel Pit', ore:'Crunchy Iridium', val:46, orbit:505000, ang:0.95, y:-4000, col:'#b08a6e', R:9000, n:110},
+  {name:"Grandma's Button Jar", ore:'Antique Moon Buttons', val:38, orbit:735000, ang:3.95, y:9000, col:'#9d8fc2', R:9000, n:110},
+  {name:"Sir Reginald's Rubble", ore:'Smug Quartz', val:62, orbit:1025000, ang:2.25, y:-11000, col:'#c27a58', R:10000, n:120},
+];
+const MAYDAY = [
+  "Mayday, mayday! Our drive just coughed and died. We are drifting and the snacks are running low.",
+  "Is anyone out there? Our fuel gauge says zero and our pilot says a word I won't translate.",
+  "Help! We are adrift with a hold full of nervous geese. Please hurry. The geese are organising.",
+  "This is a distress call. Our engine fell off. Well, most of it. Please come quickly.",
+];
+const PIRATE = [
+  "Ha! There's no emergency. There's only us. Hand something over and nobody's afternoon gets ruined.",
+  "Surprise! The real distress is the toll you're about to pay.",
+  "Thanks for stopping! Very kind. Now, about your wallet.",
+];
+
+/* ---------- reputation and hull ---------- */
+const Rep = {
+  label(v){ v=v==null?G.rep:v; return v<-40?'Notorious':v<-10?'Shady':v<15?'Unknown':v<40?'Decent':v<70?'Trusted':'Legendary'; },
+  add(d, why){ if(!d) return; G.rep=clamp(Math.round(G.rep+d),-100,100); UI.toast(`${why?why+'. ':''}Reputation ${d>0?'+':''}${d} (${this.label()})`, d>0?'good':'warn'); },
+  payMul(){ return 1+G.rep/400; },
+};
+const Hull = {
+  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
+    UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
+  breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
+};
+
+/* ---------- waypoints: a temporary nav target that outranks the planet destination ---------- */
+const Nav = {
+  wp:null,
+  target(){ return this.wp||PLANETS[G.target]; },
+  set(wp){
+    this.clear(true); wp.isWp=true; wp.dist=wp.pos.distanceTo(G.ship.pos); wp.landR=0; wp.port=wp.port||wp.sub||'';
+    const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
+    sp.scale.set(0.3,0.1875,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(wp.pos); World.universe.add(sp);
+    wp.mk={cv,tex,sprite:sp,key:''}; this.wp=wp; Game.mk=0; if(Sfx.ok()) Sfx.beep(990);
+  },
+  clear(silent){ const w=this.wp; if(!w) return; this.wp=null; World.universe.remove(w.mk.sprite); w.mk.tex.dispose(); w.mk.sprite.material.dispose(); if(!silent&&w.onCancel) w.onCancel(); },
+  update(dt){
+    const w=this.wp; if(!w) return; const s=G.ship; w.dist=w.pos.distanceTo(s.pos); w.mk.sprite.position.copy(w.pos);
+    if(w.expire!=null){ w.expire-=dt; if(w.expire<=0){ this.clear(); return; } }
+    const fwd=new V3(0,0,-1).applyQuaternion(s.quat);
+    if(s.warp&&w.dist<w.dropR&&w.pos.clone().sub(s.pos).normalize().dot(fwd)>0.2) Game.dropWarp('Arriving at '+w.name,'good',true);
+    if(w.dist<w.arriveR&&s.warpF<0.3){ const f=w.onArrive; this.clear(true); if(f) f(); }
+  },
+};
+
+/* ---------- decision dialog (flight and port) ---------- */
+const Dlg = {
+  open:false, opts:[], timer:0, onTimeout:null,
+  show(o){
+    Comms.close(true); if(SysMap.open) SysMap.close(); this.open=true; this.opts=o.opts||[{t:'OK'}]; this.timer=o.timeout||0; this.onTimeout=o.onTimeout||null; this.total=this.timer;
+    const box=$('dlg'); box.hidden=false; box.className=o.tone||'';
+    const x=$('dlg-face').getContext('2d'); x.clearRect(0,0,192,192); if(o.sp) drawAlien(x,o.sp,o.seed||1,0,0,192); else { x.fillStyle='#1d2a3a'; x.fillRect(0,0,192,192); x.font='120px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(o.icon||'⚠',96,104); }
+    $('dlg-who').textContent=o.who||''; $('dlg-text').textContent=o.text||''; $('dlg-bar').style.width=this.timer?'100%':'0';
+    const box2=$('dlg-opts'); box2.innerHTML='';
+    this.opts.forEach((op,i)=>{ const b=el('button','opt',`<b>${i+1}</b>${esc(op.t)}${op.sub?'<small>'+esc(op.sub)+'</small>':''}`); b.disabled=!!op.disabled; b.onclick=()=>this.choose(i); box2.appendChild(b); });
+    if(o.sp&&Sfx.ok()) Sfx.speak(SPECIES[o.sp].voice,clamp((o.text||'').length*0.05,1.6,5),G.mode!=='flight'); else if(Sfx.ok()) Sfx.beep(520);
+  },
+  info(o){ o.opts=[{t:o.ok||'OK',fn:o.then}]; this.show(o); },
+  choose(i){ const op=this.opts[i]; if(!this.open||!op||op.disabled) return; Sfx.click(); this.close(); if(op.fn) op.fn(); },
+  close(){ this.open=false; this.timer=0; $('dlg').hidden=true; },
+  update(dt){ if(!this.open||!this.timer) return; this.timer-=dt; $('dlg-bar').style.width=Math.max(0,this.timer/this.total*100)+'%';
+    if(this.timer<=0){ const f=this.onTimeout; this.close(); if(f) f(); } },
+};
+
+/* ---------- helpers ---------- */
+const Ev = {
+  hold:0,          // seconds the ship is tethered (fuel transfer etc.)
+  cargoDest(c){ return c.kind==='ore'?'Sell at any port':PLANETS[c.to].name; },
+  clearOfPlanets(k){ const P=World.nearest; return !P||P.dist>P.r*(k||9); },
+  around(pos, d){ return pos.clone().add(new V3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize().multiplyScalar(d)); },
+  npc(kind, pos, pilot, extra){ const n=Npc.spawn(kind,pos,new V3(),Object.assign({keep:true},extra||{})); if(pilot) Object.assign(n.pilot,pilot); Npc.label(n); return n; },
+  dismiss(n, away){ if(!n||Npc.list.indexOf(n)<0) return; n.keep=false; n.age=200; const d=away||new V3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize(); n.vel.copy(d).multiplyScalar(2600); },
+  fuelUnits(f){ return Math.max(1,Math.round(f)); },
+  update(dt){
+    if(this.hold>0){ this.hold-=dt; G.ship.throttle=0; if(G.ship.warp) Game.dropWarp(); }
+    Nav.update(dt); Distress.update(dt); Mining.update(dt); Customs.update(dt); Escort.update(dt);
+  },
+};
+
+/* ---------- distress calls ---------- */
+const Distress = {
+  t:80, cur:null,
+  update(dt){
+    if(this.cur||Dlg.open||Escort.hazard||Customs.cur) return;
+    if(!Ev.clearOfPlanets(12)||G.playTime<45) return;
+    this.t-=dt; if(this.t>0) return; this.t=rnd(110,190);
+    if(Math.random()<0.75) this.call();
+  },
+  call(){
+    const sp=pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)};
+    Radio.cur=null; Radio.wait=20;
+    Dlg.show({sp,seed,tone:'alert',who:`Mayday · ${c.name} · ${SPECIES[sp].name} · ${c.ship}`,text:pick(MAYDAY),timeout:30,onTimeout:()=>this.ignore(),
+      opts:[{t:'Answer the call',sub:'A detour. Costs time and fuel.',fn:()=>this.answer()},{t:'Keep flying',sub:'Somebody else will help. Probably.',fn:()=>this.ignore()}]});
+  },
+  ignore(){ this.cur=null; Rep.add(-3,'You flew past a mayday'); },
+  answer(){
+    const c=this.cur, s=G.ship; if(s.warp) Game.dropWarp('Dropping out of warp to answer the mayday','warn');
+    const fwd=new V3(0,0,-1).applyQuaternion(s.quat), side=new V3(1,0,0).applyQuaternion(s.quat);
+    const pos=s.pos.clone().addScaledVector(fwd,rnd(16000,26000)).addScaledVector(side,rnd(-9000,9000));
+    c.npc=Ev.npc('derelict',pos,{sp:c.sp,seed:c.seed,name:c.name,ship:c.ship});
+    Nav.set({name:c.ship.toUpperCase(),sub:'Distress beacon',kind:'distress',pos,dropR:9000,arriveR:1200,expire:300,onArrive:()=>this.arrive(),onCancel:()=>{ Ev.dismiss(c.npc); this.cur=null; Rep.add(-2,'You abandoned the rescue'); }});
+    UI.toast('Beacon locked. Press P for autopilot.','good');
+  },
+  arrive(){
+    const c=this.cur; if(!c) return; G.ship.throttle=0;
+    if(c.ambush) return this.ambush(c);
+    const f=Ev.fuelUnits(SHIPS[G.shipId].fuel*rnd(0.12,0.18));
+    Dlg.show({sp:c.sp,seed:c.seed,who:`${c.name} · ${c.ship}`,text:"Oh, thank the stars. Our tank is bone dry. Could you spare some fuel? We will make it worth your while. Probably.",
+      opts:[{t:'Transfer fuel',sub:`Gives away ${f} units and takes a minute`,disabled:G.fuel<f+4,fn:()=>{ G.fuel-=f; Ev.hold=6; UI.toast('Fuel line connected. Hold still…'); Sfx.hiss(5,0.18); setTimeout(()=>this.reward(c,f),6000); }},
+            {t:"Sorry, I can't spare it",sub:'They will remember',fn:()=>{ Rep.add(-2,'You left them adrift'); Ev.dismiss(c.npc); this.cur=null; }}]});
+  },
+  reward(c, f){
+    if(G.mode!=='flight'){ this.cur=null; return; } const r=Math.random(); let text;
+    if(r<0.5){ const cr=Math.round(f*rnd(9,14)/5)*5; G.credits+=cr; Sfx.cash(); text=`Engines are humming! Here's ${fmtCr(cr)} for the trouble. You're a star. Not literally. Stars are hot.`; }
+    else if(r<0.8){ let h; do{ h=Math.floor(Math.random()*PLANETS.length); }while(h===G.target&&PLANETS.length>1); G.hot=h; text=`We can't pay much, but here's a secret: ${PLANETS[h].name} is paying a fat bonus on deliveries right now.`; }
+    else { const to=Math.floor(Math.random()*PLANETS.length), used=G.cargo.reduce((a,b)=>a+b.qty,0);
+      if(used+1<=SHIPS[G.shipId].hold){ G.cargo.push({good:'Thank-You Fruitcake',qty:1,to,pay:Math.round(rnd(220,380)/5)*5,from:-1}); Cockpit.drawManifest(); text=`Please take this fruitcake to ${PLANETS[to].name}. They'll pay you for it. Nobody has ever eaten one.`; }
+      else { const cr=150; G.credits+=cr; Sfx.cash(); text=`Here's ${fmtCr(cr)}. We wanted to give you a fruitcake but your hold is full. Lucky you.`; } }
+    Dlg.info({sp:c.sp,seed:c.seed,who:`${c.name} · ${c.ship}`,text,then:()=>{ Rep.add(6,'Rescue complete'); Ev.dismiss(c.npc); this.cur=null; }});
+  },
+  ambush(c){
+    Ev.dismiss(c.npc); const fwd=new V3(0,0,-1).applyQuaternion(G.ship.quat);
+    c.pirates=[0,1].map(()=>Ev.npc('pirate',G.ship.pos.clone().addScaledVector(fwd,rnd(600,1200)).add(Ev.around(new V3(),rnd(250,600))),{sp:pick(['grondar','zkthar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
+    const toll=Math.round(clamp(G.credits*0.25,120,600)/10)*10, big=G.cargo.filter(x=>x.qty>0&&x.kind!=='escort').sort((a,b)=>b.pay-a.pay)[0];
+    const esc=clamp(0.3+G.shipId*0.09+(Game.massLock()?0:0.15),0.2,0.85);
+    const end=()=>{ c.pirates.forEach(p=>Ev.dismiss(p)); this.cur=null; };
+    Dlg.show({sp:c.pirates[0].pilot.sp,seed:c.pirates[0].pilot.seed,tone:'alert',who:`${c.name} · actually pirates`,text:pick(PIRATE),
+      opts:[{t:'Pay the toll',sub:G.credits>=toll?fmtCr(toll):`All you have: ${fmtCr(G.credits)}`,fn:()=>{ G.credits-=Math.min(G.credits,toll); Sfx.cash(); UI.toast('They take the money and leave, laughing.','warn'); end(); }},
+            {t:'Hand over some cargo',sub:big?`${big.qty}× ${big.good}`:'Your hold is empty',disabled:!big,fn:()=>{ G.cargo.splice(G.cargo.indexOf(big),1); Cockpit.drawManifest(); Rep.add(-3,'A client lost their cargo'); end(); }},
+            {t:'Punch it!',sub:`${Math.round(esc*100)}% chance to get away`,fn:()=>{ G.ship.throttle=10; if(Math.random()<esc){ Hull.hit(rnd(4,9),'You got away with a few scorch marks'); G.fuel=Math.max(0,G.fuel-6); }
+              else { Hull.hit(rnd(15,25),'They caught you'); const t=Math.min(G.credits,Math.round(toll*1.5)); G.credits-=t; UI.toast(`They took ${fmtCr(t)} as a lesson`,'warn'); } end(); }}]});
+  },
+};
+
+/* ---------- asteroid mining ---------- */
+const Mining = {
+  fields:[], field:null, target:null, heat:0, lock:0, prog:0, hitCD:0, pebT:0, msgT:0, got:0, gotT:0,
+  build(){
+    const geo=new THREE.IcosahedronGeometry(1,1), pos=geo.attributes.position, v=new V3();
+    for(let i=0;i<pos.count;i++){ v.fromBufferAttribute(pos,i); const k=1+0.22*Math.sin(v.x*5.1+v.y*3.3)+0.16*Math.sin(v.z*6.7-v.x*2.1); v.multiplyScalar(k); pos.setXYZ(i,v.x,v.y*0.82,v.z); }
+    geo.computeVertexNormals(); this.m4=new THREE.Matrix4(); this.q=new Q4(); this.sc=new V3();
+    FIELDS.forEach((F,fi)=>{
+      F.idx=fi; F.pos=new V3(Math.cos(F.ang)*F.orbit,F.y,Math.sin(F.ang)*F.orbit); F.dist=1e12; F.port='Asteroid field · '+F.ore; F.isField=true;
+      const rr=mulberry32(900+fi*77), mat=Toon.mat({color:0xffffff}), im=new THREE.InstancedMesh(geo,mat,F.n); im.frustumCulled=false;
+      F.rocks=[]; const base=C(F.col);
+      for(let i=0;i<F.n;i++){ const u=rr()*2-1, a=rr()*6.283, s=Math.sqrt(1-u*u), d=Math.cbrt(rr())*F.R;
+        const p=new V3(s*Math.cos(a)*d,u*d*0.35,s*Math.sin(a)*d), r=30+Math.pow(rr(),2.2)*190;
+        const rock={p:p.clone().add(F.pos),local:p,r,r0:r,ore:Math.max(1,Math.round(r/38)),ore0:0,rot:new THREE.Euler(rr()*6,rr()*6,rr()*6),i}; rock.ore0=rock.ore; F.rocks.push(rock);
+        im.setColorAt(i,base.clone().multiplyScalar(0.75+rr()*0.5)); }
+      F.im=im; const g=new THREE.Group(); g.position.copy(F.pos); g.add(im); World.universe.add(g); F.group=g; Toon.ink.mark(g);
+      for(const k of F.rocks) this.place(F,k);
+      im.instanceColor.needsUpdate=true;
+      const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
+      sp.scale.set(0.22,0.1375,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(F.pos); World.universe.add(sp); F.mk={cv,tex,sprite:sp,key:''};
+    });
+    this.fields=FIELDS;
+    // the beam: a cone from just under the nose to the rock
+    const bg=new THREE.CylinderGeometry(1,0.012,1,10,1,true); bg.translate(0,0.5,0); bg.rotateX(-Math.PI/2); // narrow at the ship (z=0), wide at the rock (z=-1)
+    this.beam=new THREE.Mesh(bg,new THREE.MeshBasicMaterial({color:HDR('#7dffb0',3),transparent:true,opacity:0.85,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+    this.beam.visible=false; this.beam.frustumCulled=false; World.space.add(this.beam);
+    this.spark=new THREE.Sprite(new THREE.SpriteMaterial({map:softDotTex(),color:HDR('#b8ffd0',4),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); this.spark.visible=false; World.space.add(this.spark);
+    // rock sights
+    const cv=makeCanvas(384,240); this.sightTex=canvasTex(cv); this.sightCv=cv; this.sight=new THREE.Sprite(new THREE.SpriteMaterial({map:this.sightTex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
+    this.sight.scale.set(0.26,0.1625,1); this.sight.center.set(0.5,1-158/240); this.sight.renderOrder=22; this.sight.visible=false; World.universe.add(this.sight); this.sightKey='';
+  },
+  place(F,k){ const s=k.ore>0?k.r:0.0001; this.q.setFromEuler(k.rot); this.sc.set(s,s,s); this.m4.compose(k.local,this.q,this.sc); F.im.setMatrixAt(k.i,this.m4); F.im.instanceMatrix.needsUpdate=true; },
+  rate(){ return G.up.laser>1?1.25:0.7; },
+  drawSight(k,d){
+    const key=k?k.i+':'+k.ore+':'+fmtDist(d):''; if(key===this.sightKey) return; this.sightKey=key; const x=this.sightCv.getContext('2d'); x.clearRect(0,0,384,240); if(!k) return;
+    x.strokeStyle='#7dffb0'; x.fillStyle='#7dffb0'; x.lineWidth=4; const cx=192, cy=158, s=34; x.beginPath(); x.arc(cx,cy,s,0,Math.PI*2); x.stroke();
+    for(const a of [0,1,2,3]){ const an=a*Math.PI/2; x.beginPath(); x.moveTo(cx+Math.cos(an)*(s-10),cy+Math.sin(an)*(s-10)); x.lineTo(cx+Math.cos(an)*(s+12),cy+Math.sin(an)*(s+12)); x.stroke(); }
+    x.textAlign='center'; x.font=`600 46px ${FONT_DISP}`; x.fillText(`ORE ${k.ore}`,cx,cy-s-62); x.font=`40px ${FONT_MONO}`; x.fillText(fmtDist(d),cx,cy-s-16); this.sightTex.needsUpdate=true;
+  },
+  addOre(F){
+    const def=SHIPS[G.shipId], used=G.cargo.reduce((a,b)=>a+b.qty,0); if(used>=def.hold) return false;
+    let c=G.cargo.find(x=>x.kind==='ore'&&x.good===F.ore); if(!c){ c={kind:'ore',good:F.ore,qty:0,to:-1,pay:0,val:F.val,from:-1}; G.cargo.push(c); }
+    c.qty++; c.pay=c.qty*F.val; this.got++; this.gotT=1.2; Cockpit.drawManifest(); return true;
+  },
+  update(dt){
+    const s=G.ship, fire=!!G.keys.KeyF&&G.sys.power&&this.lock<=0&&!Dlg.open;
+    this.lock=Math.max(0,this.lock-dt); this.hitCD=Math.max(0,this.hitCD-dt); this.msgT=Math.max(0,this.msgT-dt);
+    let field=null; for(const F of this.fields){ F.dist=F.pos.distanceTo(s.pos); if(F.dist<F.R*1.4) field=F; F.group.visible=F.dist<400000; }
+    if(field!==this.field){ this.field=field; if(field){ UI.toast(`Entering ${field.name}. Aim at a rock and hold F to mine ${field.ore}.`,'good'); if(s.warp) Game.dropWarp('Asteroid field. Warp disengaged.','warn',true); } }
+    // dropping out of warp on the way in
+    for(const F of this.fields){ if(s.warp&&F.dist<F.R*2.6&&F.pos.clone().sub(s.pos).normalize().dot(new V3(0,0,-1).applyQuaternion(s.quat))>0.2) Game.dropWarp(F.name+'. Warp disengaged.','good',true); }
+    // heat
+    this.heat=clamp(this.heat+(fire&&this.target?dt*(G.up.laser>1?0.07:0.1):-dt*0.08),0,1);
+    if(this.heat>=1){ this.lock=7; this.heat=0.75; Hull.hit(4,'Mining laser overheated'); }
+    if(this.gotT>0){ this.gotT-=dt; if(this.gotT<=0&&this.got){ const c=G.cargo.find(x=>x.kind==='ore'); UI.toast(`+${this.got} ${field?field.ore:'ore'} · ${c?c.qty:this.got} in the hold`,'good'); Sfx.cash(); this.got=0; } }
+    if(!field){ this.target=null; this.beam.visible=false; this.spark.visible=false; this.sight.visible=false; return; }
+    // collisions and pebbles
+    const fwd=new V3(0,0,-1).applyQuaternion(s.quat); let best=null, bd=0.1;
+    for(const k of field.rocks){ if(k.ore<=0) continue; const to=k.p.clone().sub(s.pos), d=to.length();
+      if(d-k.r<7){ s.pos.copy(k.p).addScaledVector(to.normalize().negate(),k.r+7.5); if(this.hitCD<=0){ this.hitCD=1.2; const dmg=clamp(s.speed/28,3,35); if(s.speed>40) Hull.hit(dmg,'Bonk! You hit an asteroid'); s.cruise*=0.15; s.throttle=Math.min(s.throttle,2); } continue; }
+      if(d<3000+k.r){ const ang=Math.acos(clamp(to.dot(fwd)/d,-1,1))-Math.atan(k.r/d); if(ang<bd){ bd=ang; best=k; } } }
+    this.pebT-=dt; if(this.pebT<=0){ this.pebT=1; if(Math.random()<clamp(s.speed/1400,0,0.4)*0.3) Hull.hit(rnd(1,3),'Pebble strike'); }
+    this.target=best; this.sight.visible=!!best&&G.sys.hud; if(best){ this.sight.position.copy(best.p); this.drawSight(best,best.p.distanceTo(s.pos)-best.r); }
+    if(G.keys.KeyF&&!best&&this.msgT<=0){ this.msgT=3; UI.toast('No rock in the sights. Point the nose at one within 3,000 km.','warn'); }
+    if(G.keys.KeyF&&this.lock>0&&this.msgT<=0){ this.msgT=3; UI.toast('Laser cooling down','warn'); }
+    const on=fire&&best; this.beam.visible=!!on; this.spark.visible=!!on;
+    if(on){
+      const start=new V3(2.4,0.35,-4.2).applyQuaternion(s.quat), end=best.p.clone().sub(s.pos), dir=end.clone().sub(start), len=dir.length()-best.r*0.6;
+      this.beam.position.copy(start); this.beam.quaternion.copy(lookQuat(dir.normalize())); this.beam.scale.set(9+Math.sin(Game.time*40)*2.5,9+Math.cos(Game.time*37)*2.5,len);
+      this.spark.position.copy(start).addScaledVector(dir,len); this.spark.scale.setScalar(best.r*(0.9+Math.random()*0.5));
+      this.prog+=dt*this.rate(); if(Math.floor(Game.time*6)!==Math.floor((Game.time-dt)*6)) Sfx.hiss(0.18,0.06);
+      while(this.prog>=1){ this.prog-=1; if(!this.addOre(field)){ if(this.msgT<=0){ this.msgT=3; UI.toast('Hold full. Sell the ore at any port.','warn'); } this.prog=0; break; }
+        best.ore--; best.r=best.r0*(0.45+0.55*best.ore/best.ore0); this.place(field,best); if(best.ore<=0){ UI.toast('Rock cracked open and emptied','good'); Sfx.thump(0.4); } }
+    } else this.prog=Math.max(0,this.prog-dt*0.5);
+  },
+  marker(F, show){ F.mk.sprite.visible=show&&F.dist>F.R*1.6; if(!F.mk.sprite.visible) return;
+    const key=fmtDist(F.dist); if(F.mk.key===key) return; F.mk.key=key; const x=F.mk.cv.getContext('2d'); x.clearRect(0,0,384,240); const cx=192, cy=158;
+    x.strokeStyle=x.fillStyle='#b8a4ff'; x.globalAlpha=0.85; x.lineWidth=3; x.beginPath(); x.moveTo(cx,cy-22); x.lineTo(cx+22,cy); x.lineTo(cx,cy+22); x.lineTo(cx-22,cy); x.closePath(); x.stroke();
+    x.textAlign='center'; x.font=`600 40px ${FONT_DISP}`; x.fillText(F.name.toUpperCase(),cx,cy-36,376); F.mk.tex.needsUpdate=true; },
+  sell(c, P){ const m=this.price(c,P); const cr=Math.round(c.qty*m); G.credits+=cr; G.cargo.splice(G.cargo.indexOf(c),1); return cr; },
+  price(c, P){ const r=mulberry32(hashStr(c.good+P.name))(); return c.val*(0.75+r*0.6); },
+};
+
+/* ---------- contraband ---------- */
+const Customs = {
+  armed:false, t:0, cur:null,
+  risk(P, mult){ const strict=STRICT[P.species]||0.3; return clamp(strict*0.55*(mult||1)*(G.up.hidden?0.5:1)*(1+Math.max(0,-G.rep)/120),0.03,0.85); },
+  illegal(){ return G.cargo.filter(c=>c.illegal); },
+  arm(){ this.armed=this.illegal().length>0&&Math.random()<0.7; this.t=rnd(25,60); this.cur=null; },
+  caught(items, where){
+    let fine=0; items.forEach(c=>{ fine+=Math.round(c.pay*0.4/5)*5; G.cargo.splice(G.cargo.indexOf(c),1); }); const paid=Math.min(G.credits,fine); G.credits-=paid; Cockpit.drawManifest();
+    Sfx.deny(); UI.toast(`Contraband confiscated ${where}. Fined ${fmtCr(paid)}.`,'warn'); Rep.add(-10,'Caught smuggling'); if(G.mode==='port') UI.render();
+  },
+  /* 1. loading, at the port where you take the job */
+  load(j, P){
+    const r=this.risk(P), bribe=Math.round(j.pay*0.18/10)*10;
+    const go=(risk)=>{ if(Math.random()<risk){ const fine=Math.min(G.credits,Math.round(j.pay*0.25/5)*5); G.credits-=fine; G.jobs.splice(G.jobs.indexOf(j),1); Sfx.deny(); Rep.add(-6,'Caught loading contraband');
+        Dlg.info({sp:P.species,seed:P.idx*7+1,tone:'alert',who:`${P.port} security`,text:`Well, well. ${j.good}? That's a ${fmtCr(fine)} fine, and the crate stays here.`,then:()=>UI.render()}); return; }
+      G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,illegal:true}); G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); UI.toast('Loaded. Nobody saw a thing. Probably.','good'); UI.render(); };
+    Dlg.show({sp:j.sp,seed:j.seed,who:`${alienName(j.sp,j.seed)} · a friend of a friend`,text:`The dock scanner sweeps the bay every few minutes. ${P.port} is ${(STRICT[P.species]||0.3)>0.4?'strict':'fairly relaxed'} about this sort of thing.${G.up.hidden?' Your hidden compartment helps.':''}`,
+      opts:[{t:'Load it quietly',sub:`${Math.round(r*100)}% chance of getting caught`,fn:()=>go(r)},
+            {t:'Bribe the dockmaster',sub:`${fmtCr(bribe)} · ${Math.round(r*25)}% chance`,disabled:G.credits<bribe,fn:()=>{ G.credits-=bribe; Sfx.cash(); go(r*0.25); }},
+            {t:'Walk away',sub:'Leave the job on the board'}]});
+  },
+  /* 2. the journey: a customs cutter pulls you over */
+  update(dt){
+    if(!this.armed||this.cur||Dlg.open||!Ev.clearOfPlanets(10)) return;
+    if(!this.illegal().length){ this.armed=false; return; }
+    this.t-=dt; if(this.t>0) return; this.armed=false; this.stop();
+  },
+  stop(){
+    const s=G.ship, sp=Math.random()<0.6?'zkthar':pick(['beepul','ooloo','momwump']), seed=Math.floor(Math.random()*1e9), fwd=new V3(0,0,-1).applyQuaternion(s.quat);
+    if(s.warp) Game.dropWarp('A customs cutter yanks you out of warp','warn',true);
+    const n=Ev.npc('customs',s.pos.clone().addScaledVector(fwd,1500).add(Ev.around(new V3(),300)),{sp,seed,name:alienName(sp,seed),ship:'Customs '+shipName(seed)});
+    const items=this.illegal(), worth=items.reduce((a,c)=>a+c.pay,0), r=clamp(0.42*(G.up.hidden?0.5:1)*(1+Math.max(0,-G.rep)/120),0.05,0.9), bribe=Math.round(worth*0.22/10)*10, take=clamp(0.75-Math.max(0,G.rep)/300,0.4,0.85);
+    const esc=clamp(0.28+G.shipId*0.09+(Game.canWarp()===true?0.15:0),0.15,0.85);
+    const done=()=>{ Ev.dismiss(n); this.cur=null; };
+    this.cur=n;
+    Dlg.show({sp,seed,tone:'alert',who:`Customs cutter · ${n.pilot.name} · ${SPECIES[sp].name}`,text:'Heave to for a routine inspection. It is always routine. Right up until it isn’t.',timeout:25,onTimeout:()=>{ UI.toast('You took too long. They scan you anyway.','warn'); if(Math.random()<r) this.caught(this.illegal(),'by customs'); else UI.toast('Scan clean. They wave you on.','good'); done(); },
+      opts:[{t:'Submit to a scan',sub:`${Math.round(r*100)}% chance they find it`,fn:()=>{ if(Math.random()<r) this.caught(this.illegal(),'by customs'); else UI.toast('Scan clean. They wave you on, a little disappointed.','good'); done(); }},
+            {t:'Offer a "processing fee"',sub:`${fmtCr(bribe)} · ${Math.round(take*100)}% they take it`,disabled:G.credits<bribe,fn:()=>{ G.credits-=bribe; if(Math.random()<take){ Sfx.cash(); UI.toast('The fee is processed. Nobody saw anything.','good'); } else { Rep.add(-4,'Attempted bribery'); this.caught(this.illegal(),'by customs'); } done(); }},
+            {t:'Run for it',sub:`${Math.round(esc*100)}% chance to get away`,fn:()=>{ s.throttle=10; if(Math.random()<esc){ Rep.add(-6,'You fled a customs stop'); } else { Hull.hit(10,'Tractor beam'); this.caught(this.illegal(),'after a chase'); } done(); }}]});
+  },
+  /* 3. unloading, at the destination port */
+  unload(P){
+    const items=G.cargo.filter(c=>c.illegal&&c.to===P.idx); if(!items.length) return;
+    const pay=items.reduce((a,c)=>a+c.pay,0), r=this.risk(P), bribe=Math.round(pay*0.15/10)*10;
+    const go=(risk)=>{ if(Math.random()<risk){ this.caught(items,'at '+P.port); return; } items.forEach(c=>G.cargo.splice(G.cargo.indexOf(c),1)); G.credits+=pay; G.stats.earned+=pay; G.stats.deliveries+=items.length; Sfx.cash(); Cockpit.drawManifest(); Game.save(); UI.toast(`Contraband delivered. ${fmtCr(pay)}, no questions asked.`,'good'); UI.render(); };
+    Dlg.show({sp:P.species,seed:P.idx*13+5,who:`${P.port} · the unloading crew`,text:`Customs are poking around the bays today. Your special crate${items.length>1?'s are':' is'} still aboard.`,
+      opts:[{t:'Unload as normal',sub:`${Math.round(r*100)}% chance of getting caught`,fn:()=>go(r)},
+            {t:'Grease the unloading crew',sub:`${fmtCr(bribe)} · ${Math.round(r*25)}% chance`,disabled:G.credits<bribe,fn:()=>{ G.credits-=bribe; go(r*0.25); }}]});
+  },
+};
+
+/* ---------- escort missions ---------- */
+const Escort = {
+  npc:null, hazard:null, hT:60, farT:0, warnT:0,
+  contract(){ return G.cargo.find(c=>c.kind==='escort'); },
+  spawn(){
+    const c=this.contract(); this.npc=null; this.hazard=null; this.hT=rnd(35,60); if(!c) return;
+    const s=G.ship, side=new V3(1,0,0).applyQuaternion(s.quat), back=new V3(0,0,1).applyQuaternion(s.quat);
+    this.npc=Ev.npc('escort',s.pos.clone().addScaledVector(side,600).addScaledVector(back,400),{sp:c.vip.sp,seed:c.vip.seed,name:c.vip.title,ship:c.vip.ship,cargo:'Nothing. I am the cargo.'});
+    this.label(); UI.toast(`${c.vip.title} is flying with you. Keep close.`,'good');
+  },
+  label(){ const n=this.npc, c=this.contract(); if(!n||!c) return; Npc.label(n,`${c.vip.ship.toUpperCase()} · ${Math.round(c.hp)}%`,c.vip.title,c.hp>50?'#7dffa8':c.hp>25?'#ffb454':'#ff6f61'); },
+  hurt(d, why){ const c=this.contract(); if(!c) return; c.hp=Math.max(0,c.hp-d); this.label(); UI.toast(`${why}. ${c.vip.title}: ${Math.round(c.hp)}%`,'warn'); Sfx.deny();
+    if(c.hp<=0){ G.cargo.splice(G.cargo.indexOf(c),1); Cockpit.drawManifest(); Ev.dismiss(this.npc); this.npc=null; this.hazard=null; Rep.add(-8,`${c.vip.title} has had enough and turned back. Contract void`); } },
+  heal(d){ const c=this.contract(); if(c){ c.hp=Math.min(100,c.hp+d); this.label(); } },
+  update(dt){
+    const n=this.npc, c=this.contract(); if(!n||!c||Npc.list.indexOf(n)<0) return;
+    const s=G.ship, def=SHIPS[G.shipId], side=new V3(1,0,0).applyQuaternion(s.quat), back=new V3(0,0,1).applyQuaternion(s.quat), up=new V3(0,1,0).applyQuaternion(s.quat);
+    const tgt=s.pos.clone().addScaledVector(side,650).addScaledVector(back,500).addScaledVector(up,120), to=tgt.sub(n.pos), d=to.length();
+    const vmax=s.warp||s.warpF>0.1?def.warp*0.8:Math.max(def.cruise*1.15,1200), want=Math.min(vmax,s.speed+d*1.3);
+    n.vel.copy(to.normalize()).multiplyScalar(Math.min(want,d/Math.max(dt,1e-3)));
+    if(n.vel.lengthSq()<4) n.vel.copy(new V3(0,0,-1).applyQuaternion(s.quat)).multiplyScalar(2);
+    // falling behind
+    if(n.dist>25000){ this.farT+=dt; c.hp=Math.max(0,c.hp-dt*1.2); this.warnT-=dt; if(this.warnT<=0){ this.warnT=6; this.label(); UI.toast(`You're leaving ${c.vip.title} behind! Ease off the warp.`,'warn'); } if(c.hp<=0) this.hurt(0,'Lost contact'); }
+    else this.farT=0;
+    // hazards
+    const h=this.hazard;
+    if(h){ h.t-=dt; Game.escortAlarm=true;
+      if(h.kind==='debris'){ const slow=s.throttle<=4&&!s.warp&&s.warpF<0.05; h.ok=slow?h.ok+dt:0; if(h.ok>=8){ this.hazard=null; UI.toast(`${c.vip.title} threads the debris safely. Nice flying.`,'good'); this.heal(3); return; } }
+      if(Math.floor(h.t/5)!==Math.floor((h.t+dt)/5)&&h.t>0.5) UI.toast(h.nag(Math.ceil(h.t)),'warn');
+      if(h.t<=0){ this.hazard=null; h.fail(); } return; }
+    Game.escortAlarm=false;
+    if(Dlg.open||!Ev.clearOfPlanets(8)) return;
+    this.hT-=dt; if(this.hT>0) return; this.hT=rnd(45,80);
+    const k=pick(['pirates','debris','panic']);
+    if(k==='pirates'){ const ps=[0,1].map(()=>Ev.npc('pirate',n.pos.clone().add(Ev.around(new V3(),rnd(500,900))),{sp:pick(['grondar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
+      this.hazard={kind:'pirates',t:20,ps,nag:t=>`Pirates are buzzing ${c.vip.title}! Get within 4,000 km and sound the horn (G). ${t}s`,fail:()=>{ ps.forEach(p=>Ev.dismiss(p)); this.hurt(30,'The pirates rattled the VIP badly'); }};
+      UI.toast(this.hazard.nag(20),'warn'); Sfx.deny(); }
+    else if(k==='debris'){ this.hazard={kind:'debris',t:22,ok:0,nag:t=>`Debris ahead! Throttle 4 or lower, no warp, for 8 seconds. ${t}s`,fail:()=>this.hurt(20,`${c.vip.title}'s ship took a beating in the debris`)};
+      if(s.warp) Game.dropWarp('Debris ahead! Warp disengaged','warn',true); UI.toast(this.hazard.nag(22),'warn'); }
+    else this.panic(c);
+  },
+  onHonk(){ const h=this.hazard; if(!h||h.kind!=='pirates'||!this.npc) return; if(this.npc.dist<4000){ h.ps.forEach(p=>Ev.dismiss(p)); this.hazard=null; Game.escortAlarm=false; this.heal(2); setTimeout(()=>UI.toast('The pirates scatter. Your horn is terrifying.','good'),600); } else UI.toast('Too far away. Get within 4,000 km and honk again.','warn'); },
+  panic(c){
+    const v=c.vip, tough=['grondar','zkthar'].includes(v.sp), jokey=['blorpax','qeeble','sporrin','momwump'].includes(v.sp);
+    const out=(good,why)=>{ if(good){ this.heal(6); UI.toast(why,'good'); } else this.hurt(12,why); };
+    Dlg.show({sp:v.sp,seed:v.seed,tone:'alert',who:`${v.title} · ${SPECIES[v.sp].name}`,text:pick(["I can't do this! Space is so big and I am so small! Turn back! Turn back!","Was that a noise? That was a noise. Are we exploding? Tell me if we're exploding.","I have changed my mind about this entire journey and possibly about space."]),
+      timeout:20,onTimeout:()=>out(false,`${v.title} panicked with nobody to talk to`),
+      opts:[{t:"Breathe. You're safe with me.",fn:()=>out(!tough,tough?`${v.title} finds your tone patronising`:`${v.title} calms down`)},
+            {t:'Want to hear a joke?',fn:()=>out(jokey,jokey?`${v.title} laughs so hard they forget to panic`:`${v.title} did not want a joke`)},
+            {t:'Pull yourself together!',fn:()=>out(tough,tough?`${v.title} respects that. Composure restored`:`${v.title} bursts into tears`)}]});
+  },
+  /* on landing: pay out if the VIP is with you */
+  land(P){
+    const c=this.contract(); if(!c||c.to!==P.idx) return null; G.cargo.splice(G.cargo.indexOf(c),1);
+    const n=this.npc, with_=n&&Npc.list.indexOf(n)>=0&&n.dist<80000&&c.hp>0; this.npc=null; this.hazard=null;
+    if(!with_){ Rep.add(-6,`${c.vip.title} never arrived. Contract failed`); return null; }
+    const pay=Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5; Rep.add(5,`${c.vip.title} arrived safely`); return {good:`Escort of ${c.vip.title} (${Math.round(c.hp)}%)`,qty:0,pay};
+  },
+};
 /* ===================== SYSTEM MAP ===================== */
 /* Top-down chart of the system. M toggles it in flight and in port; click a world to set the destination. */
 const SysMap = {
@@ -1836,10 +2308,11 @@ const SysMap = {
     $('map').hidden=false; $('tooltip').hidden=true; if(Sfx.ok()) Sfx.beep(760); this.list(); this.draw(Game.time);
   },
   close(){ if(!this.open) return; this.open=false; $('map').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
-  pick(i){ if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
+  pick(i){ if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:F.R*1.2,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
+    if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
   colors(P){ const p=P.pal; if(P.type==='gas') return [p.a,p.b,p.d]; if(P.lava>0.2) return [p.shal,p.deep,p.a]; if(P.sea>0.4) return [p.shal,p.deep,p.b]; return [p.d||p.a,p.a,p.c]; },
   cargoFor(i){ let n=0; G.cargo.forEach(c=>{ if(c.to===i) n+=c.qty; }); return n; },
-  dist(P){ return Math.max(0,P.pos.distanceTo(G.ship.pos)-P.r); },
+  dist(P){ return Math.max(0,P.pos.distanceTo(G.ship.pos)-(P.r||0)); },
   eta(d){ const s=d/SHIPS[G.shipId].warp; return s<90?'≈ '+Math.max(1,Math.round(s))+' s at warp':'≈ '+(s/60).toFixed(1)+' min at warp'; },
 
   bind(){
@@ -1860,16 +2333,17 @@ const SysMap = {
   },
 
   list(){
-    const T=PLANETS[G.target], docked=G.mode==='port'&&G.docked>=0, dT=this.dist(T);
+    const T=Nav.target(), docked=G.mode==='port'&&G.docked>=0, dT=this.dist(T);
     $('map-sub').innerHTML=`Destination <b>${esc(T.name)}</b> · ${docked&&G.docked===T.idx?'docked here':fmtDist(dT)+' · '+this.eta(dT)}`;
     const rows=PLANETS.slice().sort((a,b)=>a.orbit-b.orbit).map(P=>{
       const here=docked&&G.docked===P.idx, n=this.cargoFor(P.idx), col=this.colors(P);
-      let tags=''; if(P.idx===G.target) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Paying +50%</em>'; if(here) tags+='<em>Docked</em>';
-      return `<button class="mrow${P.idx===G.target?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
+      let tags=''; if(P.idx===G.target&&!Nav.wp) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Paying +50%</em>'; if(here) tags+='<em>Docked</em>';
+      return `<button class="mrow${P.idx===G.target&&!Nav.wp?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
     });
+    FIELDS.forEach(F=>{ const tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx; rows.push(`<button class="mrow${tg?' tg':''}" data-i="${100+F.idx}"><i style="background:radial-gradient(circle at 35% 35%,#e8dcc8,${F.col} 60%,#3a3040);border-radius:30%"></i><span class="n">${esc(F.name)}</span><span class="d">${fmtDist(Math.max(0,F.pos.distanceTo(G.ship.pos)-F.R))}</span><span class="p">Asteroid field · ${esc(F.ore)}</span>${tg?'<span class="b"><em class="t">Waypoint</em></span>':''}</button>`); });
     $('map-list').innerHTML=rows.join('');
     const nT=G.mode==='flight'?Npc.list.length:0;
-    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+' · Click a world to set your destination · M or Esc to close';
+    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+' · Click a world or field to set your course · M or Esc to close';
   },
 
   draw(t){
@@ -1877,7 +2351,7 @@ const SysMap = {
     const dpr=Math.min(window.devicePixelRatio||1,2), W=Math.round(w*dpr), Hh=Math.round(h*dpr); if(cv.width!==W||cv.height!==Hh){ cv.width=W; cv.height=Hh; }
     const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
     const cx=w/2, cy=h/2, R=Math.max(70,Math.min(w,h)/2-44), k=R/this.maxR, TAU=Math.PI*2;
-    const s=G.ship, docked=G.mode==='port'&&G.docked>=0, T=PLANETS[G.target];
+    const s=G.ship, docked=G.mode==='port'&&G.docked>=0, T=Nav.target();
     x.lineWidth=1; x.textBaseline='middle';
 
     // range rings, one per light-second
@@ -1898,8 +2372,19 @@ const SysMap = {
     if(cl>16){ x.strokeStyle='rgba(255,180,84,.75)'; x.setLineDash([7,6]); x.lineDashOffset=-t*18; x.beginPath(); x.moveTo(sx,sy); x.lineTo(tx,ty); x.stroke(); x.setLineDash([]); x.lineDashOffset=0;
       if(cl>90){ const mx=(sx+tx)/2, my=(sy+ty)/2, lab=fmtDist(this.dist(T)); x.font=`22px ${FONT_MONO}`; const tw=x.measureText(lab).width+18; x.fillStyle='rgba(4,6,11,.85)'; x.fillRect(mx-tw/2,my-16,tw,32); boxes.push([mx-tw/2,my-16,mx+tw/2,my+16]); x.fillStyle='#ffb454'; x.textAlign='center'; x.fillText(lab,mx,my+1); } }
 
-    // worlds
+    // asteroid fields (drawn first so planet labels steer around them)
     this.pts.length=0;
+    FIELDS.forEach(F=>{ const fx=cx+F.pos.x*k, fy=cy+F.pos.z*k; boxes.push([fx-16,fy-16,fx+16,fy+16]); });
+    FIELDS.forEach(F=>{ const fx=cx+F.pos.x*k, fy=cy+F.pos.z*k, rr=mulberry32(F.idx*31+7), tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx, hv=this.hover===100+F.idx;
+      x.fillStyle=F.col; for(let q=0;q<9;q++){ const a=rr()*TAU, d=rr()*13; x.beginPath(); x.arc(fx+Math.cos(a)*d,fy+Math.sin(a)*d,2+rr()*3,0,TAU); x.fill(); }
+      if(tg||hv){ x.strokeStyle=tg?'#ffb454':'#dcedf3'; x.lineWidth=1.5; x.beginPath(); x.arc(fx,fy,22,0,TAU); x.stroke(); x.lineWidth=1; }
+      const nm=F.name.toUpperCase(), ore=F.ore.toUpperCase(); x.font=`600 22px ${FONT_DISP}`; const nw=x.measureText(nm).width; x.font=`18px ${FONT_MONO}`; const lw=Math.max(nw,x.measureText(ore).width);
+      let lx=fx+26, ly=fy;
+      for(const [ax,ay] of [[fx+26,fy],[fx-26-lw,fy],[fx-lw/2,fy+50],[fx-lw/2,fy-50],[fx+26,fy+52],[fx-26-lw,fy-52]]){ if(ax<6||ax+lw>w-6||ay<34||ay>h-34) continue; if(!boxes.some(b=>ax-8<b[2]&&ax+lw+8>b[0]&&ay-28<b[3]&&ay+28>b[1])){ lx=ax; ly=ay; break; } }
+      boxes.push([lx-6,ly-26,lx+lw+6,ly+26]);
+      x.textAlign='left'; x.fillStyle='rgba(4,6,11,.66)'; x.fillRect(lx-6,ly-26,lw+12,52); x.font=`600 22px ${FONT_DISP}`; x.fillStyle=tg?'#ffb454':'#c9bce8'; x.fillText(nm,lx,ly-10); x.font=`18px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(ore,lx,ly+13);
+      this.pts.push({i:100+F.idx,x:fx,y:fy,r:16}); });
+    // worlds
     PLANETS.forEach(P=>{
       const px=cx+P.pos.x*k, py=cy+P.pos.z*k, rad=clamp(3.5+P.r/850,6,13), col=this.colors(P), tg=P.idx===G.target, hv=P.idx===this.hover;
       const ux=(px-cx)/(Math.hypot(px-cx,py-cy)||1), uy=(py-cy)/(Math.hypot(px-cx,py-cy)||1);
@@ -1925,6 +2410,8 @@ const SysMap = {
       x.font=`20px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(P.port.toUpperCase(),lx,ly+15);
     });
 
+    // distress beacon
+    if(Nav.wp&&Nav.wp.kind==='distress'){ const bx=cx+Nav.wp.pos.x*k, by=cy+Nav.wp.pos.z*k; x.strokeStyle='#ff6f61'; x.lineWidth=2; x.beginPath(); x.moveTo(bx,by-10); x.lineTo(bx+10,by); x.lineTo(bx,by+10); x.lineTo(bx-10,by); x.closePath(); x.stroke(); x.lineWidth=1; }
     // you
     const pulse=(t*0.9)%1; x.strokeStyle=`rgba(98,226,255,${0.6*(1-pulse)})`; x.beginPath(); x.arc(sx,sy,6+pulse*16,0,TAU); x.stroke();
     if(docked){ x.strokeStyle='#62e2ff'; x.lineWidth=1.5; x.beginPath(); x.arc(sx,sy,4,0,TAU); x.stroke(); x.lineWidth=1; }
@@ -1948,7 +2435,7 @@ const UI = {
     this.render();
   },
   hidePort(){ $('port').hidden=true; },
-  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${d.hold}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Ship <b>${esc(d.name)}</b></span>`;
+  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${d.hold}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span>`;
     $('port-foot').textContent=G.cargo.length?`${G.cargo.length} delivery${G.cargo.length>1?' contracts':' contract'} aboard`:'Hold empty. Take a job before you launch.'; },
   render(){
     const P=this.P, body=$('port-body'), d=SHIPS[G.shipId]; body.innerHTML=''; this.stats(); let used=0; G.cargo.forEach(c=>used+=c.qty);
@@ -1956,17 +2443,25 @@ const UI = {
     if(this.tab==='jobs'){
       const a=this.arrival;
       if(a){ body.appendChild(this.quote(P.species,P.idx*7+1,'Dockmaster · '+SPECIES[P.species].name,a.greet));
-        if(a.paid.length){ const L=el('div','ledger'); a.paid.forEach(c=>{ L.appendChild(el('span','',`${c.qty}× ${esc(c.good)}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); if(a.fee){ L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); }
+        if(a.paid.length){ const L=el('div','ledger'); a.paid.forEach(c=>{ L.appendChild(el('span','',`${c.qty?c.qty+'× ':''}${esc(c.good)}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); if(a.fee){ L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); }
           L.appendChild(el('span','tot','Delivered and paid')); L.appendChild(el('span','tot',fmtCr(a.total))); body.appendChild(L); }
         else if(a.fee){ const L=el('div','ledger'); L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); body.appendChild(L); } }
       body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}. Cargo is loaded when you accept and paid for when you land at the destination.`));
       if(!G.jobs.length) body.appendChild(el('div','note','The board is empty. Fly somewhere else and come back.'));
-      G.jobs.forEach(j=>{ const c=el('div','card'); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
-        const mid=el('div','mid',`<h3>${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}</h3><p>${esc(j.note)}</p><div class="meta">To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · for ${esc(alienName(j.sp,j.seed))}</div>`); c.appendChild(mid);
-        const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const fits=used+j.qty<=d.hold; const b=el('button','btn',fits?'Accept':'No room'); b.disabled=!fits;
-        b.onclick=()=>{ G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx}); G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
+      G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
+        let h3, meta;
+        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · aboard the ${esc(j.vip.ship)} · needs no hold space`; }
+        else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>`; meta=`To <i>${esc(T.name)}</i> · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrols en route`; }
+        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · for ${esc(alienName(j.sp,j.seed))}`; }
+        c.appendChild(el('div','mid',`<h3>${h3}</h3><p>${esc(j.note)}</p><div class="meta">${meta}</div>`));
+        const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay)));
+        const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), fits=used+j.qty<=d.hold&&!busy; const b=el('button','btn',busy?'One at a time':fits?'Accept':'No room'); b.disabled=!fits;
+        b.onclick=()=>{ if(j.kind==='contra'){ Customs.load(j,P); return; }
+          if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100});
+          else G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx});
+          G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
         r.appendChild(b); c.appendChild(r); body.appendChild(c); });
-      if(G.cargo.length){ body.appendChild(el('div','note','In your hold:')); const L=el('div','ledger'); G.cargo.forEach(c=>{ L.appendChild(el('span','',`${c.qty}× ${esc(c.good)} → ${esc(PLANETS[c.to].name)}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); body.appendChild(L); }
+      if(G.cargo.length){ body.appendChild(el('div','note','In your hold:')); const L=el('div','ledger'); G.cargo.forEach(c=>{ L.appendChild(el('span','',`${c.kind==='escort'?esc(c.good):c.qty+'× '+esc(c.good)}${c.illegal?' (contraband)':''} → ${esc(Ev.cargoDest(c))}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); body.appendChild(L); }
     } else if(this.tab==='yard'){
       body.appendChild(el('div','note','Trade-in is half of what your current ship cost new. Cargo moves across for free. Preview parks the ship on the pad so you can look at it.'));
       SHIPS.forEach((sh,i)=>{ const c=el('div','card'); const cv=makeCanvas(128,128), x=cv.getContext('2d'); x.fillStyle='#0b1620'; x.fillRect(0,0,128,128); x.fillStyle=sh.ck.trim; x.font=`700 76px ${FONT_DISP}`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(['I','II','III','IV','V'][i],64,68); c.appendChild(cv);
@@ -1984,6 +2479,12 @@ const UI = {
       r.appendChild(b); fc.appendChild(r); body.appendChild(fc);
       const wc=el('div','card'); wc.appendChild(this.icon('✦')); wc.appendChild(el('div','mid',`<h3>Canopy wash</h3><p>Warp travel leaves the glass filthy. ${G.sys.dirt>0.3?'Yours is a disgrace.':'Yours is fine, honestly.'}</p><div class="meta">Or use the wipers. They sort of work.</div>`));
       const r2=el('div','right'); r2.appendChild(el('div','pay',fmtCr(20))); const b2=el('button','btn','Wash'); b2.disabled=G.credits<20||G.sys.dirt<0.05; b2.onclick=()=>{ G.credits-=20; G.sys.dirt=0; Sfx.hiss(1.5,0.2); Game.save(); this.render(); }; r2.appendChild(b2); wc.appendChild(r2); body.appendChild(wc);
+      const card=(ic,title,desc,meta,price,label,dis,fn)=>{ const c=el('div','card'); c.appendChild(this.icon(ic)); c.appendChild(el('div','mid',`<h3>${title}</h3><p>${desc}</p>${meta?'<div class="meta">'+meta+'</div>':''}`)); const r=el('div','right'); r.appendChild(el('div','pay',price)); const b=el('button','btn',label); b.disabled=dis; b.onclick=()=>{ fn(); Game.save(); this.render(); }; r.appendChild(b); c.appendChild(r); body.appendChild(c); };
+      const hn=Math.ceil(100-G.hull), hc=hn*5;
+      card('🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents. They add character.':'Not a scratch.'}`,'5 cr per point',hn>0?fmtCr(hc):'Fine',hn<=0?'Fine':G.credits>=hc?'Repair':'Patch what I can',hn<=0||G.credits<5,()=>{ const pts=Math.min(hn,Math.floor(G.credits/5)); G.credits-=pts*5; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); });
+      G.cargo.filter(c=>c.kind==='ore').forEach(c=>{ const pr=Mining.price(c,P); card('⛏',`${c.qty}× ${esc(c.good)}`,`The ore buyer at ${esc(P.port)} pays ${fmtCr(pr)} a unit today. Prices differ from port to port.`,'',fmtCr(c.qty*pr),'Sell',false,()=>{ const cr=Mining.sell(c,P); G.stats.earned+=cr; Sfx.cash(); UI.toast(`Sold for ${fmtCr(cr)}`,'good'); Cockpit.drawManifest(); }); });
+      card('🗄','Hidden compartment','A false floor for cargo that would rather not be found. Halves the chance of contraband being discovered, everywhere.','',G.up.hidden?'Installed':fmtCr(2500),G.up.hidden?'Installed':'Install',G.up.hidden||G.credits<2500,()=>{ G.credits-=2500; G.up.hidden=true; Sfx.cash(); });
+      card('⚡','Mining laser Mk II','Cuts rock nearly twice as fast and runs cooler, so it overheats less.','',G.up.laser>1?'Installed':fmtCr(1800),G.up.laser>1?'Installed':'Install',G.up.laser>1||G.credits<1800,()=>{ G.credits-=1800; G.up.laser=2; Sfx.cash(); });
     } else {
       body.appendChild(el('div','note',`The cantina at ${esc(P.port)}. It smells like ${pick(['engine grease and cinnamon','warm batteries','somebody else\'s lunch','rain on hot metal','ozone and toast'])}.`));
       const r=mulberry32(P.idx*31+G.stats.deliveries); const locals=[P.species, SPECIES_KEYS[Math.floor(r()*SPECIES_KEYS.length)], SPECIES_KEYS[Math.floor(r()*SPECIES_KEYS.length)]];
@@ -2049,7 +2550,7 @@ const Comms = {
 };
 /* ===================== GAME ===================== */
 const G = {
-  mode:'boot', credits:250, shipId:0, cargo:[], jobs:[], fuel:100, target:2, hot:null, docked:-1, playTime:0, stats:{deliveries:0,earned:0}, keys:{},
+  mode:'boot', credits:250, shipId:0, cargo:[], jobs:[], fuel:100, target:2, hot:null, docked:-1, playTime:0, stats:{deliveries:0,earned:0}, rep:0, hull:100, up:{hidden:false,laser:1}, keys:{},
   ship:{pos:new V3(), quat:new Q4(), vel:new V3(), speed:0, cruise:0, throttle:0, warp:false, warpF:0, angVel:new V3(), ctl:new V3(), temp:0.25, departed:-1},
   sys:{power:true,autopilot:false,hud:true,invert:false,wipers:false,translator:true,radioVol:0.7,channel:0,cabin:0.45,instr:0.8,visor:0,music:0.45,radarRange:1,mfdPage:0,dirt:0.12},
   head:{yaw:0,pitch:-0.12,yawT:0,pitchT:-0.12,basePitch:-0.12,pos:new V3(),posT:new V3(),fov:72,fovT:72,zoomed:null,zoomPt:null},
@@ -2058,47 +2559,56 @@ window.G = G;
 
 const Game = {
   clock:new THREE.Clock(), time:0, flash:0, fade:0, fadeCol:new THREE.Color(0,0,0), towFee:0, towing:false, hintT:0, hintI:99, mk:0,
-  HINTS:[[2.5,'Steer with W A S D until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press Z for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in, and again to lean back. Every control works'],[38,'H hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically'],[66,'M opens the system map. Click a world there to set your destination']],
+  HINTS:[[2.5,'Steer with W A S D until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press Z for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in, and again to lean back. Every control works'],[38,'H hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically'],[66,'M opens the system map. Click a world there to set your destination'],[84,'Asteroid fields are on the map. Hold F with a rock in your sights to mine ore']],
 
   cruiseSpeed(n){ return SHIPS[G.shipId].cruise*Math.pow(n/10,1.5); },
   setThrottle(n){ n=clamp(Math.round(n),0,10); if(!G.sys.power||G.mode!=='flight') return; if(n!==G.ship.throttle){ G.ship.throttle=n; Sfx.click(); } },
   massLock(){ const s=G.ship; if(s.pos.length()<SUN_R*3) return true; for(const P of PLANETS) if(P.pos.distanceTo(s.pos)<P.lockR) return true; return false; },
   canWarp(){ if(!G.sys.power) return 'NO POWER'; if(G.fuel<=0) return 'OUT OF FUEL'; if(this.massLock()) return 'MASS-LOCKED · FLY CLEAR'; return true; },
-  toggleWarp(){ const s=G.ship; if(G.mode!=='flight') return; if(s.warp){ this.dropWarp('Warp disengaged'); return; } const c=this.canWarp(); if(c!==true){ UI.toast(c,'warn'); Sfx.deny(); return; } s.warp=true; Sfx.warpIn(); this.flash=0.5; },
+  toggleWarp(){ const s=G.ship; if(G.mode!=='flight') return; if(Ev.hold>0&&!s.warp){ UI.toast('Fuel line attached. Hold still.','warn'); Sfx.deny(); return; } if(s.warp){ this.dropWarp('Warp disengaged'); return; } const c=this.canWarp(); if(c!==true){ UI.toast(c,'warn'); Sfx.deny(); return; } s.warp=true; Sfx.warpIn(); this.flash=0.5; },
   dropWarp(msg, cls, hard){ const s=G.ship; if(!s.warp) return; s.warp=false; Sfx.warpOut(); this.flash=1; if(hard){ s.warpF=Math.min(s.warpF,0.12); if(s.throttle<7) s.throttle=7; } if(msg) UI.toast(msg,cls); },
-  setTarget(i, quiet){ G.target=(i+PLANETS.length)%PLANETS.length; this.mk=0; if(!quiet&&Sfx.ok()) Sfx.beep(990); },
-  setAutopilot(v){ if(v&&!G.sys.power) return; G.sys.autopilot=v; UI.toast(v?'Autopilot steering to '+PLANETS[G.target].name:'Autopilot off'); },
+  setTarget(i, quiet){ if(!quiet&&Nav.wp) Nav.clear(); G.target=(i+PLANETS.length)%PLANETS.length; this.mk=0; if(!quiet&&Sfx.ok()) Sfx.beep(990); },
+  setAutopilot(v){ if(v&&!G.sys.power) return; G.sys.autopilot=v; UI.toast(v?'Autopilot steering to '+Nav.target().name:'Autopilot off'); },
   setPower(v){ G.sys.power=v; if(!v){ if(G.ship.warp) this.dropWarp(); G.sys.autopilot=false; G.ship.throttle=0; } Sfx.setRadioVol(v?G.sys.radioVol:0); UI.toast(v?'Systems online':'Master power off',v?'good':'warn'); },
-  honk(){ Sfx.honk(); const n=Npc.nearest(5000); if(n&&!Comms.open&&G.sys.power) setTimeout(()=>{ if(G.mode==='flight'&&!Comms.open) Radio.play({sp:n.pilot.sp,seed:n.pilot.seed,name:n.pilot.name,english:pick(SPECIES[n.pilot.sp].honk)}); },700); },
+  honk(){ Sfx.honk(); Escort.onHonk(); const n=Npc.nearest(5000); if(n&&!Comms.open&&G.sys.power) setTimeout(()=>{ if(G.mode==='flight'&&!Comms.open) Radio.play({sp:n.pilot.sp,seed:n.pilot.seed,name:n.pilot.name,english:pick(SPECIES[n.pilot.sp].honk)}); },700); },
 
   genJobs(pi){
     const P=PLANETS[pi], hold=SHIPS[G.shipId].hold, jobs=[], n=5+Math.floor(Math.random()*3);
     for(let i=0;i<n;i++){ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
       const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to;
-      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1), sp=Math.random()<0.55?P.species:pick(SPECIES_KEYS);
+      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(SPECIES_KEYS);
       jobs.push({good:good[0],note:good[2],qty,to,pay:Math.max(20,Math.round(pay/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot}); }
-    jobs.sort((a,b)=>a.qty-b.qty); G.jobs=jobs;
+    jobs.sort((a,b)=>a.qty-b.qty);
+    const away=()=>{ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); return to; };
+    if(Math.random()<0.6){ const to=away(), g=pick(CONTRABAND), qty=Math.max(1,Math.round(hold*rnd(0.15,0.4))), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+      jobs.push({kind:'contra',good:g[0],note:g[1],qty,to,pay:Math.round(qty*(50+dist*36)*2.9*rnd(0.9,1.25)/5)*5,sp:pick(['vrell','grondar','qeeble','blorpax']),seed:Math.floor(Math.random()*1e9)}); }
+    if(!G.cargo.some(c=>c.kind==='escort')&&Math.random()<0.6){ const to=away(), v=pick(VIPS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+      jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,pay:Math.round((320+dist*190)*rnd(0.9,1.2)*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
+    G.jobs=jobs;
   },
   onLanded(P){
     G.mode='port'; G.docked=P.idx; const s=G.ship; s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; G.sys.autopilot=false; Sfx.setEngine(0,0,false);
-    const paid=G.cargo.filter(c=>c.to===P.idx); let total=0; paid.forEach(c=>total+=c.pay); G.cargo=G.cargo.filter(c=>c.to!==P.idx);
+    Dlg.close(); if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Distress.cur=null; Customs.cur=null; Mining.beam.visible=Mining.spark.visible=Mining.sight.visible=false; Game.escortAlarm=false;
+    const paid=G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='escort'); let total=0; paid.forEach(c=>total+=c.pay); G.cargo=G.cargo.filter(c=>!paid.includes(c));
+    const esc=Escort.land(P); if(esc){ paid.push(esc); total+=esc.pay; } if(paid.length) G.rep=clamp(G.rep+paid.length,-100,100);
     const fee=Math.min(this.towFee,G.credits+total); this.towFee=0; G.credits+=total-fee; G.stats.deliveries+=paid.length; G.stats.earned+=total; if(G.hot===P.idx) G.hot=null;
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(paid.length) Sfx.cash(); Sfx.speak(S.voice,2.4,true);
-    if(G.cargo.length&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(G.cargo[0].to,true);
+    { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
+    if(G.cargo.some(c=>c.illegal&&c.to===P.idx)) setTimeout(()=>{ if(G.mode==='port') Customs.unload(P); },1200);
   },
   enterFlight(P, launch){
     const s=G.ship, T=PLANETS[G.target], up=new V3(0,1,0); G.mode='flight'; G.docked=-1; UI.hidePort(); $('keys').hidden=false; $('title').hidden=true;
     const dir=T!==P?T.pos.clone().sub(P.pos).normalize():P.sunDir.clone().negate(), side=new V3().crossVectors(dir,up).normalize();
     s.pos.copy(P.pos).addScaledVector(dir,P.r*3.7).addScaledVector(side,P.r*0.4); s.quat.copy(lookQuat(dir.clone().applyAxisAngle(up,0.36).applyAxisAngle(side,0.1),up));
-    s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; s.angVel.set(0,0,0); s.departed=P.idx; Npc.clear(); Radio.cur=null; Radio.wait=2.5; Cine.mode=null;
+    s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; s.angVel.set(0,0,0); s.departed=P.idx; Npc.clear(); Distress.cur=null; Ev.hold=0; if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Customs.arm(); Escort.spawn(); Radio.cur=null; Radio.wait=2.5; Cine.mode=null;
     World.scenes.list=[{scene:World.space,camera:World.spaceCam},{scene:World.cock,camera:World.cockCam}]; Cockpit.zoomOut(); G.head.yaw=G.head.yawT; G.head.pitch=G.head.pitchT; G.head.pos.set(0,0,0);
     this.fade=1; this.fadeCol.setRGB(launch?1:0,launch?1:0,launch?1:0); this.mk=0; this.syncCamera(0.016);
     UI.toast(launch?`Clear of ${P.name}. Destination: ${T.name}`:`Destination: ${T.name}`); this.save();
   },
-  tow(){
-    if(this.towing) return; this.towing=true; UI.toast('Out of fuel. A Grondar tow-barge has been called. It is not in a hurry.','warn');
-    setTimeout(()=>{ this.towing=false; if(G.mode!=='flight') return; const P=World.nearest||PLANETS[0]; this.towFee=150; const out=G.ship.pos.clone().sub(P.pos).normalize(); G.ship.pos.copy(P.pos).addScaledVector(out,P.landR*1.2); G.ship.departed=-1; Cine.startLanding(P); },3500);
+  tow(msg, fee){
+    if(this.towing) return; this.towing=true; UI.toast(msg||'Out of fuel. A Grondar tow-barge has been called. It is not in a hurry.','warn');
+    setTimeout(()=>{ this.towing=false; if(G.mode!=='flight') return; const P=World.nearest||PLANETS[0]; this.towFee=fee||150; const out=G.ship.pos.clone().sub(P.pos).normalize(); G.ship.pos.copy(P.pos).addScaledVector(out,P.landR*1.2); G.ship.departed=-1; Cine.startLanding(P); },3500);
   },
 
   updateFlight(dt){
@@ -2115,7 +2625,7 @@ const Game = {
     if(G.fuel<=0&&!s.warp&&(!World.nearest||World.nearest.dist>60000)) this.tow();
     const sunD=s.pos.length(); if(s.warp&&sunD<SUN_R*4) this.dropWarp('Solar gravity well. Warp disengaged.','warn',true);
     if(sunD<SUN_R*1.6){ s.pos.multiplyScalar(SUN_R*1.6/sunD); if(!this.sunWarn||G.playTime-this.sunWarn>6){ this.sunWarn=G.playTime; UI.toast('Hull temperature critical. Turn away from the star.','warn'); Sfx.deny(); } }
-    s.temp=damp(s.temp,clamp(0.2+0.45*s.warpF+0.15*s.throttle/10+clamp(SUN_R*4/sunD-0.1,0,0.6),0,1),0.8,dt);
+    s.temp=damp(s.temp,clamp(0.2+0.45*s.warpF+0.15*s.throttle/10+clamp(SUN_R*4/sunD-0.1,0,0.6)+Mining.heat*0.55,0,1),0.8,dt);
     for(const P of PLANETS){ const d=P.pos.distanceTo(s.pos);
       if(s.warp&&d<P.dropR&&P.pos.clone().sub(s.pos).normalize().dot(fwd)>0.2) this.dropWarp(P.name+' gravity well. Warp disengaged.','good',true);
       if(s.departed===P.idx&&d>P.landR*1.2) s.departed=-1;
@@ -2132,7 +2642,9 @@ const Game = {
   },
   markers(){
     const show=G.mode==='flight'&&G.sys.hud&&G.sys.power;
-    for(const P of PLANETS){ const tg=P.idx===G.target; P.mk.sprite.visible=show&&P.px<(tg?90:40); if(!show) continue; World.drawMarker(P,tg,P.dist); P.mk.sprite.scale.set(tg?0.3:0.22,tg?0.1875:0.1375,1); P.mk.sprite.material.opacity=tg?1:0.6; }
+    if(Nav.wp){ const w=Nav.wp; w.mk.sprite.visible=show; if(show) World.drawMarker(w,true,w.dist); }
+    for(const F of FIELDS) if(F.mk) Mining.marker(F,show);
+    for(const P of PLANETS){ const tg=P.idx===G.target&&!Nav.wp; P.mk.sprite.visible=show&&P.px<(tg?90:40); if(!show) continue; World.drawMarker(P,tg,P.dist); P.mk.sprite.scale.set(tg?0.3:0.22,tg?0.1875:0.1375,1); P.mk.sprite.material.opacity=tg?1:0.6; }
   },
 
   loop(){
@@ -2142,7 +2654,7 @@ const Game = {
     const t=this.time+=dt, s=G.ship; let fov=72;
     if(G.mode==='flight'){
       G.playTime+=dt; this.updateFlight(dt);
-      if(G.mode==='flight'){ Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(s.vel,dt,s.warpF); fov=G.head.fov;
+      if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(s.vel,dt,s.warpF); fov=G.head.fov;
         if(this.hintI<this.HINTS.length){ this.hintT+=dt; if(this.hintT>this.HINTS[this.hintI][0]) UI.toast(this.HINTS[this.hintI++][1]); } }
     } else if(G.mode==='title'){
       s.quat.multiply(new Q4().setFromEuler(new THREE.Euler(0,dt*0.004,dt*0.006))); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(new V3(0,0,-1).applyQuaternion(s.quat).multiplyScalar(160),dt,0); fov=G.head.fov;
@@ -2151,24 +2663,24 @@ const Game = {
     World.update(dt,s.pos,fov);
     if(G.mode==='flight'||G.mode==='title'){
       this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
-      World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=0.75+s.warpF*0.7;
-    } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
-    SysMap.update(dt,t);
+      World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=0.2+s.warpF*0.55;
+    } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.4:0.18; }
+    SysMap.update(dt,t); Dlg.update(dt);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
     World.render();
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[]});
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1}}); Nav.clear(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
     const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init();
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0}}); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{})}); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },
@@ -2185,6 +2697,7 @@ const Game = {
       if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return; const c=e.code;
       if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(c)) e.preventDefault();
       if(!$('help').hidden){ if(c==='Escape'||c==='Slash'||c==='F1'){ help(false); e.preventDefault(); } return; }
+      if(Dlg.open){ const dm=c.match(/^(?:Digit|Numpad)(\d)$/); if(dm){ const n=+dm[1]; if(n>=1&&n<=Dlg.opts.length) Dlg.choose(n-1); e.preventDefault(); return; } }
       if(c==='F1'||(c==='Slash'&&e.shiftKey)){ if(G.mode!=='title'&&G.mode!=='boot'){ help(true); e.preventDefault(); } return; }
       if(G.mode==='landing'||G.mode==='takeoff'){ if(c==='Space'||c==='Enter'||c==='Escape') Cine.skip(); return; }
       if(c==='KeyM'&&!(e.metaKey||e.ctrlKey||e.altKey)){ if(!e.repeat&&(G.mode==='flight'||G.mode==='port')) SysMap.toggle(); return; }
@@ -2203,7 +2716,7 @@ const Game = {
   },
   async boot(){
     try{ await Promise.race([document.fonts&&document.fonts.load?Promise.all([document.fonts.load(`600 20px ${FONT_DISP}`),document.fonts.load(`20px ${FONT_MONO}`)]):0,new Promise(r=>setTimeout(r,2500))]); }catch(e){}
-    try{ World.init($('gl')); }catch(err){ console.error(err); const b=$('btn-new'); b.textContent='This browser cannot start WebGL'; return; }
+    try{ World.init($('gl')); Mining.build(); }catch(err){ console.error(err); const b=$('btn-new'); b.textContent='This browser cannot start WebGL'; return; }
     Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); this.bind(); this.setupTitle(); this.loop();
   },
 };

@@ -2,18 +2,17 @@
 /* All models: nose toward -Z, roughly 20-40 units long, origin near centre of mass. */
 const Models = (() => {
   const SCHEMES = [
-    {hull:'#8a5a3c',trim:'#3a3a3c',glow:'#ffb060',wear:1.0},
-    {hull:'#c9a21e',trim:'#2a2a2c',glow:'#ffd27a',wear:0.7},
-    {hull:'#e8eef0',trim:'#19a898',glow:'#7ff5e6',wear:0.25},
-    {hull:'#7a1f2c',trim:'#c9a24a',glow:'#ffcf8a',wear:0.15},
-    {hull:'#f4f6f8',trim:'#30363c',glow:'#5fd8ff',wear:0.05},
+    {hull:'#d9733a',trim:'#3d6f8e',glow:'#ffb060',wear:1.0},
+    {hull:'#f0c22e',trim:'#2f4a7d',glow:'#ffd27a',wear:0.7},
+    {hull:'#eef4f6',trim:'#18b0a0',glow:'#7ff5e6',wear:0.25},
+    {hull:'#b3304d',trim:'#f2c55a',glow:'#ffcf8a',wear:0.15},
+    {hull:'#f6f7fb',trim:'#7552c9',glow:'#5fd8ff',wear:0.05},
   ];
   function mats(s){
-    const bump=panelBumpTex();
-    const hull=new THREE.MeshStandardMaterial({map:hullTex(s.hull,s.wear),bumpMap:bump,bumpScale:0.06,roughness:0.5+s.wear*0.3,metalness:0.55-s.wear*0.25,color:0xffffff,side:THREE.DoubleSide});
-    const trim=new THREE.MeshStandardMaterial({map:hullTex(s.trim,s.wear*0.6),bumpMap:bump,bumpScale:0.05,roughness:0.45,metalness:0.7});
-    const dark=new THREE.MeshStandardMaterial({color:C('#15171a'),roughness:0.6,metalness:0.6});
-    const glass=new THREE.MeshStandardMaterial({color:C('#0a1420'),roughness:0.08,metalness:0.9,envMapIntensity:2});
+    const hull=Toon.mat({color:C(s.hull),side:THREE.DoubleSide});
+    const trim=Toon.mat({color:C(s.trim)});
+    const dark=Toon.mat({color:C('#3a3550')});
+    const glass=Toon.mat({color:C('#7fe0ff'),emissive:C('#1d6a8a'),emissiveIntensity:0.6});
     const glow=new THREE.MeshBasicMaterial({color:HDR(s.glow,6)});
     const win=new THREE.MeshBasicMaterial({color:HDR('#ffe6b0',2.2)});
     return {hull,trim,dark,glass,glow,win};
@@ -91,7 +90,7 @@ const Models = (() => {
     const G=new THREE.Group(); G.userData={engines:[],blinkers:[]}; const s=scheme||SCHEMES[Math.min(idx,4)]; const M=mats(s);
     builders[idx](G,M); G.userData.glow=s.glow;
     G.traverse(o=>{ if(o.isMesh && !o.material.isMeshBasicMaterial){ o.castShadow=true; o.receiveShadow=true; } });
-    return G;
+    return Toon.ink.mark(G);
   }
   /* throttle 0..1 drives exhaust; time drives nav light blink */
   function animate(G, thr, t){

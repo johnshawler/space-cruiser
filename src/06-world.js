@@ -17,13 +17,13 @@ const World = {
     this.universe=new THREE.Group(); this.space.add(this.universe);
     this.shipFrame=new THREE.Group(); this.space.add(this.shipFrame);
     // lights
-    this.sunLight=new THREE.DirectionalLight(C('#fff3e0'),3.0); this.space.add(this.sunLight); this.space.add(this.sunLight.target);
-    this.space.add(new THREE.AmbientLight(C('#8090b0'),0.10));
+    this.sunLight=new THREE.DirectionalLight(C('#fff3e0'),2.4); this.space.add(this.sunLight); this.space.add(this.sunLight.target);
+    this.space.add(new THREE.AmbientLight(C('#8a90c8'),0.55));
     this.bounce=new THREE.DirectionalLight(0xffffff,0); this.space.add(this.bounce); this.space.add(this.bounce.target);
-    this.cSun=new THREE.DirectionalLight(C('#fff1dc'),2.3); this.cSun.castShadow=true; const sh=this.cSun.shadow; sh.mapSize.set(2048,2048);
+    this.cSun=new THREE.DirectionalLight(C('#fff1dc'),1.7); this.cSun.castShadow=true; const sh=this.cSun.shadow; sh.mapSize.set(2048,2048);
     sh.camera.left=-1.9; sh.camera.right=1.9; sh.camera.top=1.9; sh.camera.bottom=-1.9; sh.camera.near=0.5; sh.camera.far=14; sh.bias=-0.0006; sh.normalBias=0.012; sh.radius=3;
     this.cock.add(this.cSun); this.cock.add(this.cSun.target);
-    this.cHemi=new THREE.HemisphereLight(C('#7a8cb0'),C('#2a2018'),0.22); this.cock.add(this.cHemi);
+    this.cHemi=new THREE.HemisphereLight(C('#b8c4ff'),C('#5a4a68'),0.75); this.cock.add(this.cHemi);
     this.cBounce=new THREE.DirectionalLight(0xffffff,0); this.cock.add(this.cBounce); this.cock.add(this.cBounce.target);
     this.buildSky(); this.buildStars(); this.buildSun(); this.buildPlanets(); this.buildDust(); this.buildTunnel();
     this.buildComposer(); this.resize();
@@ -42,7 +42,7 @@ const World = {
   buildStars(){
     const n=2600, pos=new Float32Array(n*3), col=new Float32Array(n*3), size=new Float32Array(n), rr=mulberry32(4242);
     for(let i=0;i<n;i++){ const u=rr()*2-1, a=rr()*6.283, s=Math.sqrt(1-u*u); pos[i*3]=s*Math.cos(a)*9e6; pos[i*3+1]=u*9e6; pos[i*3+2]=s*Math.sin(a)*9e6;
-      const b=Math.pow(rr(),7)*5+0.35, t=rr(); const c=t<0.3?[1,0.75,0.55]:t<0.75?[1,0.97,0.92]:[0.7,0.82,1]; col[i*3]=c[0]*b; col[i*3+1]=c[1]*b; col[i*3+2]=c[2]*b; size[i]=1.4+Math.pow(rr(),5)*3.2; }
+      const b=Math.pow(rr(),7)*3+0.5, t=rr(); const c=t<0.3?[1,0.75,0.55]:t<0.75?[1,0.97,0.92]:[0.7,0.82,1]; col[i*3]=c[0]*b; col[i*3+1]=c[1]*b; col[i*3+2]=c[2]*b; size[i]=2.2+Math.pow(rr(),6)*9; }
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3)); g.setAttribute('size',new THREE.BufferAttribute(size,1));
     this.starMat=new THREE.ShaderMaterial({vertexShader:GLSL.starVert,fragmentShader:GLSL.starFrag,uniforms:{uPx:{value:this.dpr}},blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,transparent:true});
     const p=new THREE.Points(g,this.starMat); p.frustumCulled=false; this.space.add(p);
@@ -50,7 +50,7 @@ const World = {
   buildSun(){
     this.sunMat=new THREE.ShaderMaterial({vertexShader:GLSL.planetVert,fragmentShader:GLSL.sunFrag,uniforms:{uTime:{value:0}}});
     this.universe.add(new THREE.Mesh(new THREE.SphereGeometry(SUN_R,64,40),this.sunMat));
-    const corona=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:new THREE.Color(3,2.1,1.2),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); corona.scale.setScalar(SUN_R*11); this.universe.add(corona);
+    const corona=new THREE.Sprite(new THREE.SpriteMaterial({map:sunburstTex(),color:new THREE.Color(1.6,1.3,0.9),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); corona.scale.setScalar(SUN_R*9); this.universe.add(corona);
     const far=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:new THREE.Color(2.2,1.9,1.5),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,sizeAttenuation:false})); far.scale.setScalar(0.22); this.universe.add(far);
   },
   buildPlanets(){
@@ -66,7 +66,7 @@ const World = {
           cDeep:{value:C(pal.deep)},cShal:{value:C(pal.shal)},cA:{value:C(pal.a)},cB:{value:C(pal.b)},cC:{value:C(pal.c)},cD:{value:C(pal.d)},cAtm:{value:C(pal.atm)},cCloud:{value:C(pal.cloud)},cEmis:{value:C(pal.emis)}};
       }
       P.mat=new THREE.ShaderMaterial({vertexShader:GLSL.planetVert,fragmentShader:P.type==='gas'?GLSL.gasFrag:GLSL.rockFrag,uniforms:u,extensions:{derivatives:true}});
-      P.mesh=new THREE.Mesh(new THREE.SphereGeometry(P.r,160,96),P.mat); g.add(P.mesh);
+      P.mesh=new THREE.Mesh(new THREE.SphereGeometry(P.r,160,96),P.mat); g.add(P.mesh); Toon.ink.mark(P.mesh);
       const ar=1.09; P.atmo=new THREE.Mesh(new THREE.SphereGeometry(P.r*ar,96,48),new THREE.ShaderMaterial({vertexShader:GLSL.planetVert,fragmentShader:GLSL.atmoFrag,
         uniforms:{uSun:{value:P.sunDir},cAtm:{value:C(pal.atm)},uEdge:{value:Math.sqrt(1-1/(ar*ar))},uAtm:{value:P.atm}},side:THREE.BackSide,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));
       g.add(P.atmo);
@@ -116,11 +116,12 @@ const World = {
     const r=this.renderer; this.scenes=new ScenesPass();
     if(!THREE.EffectComposer || !THREE.UnrealBloomPass){ this.composer=null; r.toneMapping=THREE.ACESFilmicToneMapping; r.outputEncoding=THREE.sRGBEncoding; return; }
     const rt=new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
-    this.composer=new THREE.EffectComposer(r,rt); this.composer.addPass(this.scenes);
-    this.bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256),0.75,0.6,1.0);
+    this.composer=new THREE.EffectComposer(r,rt); this.composer.addPass(this.scenes); Toon.ink.init(); this.composer.addPass(new InkPrepass());
+    this.bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256),0.2,0.25,1.1);
     this.composer.addPass(this.bloom);
     this.post=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uExposure:{value:1},uWarp:{value:0},uFade:{value:0},uFlash:{value:0},uFadeCol:{value:new THREE.Color(0,0,0)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.postFrag});
     this.composer.addPass(this.post);
+    this.ink=new THREE.ShaderPass(Toon.ink.shader()); this.ink.uniforms.tN.value=Toon.ink.rt.texture; this.composer.addPass(this.ink);
     if(THREE.FXAAShader){ this.fxaa=new THREE.ShaderPass(THREE.FXAAShader); this.composer.addPass(this.fxaa); }
   },
   resize(){
@@ -129,7 +130,7 @@ const World = {
     for(const c of [this.spaceCam,this.cockCam]){ c.aspect=w/h; c.updateProjectionMatrix(); }
     if(typeof Cine!=='undefined' && Cine.cam){ Cine.cam.aspect=w/h; Cine.cam.updateProjectionMatrix(); }
     const pw=Math.round(w*this.dpr), ph=Math.round(h*this.dpr);
-    if(this.composer){ this.composer.setSize(pw,ph); if(this.fxaa) this.fxaa.material.uniforms.resolution.value.set(1/pw,1/ph); }
+    if(this.composer){ this.composer.setSize(pw,ph); if(this.fxaa) this.fxaa.material.uniforms.resolution.value.set(1/pw,1/ph); if(this.ink){ this.ink.uniforms.uPx.value.set(1/pw,1/ph); this.ink.uniforms.uW.value=Math.max(1,ph/620); this.ink.uniforms.tN.value=Toon.ink.rt.texture; } }
     if(this.starMat) this.starMat.uniforms.uPx.value=this.dpr;
   },
   setFov(f){ for(const c of [this.spaceCam,this.cockCam]){ if(Math.abs(c.fov-f)>0.01){ c.fov=f; c.updateProjectionMatrix(); } } },
@@ -145,7 +146,7 @@ const World = {
       const d=P.pos.distanceTo(shipPos); P.dist=d; if(d<nd){ nd=d; near=P; }
       P.mesh.rotation.y+=dt*(P.type==='gas'?0.006:0.0035);
       const px=P.r/d/tanH*this.h*0.5; P.px=px; const u=P.mat.uniforms; u.uTime.value=t;
-      u.uOct.value=clamp(Math.floor(Math.log2(Math.max(px,1)))-2,3,7); if(u.uBump) u.uBump.value=px>120?P.r*0.22:0;
+      u.uOct.value=clamp(Math.floor(Math.log2(Math.max(px,1)))-2,3,6); P.mesh.layers[px>7?'enable':'disable'](1);
     }
     this.nearest=near;
     if(near){ const k=clamp(Math.pow(near.r/nd,2)*3,0,0.9), day=clamp(new V3().subVectors(shipPos,near.pos).normalize().dot(near.sunDir)*0.6+0.5,0.08,1);
@@ -168,7 +169,7 @@ const Npc = {
   pilot(){ const sp=pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9); return {sp, seed, name:alienName(sp,seed), ship:shipName(seed), cargo:pick(GOODS)[0]}; },
   spawn(kind, pos, vel, extra){
     const pl=this.pilot(), S=SPECIES[pl.sp]; const idx=pl.sp==='ooloo'?5:pl.sp==='zkthar'?6:Math.floor(Math.random()*5);
-    const hue=Math.floor(Math.random()*360); const scheme={hull:`hsl(${hue},${Math.round(20+Math.random()*45)}%,${Math.round(35+Math.random()*40)}%)`,trim:`hsl(${(hue+180)%360},25%,${Math.round(18+Math.random()*25)}%)`,glow:S.col,wear:Math.random()*0.8};
+    const hue=Math.floor(Math.random()*360); const scheme={hull:`hsl(${hue},${Math.round(50+Math.random()*40)}%,${Math.round(50+Math.random()*22)}%)`,trim:`hsl(${(hue+150+Math.floor(Math.random()*60))%360},${Math.round(45+Math.random()*35)}%,${Math.round(35+Math.random()*25)}%)`,glow:S.col,wear:Math.random()*0.8};
     scheme.hull='#'+new THREE.Color(scheme.hull).getHexString(); scheme.trim='#'+new THREE.Color(scheme.trim).getHexString();
     const m=Models.build(idx,scheme); m.scale.setScalar(3); World.universe.add(m);
     const cv=makeCanvas(384,96), x=cv.getContext('2d'); x.strokeStyle=S.col; x.fillStyle=S.col; x.lineWidth=3; x.beginPath(); x.moveTo(192,8); x.lineTo(206,22); x.lineTo(192,36); x.lineTo(178,22); x.closePath(); x.stroke();
@@ -176,6 +177,9 @@ const Npc = {
     const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(cv),transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending})); mk.scale.set(0.4,0.1,1); mk.center.set(0.5,0.78); mk.renderOrder=21; World.universe.add(mk);
     const n=Object.assign({m,mk,pos:pos.clone(),vel:vel.clone(),kind,pilot:pl,age:0,dist:0},extra||{}); this.list.push(n); return n;
   },
+  label(n, l1, l2, col){ const S=SPECIES[n.pilot.sp], cv=n.mk.material.map.image, x=cv.getContext('2d'); col=col||S.col; x.clearRect(0,0,cv.width,cv.height); x.globalAlpha=1;
+    x.strokeStyle=col; x.fillStyle=col; x.lineWidth=3; x.beginPath(); x.moveTo(192,8); x.lineTo(206,22); x.lineTo(192,36); x.lineTo(178,22); x.closePath(); x.stroke();
+    x.font=`600 24px ${FONT_DISP}`; x.textAlign='center'; x.fillText((l1||n.pilot.ship).toUpperCase(),192,66,376); x.font=`18px ${FONT_MONO}`; x.globalAlpha=0.85; x.fillText(l2||(S.name+' · '+n.pilot.name),192,88,376); x.globalAlpha=1; n.mk.material.map.needsUpdate=true; },
   remove(n){ World.universe.remove(n.m); World.universe.remove(n.mk); n.mk.material.map.dispose(); n.mk.material.dispose(); const i=this.list.indexOf(n); if(i>=0) this.list.splice(i,1); },
   clear(){ while(this.list.length) this.remove(this.list[0]); },
   count(k){ let c=0; for(const n of this.list) if(n.kind===k) c++; return c; },
@@ -204,9 +208,9 @@ const Npc = {
       else n.pos.addScaledVector(n.vel,dt);
       n.dist=n.pos.distanceTo(s.pos); n.m.position.copy(n.pos); n.mk.position.copy(n.pos);
       if(n.vel.lengthSq()>1){ n.m.quaternion.copy(lookQuat(n.vel.clone().normalize())); }
-      Models.animate(n.m,0.75,t+i);
-      n.mk.visible=show && n.dist<9000 && n.dist>120; n.mk.material.opacity=n===Comms.target?1:0.75;
-      const far=n.kind==='warp'?70000:32000; if(n.dist>far || n.age>120 && n.dist>9000) this.remove(n);
+      Models.animate(n.m,n.kind==='derelict'?0:0.75,t+i);
+      n.mk.visible=show && n.dist>120 && (n.keep||n.dist<9000); n.mk.material.opacity=n===Comms.target?1:0.75;
+      const far=n.kind==='warp'?70000:32000; if(!n.keep&&(n.dist>far || n.age>120 && n.dist>9000)) this.remove(n);
     }
   },
 };

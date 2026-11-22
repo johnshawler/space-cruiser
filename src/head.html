@@ -97,6 +97,18 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .opt:hover{border-color:var(--amber);color:var(--amber)}
 .opt b{color:var(--amber);font-weight:400;margin-right:6px}
 
+#dlg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(4% + env(safe-area-inset-bottom,0px));width:min(1180px,calc(100% - 32px));z-index:28;background:var(--glass);border:1px solid var(--line);border-top:3px solid var(--amber);padding:20px 22px;display:grid;grid-template-columns:160px 1fr;gap:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#dlg.alert{border-top-color:var(--bad)}
+#dlg-face{width:160px;height:160px;border:1px solid var(--line)}
+#dlg .who{font-family:var(--mono);font-size:24px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase}
+#dlg.alert .who{color:var(--bad)}
+#dlg-text{font-size:32px;line-height:1.3;margin-top:8px}
+#dlg-time{height:6px;background:var(--glass-2);margin-top:12px}#dlg-bar{display:block;height:100%;width:0;background:var(--amber);transition:width .2s linear}
+#dlg-opts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px}
+.opt small{display:block;color:var(--dim);font-size:20px;margin-top:4px;letter-spacing:.04em}
+.opt:disabled{opacity:.45;cursor:default}
+.tag.bad{border-color:var(--bad);color:var(--bad)}.tag.esc{border-color:var(--cyan);color:var(--cyan)}
+.card.shady{border-color:rgba(255,111,97,.45)}
 #help{position:absolute;inset:0;z-index:30;background:rgba(2,4,8,.88);display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #help .box{max-width:1280px;width:100%;max-height:100%;overflow:auto;border:1px solid var(--line);background:var(--glass);padding:24px}
 #help h2{font-family:var(--display);letter-spacing:.2em;text-transform:uppercase;margin:0 0 14px;font-size:36px}
@@ -132,6 +144,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
   #port h2{font-size:32px}#port .sub,#port nav button,.card .meta,.btn,#port footer span{font-size:16px}#port .stats,.card p,.note,.ledger{font-size:18px}.card h3{font-size:22px}.pay{font-size:24px}.tag{font-size:13px}
   .quote .who,.quote .alien{font-size:15px}.quote .say{font-size:21px}
   #comms{padding:14px 16px;gap:14px}#comms-text{font-size:22px}.opt,#comms .who{font-size:16px}#comms-glyph{height:30px}
+  #dlg{grid-template-columns:64px 1fr;padding:14px 16px;gap:14px}#dlg-face{width:64px;height:64px}#dlg-text{font-size:22px}#dlg .who{font-size:16px}.opt small{font-size:14px}
   #help h2{font-size:24px}#help dl{font-size:17px;grid-template-columns:1fr}#map h2{font-size:20px}#map .sub,#map footer{font-size:14px}#map-close{font-size:15px}
 }
 @media (max-width:640px){

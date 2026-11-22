@@ -39,60 +39,57 @@ uniform vec3 uSun; uniform float uTime,uSeed,uSea,uIce,uCloud,uLava,uCity,uAtm,u
 uniform vec3 cDeep,cShal,cA,cB,cC,cD,cAtm,cCloud,cEmis;
 varying vec3 vP; varying vec3 vN; varying vec3 vW;
 ${GLSL.noise}
+#define STEP(x,t) smoothstep((t)-0.012,(t)+0.012,(x))
 void main(){
   int oct=int(uOct);
-  vec3 N0=normalize(vN); vec3 V=normalize(cameraPosition-vW);
+  vec3 N=normalize(vN); vec3 V=normalize(cameraPosition-vW);
   vec3 p=vP*1.7+uSeed;
   vec3 w=vec3(fbm(p*1.2+11.0,3),fbm(p*1.2+37.0,3),fbm(p*1.2+71.0,3));
-  float cont=fbm(p+w*0.7,oct);
-  float h=0.5+0.6*cont;
-  float ridge=1.0-abs(snoise(p*3.1+w*1.3)); ridge*=ridge;
-  float land=smoothstep(uSea-0.004,uSea+0.012,h);
-  h+=land*(ridge-0.35)*0.16*smoothstep(uSea,uSea+0.25,h);
+  float h=0.5+0.6*fbm(p+w*0.7,oct);
+  float fw=fwidth(h);
+  float land=smoothstep(uSea-fw,uSea+fw,h);
   float t=clamp((h-uSea)/max(0.001,1.0-uSea)*1.7,0.0,1.0);
-  float bio=fbm(p*2.6+50.0,min(oct,4))*0.5+0.5;
-  vec3 landC=mix(cA,cB,smoothstep(0.03,0.22,t+bio*0.12));
-  landC=mix(landC,cC,smoothstep(0.25,0.55,t+(bio-0.5)*0.3));
-  landC=mix(landC,cD,smoothstep(0.62,0.9,t+(ridge-0.5)*0.2));
+  float bio=fbm(p*2.6+50.0,3)*0.5+0.5;
+  float ridge=1.0-abs(snoise(p*3.1+w*1.3));
+  float q=t+bio*0.15-0.07;
+  // flat colour patches with crisp edges, like a painted cel
+  vec3 landC=mix(cA,cB,STEP(q,0.12));
+  landC=mix(landC,cC,STEP(q,0.42));
+  landC=mix(landC,cD,STEP(q+(ridge-0.5)*0.2,0.8));
   float depth=clamp((uSea-h)/0.25,0.0,1.0);
-  vec3 seaC=mix(cShal,cDeep,smoothstep(0.0,0.6,depth));
+  vec3 seaC=mix(cShal,cDeep,STEP(depth,0.16));
   vec3 alb=mix(seaC,landC,land);
-  float ice=smoothstep(uIce-0.06,uIce+0.04,abs(vP.y)+0.12*fbm(p*4.0,3)+land*(h-uSea)*0.25);
+  float ice=STEP(abs(vP.y)+0.12*fbm(p*4.0,3)+land*(h-uSea)*0.25,uIce);
   alb=mix(alb,cD,ice);
   float wet=(1.0-land)*(1.0-ice);
-  // bump from height derivatives
-  vec3 N=N0;
-  if(uBump>0.0){
-    float hb=h*(land+ice*0.3);
-    vec3 dpx=dFdx(vW), dpy=dFdy(vW); float dhx=dFdx(hb), dhy=dFdy(hb);
-    vec3 r1=cross(dpy,N0), r2=cross(N0,dpx); float det=dot(dpx,r1);
-    vec3 grad=sign(det)*(dhx*r1+dhy*r2);
-    N=normalize(abs(det)*N0-uBump*grad);
-  }
-  float ndl0=dot(N0,uSun); float ndl=dot(N,uSun);
-  float day=smoothstep(-0.12,0.22,ndl0);
-  vec3 sunC=mix(vec3(1.0,0.42,0.18),vec3(1.0,0.97,0.92),smoothstep(-0.05,0.4,ndl0))*1.45;
-  vec3 col=alb*max(ndl,0.0)*sunC*day;
-  vec3 H=normalize(uSun+V);
-  col+=sunC*pow(max(dot(N0,H),0.0),160.0)*0.45*wet*(1.0-uLava)*day;
-  // molten seas and cracks
-  float crack=pow(1.0-abs(snoise(p*4.5+w*1.7)),7.0)*land;
-  float glow=(wet*(0.55+0.45*fbm(p*8.0+uTime*0.02,3))+crack*1.4)*uLava;
-  col+=cEmis*glow*3.2;
-  // city lights
-  float city=smoothstep(0.55,0.85,snoise(vP*38.0+uSeed)*0.5+0.5)*smoothstep(0.35,0.65,snoise(vP*7.0+uSeed*3.0)*0.5+0.5);
-  city*=land*(1.0-ice)*(1.0-smoothstep(0.05,0.5,t));
-  // clouds
+  // three-band cartoon light: night, shade, full sun
+  float ndl=dot(N,uSun);
+  float L=smoothstep(-0.03,0.03,ndl), M=smoothstep(0.26,0.32,ndl);
+  vec3 night=vec3(0.10,0.12,0.30);
+  vec3 lightC=mix(night,mix(vec3(0.80,0.82,1.0),vec3(1.0),M)*1.2,L);
+  vec3 col=alb*lightC;
+  // a hard little glint on the water
+  vec3 H=normalize(uSun+V); col=mix(col,vec3(1.5),smoothstep(0.984,0.988,dot(N,H))*wet*(1.0-uLava)*L*0.85);
+  // lava seas and cracks
+  float crack=STEP(pow(1.0-abs(snoise(p*4.5+w*1.7)),7.0),0.35)*land;
+  float glow=(wet*(0.75+0.25*STEP(fbm(p*8.0+uTime*0.02,3),0.1))+crack)*uLava;
+  col=mix(col,cEmis*2.2,clamp(glow,0.0,1.0)*0.9);
+  // city lights as crisp dots on the night side
+  float city=STEP(snoise(vP*38.0+uSeed)*0.5+0.5,0.72)*STEP(snoise(vP*7.0+uSeed*3.0)*0.5+0.5,0.5);
+  city*=land*(1.0-ice)*(1.0-STEP(t,0.3));
+  // puffy clouds with a shaded rim
   vec3 cp=vP*2.3+w*0.9+vec3(uTime*0.006,0.0,uTime*0.003)+uSeed*2.0;
-  float cl=smoothstep(1.0-uCloud,1.25-uCloud,fbm(cp,oct)*0.62+0.5+0.12*snoise(cp*5.0));
-  col+=cEmis*city*uCity*(1.0-day)*(1.0-cl*0.85)*2.4;
-  vec3 cloudLit=cCloud*max(ndl0+0.08,0.0)*sunC*day*0.78;
-  col=mix(col,cloudLit,cl*0.94);
-  col*=1.0-0.25*cl*uLava;
-  // atmosphere limb
-  float fr=pow(1.0-max(dot(N0,V),0.0),3.2);
-  col+=cAtm*fr*(0.06+1.5*day)*uAtm;
-  col+=alb*0.006;
+  float cn=fbm(cp,min(oct,5))*0.62+0.5+0.08*snoise(cp*4.0);
+  float cl=STEP(cn,1.05-uCloud), core=STEP(cn,1.13-uCloud);
+  col+=cEmis*city*uCity*(1.0-L)*(1.0-cl)*2.2;
+  // dark coastline, drawn like an inked border
+  float coast=1.0-smoothstep(fw*0.8,fw*1.9,abs(h-uSea));
+  col=mix(col,vec3(0.05,0.04,0.11),coast*0.75*(1.0-ice));
+  vec3 cloudC=cCloud*mix(night*1.6,vec3(1.12),L);
+  col=mix(col,mix(cloudC*0.78,cloudC,core),cl*0.96*(1.0-0.2*uLava));
+  // flat atmosphere band around the edge
+  float fr=1.0-max(dot(N,V),0.0);
+  col=mix(col,cAtm*mix(0.3,1.25,L),smoothstep(0.6,0.65,fr)*0.7*uAtm);
   gl_FragColor=vec4(col,1.0);
 }`;
 
@@ -101,27 +98,27 @@ uniform vec3 uSun; uniform float uTime,uSeed,uBands,uTurb,uAtm,uOct;
 uniform vec3 cA,cB,cC,cD,cAtm;
 varying vec3 vP; varying vec3 vN; varying vec3 vW;
 ${GLSL.noise}
+#define STEP(x,t) smoothstep((t)-0.015,(t)+0.015,(x))
 void main(){
   int oct=int(uOct);
-  vec3 N0=normalize(vN); vec3 V=normalize(cameraPosition-vW);
+  vec3 N=normalize(vN); vec3 V=normalize(cameraPosition-vW);
   vec3 q=vec3(vP.x*1.6,vP.y*5.5,vP.z*1.6)+uSeed+vec3(uTime*0.003,0.0,0.0);
-  float turb=fbm(q,oct);
-  float sw=fbm(vP*3.2+uSeed*2.0+turb*1.5,oct);
-  float lat=vP.y*uBands+turb*uTurb+sw*0.9;
-  float t=sin(lat)*0.5+0.5; float t2=sin(lat*2.63+1.3)*0.5+0.5; float t3=sin(lat*0.37+4.0)*0.5+0.5;
-  vec3 alb=mix(cA,cB,smoothstep(0.2,0.8,t));
-  alb=mix(alb,cC,t2*0.45);
-  alb=mix(alb,cD,smoothstep(0.55,0.95,t3)*0.55);
-  alb=mix(alb,cD,smoothstep(0.25,0.7,fbm(vP*vec3(2.0,11.0,2.0)+5.0+uSeed,oct))*0.35);
-  vec3 sp=normalize(vec3(0.62,-0.33,0.71)); vec3 dv=vP-sp; float d=length(dv*vec3(1.0,2.4,1.0));
-  float storm=(1.0-smoothstep(0.08,0.24,d+0.04*sw)); alb=mix(alb,mix(cD,cC,0.3+0.3*sin(d*40.0+turb*6.0)),storm*0.85);
-  alb*=1.0-0.35*pow(abs(vP.y),6.0);
-  float ndl=dot(N0,uSun); float day=smoothstep(-0.1,0.25,ndl);
-  vec3 sunC=mix(vec3(1.0,0.45,0.2),vec3(1.0,0.97,0.92),smoothstep(-0.05,0.4,ndl))*1.45;
-  vec3 col=alb*pow(max(ndl,0.0),0.85)*sunC*day;
-  float fr=pow(1.0-max(dot(N0,V),0.0),3.0);
-  col+=cAtm*fr*(0.04+1.2*day)*uAtm;
-  col+=alb*0.004;
+  float turb=fbm(q,min(oct,4));
+  float sw=fbm(vP*3.2+uSeed*2.0+turb*1.5,min(oct,4));
+  float lat=vP.y*uBands+turb*uTurb*0.8+sw*0.7;
+  vec3 alb=mix(cA,cB,STEP(sin(lat)*0.5+0.5,0.5));
+  alb=mix(alb,cC,STEP(sin(lat*2.63+1.3)*0.5+0.5,0.72)*0.85);
+  alb=mix(alb,cD,STEP(sin(lat*0.37+4.0)*0.5+0.5,0.78)*0.75);
+  vec3 sp=normalize(vec3(0.62,-0.33,0.71)); vec3 dv=vP-sp; float d=length(dv*vec3(1.0,2.4,1.0))+0.03*sw;
+  float storm=1.0-STEP(d,0.19), eye=1.0-STEP(d,0.1);
+  alb=mix(alb,cD,storm); alb=mix(alb,cC,eye*0.9);
+  alb=mix(alb,vec3(0.05,0.04,0.11),(STEP(d,0.17)-STEP(d,0.2))*0.6);
+  float ndl=dot(N,uSun);
+  float L=smoothstep(-0.03,0.03,ndl), M=smoothstep(0.26,0.32,ndl);
+  vec3 night=vec3(0.10,0.11,0.28);
+  vec3 col=alb*mix(night,mix(vec3(0.8,0.82,1.0),vec3(1.0),M)*1.2,L);
+  float fr=1.0-max(dot(N,V),0.0);
+  col=mix(col,cAtm*mix(0.3,1.2,L),smoothstep(0.62,0.67,fr)*0.6*uAtm);
   gl_FragColor=vec4(col,1.0);
 }`;
 
@@ -129,9 +126,10 @@ GLSL.atmoFrag = `
 uniform vec3 uSun; uniform vec3 cAtm; uniform float uEdge,uAtm;
 varying vec3 vP; varying vec3 vN; varying vec3 vW;
 void main(){ vec3 V=normalize(cameraPosition-vW); vec3 N=normalize(vN);
-  float g=pow(clamp(-dot(N,V)/uEdge,0.0,1.0),2.6);
-  float lit=smoothstep(-0.45,0.35,dot(N,uSun)+0.25*dot(-V,uSun));
-  gl_FragColor=vec4(cAtm*g*lit*1.6*uAtm,1.0); }`;
+  float g=clamp(-dot(N,V)/uEdge,0.0,1.0);
+  float halo=smoothstep(0.45,0.49,g)*0.2+smoothstep(0.72,0.76,g)*0.22;
+  float lit=smoothstep(-0.25,0.05,dot(N,uSun)+0.25*dot(-V,uSun));
+  gl_FragColor=vec4(cAtm*halo*(0.12+0.88*lit)*uAtm,1.0); }`;
 
 GLSL.ringVert = `varying vec3 vL; void main(){ vL=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.ringFrag = `
@@ -139,21 +137,22 @@ uniform vec3 uSunL; uniform vec3 c1,c2; uniform float uIn,uOut,uR,uSeed;
 varying vec3 vL;
 ${GLSL.noise}
 void main(){ float r=length(vL.xy); float t=(r-uIn)/(uOut-uIn);
-  float a=0.55+0.45*snoise(vec3(t*14.0,uSeed,0.0)); a*=0.6+0.4*snoise(vec3(t*61.0,uSeed,3.0)); a*=0.8+0.2*snoise(vec3(t*240.0,uSeed,7.0));
-  a*=smoothstep(0.0,0.04,t)*(1.0-smoothstep(0.93,1.0,t)); a*=1.0-0.85*(1.0-smoothstep(0.0,0.03,abs(t-0.58))); a=clamp(a,0.0,1.0);
-  vec3 col=mix(c1,c2,0.5+0.5*snoise(vec3(t*7.0,uSeed,11.0)));
-  float tt=dot(vL,uSunL); float d=length(vL-uSunL*tt); float sh=(tt<0.0 && d<uR)?0.06:1.0;
-  float lit=0.35+0.65*abs(uSunL.z);
-  gl_FragColor=vec4(col*lit*sh*1.7,a*0.92); }`;
+  float a=0.55+0.45*snoise(vec3(t*9.0,uSeed,0.0));
+  a=smoothstep(0.36,0.4,a)*0.55+smoothstep(0.66,0.7,a)*0.35;
+  a*=smoothstep(0.0,0.02,t)*(1.0-smoothstep(0.97,1.0,t)); a*=1.0-step(abs(t-0.58),0.025);
+  vec3 col=mix(c1,c2,step(0.0,snoise(vec3(t*5.0,uSeed,11.0))));
+  float tt=dot(vL,uSunL); float d=length(vL-uSunL*tt); float sh=(tt<0.0 && d<uR)?0.25:1.0;
+  float lit=0.5+0.5*abs(uSunL.z);
+  gl_FragColor=vec4(col*lit*sh*1.5,a*0.95); }`;
 
 GLSL.sunFrag = `
 uniform float uTime; varying vec3 vP; varying vec3 vN; varying vec3 vW;
 ${GLSL.noise}
 void main(){ vec3 V=normalize(cameraPosition-vW); float mu=max(dot(normalize(vN),V),0.0);
-  float n=fbm(vP*6.0+vec3(0.0,uTime*0.03,0.0),5)*0.5+0.5; float n2=fbm(vP*22.0+uTime*0.05,4)*0.5+0.5;
-  vec3 col=mix(vec3(1.0,0.45,0.08),vec3(1.0,0.92,0.7),n*0.7+n2*0.3);
-  col*=(0.55+0.45*pow(mu,0.5))*9.0;
-  gl_FragColor=vec4(col,1.0); }`;
+  float n=fbm(vP*4.0+vec3(0.0,uTime*0.03,0.0),3)*0.5+0.5;
+  vec3 col=mix(vec3(1.0,0.42,0.05),vec3(1.0,0.78,0.18),smoothstep(0.3,0.34,mu+n*0.18));
+  col=mix(col,vec3(1.0,0.95,0.62),smoothstep(0.74,0.78,mu+n*0.1));
+  gl_FragColor=vec4(col*2.4,1.0); }`;
 
 GLSL.skyVert = `varying vec3 vD; void main(){ vD=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.skyFrag = `
@@ -163,34 +162,31 @@ vec3 starLayer(vec3 d,float scale,float thresh,float bright){
   vec3 q=d*scale; vec3 id=floor(q); vec3 f=fract(q)-0.5; float h=hash13(id);
   if(h<thresh) return vec3(0.0);
   vec3 off=vec3(hash13(id+7.1),hash13(id+13.7),hash13(id+29.3))-0.5;
-  float s=(1.0-smoothstep(0.0,0.22,length(f-off*0.5)));
-  float tcol=hash13(id+3.3);
-  vec3 c=mix(vec3(1.0,0.72,0.5),vec3(0.65,0.8,1.0),tcol);
-  return c*s*s*bright*(0.3+2.0*pow(hash13(id+91.0),6.0));
+  float s=1.0-smoothstep(0.12,0.16,length(f-off*0.5));
+  vec3 c=mix(vec3(1.0,0.85,0.6),vec3(0.75,0.88,1.0),hash13(id+3.3));
+  return c*s*bright;
 }
 void main(){
   vec3 d=normalize(vD);
-  vec3 axis=normalize(vec3(0.25,1.0,0.35));
-  float band=exp(-pow(dot(d,axis)*3.2,2.0));
-  float n1=fbm(d*1.4+3.0,6)*0.5+0.5; float n2=fbm(d*2.3+n1*1.6+20.0,6)*0.5+0.5; float n3=fbm(d*3.1+n2*2.0+60.0,6)*0.5+0.5;
-  vec3 col=vec3(0.0);
-  col+=vec3(0.30,0.07,0.42)*pow(n1,3.5)*0.9;
-  col+=vec3(0.04,0.26,0.42)*pow(n2,4.5)*1.3;
-  col+=vec3(0.55,0.18,0.10)*pow(n3,6.0)*1.1*(0.3+band);
-  float dust=fbm(d*6.0+7.0,5)*0.5+0.5;
-  col+=band*vec3(0.34,0.29,0.24)*(0.15+0.85*dust)*0.32;
-  col*=1.0-band*smoothstep(0.42,0.75,fbm(d*4.5+40.0,5)*0.5+0.5)*0.8;
-  col*=0.55;
-  float dens=0.35+band*1.3;
-  col+=starLayer(d,160.0,1.0-0.012*dens,1.2);
-  col+=starLayer(d,330.0,1.0-0.02*dens,0.55);
-  col+=starLayer(d,520.0,1.0-0.03*dens,0.25);
+  vec3 axis=normalize(vec3(0.25,1.0,0.35)); float band=exp(-pow(dot(d,axis)*2.6,2.0));
+  vec3 col=mix(vec3(0.016,0.02,0.075),vec3(0.045,0.03,0.11),band);
+  float n1=fbm(d*1.6+3.0,4)*0.5+0.5; float n2=fbm(d*2.4+n1*1.2+20.0,4)*0.5+0.5;
+  float a1=smoothstep(0.6,0.612,n1), b1=smoothstep(0.69,0.702,n1);
+  col=mix(col,vec3(0.13,0.04,0.2),a1); col=mix(col,vec3(0.24,0.07,0.28),b1);
+  float a2=smoothstep(0.64,0.652,n2)*(1.0-a1), b2=smoothstep(0.72,0.732,n2)*(1.0-a1);
+  col=mix(col,vec3(0.025,0.13,0.2),a2); col=mix(col,vec3(0.05,0.24,0.3),b2);
+  col+=starLayer(d,140.0,1.0-0.012*(0.5+band),0.9);
+  col+=starLayer(d,300.0,1.0-0.02*(0.5+band),0.4);
   gl_FragColor=vec4(col*uBoost,1.0);
 }`;
 
-GLSL.starVert = `attribute float size; attribute vec3 color; varying vec3 vC; uniform float uPx;
-void main(){ vC=color; gl_PointSize=size*uPx; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
-GLSL.starFrag = `varying vec3 vC; void main(){ vec2 c=gl_PointCoord-0.5; float d=length(c); float a=(1.0-smoothstep(0.0,0.5,d)); gl_FragColor=vec4(vC*a*a,1.0); }`;
+GLSL.starVert = `attribute float size; attribute vec3 color; varying vec3 vC; varying float vS; uniform float uPx;
+void main(){ vC=color; vS=step(6.0,size); gl_PointSize=size*uPx; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+GLSL.starFrag = `varying vec3 vC; varying float vS;
+void main(){ vec2 c=gl_PointCoord-0.5; float d=length(c);
+  float dotv=1.0-smoothstep(0.13,0.19,d);
+  float cr=(1.0-smoothstep(0.02,0.06,abs(c.x)))*(1.0-smoothstep(0.15,0.5,abs(c.y)))+(1.0-smoothstep(0.02,0.06,abs(c.y)))*(1.0-smoothstep(0.15,0.5,abs(c.x)));
+  gl_FragColor=vec4(vC*max(dotv,cr*vS),1.0); }`;
 
 GLSL.tunnelVert = `varying vec2 vUv; varying vec3 vL; void main(){ vUv=uv; vL=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.tunnelFrag = `
@@ -198,9 +194,9 @@ uniform float uTime,uWarp; varying vec2 vUv; varying vec3 vL;
 ${GLSL.noise}
 void main(){ float a=vUv.x*6.2831853; vec2 ring=vec2(cos(a),sin(a))*3.0;
   float n=snoise(vec3(ring*2.2,vUv.y*5.0+uTime*3.5)); float n2=snoise(vec3(ring*7.0,vUv.y*16.0+uTime*9.0));
-  float s=pow(max(n*0.6+n2*0.4,0.0),2.2);
+  float s=smoothstep(0.4,0.44,n*0.6+n2*0.4);
   float fade=smoothstep(0.0,0.25,vUv.y)*(1.0-smoothstep(0.5,1.0,vUv.y));
-  vec3 col=mix(vec3(0.15,0.35,1.0),vec3(0.75,0.5,1.0),n2*0.5+0.5)*s*fade*uWarp*2.4;
+  vec3 col=mix(vec3(0.2,0.55,1.0),vec3(1.0,0.4,0.95),step(0.0,n2))*s*fade*uWarp*1.5;
   gl_FragColor=vec4(col,1.0); }`;
 
 GLSL.plasmaVert = `varying vec3 vN; varying vec3 vL; varying vec3 vV; void main(){ vL=normalize(position); vec4 mv=modelViewMatrix*vec4(position,1.0); vN=normalize(normalMatrix*normal); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`;
@@ -216,12 +212,16 @@ GLSL.groundSkyFrag = `
 uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax; varying vec3 vD;
 ${GLSL.noise}
 void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
-  vec3 col=mix(cHor,cZen,pow(h,0.55));
+  float hb=floor(pow(h,0.55)*5.0+0.5)/5.0;
+  vec3 col=mix(cHor,cZen,hb);
   col=mix(col,cHor*0.85,(1.0-smoothstep(-0.25,0.0,d.y)));
   float s=max(dot(d,uSun),0.0);
-  col*=0.72; col+=cSun*(pow(s,8.0)*0.10+pow(s,64.0)*0.5+pow(s,1400.0)*30.0);
-  float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),5); col=mix(col,mix(cHor,vec3(1.0),0.6)*0.85,smoothstep(0.1,0.6,cl)*smoothstep(0.0,0.25,d.y)*0.55);
-  vec3 q=d*220.0; float st=step(0.992,hash13(floor(q)))*(1.0-smoothstep(0.0,0.35,length(fract(q)-0.5))); col+=vec3(st)*uStars*h;
+  col*=0.78; col+=cSun*(smoothstep(0.965,0.968,s)*0.35+smoothstep(0.9975,0.998,s)*6.0);
+  float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),4);
+  float cm=smoothstep(0.0,0.25,d.y);
+  col=mix(col,mix(cHor,vec3(1.0),0.55)*0.85,smoothstep(0.3,0.33,cl)*cm*0.85);
+  col=mix(col,mix(cHor,vec3(1.0),0.8),smoothstep(0.42,0.45,cl)*cm*0.85);
+  vec3 q=d*220.0; float st=step(0.992,hash13(floor(q)))*(1.0-smoothstep(0.2,0.3,length(fract(q)-0.5))); col+=vec3(st)*uStars*h;
   col=clamp(col,vec3(0.0),vec3(uMax));
   gl_FragColor=vec4(col,1.0); }`;
 
@@ -229,19 +229,17 @@ GLSL.postVert = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMa
 GLSL.postFrag = `
 uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash; uniform vec3 uFadeCol;
 varying vec2 vUv;
-vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }
-float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 void main(){
   vec2 c=vUv-0.5; float r2=dot(c,c);
-  float ca=(0.0035+uWarp*0.02)*r2;
+  float ca=uWarp*0.02*r2;
   vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-c*ca).b);
-  col=mix(col,col*vec3(0.75,0.9,1.35),uWarp*0.5);
+  col=mix(col,col*vec3(0.8,0.9,1.3),uWarp*0.4);
   col+=vec3(0.7,0.85,1.0)*uFlash*2.0;
   col*=uExposure;
-  col=aces(col);
+  col=1.0-exp(-col*1.4);            // soft clip that keeps flat cartoon colours flat
   col=pow(col,vec3(1.0/2.2));
-  col*=1.0-r2*0.75;
-  col+=(h21(vUv*vec2(1920.0,1080.0)+fract(uTime)*91.7)-0.5)*0.03;
+  float l=dot(col,vec3(0.299,0.587,0.114)); col=clamp(mix(vec3(l),col,1.2),0.0,1.0);
+  col*=1.0-r2*0.35;
   col=mix(col,uFadeCol,uFade);
   gl_FragColor=vec4(col,1.0);
 }`;

@@ -28,7 +28,7 @@ const Cine = {
     const es=new THREE.Scene(); es.add(new THREE.Mesh(sky.geometry,skyMat)); const crt=new THREE.WebGLCubeRenderTarget(128,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,generateMipmaps:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
     new THREE.CubeCamera(10,60000,crt).update(World.renderer,es); const pm=new THREE.PMREMGenerator(World.renderer); const env=pm.fromCubemap(crt.texture).texture; pm.dispose(); crt.dispose(); scn.environment=env; skyU.uMax.value=40;
     scn.fog=new THREE.FogExp2(C(S.hor),S.fog);
-    scn.add(new THREE.HemisphereLight(C(S.hor),C(S.g[0]),0.32));
+    scn.add(new THREE.HemisphereLight(C(S.hor),C(S.g[0]),0.7));
     const sun=new THREE.DirectionalLight(C('#fff2dc'),S.lava?1.1:1.9); sun.position.copy(sunDir).multiplyScalar(320); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
     const sc=sun.shadow.camera; sc.left=-110; sc.right=110; sc.top=110; sc.bottom=-110; sc.near=60; sc.far=800; sun.shadow.bias=-0.0005; sun.shadow.normalBias=0.4; sun.shadow.radius=3; scn.add(sun); scn.add(sun.target);
     const liq=S.liquid?-20:-1e9;
@@ -41,8 +41,8 @@ const Cine = {
     tg.setAttribute('color',new THREE.BufferAttribute(cols,3)); tg.computeVertexNormals();
     const gcv=makeCanvas(256,256), gx=gcv.getContext('2d'), gi=gx.createImageData(256,256), gr=mulberry32(3); for(let i=0;i<gi.data.length;i+=4){ const v=222+gr()*33; gi.data[i]=gi.data[i+1]=gi.data[i+2]=v; gi.data[i+3]=255; } gx.putImageData(gi,0,0);
     const gt=canvasTex(gcv); gt.wrapS=gt.wrapT=THREE.RepeatWrapping; gt.repeat.set(90,90);
-    const terr=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,map:gt,roughness:cloud?1:0.94,metalness:0})); terr.receiveShadow=true; scn.add(terr);
-    if(S.liquid){ const lm=S.lava?new THREE.MeshBasicMaterial({color:HDR(S.liquid,2.6)}):new THREE.MeshStandardMaterial({color:C(S.liquid),roughness:0.06,metalness:0.55,envMapIntensity:1.4});
+    const terr=new THREE.Mesh(tg,Toon.mat({vertexColors:true,map:gt,roughness:cloud?1:0.94,metalness:0})); terr.receiveShadow=true; scn.add(terr);
+    if(S.liquid){ const lm=S.lava?new THREE.MeshBasicMaterial({color:HDR(S.liquid,2.6)}):Toon.mat({color:C(S.liquid),roughness:0.06,metalness:0.55,envMapIntensity:1.4});
       const l=new THREE.Mesh(new THREE.PlaneGeometry(26000,26000),lm); l.rotation.x=-Math.PI/2; l.position.y=liq; scn.add(l); if(S.lava){ const ll=new THREE.HemisphereLight(C('#000000'),C(S.liquid),1.1); scn.add(ll); } }
     // pad
     const pcv=makeCanvas(512,512), px=pcv.getContext('2d'); px.fillStyle='#34363a'; px.fillRect(0,0,512,512); const pr=mulberry32(seed+1);
@@ -50,12 +50,12 @@ const Cine = {
     px.strokeStyle='#e8b820'; px.lineWidth=14; px.beginPath(); px.arc(256,256,214,0,7); px.stroke(); px.lineWidth=6; px.beginPath(); px.arc(256,256,120,0,7); px.stroke();
     for(let i=0;i<24;i++){ const a=i/24*6.283; px.save(); px.translate(256+Math.cos(a)*238,256+Math.sin(a)*238); px.rotate(a); px.fillStyle=i%2?'#e8b820':'#1a1a1a'; px.fillRect(-10,-16,20,32); px.restore(); }
     drawGlyphs(px,P.port.slice(0,3),190,210,90,P.species,'#f2f2f2',200);
-    const padTop=new THREE.MeshStandardMaterial({map:canvasTex(pcv),roughness:0.85,metalness:0.1}), padSide=new THREE.MeshStandardMaterial({color:C('#2a2c30'),roughness:0.8,metalness:0.3});
+    const padTop=Toon.mat({map:canvasTex(pcv),roughness:0.85,metalness:0.1}), padSide=Toon.mat({color:C('#2a2c30'),roughness:0.8,metalness:0.3});
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(50,54,5,56),[padSide,padTop,padSide]); pad.position.y=-2.5; pad.receiveShadow=true; scn.add(pad);
     if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(9,16,900,20),padSide); py.position.y=-455; scn.add(py); const rg=new THREE.Mesh(new THREE.TorusGeometry(58,3,10,48),padSide); rg.rotation.x=Math.PI/2; rg.position.y=-6; scn.add(rg); }
     const lamps=[]; for(let i=0;i<20;i++){ const a=i/20*6.283, lm=new THREE.Mesh(new THREE.SphereGeometry(0.45,8,6),new THREE.MeshBasicMaterial({color:0xffffff})); lm.position.set(Math.cos(a)*47,0.35,Math.sin(a)*47); scn.add(lm); lamps.push(lm); }
     // buildings
-    const bm=(hex,rough=0.7,metal=0.2,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:rough,metalness:metal},ex||{}));
+    const bm=(hex,rough=0.7,metal=0.2,ex)=>Toon.mat(Object.assign({color:C(hex),roughness:rough,metalness:metal},ex||{}));
     const win=new THREE.MeshBasicMaterial({color:HDR(spc.col,1.8)}), warm=new THREE.MeshBasicMaterial({color:HDR('#ffd9a0',2)});
     const mk=(geo,mat,x=0,y=0,z=0)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; };
     const building=()=>{ const b=new THREE.Group(), st=S.style;
@@ -80,6 +80,7 @@ const Cine = {
     const dn=380, dp=new Float32Array(dn*3), dseed=new Float32Array(dn*3); for(let i=0;i<dn;i++){ dseed[i*3]=rr()*6.283; dseed[i*3+1]=rr(); dseed[i*3+2]=rr(); }
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
+    Toon.ink.mark(scn);
     this.surf={scene:scn,env,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
   updateSurface(dt, t, alt){

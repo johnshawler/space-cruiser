@@ -9,10 +9,11 @@ const SysMap = {
     $('map').hidden=false; $('tooltip').hidden=true; if(Sfx.ok()) Sfx.beep(760); this.list(); this.draw(Game.time);
   },
   close(){ if(!this.open) return; this.open=false; $('map').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
-  pick(i){ if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
+  pick(i){ if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:F.R*1.2,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
+    if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
   colors(P){ const p=P.pal; if(P.type==='gas') return [p.a,p.b,p.d]; if(P.lava>0.2) return [p.shal,p.deep,p.a]; if(P.sea>0.4) return [p.shal,p.deep,p.b]; return [p.d||p.a,p.a,p.c]; },
   cargoFor(i){ let n=0; G.cargo.forEach(c=>{ if(c.to===i) n+=c.qty; }); return n; },
-  dist(P){ return Math.max(0,P.pos.distanceTo(G.ship.pos)-P.r); },
+  dist(P){ return Math.max(0,P.pos.distanceTo(G.ship.pos)-(P.r||0)); },
   eta(d){ const s=d/SHIPS[G.shipId].warp; return s<90?'≈ '+Math.max(1,Math.round(s))+' s at warp':'≈ '+(s/60).toFixed(1)+' min at warp'; },
 
   bind(){
@@ -33,16 +34,17 @@ const SysMap = {
   },
 
   list(){
-    const T=PLANETS[G.target], docked=G.mode==='port'&&G.docked>=0, dT=this.dist(T);
+    const T=Nav.target(), docked=G.mode==='port'&&G.docked>=0, dT=this.dist(T);
     $('map-sub').innerHTML=`Destination <b>${esc(T.name)}</b> · ${docked&&G.docked===T.idx?'docked here':fmtDist(dT)+' · '+this.eta(dT)}`;
     const rows=PLANETS.slice().sort((a,b)=>a.orbit-b.orbit).map(P=>{
       const here=docked&&G.docked===P.idx, n=this.cargoFor(P.idx), col=this.colors(P);
-      let tags=''; if(P.idx===G.target) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Paying +50%</em>'; if(here) tags+='<em>Docked</em>';
-      return `<button class="mrow${P.idx===G.target?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
+      let tags=''; if(P.idx===G.target&&!Nav.wp) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Paying +50%</em>'; if(here) tags+='<em>Docked</em>';
+      return `<button class="mrow${P.idx===G.target&&!Nav.wp?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
     });
+    FIELDS.forEach(F=>{ const tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx; rows.push(`<button class="mrow${tg?' tg':''}" data-i="${100+F.idx}"><i style="background:radial-gradient(circle at 35% 35%,#e8dcc8,${F.col} 60%,#3a3040);border-radius:30%"></i><span class="n">${esc(F.name)}</span><span class="d">${fmtDist(Math.max(0,F.pos.distanceTo(G.ship.pos)-F.R))}</span><span class="p">Asteroid field · ${esc(F.ore)}</span>${tg?'<span class="b"><em class="t">Waypoint</em></span>':''}</button>`); });
     $('map-list').innerHTML=rows.join('');
     const nT=G.mode==='flight'?Npc.list.length:0;
-    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+' · Click a world to set your destination · M or Esc to close';
+    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+' · Click a world or field to set your course · M or Esc to close';
   },
 
   draw(t){
@@ -50,7 +52,7 @@ const SysMap = {
     const dpr=Math.min(window.devicePixelRatio||1,2), W=Math.round(w*dpr), Hh=Math.round(h*dpr); if(cv.width!==W||cv.height!==Hh){ cv.width=W; cv.height=Hh; }
     const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
     const cx=w/2, cy=h/2, R=Math.max(70,Math.min(w,h)/2-44), k=R/this.maxR, TAU=Math.PI*2;
-    const s=G.ship, docked=G.mode==='port'&&G.docked>=0, T=PLANETS[G.target];
+    const s=G.ship, docked=G.mode==='port'&&G.docked>=0, T=Nav.target();
     x.lineWidth=1; x.textBaseline='middle';
 
     // range rings, one per light-second
@@ -71,8 +73,19 @@ const SysMap = {
     if(cl>16){ x.strokeStyle='rgba(255,180,84,.75)'; x.setLineDash([7,6]); x.lineDashOffset=-t*18; x.beginPath(); x.moveTo(sx,sy); x.lineTo(tx,ty); x.stroke(); x.setLineDash([]); x.lineDashOffset=0;
       if(cl>90){ const mx=(sx+tx)/2, my=(sy+ty)/2, lab=fmtDist(this.dist(T)); x.font=`22px ${FONT_MONO}`; const tw=x.measureText(lab).width+18; x.fillStyle='rgba(4,6,11,.85)'; x.fillRect(mx-tw/2,my-16,tw,32); boxes.push([mx-tw/2,my-16,mx+tw/2,my+16]); x.fillStyle='#ffb454'; x.textAlign='center'; x.fillText(lab,mx,my+1); } }
 
-    // worlds
+    // asteroid fields (drawn first so planet labels steer around them)
     this.pts.length=0;
+    FIELDS.forEach(F=>{ const fx=cx+F.pos.x*k, fy=cy+F.pos.z*k; boxes.push([fx-16,fy-16,fx+16,fy+16]); });
+    FIELDS.forEach(F=>{ const fx=cx+F.pos.x*k, fy=cy+F.pos.z*k, rr=mulberry32(F.idx*31+7), tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx, hv=this.hover===100+F.idx;
+      x.fillStyle=F.col; for(let q=0;q<9;q++){ const a=rr()*TAU, d=rr()*13; x.beginPath(); x.arc(fx+Math.cos(a)*d,fy+Math.sin(a)*d,2+rr()*3,0,TAU); x.fill(); }
+      if(tg||hv){ x.strokeStyle=tg?'#ffb454':'#dcedf3'; x.lineWidth=1.5; x.beginPath(); x.arc(fx,fy,22,0,TAU); x.stroke(); x.lineWidth=1; }
+      const nm=F.name.toUpperCase(), ore=F.ore.toUpperCase(); x.font=`600 22px ${FONT_DISP}`; const nw=x.measureText(nm).width; x.font=`18px ${FONT_MONO}`; const lw=Math.max(nw,x.measureText(ore).width);
+      let lx=fx+26, ly=fy;
+      for(const [ax,ay] of [[fx+26,fy],[fx-26-lw,fy],[fx-lw/2,fy+50],[fx-lw/2,fy-50],[fx+26,fy+52],[fx-26-lw,fy-52]]){ if(ax<6||ax+lw>w-6||ay<34||ay>h-34) continue; if(!boxes.some(b=>ax-8<b[2]&&ax+lw+8>b[0]&&ay-28<b[3]&&ay+28>b[1])){ lx=ax; ly=ay; break; } }
+      boxes.push([lx-6,ly-26,lx+lw+6,ly+26]);
+      x.textAlign='left'; x.fillStyle='rgba(4,6,11,.66)'; x.fillRect(lx-6,ly-26,lw+12,52); x.font=`600 22px ${FONT_DISP}`; x.fillStyle=tg?'#ffb454':'#c9bce8'; x.fillText(nm,lx,ly-10); x.font=`18px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(ore,lx,ly+13);
+      this.pts.push({i:100+F.idx,x:fx,y:fy,r:16}); });
+    // worlds
     PLANETS.forEach(P=>{
       const px=cx+P.pos.x*k, py=cy+P.pos.z*k, rad=clamp(3.5+P.r/850,6,13), col=this.colors(P), tg=P.idx===G.target, hv=P.idx===this.hover;
       const ux=(px-cx)/(Math.hypot(px-cx,py-cy)||1), uy=(py-cy)/(Math.hypot(px-cx,py-cy)||1);
@@ -98,6 +111,8 @@ const SysMap = {
       x.font=`20px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(P.port.toUpperCase(),lx,ly+15);
     });
 
+    // distress beacon
+    if(Nav.wp&&Nav.wp.kind==='distress'){ const bx=cx+Nav.wp.pos.x*k, by=cy+Nav.wp.pos.z*k; x.strokeStyle='#ff6f61'; x.lineWidth=2; x.beginPath(); x.moveTo(bx,by-10); x.lineTo(bx+10,by); x.lineTo(bx,by+10); x.lineTo(bx-10,by); x.closePath(); x.stroke(); x.lineWidth=1; }
     // you
     const pulse=(t*0.9)%1; x.strokeStyle=`rgba(98,226,255,${0.6*(1-pulse)})`; x.beginPath(); x.arc(sx,sy,6+pulse*16,0,TAU); x.stroke();
     if(docked){ x.strokeStyle='#62e2ff'; x.lineWidth=1.5; x.beginPath(); x.arc(sx,sy,4,0,TAU); x.stroke(); x.lineWidth=1; }
