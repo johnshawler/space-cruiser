@@ -35,7 +35,7 @@ On-screen controls appear by themselves: a steering stick on the left, and a thr
 
 ## Ports
 
-Every planet has its own mix of places. Each one sits in its own part of the port, a few hundred metres from the pad and from the others, with its own neighbourhood (warehouses, a hangar and showroom, workshops, paint booths, market stalls, a mine head, a cantina with fairy lights) and its own shopkeeper. Previewed ships park on the shipyard's showroom pad. Behind the counter a crew tries to do its job: stacking crates, craning an engine into place, test-firing an engine, painting a panel, opening a mystery box, cracking a rock, or juggling mugs. It usually goes wrong. Sometimes it goes right.
+Every planet has its own mix of places. Each one sits in its own part of the port, a few hundred metres from the pad and from the others, with its own neighbourhood (warehouses, a hangar and showroom, workshops, paint booths, market stalls, a mine head, a cantina with fairy lights) and its own shopkeeper. Every shop is a real room: walls with windows, a ceiling with beams and lights, and furniture to suit the trade (pallet racks, workbenches and tyre racks, paint shelves, display cases, ore bins and a boulder scale, cantina booths). The cargo depot is a low shed with a stock room at the back. The shipyard is a hangar hall big enough to park ships in, with display ships roped off, sale banners and the showroom pad, where previewed ships park, inside it. Behind the counter a crew tries to do its job: stacking crates, craning an engine into place, test-firing an engine, painting a panel, opening a mystery box, cracking a rock, or juggling mugs. It usually goes wrong. Sometimes it goes right.
 
 - **Cargo depot** (every port): contracts and fuel.
 - **Shipyard** (Verdanthia, Sloshwell, Amethyne, Jovexa): each sells a different range of ships.
@@ -56,6 +56,8 @@ Get up from the pilot's seat (L) and walk around inside: a corridor with handrai
 Things break. A coolant leak (fuel use up), a thruster misfire (top speed down), a blown fuse (radio dead), a jammed air scrubber (passengers cross, canopy fogs), a hull crack (hull slowly failing), a snapped cargo strap (cargo loses value faster). Each shows on screen and in the ship itself. Walk to it and hold F to fix it. It goes slowly while the ship is shaking, above throttle 5 or in warp.
 
 ## Deliveries
+
+Every job has a story: who is sending it, who it is for and why. You read it on the contract. When you accept a crate, the depot's stock droid goes into the stock room and carries it out to the counter. When you hand it over at the far end, you find out how it turned out, under "What happened next". Passengers, VIPs, lost property and the crates nobody mentions all get an ending too.
 
 When you land at a destination, nothing is paid automatically. Go to the cargo depot and hand each delivery over yourself (or see your passengers off) to get paid, or hand over everything at once. If you try to launch with deliveries still aboard, the depot asks first.
 

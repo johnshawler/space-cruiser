@@ -5,9 +5,12 @@ const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&
 const UI = {
   tab:'jobs', arrival:null,
   toast(msg, cls){ const t=el('div','toast'+(cls?' '+cls:''),esc(msg)); const box=$('toasts'); box.appendChild(t); while(box.children.length>3) box.removeChild(box.firstChild); setTimeout(()=>t.remove(),5200); },
+  /* a story beat: who it happened to, and what happened (narration, so no alien speech line) */
+  tale(t){ const q=el('div','quote tale'); q.appendChild(portraitCanvas(t.sp,t.seed,128)); const d=el('div'); d.innerHTML=`<div class="who">${esc(t.who)}</div><div class="say">${esc(t.text)}</div>`; q.appendChild(d); return q; },
+  tell(e){ if(!e||!e.drop) return; (this.told=this.told||[]).unshift({sp:e.to.sp,seed:e.to.seed,who:e.to.name,text:e.drop}); if(this.told.length>3) this.told.length=3; },
   quote(spKey, seed, who, text){ const q=el('div','quote'); q.appendChild(portraitCanvas(spKey,seed,128)); const d=el('div'); d.innerHTML=`<div class="who">${esc(who)}</div><div class="alien">${esc(alienWords(spKey,text,seed))}</div><div class="say">${esc(text)}</div>`; q.appendChild(d); return q; },
   showPort(P, arrival){
-    this.P=P; this.arrival=arrival; this.tab='depot'; $('port').hidden=false; $('keys').hidden=true;
+    this.P=P; this.arrival=arrival; this.told=null; this.tab='depot'; $('port').hidden=false; $('keys').hidden=true;
     $('port-name').textContent=P.name; $('port-sub').textContent=P.port+' · '+P.desc;
     const tabs=$('port-tabs'); tabs.innerHTML=''; Venues.defs(P).forEach(d=>{ const b=el('button','',VENUE_TABS[d.k]); b.dataset.k=d.k; b.onclick=()=>{ if(this.tab===d.k) return; Sfx.click(); this.tab=d.k; Cine.setPreview(null); this.render(); }; tabs.appendChild(b); });
     this.render();
@@ -17,10 +20,10 @@ const UI = {
   due(P){ return P?G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='ore'):[]; },
   payFor(c){ return c.kind==='escort'?Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5:c.pay; },
   deliver(c, P, quiet){
-    let pay, name;
+    let pay, name; const end=Story.ending(c,P);
     if(c.kind==='escort'){ const r=Escort.land(P); if(!r){ Cockpit.drawManifest(); this.render(); return 0; } pay=r.pay; name=c.vip.title; }
     else { const i=G.cargo.indexOf(c); if(i<0) return 0; G.cargo.splice(i,1); pay=c.pay; name=c.kind==='pax'?c.good:`${c.qty}× ${c.good}`; G.rep=clamp(G.rep+1,-100,100); }
-    G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay;
+    G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay; this.tell(end);
     if(!quiet){ Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); Venues.react('cash'); this.paidFx(pay); UI.toast(`${c.kind==='pax'||c.kind==='escort'?'Seen off':'Delivered'}: ${name} · +${fmtCr(pay)}`,'good'); Cockpit.drawManifest(); Game.save(); this.render(); }
     return pay; },
   deliverAll(P){ const due=this.due(P); let sum=0; for(const c of due) sum+=this.deliver(c,P,true); if(!due.length) return;
@@ -49,9 +52,10 @@ const UI = {
       if(due.length){ body.appendChild(el('div','note deliver',`For ${esc(P.port)}: ${due.length} deliver${due.length===1?'y':'ies'} in your hold. Hand ${due.length===1?'it':'them'} over to get paid.`));
         due.forEach(c=>{ const person=c.kind==='pax'||c.kind==='escort', sp=c.kind==='escort'?c.vip.sp:c.sp, seed=c.kind==='escort'?c.vip.seed:c.seed;
           const title=c.kind==='escort'?esc(c.vip.title):person?esc(c.good):`${c.qty}× ${esc(c.good)}`, lab=Cargo.label(c);
-          const desc=c.kind==='escort'?`Your VIP, ${c.hp>70?'quite pleased with the trip':c.hp>40?'a little shaken':'badly rattled'} (calm ${Math.round(c.hp)}%).`:c.kind==='pax'?'Your passenger, ready to get off.':c.quest?`Lost property. ${esc(c.owner||'Its owner')} will be delighted, briefly.`:'Signed for on the spot. Mostly legibly.';
+          const desc=c.kind==='escort'?`Your VIP, ${c.hp>70?'quite pleased with the trip':c.hp>40?'a little shaken':'badly rattled'} (calm ${Math.round(c.hp)}%).`:c.kind==='pax'?'Your passenger, ready to get off.':c.quest?`Lost property. ${esc(c.owner||'Its owner')} will be delighted, briefly.`:c.story?`For ${esc(c.story.to.name)}, who is on the way to the counter.`:'Signed for on the spot. Mostly legibly.';
           this.card(body,person?portraitCanvas(sp,seed,128):'📦',title,desc,lab?esc(lab):'',fmtCr(this.payFor(c)),person?'See them off':'Hand it over',false,()=>this.deliver(c,P)); });
         if(due.length>1){ const b=el('button','big','Hand over everything'); b.style.alignSelf='flex-start'; b.onclick=()=>this.deliverAll(P); body.appendChild(b); } }
+      if(this.told&&this.told.length){ body.appendChild(el('div','note deliver','What happened next:')); this.told.forEach(t=>body.appendChild(this.tale(t))); }
       body.appendChild(this.keeper(v,a?a.greet:null));
       if(a){ if(a.paid.length){ const L=el('div','ledger'); a.paid.forEach(c=>{ L.appendChild(el('span','',`${c.qty?c.qty+'× ':''}${esc(c.good)}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); if(a.fee){ L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); }
           L.appendChild(el('span','tot','Delivered and paid')); L.appendChild(el('span','tot',fmtCr(a.total))); body.appendChild(L); }
@@ -59,19 +63,19 @@ const UI = {
       const need=Math.ceil(d.fuel-G.fuel), cost=need*3;
       this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. Every depot sells fuel. Warp drinks it, cruising sips it.`,'3 cr per unit',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=3?'Buy what I can':'Beg',need<=0,()=>{
         if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=3){ const u=Math.floor(G.credits/3); G.fuel+=u; G.credits-=u*3; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
-      body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}. Cargo is loaded when you accept. Hand it over at the destination's cargo depot to get paid.`));
+      body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}. The stock droid fetches your crate when you accept. Hand it over at the destination's cargo depot to get paid.`));
       if(!G.jobs.length) body.appendChild(el('div','note','The board is empty. Fly somewhere else and come back.'));
       G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
         let h3, meta;
         if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · rides in your passenger cabin · needs a free seat`; }
         else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>`; meta=`To <i>${esc(T.name)}</i> · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrols en route`; }
         else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · full pay if delivered within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying`; }
-        c.appendChild(el('div','mid',`<h3>${h3}</h3><p>${esc(j.note)}</p><div class="meta">${meta}</div>`));
+        c.appendChild(el('div','mid',`<h3>${h3}</h3><p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}<div class="meta">${meta}</div>`));
         const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay)));
         const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat; const b=el('button','btn',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
         b.onclick=()=>{ if(j.kind==='contra'){ Customs.load(j,P); return; }
-          if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100});
-          else G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile});
+          if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100,story:j.story});
+          else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story}); Venues.fetch(j.good); }
           G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
         r.appendChild(b); c.appendChild(r); body.appendChild(c); });
       if(G.cargo.length){ body.appendChild(el('div','note','In your hold:')); const L=el('div','ledger'); G.cargo.forEach(c=>{ L.appendChild(el('span','',`${c.kind==='escort'?esc(c.good):c.qty+'× '+esc(c.good)}${c.illegal?' (contraband)':''} → ${esc(Ev.cargoDest(c))}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); body.appendChild(L); }
@@ -122,7 +126,7 @@ const UI = {
       (G.paxJobs||[]).forEach(j=>{ const T=PLANETS[j.to], pc=el('div','card'); pc.appendChild(portraitCanvas(j.sp,j.seed,128));
         pc.appendChild(el('div','mid',`<h3>${esc(j.good)}<span class="tag">PASSENGER</span></h3><p>${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.</p><div class="meta">To <i>${esc(T.name)}</i> · full fare within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying</div>`));
         const pr=el('div','right'); pr.appendChild(el('div','pay',fmtCr(j.pay))); const pb=el('button','btn',taken>=seats?'No seats':'Take them'); pb.disabled=taken>=seats;
-        pb.onclick=()=>{ G.cargo.push({kind:'pax',good:j.good,sp:j.sp,seed:j.seed,qty:0,to:j.to,pay:j.pay,from:P.idx}); G.paxJobs.splice(G.paxJobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
+        pb.onclick=()=>{ G.cargo.push({kind:'pax',good:j.good,sp:j.sp,seed:j.seed,qty:0,to:j.to,pay:j.pay,from:P.idx,story:j.story}); G.paxJobs.splice(G.paxJobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
         pr.appendChild(pb); pc.appendChild(pr); body.appendChild(pc); });
       if(!(G.paxJobs||[]).length) body.appendChild(el('div','note','Nobody needs a ride right now. Someone always does eventually.'));
     }

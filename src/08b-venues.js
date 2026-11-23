@@ -1,5 +1,5 @@
 /* ===================== PORT VENUES ===================== */
-/* Every planet has its own mix of places to visit in port. Each one is a little set built somewhere around the
+/* Every planet has its own mix of places to visit in port. Each one is a room of its own somewhere around the
    landing pad: a counter with a shopkeeper, and a crew in the back acting out a job that usually goes wrong. */
 
 const VENUE_TABS = {depot:'Cargo depot', yard:'Shipyard', garage:'Garage', livery:'Paint shop', outfit:'Outfitter', assay:'Assay office', bar:'Cantina'};
@@ -208,12 +208,12 @@ const Venues = (() => {
   /* shared bits every set has: floor, counter, posts, sign, awning, lamp */
   function shell(V, pal){
     const R=V.root, def=V.def;
-    R.add(bx(13,0.2,11,M(pal[0],0.9,0.05),0,-0.1,-2));
+    const S=V.room, hang=!!S&&S.z0>-8, sz=hang?-6.5:-7.35; if(!S) R.add(bx(13,0.2,11,M(pal[0],0.9,0.05),0,-0.1,-2));
     R.add(bx(4.4,1.0,0.8,M(pal[1],0.65,0.1),0,0.5,0)); R.add(bx(4.7,0.1,1.0,M(pal[2],0.4,0.2),0,1.05,0)); R.add(bx(4.42,0.12,0.82,M(pal[3],0.5,0.2),0,0.2,0));
     // the shop's name hangs on a frame at the back, above the crew, so nothing blocks the view past the counter
-    for(const sx of [-1,1]) R.add(cyl(0.1,0.1,6.4,M('#555a60',0.45,0.7),sx*3.0,3.2,-7.35,8));
-    R.add(bx(6.2,1.4,0.18,M('#20242a',0.5,0.4),0,5.7,-7.35));
-    const sg=new THREE.Mesh(new THREE.PlaneGeometry(6.0,1.3),new THREE.MeshStandardMaterial({map:signTex(def.name,'#10161c',pal[4]),emissive:C('#ffffff'),emissiveIntensity:0.35,roughness:0.6})); sg.material.emissiveMap=sg.material.map; sg.position.set(0,5.7,-7.25); R.add(sg);
+    for(const sx of [-1,1]) R.add(hang?cyl(0.04,0.04,S.h-6.4,M('#555a60',0.45,0.7),sx*2.6,(S.h+6.4)/2,sz,6):cyl(0.1,0.1,6.4,M('#555a60',0.45,0.7),sx*3.0,3.2,sz,8));
+    R.add(bx(6.2,1.4,0.18,M('#20242a',0.5,0.4),0,5.7,sz));
+    const sg=new THREE.Mesh(new THREE.PlaneGeometry(6.0,1.3),new THREE.MeshStandardMaterial({map:signTex(def.name,'#10161c',pal[4]),emissive:C('#ffffff'),emissiveIntensity:0.35,roughness:0.6})); sg.material.emissiveMap=sg.material.map; sg.position.set(0,5.7,sz+0.1); R.add(sg);
     const skirt=new THREE.Mesh(new THREE.PlaneGeometry(4.4,0.5),new THREE.MeshStandardMaterial({map:stripeTex(pal[3],'#f4efe4'),roughness:0.8})); skirt.position.set(0,0.75,0.41); R.add(skirt);
     
     const L=new THREE.PointLight(C('#ffe2b8'),1.1,18,1.6); L.position.set(0,2.9,2.2); R.add(L);
@@ -223,7 +223,7 @@ const Venues = (() => {
   /* back-of-set scenery and props for each kind; returns the props its gag needs */
   const SETS = {
     depot(V,pal){ const R=V.root; for(const sx of [-1,1]){ R.add(cyl(0.12,0.12,4.6,M('#6a6f76',0.5,0.6),sx*5.8,2.3,-6.6,8)); R.add(cyl(0.12,0.12,4.6,M('#6a6f76',0.5,0.6),sx*5.8,2.3,-1.6,8)); }
-      for(const [x,z,n] of [[-5,-5.6,3],[5.1,-5.2,2],[-4.6,-6.4,2]]) for(let i=0;i<n;i++) R.add(bx(0.7,0.7,0.7,M(['#a8743f','#8c5f2f','#bb8547'][i%3],0.8,0.02),x+(i%2)*0.1,0.35+i*0.7,z));
+      for(const [x,z,n] of [[-5,-5.6,3],[6.8,-5.2,2],[-4.6,-6.4,2]]) for(let i=0;i<n;i++) R.add(bx(0.7,0.7,0.7,M(['#a8743f','#8c5f2f','#bb8547'][i%3],0.8,0.02),x+(i%2)*0.1,0.35+i*0.7,z));
       return {crates:[0,1,2,3].map(i=>{ const c=new THREE.Group(); c.add(bx(0.62,0.62,0.62,M(['#b07a3a','#c98d47','#9c6a30','#d39b55'][i],0.8,0.02))); c.add(bx(0.64,0.1,0.64,M('#e8d9a8',0.7,0))); V.root.add(c); return c; })}; },
     yard(V,pal){ const R=V.root, steel=M(pal[3],0.45,0.6); for(const sx of [-1,1]){ R.add(bx(0.4,7,0.4,steel,sx*4.8,3.5,-4.6)); R.add(bx(0.9,0.2,0.9,M('#333',0.6,0.4),sx*4.8,0.1,-4.6)); }
       R.add(bx(10,0.45,0.5,steel,0,7.1,-4.6)); const tro=new THREE.Group(); tro.add(bx(0.8,0.4,0.8,M('#2a2f36',0.5,0.5))); tro.position.set(-3.6,6.7,-4.6); R.add(tro);
@@ -286,9 +286,7 @@ const Venues = (() => {
         for(let i=0;i<8;i++) g.add(bx(w*0.42,0.08,0.06,M('#8f7418',0.5,0.4),0,0.5+i*h*0.075,d/2+0.25)); g.add(bx(w*0.9,0.5,0.1,glow('#ffd9a0',1.6),0,h-1.2,d/2+0.06)); }
       for(const [x,z,ry] of [[-15,-9,0.3],[15,-11,-0.2],[-25,-6,1.4]]) for(let i=0;i<3;i++){ const c=bx(6,2.6,2.6,M(pick(['#c0392b','#2e86c1','#27ae60','#e67e22','#7d3c98','#d4ac0d']),0.6,0.4),x+(rr()-0.5)*0.6,1.3+i*2.6,z); c.rotation.y=ry+(rr()-0.5)*0.15; R.add(c); }
       R.add(cyl(0.3,0.4,16,M('#6a6f76',0.5,0.6),10,8,-16,8)); R.add(bx(2.2,1,1,glow('#fff2d0',2.4),10,16.3,-16)); },
-    yard(R,pal,rr,V){ const arch=new THREE.Mesh(new THREE.CylinderGeometry(15,15,28,28,1,true,Math.PI/2,Math.PI),M('#9aa3ad',0.45,0.6,{side:THREE.DoubleSide})); arch.rotation.x=Math.PI/2; arch.position.set(-4,0,-36); R.add(arch);
-      const back=new THREE.Mesh(new THREE.CircleGeometry(15,28,0,Math.PI),M('#4b5058',0.7,0.4)); back.position.set(-4,0,-49.8); R.add(back); for(let i=0;i<7;i++){ const rib=new THREE.Mesh(new THREE.TorusGeometry(15.1,0.25,6,28,Math.PI),M(pal[3],0.4,0.6)); rib.position.set(-4,0,-22.5-i*4.5); R.add(rib); }
-      R.add(bx(22,0.4,0.4,glow('#d0e8ff',2),-4,13.6,-22.4));
+    yard(R,pal,rr,V){
       // showroom pad where previewed ships are parked
       const S=V.show=new V3(54,0,-18); const sp=new THREE.Mesh(new THREE.CylinderGeometry(36,38,60,48),[M('#3a3d42',0.7,0.4),M('#55595f',0.6,0.3),M('#3a3d42',0.7,0.4)]); sp.position.set(S.x,-30.2,S.z); sp.receiveShadow=true; R.add(sp);
       const ring=new THREE.Mesh(new THREE.TorusGeometry(31,0.5,6,64),glow(pal[3],2.2)); ring.rotation.x=Math.PI/2; ring.position.set(S.x,0.1,S.z); R.add(ring);
@@ -312,14 +310,155 @@ const Venues = (() => {
         const wh=new THREE.Mesh(new THREE.TorusGeometry(2.4,0.3,8,24),M('#a0a4ab',0.4,0.7)); wh.position.set(0,20,0); hf.add(wh); hf.add(bx(8,6,8,M('#6a5546',0.85,0.1),0,3,0));
       for(const [x,z,r,c] of [[12,-26,9,'#7c6a58'],[24,-14,6,'#5c5c66'],[-28,-12,7,'#8c6040']]){ const cone=new THREE.Mesh(new THREE.ConeGeometry(r,r*0.8,9),M(c,0.95,0.05,{flatShading:true})); cone.position.set(x,r*0.4,z); R.add(cone);
         for(let i=0;i<8;i++){ const k=new THREE.Mesh(new THREE.DodecahedronGeometry(0.6+rr()*0.8,0),M(c,0.9,0.1,{flatShading:true})); const a=rr()*6.28; k.position.set(x+Math.cos(a)*r*1.05,0.5,z+Math.sin(a)*r*1.05); R.add(k); } }
-      const cv=bx(2,0.6,22,M('#3a3f46',0.6,0.5),4,4.5,-16); cv.rotation.x=0.35; cv.rotation.y=-0.7; R.add(cv); },
+      const cv=bx(2,0.6,22,M('#3a3f46',0.6,0.5),6,4.5,-24); cv.rotation.x=0.35; cv.rotation.y=-0.7; R.add(cv); },
     bar(R,pal,rr){ const g=new THREE.Group(); g.position.set(0,0,-28); R.add(g); g.add(bx(26,9,14,M('#4a2c1c',0.85,0.05),0,4.5,0)); g.add(bx(27,1,15,M('#2a1810',0.7,0.1),0,9.5,0));
         for(let i=0;i<5;i++) g.add(bx(2.6,2.2,0.2,glow('#ffc078',1.8),-9+i*4.5,4.5,7.05));
         const neon=new THREE.Mesh(new THREE.TorusGeometry(2.4,0.18,8,36),glow(pal[3],3.2)); neon.position.set(0,12.5,6); g.add(neon); const neon2=new THREE.Mesh(new THREE.TorusGeometry(1.2,0.14,8,30),glow(pal[4],3)); neon2.position.set(2.6,13.4,6.1); g.add(neon2);
-      for(let i=0;i<3;i++){ const x=-16+i*16, z=-8+(i%2)*3; R.add(cyl(0.12,0.12,4,M('#888',0.4,0.7),x,2,z,6)); const um=new THREE.Mesh(new THREE.ConeGeometry(2.6,1.2,12),M(['#c2255c','#fab005','#1098ad'][i],0.7,0.05)); um.position.set(x,4.4,z); R.add(um); R.add(cyl(1.2,1.2,0.12,M('#7a4a2a',0.7,0.05),x,1.2,z,14)); }
+      for(let i=0;i<3;i+=2){ const x=-16+i*16, z=-8+(i%2)*3; R.add(cyl(0.12,0.12,4,M('#888',0.4,0.7),x,2,z,6)); const um=new THREE.Mesh(new THREE.ConeGeometry(2.6,1.2,12),M(['#c2255c','#fab005','#1098ad'][i],0.7,0.05)); um.position.set(x,4.4,z); R.add(um); R.add(cyl(1.2,1.2,0.12,M('#7a4a2a',0.7,0.05),x,1.2,z,14)); }
       for(let i=0;i<16;i++){ const u=i/15; R.add(sph(0.25,glow(pick(['#ffd43b','#ff922b','#ff6b6b']),2.8),lerp(-20,20,u),6.8-Math.sin(u*Math.PI)*1.4,-12,8,6)); } },
   };
   function lampPosts(R){ for(const sx of [-1,1]){ R.add(cyl(0.12,0.16,5.5,M('#3d4147',0.5,0.6),sx*10.5,2.75,5,8)); R.add(sph(0.45,glow('#ffe2b8',2.6),sx*10.5,5.7,5,10,8)); } }
+
+  /* ---------- rooms: every shop is indoors ---------- */
+  /* Each set sits inside a real room: a floor slab, four walls with windows, a ceiling with beams and light panels,
+     and furniture to suit the trade. The cargo depot is a low shed with a stock room behind a door in the back wall;
+     the shipyard is a hall big enough to park ships in. Sizes are in metres in the set's own frame: the counter is at
+     the origin and faces +z, where the camera stands. The shell does not cast shadows, so daylight still reaches in. */
+  const ROOMS = {
+    depot:{z0:-8.2,h:7.5,ox:0.9,wall:'#9a8f7c',trim:'#f2c14e',floor:'#6b5a44',lamp:'#ffe2b8',store:true},
+    yard:{x0:-30,x1:100,z0:-64,z1:122,h:44,zoom:1.4,el:0.13,wall:'#8a929c',trim:'#e0b000',floor:'#4b5058',lamp:'#e8f2ff',win:14,sill:5,head:32},
+    garage:{h:10,wall:'#6d737b',trim:'#c0392b',floor:'#3e4248',lamp:'#fff0d8'},
+    livery:{h:9,wall:'#e9e4dc',trim:'#5c7cfa',floor:'#c9c4be',lamp:'#ffffff',splat:true},
+    outfit:{h:8.5,wall:'#4a4258',trim:'#7048e8',floor:'#3b3547',lamp:'#e5dbff'},
+    assay:{h:8.5,wall:'#6e5b4a',trim:'#e8590c',floor:'#5a4a3c',lamp:'#ffd8a8'},
+    bar:{h:8,wall:'#5a3624',trim:'#c2255c',floor:'#3a2418',lamp:'#ffb870'},
+  };
+  const STORE={dx:4.5,dw:2.2,dh:3.5,x0:1.6,x1:7.4,z0:-14.6,h:4.6};
+  const roomSpec=k=>Object.assign({x0:-9.6,x1:9.6,z0:-7.15,z1:17,win:4.6,sill:1.4,head:4.6},ROOMS[k]);
+  function room(V, k, pal, cloud, rr){
+    const S=V.room=roomSpec(k), R=V.root, g=new THREE.Group(); R.add(g);
+    const W=S.x1-S.x0, D=S.z1-S.z0, cx=(S.x0+S.x1)/2, cz=(S.z0+S.z1)/2, H=S.h, big=H>20, T=big?1.2:0.4;
+    const wallM=M(S.wall,0.88,0.06,S.splat?{map:splatTex(S.wall,rr),color:C('#ffffff')}:{}), trimM=M(S.trim,0.5,0.35), darkM=M('#2a2d32',0.7,0.4), floorM=M(S.floor,0.86,0.08), ceilM=M('#3a3d42',0.9,0.1), lampM=glow(S.lamp,1.5),
+      glassM=new THREE.MeshStandardMaterial({color:C('#bcd8ee'),roughness:0.05,metalness:0.5,transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide});
+    const B=(w,h,d,m,x,y,z)=>{ const o=bx(w,h,d,m,x,y,z); g.add(o); return o; };
+    // floor slab and what holds it up, then the roof
+    B(W+T*2,0.3,D+T*2,floorM,cx,-0.15,cz);
+    if(big){ if(cloud){ B(W+T*2,3,D+T*2,darkM,cx,-1.8,cz); for(const fx of [0.2,0.8]) for(const fz of [0.2,0.8]) g.add(cyl(4,8,600,darkM,S.x0+W*fx,-303,S.z0+D*fz,12)); } else B(W+T*2,60,D+T*2,darkM,cx,-30.3,cz); }
+    B(W+T*2,T,D+T*2,ceilM,cx,H+T/2,cz);
+    const step=big?12:2.9; for(let z=S.z0+step/2;z<S.z1;z+=step) B(W,big?1.4:0.3,big?0.8:0.24,darkM,cx,H-(big?0.7:0.15),z);
+    if(big) for(const fx of [0.25,0.5,0.75]) B(0.8,1.4,D,darkM,S.x0+W*fx,H-0.7,cz);
+    for(let z=S.z0+step;z<S.z1-1;z+=step*(big?1:2)) for(const fx of big?[0.2,0.5,0.8]:[0.28,0.72]) B(big?14:2.4,0.08,big?3:0.7,lampM,S.x0+W*fx,H-0.06,z);
+    const lights=big?[[0,14,6],[54,30,-18]]:S.store?[[-4,H-1.2,4],[STORE.dx,STORE.h-1,-11.4]]:[[-4.2,H-1.2,7],[4.2,H-1.2,-2]];
+    for(const p of lights){ const L=new THREE.PointLight(C(S.lamp),big?0.9:0.7,big?150:26,1.4); L.position.set(p[0],p[1],p[2]); g.add(L); }
+    // side walls, with a window in every bay
+    const side=(x,inw)=>{ const n=Math.max(1,Math.round(D/S.win)), seg=D/n, ww=seg*0.56, y0=S.sill, y1=Math.min(H-1.1,S.head);
+      for(let i=0;i<n;i++){ const za=S.z0+i*seg, zc=za+seg/2, pw=(seg-ww)/2;
+        B(T,y0,seg,wallM,x,y0/2,zc); B(T,H-y1,seg,wallM,x,(y1+H)/2,zc); B(T,y1-y0,pw,wallM,x,(y0+y1)/2,za+pw/2); B(T,y1-y0,pw,wallM,x,(y0+y1)/2,za+seg-pw/2);
+        const gl=new THREE.Mesh(new THREE.PlaneGeometry(ww,y1-y0),glassM); gl.rotation.y=Math.PI/2; gl.position.set(x,(y0+y1)/2,zc); g.add(gl);
+        B(T+0.18,big?0.4:0.1,ww+0.2,trimM,x,y0,zc); B(T+0.18,big?0.4:0.1,ww+0.2,trimM,x,y1,zc); B(T*0.5,y1-y0,big?0.3:0.08,trimM,x,(y0+y1)/2,zc); }
+      B(0.08,big?1:0.3,D,darkM,x+inw*(T/2+0.04),big?0.5:0.15,cz); B(0.12,big?0.8:0.2,D,trimM,x+inw*(T/2+0.06),H-(big?2.2:0.55),cz); };
+    side(S.x0-T/2,1); side(S.x1+T/2,-1);
+    // back wall (the depot's has a doorway into the stock room) and the front wall with the way in
+    const zb=S.z0-T/2;
+    if(S.store){ const q=STORE, xa=q.dx-q.dw/2, xb=q.dx+q.dw/2, hz=M('#ffffff',0.7,0.1,{map:stripeTex('#f2c14e','#1c1c1e')});
+      B(xa-(S.x0-T),H,T,wallM,(xa+S.x0-T)/2,H/2,zb); B(S.x1+T-xb,H,T,wallM,(xb+S.x1+T)/2,H/2,zb); B(q.dw,H-q.dh,T,wallM,q.dx,(q.dh+H)/2,zb);
+      for(const sx of [-1,1]) B(0.18,q.dh,T+0.12,hz,q.dx+sx*(q.dw/2-0.09),q.dh/2,zb); B(q.dw,0.18,T+0.12,hz,q.dx,q.dh-0.09,zb);
+      const sg=new THREE.Mesh(new THREE.PlaneGeometry(2.6,0.6),new THREE.MeshStandardMaterial({map:signTex('Stock room','#10161c',S.trim),emissive:C('#ffffff'),emissiveIntensity:0.3,roughness:0.6})); sg.material.emissiveMap=sg.material.map; sg.position.set(q.dx,q.dh+0.5,S.z0+0.02); g.add(sg);
+      // the stock room itself: shelves of crates down both sides and a pick-up bench at the back
+      const z1=S.z0-T, zc=(z1+q.z0)/2, len=z1-q.z0, wx=q.x1-q.x0, mx=(q.x0+q.x1)/2, rack=M('#d9822b',0.5,0.5), cols=['#a8743f','#8c5f2f','#bb8547','#c0392b','#2e86c1','#27ae60'];
+      B(wx+0.6,0.3,len+0.3,floorM,mx,-0.15,zc-0.15); B(0.3,q.h,len,wallM,q.x0-0.15,q.h/2,zc); B(0.3,q.h,len,wallM,q.x1+0.15,q.h/2,zc); B(wx+0.6,q.h,0.3,wallM,mx,q.h/2,q.z0-0.15); B(wx+0.6,0.3,len+0.3,ceilM,mx,q.h+0.15,zc-0.15);
+      B(1.8,0.06,0.5,lampM,q.dx,q.h-0.04,zc);
+      for(const x of [q.x0+0.5,q.x1-0.5]){ for(const z of [z1-0.3,zc,q.z0+0.3]) B(0.1,q.h-0.4,0.1,rack,x,(q.h-0.4)/2,z);
+        for(const y of [0.9,2.0,3.1]){ B(0.85,0.08,len-0.4,rack,x,y,zc); for(let z=q.z0+0.7;z<z1-0.4;z+=0.9) if(rr()<0.8){ const s=0.5+rr()*0.25; B(0.66,s,0.7,M(cols[Math.floor(rr()*6)],0.8,0.03),x,y+0.04+s/2,z); } } }
+      B(2.6,0.92,1.0,M('#4f565e',0.5,0.6),q.dx,0.46,-13.7); B(2.7,0.06,1.1,hz,q.dx,0.9,-13.7);
+    } else B(W+T*2,H,T,wallM,cx,H/2,zb);
+    B(W+T*2,H,T,wallM,cx,H/2,S.z1+T/2); B(big?34:2.6,big?24:3.5,0.12,darkM,cx,big?12:1.75,S.z1-0.06); B(big?36:3.0,big?1:0.2,0.2,trimM,cx,big?24.5:3.6,S.z1-0.1); B(big?6:1.3,big?1.6:0.36,0.1,glow('#7dffb0',1.6),cx,big?27:4.1,S.z1-0.06);
+    g.traverse(o=>{ if(o.isMesh) o.userData.ns=1; });
+  }
+
+  /* furniture and fittings, by trade (these do cast shadows) */
+  const FIT = {
+    depot(V,pal,rr){ const R=V.root, up=M('#d9822b',0.5,0.5), beam=M('#3d6f8e',0.5,0.5), cols=['#a8743f','#8c5f2f','#bb8547','#c0392b','#2e86c1'];
+      for(const [x,za,zb] of [[-8.75,-5.5,13],[8.75,0.5,13]]){ for(let z=za;z<=zb+0.01;z+=(zb-za)/4) R.add(bx(0.14,5.4,0.9,up,x,2.7,z));
+        for(const y of [1.7,3.4,5.1]){ R.add(bx(0.9,0.12,zb-za,beam,x,y,(za+zb)/2)); for(let z=za+0.7;z<zb-0.3;z+=1.05) if(rr()<0.78){ const s=0.62+rr()*0.2; R.add(bx(0.72,s,0.8,M(cols[Math.floor(rr()*5)],0.8,0.03),x,y+0.06+s/2,z)); } }
+        for(let z=za+0.7;z<zb-0.3;z+=1.3) if(rr()<0.7) R.add(bx(0.75,0.75,0.9,M(cols[Math.floor(rr()*5)],0.8,0.03),x,0.375,z)); }
+      const line=M('#f2c14e',0.6,0.1); for(const sx of [-1,1]) R.add(bx(0.14,0.02,19,line,sx*7.4,0.012,5.5)); R.add(bx(14.8,0.02,0.14,line,0,0.012,15)); },
+    garage(V,pal,rr){ const R=V.root, H=V.room.h, wood=M('#7a5a3a',0.8,0.05), steel=M('#8a9099',0.4,0.7), dark=M('#2a2d32',0.7,0.4);
+      R.add(bx(1.2,0.1,9,wood,8.85,0.95,5)); for(const z of [1,5,9]) R.add(bx(1.1,0.9,0.12,dark,8.85,0.45,z)); R.add(bx(0.08,2.2,8.6,M('#b89a6a',0.8,0.02),9.5,2.6,5));
+      for(let i=0;i<9;i++) R.add(bx(0.06,0.5+((i*5)%3)*0.2,0.1,M(['#c0392b','#d0d4da','#f1c40f','#2980b9'][i%4],0.4,0.6),9.42,2.6+((i*3)%2)*0.5,1.4+i*0.9));
+      R.add(bx(0.5,0.3,0.4,steel,8.7,1.15,2.2));
+      for(const y of [0.5,1.9,3.3]){ R.add(bx(0.9,0.08,7,steel,-8.9,y,5)); for(let z=2.2;z<8.5;z+=1.5){ const t=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.22,8,18),M('#1d1d1f',0.9,0.05)); t.rotation.y=Math.PI/2; t.position.set(-8.9,y+0.76,z); R.add(t); } }
+      for(const z of [1.5,8.5]) R.add(bx(0.12,4.4,0.12,dark,-8.9,2.2,z));
+      for(let i=0;i<5;i++) R.add(cyl(0.42,0.42,1.2,M(['#c0392b','#2e86c1','#7f8c8d'][i%3],0.5,0.5),-8.2+(i%2)*0.9,0.6,11.5+Math.floor(i/2)*0.9,14));
+      R.add(cyl(0.03,0.03,H-4.2,dark,-4.6,(H+4.2)/2,-3.2,6)); R.add(bx(0.4,0.5,0.4,M('#e0b000',0.4,0.6),-4.6,4.0,-3.2)); const hk=new THREE.Mesh(new THREE.TorusGeometry(0.16,0.04,8,16,Math.PI*1.4),steel); hk.position.set(-4.6,3.55,-3.2); R.add(hk);
+      const hz=M('#ffffff',0.7,0.1,{map:stripeTex('#f2c14e','#1c1c1e')}); for(const [x,z,w,d] of [[1,-2.6,4,0.16],[1,-5.8,4,0.16],[-1,-4.2,0.16,3.2],[3,-4.2,0.16,3.2]]) R.add(bx(w,0.02,d,hz,x,0.012,z)); },
+    livery(V,pal,rr){ const R=V.root, H=V.room.h, cols=['#ff6b6b','#5c7cfa','#ffd43b','#51cf66','#cc5de8','#ff922b'], wood=M('#b89a6a',0.8,0.02);
+      for(const y of [0.9,2.0,3.1]){ R.add(bx(0.7,0.07,10,wood,-9.1,y,5)); for(let z=0.5;z<9.8;z+=0.62) if(rr()<0.85) R.add(cyl(0.2,0.2,0.42,M(cols[Math.floor(rr()*6)],0.4,0.3),-9.1,y+0.25,z,12)); }
+      for(let r=0;r<3;r++) for(let c=0;c<6;c++){ const m=M(cols[(c+r)%6],0.5,0.1); m.color.lerp(C('#ffffff'),r*0.28); R.add(bx(0.06,0.9,1.1,m,9.56,1.5+r*1.05,1+c*1.45)); }
+      const duct=cyl(0.5,0.5,22,M('#b8bec6',0.4,0.7),-5.5,H-1.1,5,16); duct.rotation.x=Math.PI/2; R.add(duct); for(const z of [-2,5,12]) R.add(cyl(0.5,0.75,0.5,M('#8a9099',0.4,0.7),-5.5,H-1.8,z,16));
+      const cloth=new THREE.Mesh(new THREE.PlaneGeometry(7,5),M('#ffffff',0.95,0,{map:splatTex('#f1f3f5',rr)})); cloth.rotation.x=-Math.PI/2; cloth.position.set(1.5,0.012,-4.2); R.add(cloth); },
+    outfit(V,pal,rr){ const R=V.root, base=M('#2b2140',0.6,0.3), gl=new THREE.MeshStandardMaterial({color:C('#cfe6ff'),roughness:0.05,metalness:0.4,transparent:true,opacity:0.22,depthWrite:false});
+      R.add(bx(7,0.03,9,M('#5b3fa8',0.95,0),0,0.015,8.2)); V.spin=[]; let i=0;
+      for(const sx of [-1,1]) for(const z of [1.5,6,10.5]){ const x=sx*7.6; R.add(bx(1.5,1.0,1.5,base,x,0.5,z)); R.add(bx(1.54,0.08,1.54,M(pal[4],0.4,0.5),x,1.04,z)); R.add(bx(1.4,1.2,1.4,gl,x,1.68,z));
+        const it=new THREE.Mesh([new THREE.OctahedronGeometry(0.3,0),new THREE.TorusKnotGeometry(0.2,0.06,48,8),new THREE.IcosahedronGeometry(0.28,0)][i%3],glow(['#63e6be','#ffe066','#ff8787','#74c0fc','#b197fc','#ffa94d'][i],2.2)); it.position.set(x,1.65,z); R.add(it); V.spin.push(it); i++; } },
+    assay(V,pal,rr){ const R=V.root, wood=M('#4a3a2c',0.85,0.1), steel=M('#a0a4ab',0.4,0.7); let i=0;
+      for(const sx of [-1,1]) for(const z of [0.5,4,7.5,11]){ const x=sx*8.4, c=['#7c6a58','#5c5c66','#8c6040','#6a7a6a'][i++%4]; R.add(bx(1.8,0.9,2.2,wood,x,0.45,z)); R.add(bx(1.9,0.1,2.3,M('#2f2620',0.8,0.1),x,0.05,z));
+        for(let k=0;k<9;k++){ const rk=new THREE.Mesh(new THREE.DodecahedronGeometry(0.22+rr()*0.16,0),M(c,0.9,0.1,{flatShading:true})); rk.position.set(x+(rr()-0.5)*1.2,0.95+rr()*0.3,z+(rr()-0.5)*1.6); rk.rotation.set(rr()*3,rr()*3,0); R.add(rk); } }
+      const sx=-4.6, sz=8.5; R.add(cyl(0.5,0.6,0.2,steel,sx,0.1,sz,18)); R.add(cyl(0.08,0.1,2.6,steel,sx,1.4,sz,10)); const beam=bx(3,0.1,0.1,steel,sx,2.7,sz); beam.rotation.z=0.12; R.add(beam);
+      for(const s of [-1,1]){ const px=sx+s*1.45, py=2.7+s*0.18; R.add(cyl(0.012,0.012,1.1,steel,px,py-0.55,sz,5)); R.add(cyl(0.55,0.4,0.1,M('#d4af37',0.3,0.9),px,py-1.12,sz,18)); }
+      const rk=new THREE.Mesh(new THREE.DodecahedronGeometry(0.34,0),M('#7a6a5a',0.95,0.05,{flatShading:true})); rk.position.set(sx-1.45,2.7-0.18-0.78,sz); R.add(rk); },
+    bar(V,pal,rr){ const R=V.root, H=V.room.h, wood=M(pal[1],0.7,0.05), seat=M(pal[3],0.75,0.02), brass=M('#b08d3c',0.35,0.8);
+      R.add(bx(8,0.03,10,M('#6a1f2c',0.95,0),0,0.015,8.5));
+      for(const sx of [-1,1]) for(const z of [2.5,7,11.5]){ const x=sx*8.2; R.add(cyl(0.08,0.3,0.9,brass,x,0.45,z,10)); R.add(bx(1.6,0.08,1.3,wood,x,0.94,z));
+        for(const s of [-1,1]){ R.add(bx(1.7,0.5,0.6,seat,x,0.25,z+s*1.15)); R.add(bx(1.7,1.5,0.14,wood,x,0.75,z+s*1.48)); }
+        R.add(cyl(0.012,0.012,H-3.5,M('#222222',0.5,0.5),x,(H+3.5)/2,z,5)); const sh=new THREE.Mesh(new THREE.ConeGeometry(0.42,0.36,16,1,true),M(pal[4],0.6,0.2,{side:THREE.DoubleSide})); sh.position.set(x,3.4,z); R.add(sh); R.add(sph(0.14,glow('#ffd9a0',2.6),x,3.28,z,10,8));
+        R.add(cyl(0.09,0.08,0.2,new THREE.MeshStandardMaterial({color:C('#ffb54a'),roughness:0.1,transparent:true,opacity:0.85}),x-sx*0.3,1.08,z+0.2,10)); }
+      const db=cyl(0.55,0.55,0.08,M('#2b2b2b',0.8,0.1),-9.5,3.1,12.2,24); db.rotation.z=Math.PI/2; R.add(db); for(const [r,c] of [[0.42,'#c0392b'],[0.28,'#f4efe4'],[0.12,'#2e7d32']]){ const d=cyl(r,r,0.1,M(c,0.8,0),-9.48,3.1,12.2,24); d.rotation.z=Math.PI/2; R.add(d); }
+      R.add(Folk.rbox(1.3,2.0,0.8,0.3,M('#7a2a3a',0.4,0.3),6.2,1.0,16.3)); R.add(bx(0.9,0.6,0.05,glow('#ffc078',1.8),6.2,1.35,15.88)); const arc=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.05,8,24,Math.PI),glow(pal[3],3)); arc.position.set(6.2,1.75,15.9); R.add(arc); },
+    yard(V,pal,rr){ const R=V.root, S=V.room, H=S.h, dark=M('#2a2f36',0.6,0.5), gold=M('#d4af37',0.35,0.8);
+      // two ships on display, roped off
+      for(const [x,z,ry] of [[-6,-40,0.7],[78,70,-2.3]]){ const m=Models.build(Math.floor(rr()*Models.count)); m.position.set(x,m.userData.gearH+0.5,z); m.rotation.y=ry; Models.animate(m,0,0); R.add(m);
+        R.add(cyl(15,15.6,0.5,dark,x,0.25,z,40)); for(let i=0;i<12;i++){ const a=i/12*6.283, px=x+Math.cos(a)*17.5, pz=z+Math.sin(a)*17.5; R.add(cyl(0.12,0.2,1.3,gold,px,0.65,pz,8)); R.add(sph(0.2,gold,px,1.35,pz,8,6)); }
+        const rp=new THREE.Mesh(new THREE.TorusGeometry(17.5,0.06,6,48),M('#8a1f2c',0.8,0.05)); rp.rotation.x=Math.PI/2; rp.position.set(x,1.1,z); R.add(rp); }
+      // the hangar door, the lane out to it, and the banners
+      const hz=M('#ffffff',0.7,0.1,{map:stripeTex('#f2c14e','#1c1c1e')}); R.add(bx(56,30,0.4,M('#59606a',0.6,0.5),54,15,S.z0+0.25)); for(let i=0;i<9;i++) R.add(bx(56,0.3,0.2,M('#454b53',0.6,0.5),54,3+i*3.2,S.z0+0.5));
+      R.add(bx(58,1.2,0.5,hz,54,0.6,S.z0+0.3)); R.add(bx(58,1.4,0.6,M(pal[3],0.5,0.4),54,30.7,S.z0+0.3));
+      const lane=M('#f2c14e',0.6,0.1); for(const sx of [-1,1]) R.add(bx(0.5,0.04,15,lane,54+sx*18,0.02,-56.5));
+      [['Everything must go',2],['Nearly new',38],['No refunds',74]].forEach(([t,x],i)=>{ const b=new THREE.Mesh(new THREE.PlaneGeometry(26,6.1),new THREE.MeshStandardMaterial({map:signTex(t,['#8a1f2c','#1f4f8a','#2c6e3a'][i],'#fff4d6'),roughness:0.8,side:THREE.DoubleSide})); b.position.set(x,24,-34); R.add(b);
+        for(const sx of [-1,1]) R.add(cyl(0.05,0.05,H-27,dark,x+sx*12,(H+27)/2,-34,5)); }); },
+  };
+
+  /* ---------- the stock droid: fetches each crate you sign for from the stock room and puts it on the counter ---------- */
+  function crateTex(name){ const key='vc:'+name; if(_texCache[key]) return _texCache[key]; const cv=makeCanvas(256,256), x=cv.getContext('2d'); x.fillStyle='#b9823f'; x.fillRect(0,0,256,256);
+    x.strokeStyle='#8a5c26'; x.lineWidth=3; for(let i=1;i<4;i++){ x.beginPath(); x.moveTo(0,i*64); x.lineTo(256,i*64); x.stroke(); } x.lineWidth=14; x.strokeRect(7,7,242,242);
+    x.fillStyle='#2a1c0c'; x.textAlign='center'; x.textBaseline='middle'; x.font=`700 34px ${FONT_DISP}`; const lines=[]; let ln='';
+    for(const w of name.toUpperCase().split(' ')){ const t=ln?ln+' '+w:w; if(x.measureText(t).width>200&&ln){ lines.push(ln); ln=w; } else ln=t; } lines.push(ln);
+    lines.slice(0,4).forEach((l,i,a)=>x.fillText(l,128,128+(i-(a.length-1)/2)*40,214)); return _texCache[key]=canvasTex(cv); }
+  const SLOTX=[1.15,0.4,1.9], HOME=[3.6,-1.4];
+  function makeDroid(V){ const d=new THREE.Group(), rig=new THREE.Group(); d.add(rig); const white=M('#f1eee6',0.35,0.15), acc=M(PAL.depot[4],0.45,0.35), dark=M('#23272d',0.5,0.5);
+    rig.add(Folk.rbox(0.84,0.78,0.62,0.18,white,0,0.98,0)); rig.add(bx(0.86,0.1,0.64,acc,0,0.74,0)); rig.add(bx(0.3,0.22,0.02,dark,0,1.05,0.315));
+    rig.add(cyl(0.3,0.2,0.26,dark,0,0.46,0,20)); const ring=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.04,8,24),glow('#7fd0ff',2.2)); ring.rotation.x=Math.PI/2; ring.position.y=0.3; rig.add(ring);
+    const head=new THREE.Group(); head.position.set(0,1.44,0); rig.add(head); head.add(new THREE.Mesh(new THREE.SphereGeometry(0.31,24,14,0,Math.PI*2,0,Math.PI/2),white)); head.add(cyl(0.31,0.31,0.1,acc,0,-0.03,0,24));
+    head.add(bx(0.44,0.13,0.1,dark,0,0.12,0.25)); const eye=sph(0.05,glow('#5fd8ff',3.2),0,0.12,0.31,12,8); head.add(eye);
+    head.add(cyl(0.012,0.012,0.3,dark,0.16,0.4,0,6)); head.add(sph(0.035,glow('#ff5040',3),0.16,0.56,0,8,6));
+    const lift=new THREE.Group(); lift.position.set(0,0.95,0.2); rig.add(lift); for(const sx of [-1,1]){ lift.add(bx(0.08,0.05,0.86,dark,sx*0.2,0,0.43)); lift.add(bx(0.1,0.3,0.1,acc,sx*0.2,0.1,0)); rig.add(sph(0.11,acc,sx*0.46,1.12,0,12,10)); }
+    d.position.set(HOME[0],0,HOME[1]); V.root.add(d); return {grp:d,rig,head,eye,lift,q:[],cur:null,i:0,t:0,go:false,crate:null,slots:[null,null,null],n:0}; }
+  function stepDroid(V, dt, t){
+    const D=V.droid; if(!D) return; const g=D.grp, x0=STORE.dx; D.rig.position.y=0.05+Math.sin(t*3.1)*0.03; D.eye.position.x=Math.sin(t*1.3)*0.12;
+    if(!D.cur){ if(!D.q.length){ D.head.rotation.y=Math.sin(t*0.6)*0.5; return; } const name=D.q.shift(), slot=D.n++%3, sx=SLOTX[slot];
+      D.cur={slot,steps:[['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['grab'],['rev',x0,-11.4],['to',x0,-9.2],['to',x0,-2.3],['to',sx,-1.9],['face',0],['lift',1.14],['rev',sx,-0.85],['drop'],['rev',sx,-1.9],['lift',0.95],['to',HOME[0],HOME[1]],['face',0]]}; D.i=0; D.t=0;
+      const c=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(name)}),x0,0.93+0.31,-13.6); c.castShadow=true; V.root.add(c); D.crate=c; snd(V,()=>Sfx.beep(1320)); }
+    D.head.rotation.y*=0.9; const s=D.cur.steps[D.i]; if(!s){ D.cur=null; return; } const k=s[0]; let done=false;
+    const turn=a=>{ const d=((a-g.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; g.rotation.y+=Math.sign(d)*Math.min(Math.abs(d),dt*4.5); return Math.abs(d)<0.05; };
+    const move=(x,z)=>{ const dx=x-g.position.x, dz=z-g.position.z, d=Math.hypot(dx,dz), st=Math.min(d,3.4*dt); if(d>1e-4){ g.position.x+=dx/d*st; g.position.z+=dz/d*st; } return d-st<0.01; };
+    if(k==='to'){ const dx=s[1]-g.position.x, dz=s[2]-g.position.z; if(Math.hypot(dx,dz)<0.02) done=true; else { const ok=turn(Math.atan2(dx,dz)); if(ok||D.go){ D.go=true; done=move(s[1],s[2]); } } if(done) D.go=false; }
+    else if(k==='rev') done=move(s[1],s[2]);
+    else if(k==='face') done=turn(s[1]);
+    else if(k==='lift'){ const d=s[1]-D.lift.position.y; D.lift.position.y+=clamp(d,-dt*0.5,dt*0.5); done=Math.abs(d)<0.005; }
+    else if(k==='grab'){ D.t+=dt; if(D.t>0.35&&D.crate&&D.crate.parent!==D.lift){ D.lift.add(D.crate); D.crate.position.set(0,0.335,0.6); D.crate.rotation.set(0,0,0); snd(V,()=>Sfx.clunk()); } D.lift.position.y=0.95+0.06*clamp((D.t-0.35)/0.3,0,1); done=D.t>0.8; }
+    else if(k==='drop'){ D.t+=dt; if(D.t>0.25&&D.crate){ const old=D.slots[D.cur.slot]; if(old) V.root.remove(old); V.root.add(D.crate); D.crate.position.set(SLOTX[D.cur.slot],1.1+0.31,-0.05); D.crate.rotation.set(0,(Math.random()-0.5)*0.25,0); D.slots[D.cur.slot]=D.crate; D.crate=null; snd(V,()=>{ Sfx.thump(0.4); Sfx.beep(1760); }); } done=D.t>0.6; }
+    if(done){ D.i++; D.t=0; }
+  }
 
   /* ---------- particles and simple physics, per set ---------- */
   function puff(V, pos, col, n, spd, size, life, opt={}){
@@ -459,18 +598,18 @@ const Venues = (() => {
       defs.forEach((d,i)=>{ const a=base+i/n*6.283+(r0()-0.5)*0.3, rad=d.k==='depot'?240:300+((i*2)%3)*130+r0()*60;
         const root=new THREE.Group(), pos=new V3(Math.cos(a)*rad,0,Math.sin(a)*rad), dir=pos.clone().normalize().negate(); root.rotation.y=Math.atan2(dir.x,dir.z)+(r0()-0.5)*0.5;
         // sit the terrace on the highest ground it covers so nothing pokes through; the showroom pad counts too
-        const pts=[[0,-6]]; for(let k=0;k<10;k++) pts.push([Math.cos(k*0.628)*22,Math.sin(k*0.628)*22-6]); if(d.k==='yard') for(let k=0;k<10;k++) pts.push([54+Math.cos(k*0.628)*34,-18+Math.sin(k*0.628)*34]);
+        const pts=[[0,-6]], RS=roomSpec(d.k); for(let k=0;k<10;k++) pts.push([Math.cos(k*0.628)*22,Math.sin(k*0.628)*22-6]); for(let u=0;u<=8;u++) for(let w=0;w<=8;w++) pts.push([lerp(RS.x0-2,RS.x1+2,u/8),lerp(RS.z0-(d.k==='depot'?8:2),RS.z1+2,w/8)]); if(d.k==='yard') for(let k=0;k<10;k++) pts.push([54+Math.cos(k*0.628)*34,-18+Math.sin(k*0.628)*34]);
         let y=0; if(!cloud&&hAt){ y=-1e9; const cs=Math.cos(root.rotation.y), sn=Math.sin(root.rotation.y); for(const [lx,lz] of pts){ const wx=pos.x+lx*cs+lz*sn, wz=pos.z-lx*sn+lz*cs; y=Math.max(y,hAt(wx,wz)); } y=Math.max(y+0.6,(liq||-1e9)+1.5); }
         root.position.set(pos.x,y,pos.z); scn.add(root);
         const seed=this.keeperSeed(P,d), rr=mulberry32(seed+5), V={def:d,k:d.k,root,seed,parts:[],phys:[],fired:{},t:0,ok:false,kr:null};
         const pal=PAL[d.k], ter=new THREE.Mesh(new THREE.CylinderGeometry(30,33,cloud?3:60,48),[padMat,M(pal[0],0.92,0.05),padMat]); ter.position.set(0,cloud?-1.7:-30.2,-6); ter.receiveShadow=true; root.add(ter);
         if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(4,8,600,12),padMat); py.position.set(0,-303,-6); root.add(py); }
-        DISTRICT[d.k](root,pal,rr,V); lampPosts(root);
+        DISTRICT[d.k](root,pal,rr,V); lampPosts(root); room(V,d.k,pal,cloud,rr);
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
-        shell(V,pal); V.g=SETS[d.k](V,pal);
+        shell(V,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot') V.droid=makeDroid(V);
         V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,-0.85); root.add(V.keeper);
         const others=SPECIES_KEYS.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
-        V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=true; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
+        V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
         this.list.push(V); });
       return this.list;
     },
@@ -480,19 +619,21 @@ const Venues = (() => {
     react(kind, delay){ const V=this.current(); if(!V) return; setTimeout(()=>{ V.kr={kind,t:0};
         if(kind==='facepalm'){ Folk.mood(V.keeper,'sad'); Folk.mood(V.A,'shock'); Folk.mood(V.B,'worried'); } else { Folk.mood(V.keeper,'happy'); Folk.mood(V.A,'happy'); Folk.mood(V.B,'happy'); } },(delay||0)*1000); },
     /* camera for a set, framed to fit a region of the screen with the given aspect */
-    cam(V, aspect, preview){ const f=44, th=Math.tan(f*Math.PI/360);
+    cam(V, aspect, preview){ const f=44, th=Math.tan(f*Math.PI/360), S=V.room;
       if(preview&&V.show){ const d=clamp(Math.max(24/th,40/(th*aspect)),50,150), look=V.show.clone().setY(6), dir=new V3(-0.42,0.2,0.88).normalize();
         return {pos:V.root.localToWorld(look.clone().addScaledVector(dir,d)), look:V.root.localToWorld(look.clone()), fov:f}; }
-      const d=clamp(Math.max(3.3/th,3.75/(th*aspect)),8,18), el=0.32;
-      const look=new V3(0,2.1,-2.6), pos=new V3(0,look.y+Math.sin(el)*d,look.z+Math.cos(el)*d); return {pos:V.root.localToWorld(pos), look:V.root.localToWorld(look), fov:f}; },
+      const d=clamp(Math.max(3.3/th,3.75/(th*aspect)),8,18)*(S&&S.zoom||1), el=S?Math.min(S.el||0.32,Math.asin(clamp((S.h-3.0)/d,0,1))):0.32;
+      const ox=S&&S.ox||0, look=new V3(ox,2.1,-2.6), pos=new V3(ox,look.y+Math.sin(el)*d,look.z+Math.cos(el)*d); return {pos:V.root.localToWorld(pos), look:V.root.localToWorld(look), fov:f}; },
     /* where a previewed ship parks, in world space */
     showroom(){ const V=this.list.find(v=>v.show); return V?{V,pos:V.root.localToWorld(V.show.clone()),ry:V.root.rotation.y+2.3}:null; },
+    /* ask the depot's droid to bring a crate of this out to the counter */
+    fetch(name){ const V=this.list.find(v=>v.droid); if(!V) return; const q=V.droid.q; q.push(name); if(q.length>4) q.shift(); },
     near(x,z,r){ return this.list.some(v=>Math.hypot(v.root.position.x-x,v.root.position.z-z)<r); },
     update(dt, t){
       const V=this.current(); if(V!==this.active){ this.prev=this.active; this.active=V; }
       for(const v of this.list) v.root.visible=v===V||(this.moving&&v===this.prev); if(!V) return;
       V.t+=dt; if(V.t>V.gag.dur) this.restart(V,0);
-      V.gag.update(V,V.t,dt); stepFx(V,dt);
+      V.gag.update(V,V.t,dt); stepFx(V,dt); stepDroid(V,dt,t); if(V.spin) for(const o of V.spin) o.rotation.y+=dt*0.8;
       for(const F of [V.A,V.B,V.keeper]) Folk.blink(F,t);
       // shopkeeper: breathes, glances at the crew, reacts to how it goes
       const K=V.keeper, U=K.userData; K.position.y=Math.sin(t*1.8)*0.02; U.head.rotation.y=Math.sin(t*0.4)*0.25+(V.t>V.gag.dur*0.4&&V.t<V.gag.dur*0.6?0.5*Math.sign(Math.sin(V.seed)):0)*0.6;

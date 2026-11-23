@@ -38,10 +38,12 @@ const Game = {
       jobs.push({kind:'contra',good:g[0],note:g[1],qty,to,pay:Math.round(qty*(50+dist*36)*2.9*rnd(0.9,1.25)/5)*5,sp:pick(['vrell','grondar','qeeble','blorpax']),seed:Math.floor(Math.random()*1e9)}); }
     if(!G.cargo.some(c=>c.kind==='escort')&&Math.random()<0.6){ const to=away(), v=pick(VIPS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
       jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,pay:Math.round((320+dist*190)*rnd(0.9,1.2)*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
+    for(const j of jobs) j.story=j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j);
     G.jobs=jobs;
     // people wanting a ride, offered at cantinas
     const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
       px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,pay:Math.round((140+dist*60)*rnd(0.85,1.25)*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
+    for(const j of px){ j.story=Story.pax(j); j.why=j.story.why; }
     G.paxJobs=px;
   },
   onLanded(P){
