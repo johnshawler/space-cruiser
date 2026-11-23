@@ -1,0 +1,65 @@
+/* Velveteel: A long-necked velvet swimmer with ribbon fins takes lost currents home. */
+SPECIES_EXTRA.velveteel = {
+  name:"Velveteel", kind:"velveteel", family:"alien", skin:"fuzzy",
+  script:"curvy", col:"#7293da", hue:221, sat:58, lit:56,
+  syl:["vel", "yii", "loo", "sai", "en", "mu", "raal", "nim"],
+  voice:{wave:"sine",base:254,range:.61,rate:4.1,glide:.68,vib:5,vibAmt:11,fx:"chorus",amp:.45},
+  trait:"Has never left a stray breeze behind.",
+  chat:[
+    "A draught came in under the door. It had clearly forgotten where it lived.",
+    "I put a crosswind in a jar. Now the lid goes on sideways.",
+    "The current I'm escorting is homesick for a bend in a river.",
+    "I tried labelling the winds. The labels are over there now.",
+    "The breeze in my cabin knows an excellent shortcut. It leads to the window."
+  ],
+  greet:[
+    "Hello. Did a little gust go past with a ribbon on?",
+    "Current returns desk. Where did you last feel it?"
+  ],
+  cargo:[
+    "{good}. I tucked the packing slip downwind.",
+    "A tailwind on its first flight home. I'm letting it lead."
+  ],
+  joke:["My breeze wanted a round trip. I bought it a fan."],
+  nice:["Thank you. The fins untangle if I hold still."],
+  bye:["May your air remember where it's going."],
+  honk:["That stirred up some old acquaintances."],
+  dock:[
+    "Welcome to {port}. The breeze from bay two belongs in bay five.",
+    "At {port} the windsock is my office. Pull the ribbon."
+  ],
+  rumor:"There's a freight bonus on {planet}. The news blew in under my door.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=1.23;
+    oval(rig,body,0,.156,-.035,.31,.155,.35);
+    oval(rig,body,-.065,.388,-.055,.226,.28,.215);
+    tube(rig,body,[[-.063,.43,-.04],[-.095,.66,-.01],[.04,.92,0],[0,1.16,0]],.145);
+    oval(head,body,0,-.015,0,.27,.24,.23);
+    for(const side of [-1,1]){
+      const ribbon=oval(head,light,side*.303,.055,-.045,.105,.236,.042);
+      ribbon.rotation.z=-side*.98;
+      const tip=oval(head,body,side*.45,.005,-.055,.065,.168,.038);
+      tip.rotation.z=side*.51;
+    }
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.142,0.035,0.185,0.123,null,T.iris);
+      T.brow(head,U,side*0.142,0.196,0.213,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.11,0.226,.86);
+    T.blush(head,0.221,-0.07,0.169,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.246,0.74,.085,0.31,.054,body,light));
+  },
+};

@@ -111,6 +111,9 @@ const SPECIES = {
     rumor:"Promotional notice: deliveries to {planet} currently earn bonus credits. Offer valid while supplies of offer last." },
 };
 const SPECIES_KEYS = Object.keys(SPECIES);
+/* the species pack (src/species/*.js): known to the game by key, but not in the random pools until wired in */
+Object.assign(SPECIES, SPECIES_EXTRA);
+const SPECIES_EXTRA_KEYS = Object.keys(SPECIES_EXTRA);
 
 const CHATTER = {
   port:["{port} Control to all inbound: pad three is closed because something is asleep on it.","{port} Control: winds are light, visibility is good, the coffee machine is broken.","{port} Control: whoever parked across two pads, we can all see you.","{port} Control reminds pilots that landing is automatic. Please stop trying to help.","{port} Control: lost property now holds one boot, one small moon, and a mild smell.","Traffic advisory: slow hauler ahead in the {planet} lane. He is doing his best.","{port} Control: the gift shop is open. It has always been open. Please buy something.","{port} Control: inbound freighter, you are cleared. Outbound freighter, you are also cleared. Try not to meet."],

@@ -101,3 +101,31 @@ This bundles `src/` into `index.html`. To run it locally:
 ```bash
 python3 -m http.server 8765
 ```
+
+## Species pack
+
+Open `?gallery` to compare three portraits per species and inspect the animated models at full scale. The 21 additions live in `src/species/<key>.js`. Use `SPECIES_EXTRA_KEYS` to enumerate them or `Folk.make(key, seed, 1)` to preview one. Regular encounters still use the original nine.
+
+| Key | Species | Family | Appearance and personality |
+| --- | --- | --- | --- |
+| `bractillo` | Bractillo | alien | A walking seed pod with overlapping leaves packs lunches for migrating birds. |
+| `cuspiro` | Cuspiro | alien | A crescent-headed dune grazer lends the space between its horns to small birds. |
+| `loamlet` | Loamlet | alien | A terracotta burrower with chimney ears grows a different garden in each pocket. |
+| `nacrelle` | Nacrelle | alien | A pearl nestled in a fan shell listens for the quietest noise in each port. |
+| `parasolum` | Parasolum | alien | A scalloped umbrella glider insures picnics against excessive sunshine. |
+| `pipettle` | Pipettle | alien | A kettle-bellied marsh grazer whistles politely when the queue should move. |
+| `pluvindle` | Pluvindle | alien | A low raincloud on dangling droplet legs measures weather in teaspoons. |
+| `rilloon` | Rilloon | alien | A bellows-bellied singer takes attendance at every echo. |
+| `rimebud` | Rimebud | alien | A faceted ice bud keeps souvenirs of weather in cold storage. |
+| `tessettle` | Tessettle | alien | A broad gliding ray with a patchwork back remembers routes as quilt patterns. |
+| `timbrelk` | Timbrelk | alien | A drum-bodied walker with padded mallets counts the rests between noises. |
+| `velveteel` | Velveteel | alien | A long-necked velvet swimmer with ribbon fins takes lost currents home. |
+| `whorloo` | Whorloo | alien | A round-footed courier with a great spiral shell rents out the spare room. |
+| `wickindle` | Wickindle | alien | A waxy little night gardener carries a steady pearl of light in a curling wick. |
+| `bobbinor` | Bobbinor | robot | A one-wheeled reel robot winds up the loose ends of other people's errands. |
+| `gaugekin` | Gaugekin | robot | A caliper-headed mechanic measures the gaps left by missing things. |
+| `hushcone` | Hushcone | robot | A horn-eared recording robot makes field recordings of things finishing. |
+| `linticker` | Linticker | robot | A cabinet robot with a bright pendulum grants time off to overworked clocks. |
+| `sealump` | Sealump | robot | A spring-footed stamp robot collects impressions of perfectly ordinary floors. |
+| `tarestep` | Tarestep | robot | A two-pan hover scale weighs compliments before passing them along. |
+| `winkmast` | Winkmast | robot | A little tracked lighthouse keeps a diary of ships that wink back. |

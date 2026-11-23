@@ -9,6 +9,8 @@ cd "$(dirname "$0")"
     echo "<script src=\"https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/$f.js\"></script>"
   done
   echo '<script>'
+  echo 'const SPECIES_EXTRA={};'
+  cat src/species/*.js 2>/dev/null
   cat src/*.js
   echo '</script>'
 } > long-haul.html

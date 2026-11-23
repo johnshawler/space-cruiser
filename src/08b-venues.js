@@ -109,14 +109,19 @@ const Folk = (() => {
   function make(sp, seed, scale=1){
     const S=SPECIES[sp], r=mulberry32((seed|0)+11), hue=Math.round(S.hue+(r()-0.5)*26), K=S.kind;
     const hsl=(l,sa)=>`hsl(${hue},${sa==null?S.sat:sa}%,${Math.round(Math.min(92,l))}%)`;
-    const body=K==='rock'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.85,flatShading:true}):K==='robot'?phys(hsl(S.lit),{roughness:0.3,metalness:0.55,clearcoat:0.8,clearcoatRoughness:0.15})
-      :K==='fluffy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0}):phys(hsl(S.lit));
-    if(K==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
+    const skin=S.skin||({rock:'stone',robot:'metal',fluffy:'fuzzy',jelly:'jelly'}[K]);
+    const body=skin==='stone'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.85,flatShading:true}):skin==='metal'?phys(hsl(S.lit),{roughness:0.3,metalness:0.55,clearcoat:0.8,clearcoatRoughness:0.15})
+      :skin==='fuzzy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0})
+      :skin==='matte'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.8}):phys(hsl(S.lit));
+    if(skin==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
     const dark=phys(hsl(S.lit*0.55),{clearcoat:0.2}), light=phys(hsl(Math.min(92,S.lit*1.28)),{clearcoat:0.3}), browM=new THREE.MeshStandardMaterial({color:C(hsl(S.lit*0.32,Math.min(60,S.sat))),roughness:0.7});
     const F=new THREE.Group(), lift=new THREE.Group(), rig=new THREE.Group(); F.add(lift); lift.add(rig); const head=new THREE.Group(); rig.add(head);
     const U={rig,lift,low0:0,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
     const iris=IRIS[Math.floor(r()*IRIS.length)];
-    switch(K){
+    const X=SPECIES_EXTRA[sp];
+    if(X&&X.build) X.build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
+      glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
+    else switch(K){
       case 'blob': { const b=sph(0.62,body,0,0.7,0); b.scale.set(1,1.18,1); rig.add(b); head.position.y=0.75;
         eye(head,U,-0.21,0.22,0.47,0.17,null,iris); eye(head,U,0.21,0.22,0.47,0.17,null,iris); eye(head,U,0,0.55,0.38,0.12,null,iris);
         brow(head,U,-0.21,0.43,0.5,0.17,0.028,browM,-1); brow(head,U,0.21,0.43,0.5,0.17,0.028,browM,1); mouth(head,U,0,-0.06,0.6,1.2); blush(head,0.38,0.02,0.52,0.1);

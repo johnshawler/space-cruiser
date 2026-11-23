@@ -428,6 +428,1458 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FXAAShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
 <script>
+const SPECIES_EXTRA={};
+/* Bobbinor: A one-wheeled reel robot winds up the loose ends of other people's errands. */
+SPECIES_EXTRA.bobbinor = {
+  name:"Bobbinor", kind:"bobbinor", family:"robot", skin:"metal",
+  script:"blocks", col:"#e18e56", hue:24, sat:70, lit:52,
+  syl:["bob", "bin", "tik", "ree", "zul", "rem", "nok", "vin"],
+  voice:{wave:"square",base:216,range:.34,rate:6,glide:.08,vib:2,vibAmt:3,fx:"robot",amp:.23},
+  trait:"Will follow any loose end to the plug.",
+  chat:[
+    "The cable crossed the road before I did. We've had a talk.",
+    "A pilot gave me a loose end. It was attached to a very full afternoon.",
+    "I can follow a thread of conversation for six kilometres.",
+    "Today's knot is decorative. I decided that after lunch.",
+    "I've wound up the queue rope. The queue is following me."
+  ],
+  greet:[
+    "Line open. Mind the slack between us.",
+    "Hello. You caught me on the return spool."
+  ],
+  cargo:[
+    "{good}, tied with a bow accessible from the driver's seat.",
+    "One spool of extension cord. The plug should arrive tomorrow."
+  ],
+  joke:["I measured a winding road. It's much shorter on the reel."],
+  nice:["Thanks. I kept the receipt in case the finish unravels."],
+  bye:["End of line. I'll leave a loop for next time."],
+  honk:["Pull twice if that was the cable alarm."],
+  dock:[
+    "Welcome to {port}. Follow the yellow cord back to my desk.",
+    "At {port} please unwind the ramp before you drive onto it."
+  ],
+  rumor:"The loose cable from {planet} came with a note. They're paying extra for deliveries.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.16;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#9cfff0',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    const wheel=T.cyl(.202,.202,.155,dark,0,.202,0,32);
+    wheel.rotation.z=Math.PI/2;
+    rig.add(wheel);
+    for(const side of [-1,1]){
+      const hub=T.cyl(.085,.085,.021,light,side*.083,.202,0,24);
+      hub.rotation.z=Math.PI/2;
+      rig.add(hub);
+    }
+    rig.add(T.cyl(.22,.22,.52,light,0,.642,0,32));
+    for(let i=0;i<5;i++) rig.add(T.cyl(.253,.253,.047,body,0,.486+i*.077,0,32));
+    for(const y of [.415,.885]) rig.add(T.cyl(.327,.327,.069,dark,0,y,0,32));
+    rig.add(T.cyl(.081,.10,.20,light,0,.995,0));
+    head.add(T.rbox(.48,.345,.32,.051,body));
+    head.add(T.rbox(.421,.284,.035,.014,glass,0,0,.168));
+    for(const side of [-1,1]) head.add(T.cyl(.036,.055,.135,light,side*.168,.247,0,16));
+    head.add(T.sph(.049,signal,.168,.316,0,14,10));
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.128,0.02,0.115);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.067,0.0616,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.128,0.116,0.194,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.09,0.203,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.354,0.832,.085,0.328,.054,dark,light));
+  },
+};
+/* Bractillo: A walking seed pod with overlapping leaves packs lunches for migrating birds. */
+SPECIES_EXTRA.bractillo = {
+  name:"Bractillo", kind:"bractillo", family:"alien", skin:"matte",
+  script:"angular", col:"#81cd60", hue:102, sat:52, lit:50,
+  syl:["brak", "til", "lo", "kus", "pep", "ril", "sa", "om"],
+  voice:{wave:"triangle",base:243,range:.43,rate:6.2,glide:.27,vib:5,vibAmt:7,fx:"none",amp:.48},
+  trait:"Believes a packed lunch is a flight essential.",
+  chat:[
+    "My advice to young birds is always pack a second lunch.",
+    "I folded a map into a sandwich. Now the crumbs know the route.",
+    "A flock took off with my picnic bench. Very well organised birds.",
+    "The early birds wanted breakfast. The late ones wanted the same breakfast warmed up.",
+    "One passenger ate the itinerary. He can still point north."
+  ],
+  greet:[
+    "Lunch desk speaking. How far are you flying?",
+    "Hello, traveller. I've cut the crusts off the long route."
+  ],
+  cargo:[
+    "{good}, underneath the seed cakes. The cakes travel better upstairs.",
+    "Lunch bags with perches stitched on. Nobody has to eat standing up."
+  ],
+  joke:["I offered a bird a light lunch. It dropped the heavy bits."],
+  nice:["Thank you. There's a biscuit in the side hatch for you."],
+  bye:["Come home hungry. We'll take it from there."],
+  honk:["That's my cue for second breakfast."],
+  dock:[
+    "Welcome to {port}. Set your lunch on the shelf above the feeder.",
+    "At {port} the picnic queue is open to pilots of every wingspan."
+  ],
+  rumor:"The flock on {planet} voted to pay extra for freight. They need lunch before the wind changes.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.87;
+    oval(rig,body,0,.52,0,.29,.355,.255);
+    for(let i=0;i<7;i++){
+      const a=i*Math.PI*2/7;
+      const bract=oval(rig,i%2?light:dark,Math.sin(a)*.22,.52,Math.cos(a)*.17,.134,.255,.108);
+      bract.rotation.y=a;
+      bract.rotation.z=-Math.sin(a)*.31;
+    }
+    oval(head,body,0,0,0,.295,.302,.265);
+    const inside=T.phys('#e2ed95');
+    for(const side of [-1,1]){
+      const leaf=oval(head,light,side*.12,.30,-.035,.097,.232,.053);
+      leaf.rotation.z=-side*.52;
+      const vein=oval(head,inside,side*.126,.306,.009,.016,.157,.012);
+      vein.rotation.z=-side*.52;
+    }
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.142,0.06,0.215,0.128,null,T.iris);
+      T.brow(head,U,side*0.142,0.226,0.243,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.086,0.268,.86);
+    T.blush(head,0.221,-0.046,0.199,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.345,0.67,.085,0.31,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.14,0.25,0,0.19,.07,dark,null,light));
+  },
+};
+/* Cuspiro: A crescent-headed dune grazer lends the space between its horns to small birds. */
+SPECIES_EXTRA.cuspiro = {
+  name:"Cuspiro", kind:"cuspiro", family:"alien", skin:"gloss",
+  script:"angular", col:"#d2da5d", hue:64, sat:63, lit:52,
+  syl:["cus", "pi", "oro", "vee", "lum", "dak", "su", "rei"],
+  voice:{wave:"triangle",base:187,range:.33,rate:4.7,glide:.35,vib:4,vibAmt:6,fx:"none",amp:.52},
+  trait:"Considers birds family until they fly the nest.",
+  chat:[
+    "The space over my head is occupied until migration season.",
+    "Two nestlings have learned to steer. We turn left quite a lot.",
+    "A bird brought its own twig. I appreciate a furnished tenant.",
+    "Customs counts my passengers after every sneeze.",
+    "I bought a sun hat. The birds are using it as a veranda."
+  ],
+  greet:[
+    "Hello. The little voice you hear is the upstairs neighbour.",
+    "Please give me a minute to turn my passengers toward the radio."
+  ],
+  cargo:[
+    "{good}, plus nesting twine in case the road is bumpy.",
+    "Tiny curtains. The birds want separate bedrooms this year."
+  ],
+  joke:["I asked the birds for rent. They paid me in things that looked like rent from very high up."],
+  nice:["Thank you. I'll pass that along to the decorator on my left horn."],
+  bye:["Safe flight from everyone on this head."],
+  honk:["The nestlings liked that. Now they want one."],
+  dock:[
+    "Welcome to {port}. Mind your step under the arrivals perch.",
+    "At {port} the birds will show you the terminal. They may stop for crumbs."
+  ],
+  rumor:"A bird from {planet} tucked the new freight rates in my ear. Deliveries pay extra.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=1.02;
+    oval(rig,body,0,.58,0,.285,.35,.245);
+    oval(head,body,0,-.01,0,.306,.257,.252);
+    const horn=T.phys('#ffe5ab');
+    for(const side of [-1,1]){
+      const points=[[.205,.09,0],[.34,.14,0],[.422,.25,-.016],[.408,.365,-.035],[.34,.431,-.05]];
+      tube(head,body,points.map(([x,y,z])=>[x*side,y,z]),.082);
+      oval(head,horn,side*.335,.434,-.05,.076,.07,.072);
+    }
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.157,0.01,0.206,0.127,null,T.iris);
+      T.brow(head,U,side*0.157,0.175,0.234,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.127,0.253,.86);
+    T.blush(head,0.236,-0.087,0.19,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.335,0.76,.085,0.36,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.27,0,0.21,.07,dark,null,light));
+  },
+};
+/* Gaugekin: A caliper-headed mechanic measures the gaps left by missing things. */
+SPECIES_EXTRA.gaugekin = {
+  name:"Gaugekin", kind:"gaugekin", family:"robot", skin:"metal",
+  script:"angular", col:"#60a4dc", hue:207, sat:64, lit:53,
+  syl:["gai", "kin", "gau", "vim", "tek", "fol", "nim", "chi"],
+  voice:{wave:"sawtooth",base:256,range:.42,rate:6.6,glide:.09,vib:1,vibAmt:3,fx:"robot",amp:.21},
+  trait:"Can describe a missing bolt with remarkable precision.",
+  chat:[
+    "Your spare tyre is missing. The hole is the correct size.",
+    "An empty shelf came in exactly on spec. Very tidy work.",
+    "I've measured the pause before lunch. A sandwich just fits.",
+    "Where my toolbox used to be is now my best reference gap.",
+    "A bolt fell out. I can give you its absence to three decimal places."
+  ],
+  greet:[
+    "Clearance desk speaking. How wide a space can I help you with?",
+    "Hello. Leave a gap between words and I'll check it."
+  ],
+  cargo:[
+    "{good}. They're a snug fit in the interval between these walls.",
+    "Replacement gaps. The packing material is the expensive part."
+  ],
+  joke:["I lost my ruler. On the bright side I know exactly how long it is."],
+  nice:["Thank you. That fills a space I hadn't measured."],
+  bye:["I'll leave room in the log for your return."],
+  honk:["Fine interval between those beeps. Factory tolerance."],
+  dock:[
+    "Welcome to {port}. That space between the stripes is yours.",
+    "At {port} I measure clearance with the doors open. Saves on doors."
+  ],
+  rumor:"{planet} widened the gap between ordinary pay and delivery pay. The bonus looks generous.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.095;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#b4ffe8',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    rig.add(T.rbox(.443,.383,.319,.066,body,0,.584,0));
+    rig.add(T.rbox(.317,.077,.037,.015,dark,0,.62,.168));
+    for(let i=0;i<4;i++) rig.add(T.bx(.013,.023+(i%2)*.02,.014,light,-.112+i*.071,.623,.192));
+    rig.add(T.cyl(.075,.092,.185,light,0,.893,0,16));
+    head.add(T.rbox(.437,.297,.277,.045,body));
+    head.add(T.rbox(.391,.257,.031,.013,glass,0,0,.144));
+    for(const side of [-1,1]){
+      head.add(T.rbox(.089,.316,.099,.018,light,side*.17,.267,0));
+      head.add(T.rbox(.143,.057,.10,.016,body,side*.143,.414,0));
+    }
+    head.add(T.sph(.033,signal,-.085,.414,.051,12,8));
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.119,0.014,0.087);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0537,0.0649,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.119,0.11,0.166,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.077,0.175,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.335,0.777,.085,0.325,.054,dark,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.165,0.3,0,0.24,.07,dark,null,body));
+  },
+};
+/* Hushcone: A horn-eared recording robot makes field recordings of things finishing. */
+SPECIES_EXTRA.hushcone = {
+  name:"Hushcone", kind:"hushcone", family:"robot", skin:"metal",
+  script:"blocks", col:"#e8bd59", hue:42, sat:76, lit:54,
+  syl:["hus", "kon", "zis", "rec", "tul", "fer", "din", "tag"],
+  voice:{wave:"sawtooth",base:188,range:.35,rate:4.4,glide:.2,vib:3,vibAmt:5,fx:"robot",amp:.22},
+  trait:"Likes a good ending enough to wait for it.",
+  chat:[
+    "I caught the exact moment a kettle stopped boiling. The rest is tea.",
+    "The last crate slid off the ramp before I pressed record. Could someone reload it?",
+    "A door closing is easy. A door deciding to stay closed takes patience.",
+    "Nearly finished recording a meeting. I've said that for three hours.",
+    "My favourite sound is the click after the last buckle. Good click."
+  ],
+  greet:[
+    "Recorder rolling. Finish whatever you were saying.",
+    "Hello. I kept the tail end of your hail. Nice fade."
+  ],
+  cargo:[
+    "{good}. I'm hoping the packing tape comes off in one take.",
+    "Empty reels. I'll fill them with the ends of other reels."
+  ],
+  joke:["I recorded the end of a queue. On playback it started another queue."],
+  nice:["Thank you. I'll keep the little pause after that."],
+  bye:["Hold still for one second. There. Lovely goodbye."],
+  honk:["Can you do just the very end of that again?"],
+  dock:[
+    "Welcome to {port}. Your engine winding down is going in the collection.",
+    "At {port} please let the ramp finish squeaking before you applaud."
+  ],
+  rumor:"The cashier on {planet} ends every freight payment with an extra clink. There's a bonus on.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.125;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#adeaff',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    rig.add(T.rbox(.465,.46,.346,.075,body,0,.569,0));
+    for(const side of [-1,1]){
+      const reel=T.cyl(.081,.081,.041,light,side*.107,.602,.18,22);
+      reel.rotation.x=Math.PI/2;
+      rig.add(reel);
+      oval(rig,dark,side*.107,.602,.21,.029,.029,.012);
+    }
+    rig.add(T.cyl(.075,.095,.238,light,0,.892,0));
+    head.add(T.rbox(.428,.355,.291,.062,body));
+    head.add(T.rbox(.385,.278,.033,.014,glass,0,0,.152));
+    const horn=new THREE.Group();
+    horn.position.set(-.14,.176,-.047);
+    horn.rotation.z=.83;
+    horn.rotation.x=.30;
+    head.add(horn);
+    horn.add(T.cyl(.224,.047,.31,body,0,.131,0,28));
+    horn.add(T.cyl(.23,.23,.029,light,0,.292,0,28));
+    horn.add(T.cyl(.199,.199,.007,dark,0,.311,0,28));
+    horn.add(T.cyl(.06,.06,.009,signal,0,.316,0,18));
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.117,0.012,0.097);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.064,0.064,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.117,0.108,0.176,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.09,0.185,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.327,0.768,.085,0.31,.054,dark,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.145,0.275,0,0.215,.07,dark,null,body));
+  },
+};
+/* Linticker: A cabinet robot with a bright pendulum grants time off to overworked clocks. */
+SPECIES_EXTRA.linticker = {
+  name:"Linticker", kind:"linticker", family:"robot", skin:"metal",
+  script:"blocks", col:"#69bf84", hue:139, sat:40, lit:49,
+  syl:["lin", "tik", "vak", "tok", "id", "mel", "ren", "tem"],
+  voice:{wave:"triangle",base:144,range:.29,rate:4.1,glide:.15,vib:2,vibAmt:4,fx:"click",amp:.44},
+  trait:"Believes every timepiece deserves a proper break.",
+  chat:[
+    "The lunch clock is on lunch. We can eat until it gets back.",
+    "I covered a sundial's shift. Cloudy day. Caught up on my reading.",
+    "I grant every stopwatch a short walk once a week.",
+    "A clock asked for a minute alone. I gave it the whole mantel.",
+    "My calendar tore off a day for itself. The paperwork can wait."
+  ],
+  greet:[
+    "Clock relief here. Have you had a moment to yourself?",
+    "Hello. I can spare the time."
+  ],
+  cargo:[
+    "{good}. No rush, unless the shift clock insists.",
+    "Little hammocks for alarm bells. The padding is important."
+  ],
+  joke:["I gave a clock a second chance. It asked for the other fifty-nine."],
+  nice:["Thank you. I'm setting aside a minute to be pleased."],
+  bye:["Take your time. I signed it out to you."],
+  honk:["The shift bell's off today. Thanks for covering."],
+  dock:[
+    "Welcome to {port}. The dock clock is resting, so you're on time.",
+    "At {port} break time starts when the last clock sits down."
+  ],
+  rumor:"There's a delivery bonus on {planet}. The payroll clock stayed late to tell me.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.235;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#ffdf89',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    rig.add(T.rbox(.434,.67,.29,.056,body,0,.61,0));
+    rig.add(T.rbox(.27,.47,.036,.016,glass,0,.613,.159));
+    const pendulum=new THREE.Group();
+    pendulum.position.set(0,.814,.19);
+    pendulum.rotation.z=.25;
+    rig.add(pendulum);
+    pendulum.add(T.cyl(.014,.014,.301,light,0,-.147,0,10));
+    oval(pendulum,light,0,-.311,0,.071,.071,.02);
+    rig.add(T.rbox(.47,.065,.307,.024,dark,0,.313,0));
+    rig.add(T.cyl(.075,.09,.191,light,0,1.022,0,16));
+    head.add(T.rbox(.454,.324,.316,.056,body));
+    head.add(T.rbox(.407,.274,.034,.014,glass,0,0,.167));
+    oval(head,body,0,.167,-.027,.232,.139,.132);
+    oval(head,signal,0,.251,.076,.044,.048,.022);
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.127,0.018,0.112);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.068,0.0573,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.127,0.114,0.191,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.09,0.2,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.311,0.854,.085,0.338,.054,dark,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.147,0.221,0,0.161,.07,dark,null,body));
+  },
+};
+/* Loamlet: A terracotta burrower with chimney ears grows a different garden in each pocket. */
+SPECIES_EXTRA.loamlet = {
+  name:"Loamlet", kind:"loamlet", family:"alien", skin:"matte",
+  script:"curvy", col:"#df8862", hue:18, sat:66, lit:54,
+  syl:["loh", "um", "ta", "pip", "del", "roo", "lum", "tha"],
+  voice:{wave:"triangle",base:218,range:.48,rate:4.8,glide:.32,vib:4,vibAmt:7,fx:"none",amp:.48},
+  trait:"Rotates crops by turning pockets inside out.",
+  chat:[
+    "I am rotating my crops. I turned my coat inside out.",
+    "The left pocket gets good sun. The right grows mostly receipts.",
+    "A bean took root in my seat belt. We have agreed to travel together.",
+    "I can tell your soil is tired. It keeps lying down.",
+    "I ordered a raised bed. The delivery crew put my bunk on bricks."
+  ],
+  greet:[
+    "Hello from the potting bench. My thumb is clean enough for radio.",
+    "Speak up a little. I have seedlings in both ears."
+  ],
+  cargo:[
+    "{good}, with a layer of mulch. Just in case.",
+    "One sack of very promising holes. Bring your own dirt."
+  ],
+  joke:["I tried growing clocks. They all came up late."],
+  nice:["Thank you. I waxed the hull with a very small leaf."],
+  bye:["May something nice sprout in your glove box."],
+  honk:["That woke the peas. They were due up anyway."],
+  dock:[
+    "Welcome to {port}. The herb patch marks the edge of the pad.",
+    "At {port} the landing fee includes a cutting. Pinch it above the node."
+  ],
+  rumor:"The nursery on {planet} is paying extra for deliveries. Ask for the desk under the ivy.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.88;
+    rig.add(T.cyl(.32,.25,.52,body,0,.53,0,28));
+    rig.add(T.cyl(.355,.34,.09,dark,0,.755,0,28));
+    oval(head,body,0,0,0,.34,.29,.285);
+    const soil=T.phys('#593836');
+    for(const side of [-1,1]){
+      const ear=new THREE.Group();
+      ear.position.set(side*.20,.22,-.045);
+      ear.rotation.z=-side*.26;
+      head.add(ear);
+      ear.add(T.cyl(.098,.076,.25,body,0,.09,0,18));
+      ear.add(T.cyl(.11,.11,.055,light,0,.22,0,18));
+      ear.add(T.cyl(.078,.078,.01,soil,0,.249,0,18));
+    }
+    const shoot=oval(head,T.phys('#92ce63'),.30,.55,-.045,.043,.093,.022);
+    shoot.rotation.z=-.45;
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.165,0.045,0.225,0.126,null,T.iris);
+      T.brow(head,U,side*0.165,0.209,0.253,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.105,0.287,.86);
+    T.blush(head,0.244,-0.065,0.209,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.365,0.72,.085,0.32,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.16,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Nacrelle: A pearl nestled in a fan shell listens for the quietest noise in each port. */
+SPECIES_EXTRA.nacrelle = {
+  name:"Nacrelle", kind:"nacrelle", family:"alien", skin:"gloss",
+  script:"curvy", col:"#dd8da5", hue:342, sat:54, lit:62,
+  syl:["nah", "krel", "ell", "uvi", "ai", "sil", "eh", "lu"],
+  voice:{wave:"sine",base:378,range:.36,rate:3.7,glide:.5,vib:4,vibAmt:8,fx:"chorus",amp:.40},
+  trait:"Saves the tiny noises everyone else misses.",
+  chat:[
+    "The quietest thing at this dock is a biscuit cooling.",
+    "I listened to a shell and heard my own kitchen. Fair enough.",
+    "My microphone picked up a stamp drying. It was almost a song.",
+    "Please hold still. There's a very small noise behind your larger one.",
+    "I gave the library a recording of a page settling. They filed it under action."
+  ],
+  greet:[
+    "Hello. You're coming through at just the right smallness.",
+    "I had the gain turned up for dust. Give me a moment."
+  ],
+  cargo:[
+    "{good}. The crate creaks beautifully when nobody asks it to.",
+    "A soundproof box with something very quiet in it. Taking the sender's word."
+  ],
+  joke:["Someone sold me a silent bell. I've requested an audible receipt."],
+  nice:["Thank you. I heard the smile first."],
+  bye:["I'll keep a little quiet for your next visit."],
+  honk:["That'll go in the other collection."],
+  dock:[
+    "Welcome to {port}. Listen for the soft click of the landing light.",
+    "At {port} we have a quiet bay. It's the one beside the loud sign."
+  ],
+  rumor:"The softest voice on {planet} mentioned a freight bonus. I checked twice.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.755;
+    oval(rig,body,0,.125,0,.31,.125,.30);
+    oval(rig,light,0,.34,0,.32,.24,.26);
+    const pearl=T.phys('#ffe2d7',{clearcoat:.85});
+    T.head.position.z=.075;
+    for(let i=-3;i<=3;i++){
+      const a=i*.248;
+      const rib=oval(head,i%2?body:light,Math.sin(a)*.32,.16+Math.cos(a)*.13,-.15,.104,.36,.095);
+      rib.rotation.z=-a;
+    }
+    oval(head,pearl,0,0,0,.263,.257,.24);
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.14,0.025,0.2,0.12,null,T.iris);
+      T.brow(head,U,side*0.14,0.183,0.228,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.105,0.24,.86);
+    T.blush(head,0.219,-0.065,0.184,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.338,0.635,.085,0.27,.054,body,light));
+  },
+};
+/* Parasolum: A scalloped umbrella glider insures picnics against excessive sunshine. */
+SPECIES_EXTRA.parasolum = {
+  name:"Parasolum", kind:"parasolum", family:"alien", skin:"gloss",
+  script:"dots", col:"#df77c5", hue:315, sat:62, lit:58,
+  syl:["sha", "plu", "yi", "pem", "sil", "oro", "nu", "fli"],
+  voice:{wave:"triangle",base:369,range:.53,rate:6,glide:.4,vib:5,vibAmt:10,fx:"chirp",amp:.46},
+  trait:"Takes picnics personally, especially the paperwork.",
+  chat:[
+    "Clear skies again. People never read the fine print about clear skies.",
+    "A sandwich in full sun is technically a toast claim.",
+    "I can shade four elbows or one entire lunch. Please arrange yourselves.",
+    "Yesterday a cloud parked above me. We split the shift.",
+    "I follow picnics by the sound of lids coming off."
+  ],
+  greet:[
+    "Weather desk speaking. Do you still have your sandwich?",
+    "Hello, pilot. You sound comfortably overcast."
+  ],
+  cargo:[
+    "{good}, plus a very large folded napkin for emergencies.",
+    "Shade samples. Open the box in daylight or they all look alike."
+  ],
+  joke:["We covered a picnic for drizzle. It rained indoors. The ceiling filed separately."],
+  nice:["Thank you. The scalloped edge was my grandmother's."],
+  bye:["Stay in the nice bit between the shadows."],
+  honk:["Perfect. That's the signal to put the lids back on."],
+  dock:[
+    "Welcome to {port}. Shade travels clockwise around the terminal.",
+    "At {port} there's a bench under me. Take your time."
+  ],
+  rumor:"The picnic board on {planet} has added a delivery bonus. Even covered cargo qualifies.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.94;
+    oval(rig,light,0,.56,0,.26,.34,.21);
+    oval(head,body,0,-.02,0,.29,.28,.225);
+    const hem=T.phys('#ffe8bd');
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4;
+      const panel=oval(head,i%2?light:body,Math.sin(a)*.205,.228,Math.cos(a)*.14,.19,.115,.26);
+      panel.rotation.y=a;
+      oval(head,hem,Math.sin(a)*.443,.207,Math.cos(a)*.391,.034,.048,.034);
+    }
+    oval(head,body,0,.29,0,.35,.152,.30);
+    oval(head,hem,0,.454,0,.047,.077,.047);
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.145,-0.025,0.187,0.121,null,T.iris);
+      T.brow(head,U,side*0.145,0.134,0.215,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.162,0.22,.86);
+    T.blush(head,0.224,-0.122,0.171,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.32,0.76,.085,0.31,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.13,0.25,0,0.19,.07,dark,null,light));
+  },
+};
+/* Pipettle: A kettle-bellied marsh grazer whistles politely when the queue should move. */
+SPECIES_EXTRA.pipettle = {
+  name:"Pipettle", kind:"pipettle", family:"alien", skin:"gloss",
+  script:"curvy", col:"#56d79d", hue:153, sat:62, lit:50,
+  syl:["pip", "et", "tu", "weesh", "pel", "chi", "lo", "mai"],
+  voice:{wave:"sine",base:452,range:.71,rate:6.4,glide:.58,vib:7,vibAmt:12,fx:"chirp",amp:.43},
+  trait:"Makes waiting in line a point of civic pride.",
+  chat:[
+    "The queue has moved half a shoe. I'll keep the whistle warm.",
+    "Somebody left a gap. We're taking turns looking after it.",
+    "I lined up behind a coat stand yesterday. It was a very patient morning.",
+    "My family knows I'm ready by the note I make through my left spout.",
+    "I put a chair in line for me. It got called to the counter."
+  ],
+  greet:[
+    "Hello. You're next, if you were behind the fern.",
+    "Queue steward speaking. I've put my finger on your place."
+  ],
+  cargo:[
+    "{good}. Each crate knows who it came after.",
+    "A roll of numbered tickets. The roll has pulled a ticket of its own."
+  ],
+  joke:["The express line was empty. I joined it and spoiled the effect."],
+  nice:["Thank you. The shine helps people see where the line bends."],
+  bye:["Off you go. I'll mind your gap till it closes."],
+  honk:["Nearly the right note. The line moved anyway."],
+  dock:[
+    "Welcome to {port}. Follow the queue until you meet someone facing you.",
+    "At {port} there is a separate queue for asking where the queue is."
+  ],
+  rumor:"The line at {planet} is moving fast. They're paying extra for every delivery.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.99;
+    oval(rig,body,0,.57,0,.334,.332,.295);
+    tube(rig,light,[[.22,.69,-.075],[.37,.79,-.085],[.51,.71,-.09],[.51,.55,-.09],[.29,.48,-.07]],.049);
+    const nozzle=new THREE.Group();
+    nozzle.position.set(-.309,.71,0);
+    nozzle.rotation.z=.82;
+    rig.add(nozzle);
+    nozzle.add(T.cyl(.094,.082,.29,body,0,.09,0,20));
+    nozzle.add(T.cyl(.107,.093,.045,light,0,.249,0,20));
+    nozzle.add(T.cyl(.072,.072,.006,dark,0,.274,0,20));
+    oval(head,light,0,0,0,.27,.225,.224);
+    oval(head,body,0,.204,-.01,.22,.061,.181);
+    oval(head,dark,0,.275,-.01,.059,.06,.058);
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.147,0.023,0.184,0.122,null,T.iris);
+      T.brow(head,U,side*0.147,0.183,0.212,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.11,0.226,.86);
+    T.blush(head,0.226,-0.07,0.168,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.391,0.68,.085,0.325,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.24,0,0.18,.07,dark,null,light));
+  },
+};
+/* Pluvindle: A low raincloud on dangling droplet legs measures weather in teaspoons. */
+SPECIES_EXTRA.pluvindle = {
+  name:"Pluvindle", kind:"pluvindle", family:"alien", skin:"fuzzy",
+  script:"dots", col:"#9a9bd6", hue:239, sat:42, lit:63,
+  syl:["plu", "vin", "dul", "om", "ni", "wep", "lir", "du"],
+  voice:{wave:"sine",base:196,range:.58,rate:5,glide:.56,vib:4,vibAmt:10,fx:"bubble",amp:.51},
+  trait:"Issues very local forecasts in kitchen units.",
+  chat:[
+    "Forecast calls for two spoons by lunch. Use a deep saucer.",
+    "I sneezed over the weather gauge and had to issue a correction.",
+    "My drizzle license covers one windowsill at a time.",
+    "A baker borrowed my forecast. The dough came out a bit cloudy.",
+    "I'm saving a teaspoon of blue sky. The jar looks empty until you squint."
+  ],
+  greet:[
+    "Local weather speaking. Where shall I put this sprinkle?",
+    "Hello. You caught me between spoons."
+  ],
+  cargo:[
+    "{good}, under a lid. The sender has met me before.",
+    "Measuring spoons. The tablespoon is for severe weather only."
+  ],
+  joke:["I made a dry forecast. It stuck to the spoon."],
+  nice:["Thank you. I'll leave a little rainbow by your step."],
+  bye:["Fair weather to you. I've put the lid on."],
+  honk:["One startled cloud, one splash. I'll get a cloth."],
+  dock:[
+    "Welcome to {port}. Today's weather fits in a cup.",
+    "At {port} the blue awning marks the dry side of my desk."
+  ],
+  rumor:"The weather office on {planet} has a delivery bonus. Today's envelope is only lightly damp.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.91;
+    oval(head,body,0,0,-.01,.305,.27,.255);
+    for(const [x,y,z,r] of [[-.28,.02,-.05,.213],[.28,.04,-.05,.216],[-.155,.18,-.06,.202],[.12,.21,-.06,.205]]){
+      oval(head,light,x,y,z,r,r*.88,r*.8);
+    }
+    for(let i=0;i<3;i++){
+      const x=(i-1)*.168, y=.12+(i%2)*.054;
+      rig.add(T.cyl(.018,.018,.74-y,dark,x,(.74+y)/2,0,10));
+      oval(rig,light,x,y,0,.078,.119,.067);
+    }
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.158,0.02,0.197,0.128,null,T.iris);
+      T.brow(head,U,side*0.158,0.186,0.225,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.115,0.244,.86);
+    T.blush(head,0.237,-0.075,0.181,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.399,0.76,.085,0.29,.054,body,light));
+  },
+};
+/* Rilloon: A bellows-bellied singer takes attendance at every echo. */
+SPECIES_EXTRA.rilloon = {
+  name:"Rilloon", kind:"rilloon", family:"alien", skin:"gloss",
+  script:"curvy", col:"#5ed4ce", hue:177, sat:58, lit:51,
+  syl:["rii", "luu", "wah", "bim", "soh", "yen", "hoo", "lem"],
+  voice:{wave:"sine",base:302,range:.68,rate:4.3,glide:.64,vib:6,vibAmt:12,fx:"chorus",amp:.48},
+  trait:"Always leaves a place in the choir for the echo.",
+  chat:[
+    "Just called the roll. The tunnel answered twice for somebody.",
+    "My singing teacher says I have excellent volume. She teaches from the next bay.",
+    "I hold a note through customs. They usually give it back.",
+    "If you hear me again, that's the loading ramp. It likes the last word.",
+    "My belly plays a chord when I bend to tie my shoes. I wear slip-ons to concerts."
+  ],
+  greet:[
+    "Hello! I'll leave a gap for your echo.",
+    "You're on pitch. I hadn't even given you one."
+  ],
+  cargo:[
+    "{good}. The packing straw is in a different key.",
+    "A crate of tuning forks. The route has been one long dinner bell."
+  ],
+  joke:["I asked a canyon for a solo. It said it preferred a duet. Eventually."],
+  nice:["Thank you. Your engine has a lovely speaking voice."],
+  bye:["I'll leave the last syllable with you. Loo."],
+  honk:["A fine note. Your horn may join us on Thursdays."],
+  dock:[
+    "Welcome to {port}. Sing your bay number and follow the harmony.",
+    "The round hall at {port} says hello back. This takes a minute."
+  ],
+  rumor:"The dispatcher at {planet} sang me their rates. There's a high note on delivery bonuses.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.19;
+    for(let i=0;i<5;i++){
+      const radius=.25+.055*Math.sin(i*Math.PI/4);
+      rig.add(T.cyl(radius-.06,radius,.075,i%2?body:light,0,.36+i*.15,0,32));
+      rig.add(T.cyl(radius,radius-.06,.075,body,0,.435+i*.15,0,32));
+    }
+    oval(head,body,0,-.02,0,.305,.275,.25);
+    for(const side of [-1,1]){
+      const bell=new THREE.Group();
+      bell.position.set(side*.245,.05,-.035);
+      bell.rotation.z=-side*1.02;
+      head.add(bell);
+      bell.add(T.cyl(.14,.06,.23,body,0,.085,0,24));
+      bell.add(T.cyl(.146,.146,.032,light,0,.208,0,24));
+      bell.add(T.cyl(.115,.115,.008,dark,0,.227,0,24));
+    }
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.152,0.04,0.205,0.126,null,T.iris);
+      T.brow(head,U,side*0.152,0.204,0.233,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.105,0.25,.86);
+    T.blush(head,0.231,-0.065,0.189,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.31,0.86,.085,0.34,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Rimebud: A faceted ice bud keeps souvenirs of weather in cold storage. */
+SPECIES_EXTRA.rimebud = {
+  name:"Rimebud", kind:"rimebud", family:"alien", skin:"stone",
+  script:"angular", col:"#7fc5e6", hue:199, sat:67, lit:61,
+  syl:["rim", "nai", "kir", "ven", "tis", "sho", "il", "da"],
+  voice:{wave:"triangle",base:325,range:.38,rate:5.1,glide:.24,vib:6,vibAmt:8,fx:"none",amp:.44},
+  trait:"Keeps a date and a story for every snowflake.",
+  chat:[
+    "Today's frost looks just like my aunt. I've asked it to hold still.",
+    "I keep my first snow day in a flask. There's a bus ticket frozen in it.",
+    "The forecast said scattered showers. I'm only missing the one from Tuesday.",
+    "My postcards have to travel in the freezer drawer.",
+    "I took a holiday somewhere warm. The album is mostly puddles."
+  ],
+  greet:[
+    "Cold archive, good morning. I'm wearing the gloves for talking.",
+    "Hello. Leave the frosted bit of the receiver for me."
+  ],
+  cargo:[
+    "{good}, and one tray of perfectly ordinary sleet from a rather special afternoon.",
+    "A hailstone with a parking ticket inside. It establishes the date."
+  ],
+  joke:["My weather exhibit sprang a leak. The catalogue now lists a river."],
+  nice:["That's kind. I saved the frost from launch day."],
+  bye:["Keep cool. Or send me a sample of the alternative."],
+  honk:["You knocked a little snow off my aerial. I've dated the envelope."],
+  dock:[
+    "Welcome to {port}. Today's frost is on display by the cold lockers.",
+    "At {port} you may check your sleet at the door. Keep the ticket dry."
+  ],
+  rumor:"{planet} is offering a delivery bonus. The notice is trapped under some exceptionally fine ice.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.02;
+    function crystal(parent,mat,x,y,z,w,h,tilt){
+      const gem=new THREE.Mesh(new THREE.OctahedronGeometry(1),mat);
+      gem.scale.set(w,h,w*.8);
+      gem.position.set(x,y,z);
+      gem.rotation.z=tilt;
+      parent.add(gem);
+    }
+    crystal(rig,body,0,.60,0,.33,.395,0);
+    oval(head,light,0,0,0,.29,.25,.24);
+    const frost=T.phys('#d9faff',{roughness:.30});
+    for(const side of [-1,1]){
+      crystal(head,body,side*.238,.195,-.04,.095,.25,-side*.54);
+      crystal(head,frost,side*.10,.31,-.07,.075,.215,-side*.23);
+    }
+    crystal(head,body,0,.34,-.06,.106,.28,0);
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.147,0.015,0.193,0.124,null,T.iris);
+      T.brow(head,U,side*0.147,0.177,0.221,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.13,0.244,.86);
+    T.blush(head,0.226,-0.09,0.177,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.327,0.76,.085,0.32,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.155,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Sealump: A spring-footed stamp robot collects impressions of perfectly ordinary floors. */
+SPECIES_EXTRA.sealump = {
+  name:"Sealump", kind:"sealump", family:"robot", skin:"metal",
+  script:"blocks", col:"#a17dd4", hue:265, sat:50, lit:57,
+  syl:["sel", "lum", "tap", "ink", "pem", "dol", "chi", "dak"],
+  voice:{wave:"square",base:167,range:.27,rate:5.8,glide:.06,vib:0,vibAmt:0,fx:"click",amp:.25},
+  trait:"Dates a port by the grain of its floorboards.",
+  chat:[
+    "This floor has a grain like yesterday's floor, but with ambition.",
+    "I remember every dock by the mark it left on my ankle.",
+    "I stepped on my own report. Management approved the improvement.",
+    "The foyer asked for a clean copy. I'll walk through it again.",
+    "My ink pad has the day off. I'm taking pencil rubbings."
+  ],
+  greet:[
+    "Hello. Your signal made a nice clean impression.",
+    "Records desk here. I have room in the margin."
+  ],
+  cargo:[
+    "{good}. The crate bottoms have already signed for the trip.",
+    "A roll of blank flooring. A first edition, if I tread carefully."
+  ],
+  joke:["I stamped a moving walkway. My signature is touring the terminal."],
+  nice:["Thank you. Would you sign the corner while the ink is wet?"],
+  bye:["Leaving my mark. I'll mop up the spare ones."],
+  honk:["Very official. I'll stamp the noise complaint in your favour."],
+  dock:[
+    "Welcome to {port}. My footprints lead to the receiving desk.",
+    "At {port} every floorboard has an entry in my album."
+  ],
+  rumor:"{planet} stamped a bonus on its delivery orders. I recognise the pressure on the final zero.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=1.07;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#ffd2a7',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    rig.add(T.rbox(.44,.104,.342,.036,dark,0,.085,0));
+    rig.add(T.rbox(.47,.055,.35,.02,body,0,.162,0));
+    const coil=[];
+    for(let i=0;i<=48;i++){
+      const angle=i*Math.PI/6;
+      coil.push([.12*Math.cos(angle),.194+i*.0073,.12*Math.sin(angle)]);
+    }
+    tube(rig,light,coil,.024);
+    rig.add(T.rbox(.517,.249,.375,.055,body,0,.695,0));
+    rig.add(T.cyl(.081,.099,.17,light,0,.892,0,16));
+    head.add(T.rbox(.484,.327,.321,.056,body));
+    head.add(T.rbox(.42,.27,.032,.014,glass,0,0,.168));
+    head.add(T.cyl(.065,.08,.106,dark,0,.243,0,16));
+    oval(head,light,0,.333,0,.153,.084,.104);
+    oval(head,signal,0,.34,.097,.041,.025,.011);
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.126,0.017,0.113);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0568,0.0726,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.126,0.113,0.192,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.09,0.201,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.338,0.761,.085,0.316,.054,dark,light));
+  },
+};
+/* Tarestep: A two-pan hover scale weighs compliments before passing them along. */
+SPECIES_EXTRA.tarestep = {
+  name:"Tarestep", kind:"tarestep", family:"robot", skin:"metal",
+  script:"blocks", col:"#67c3d5", hue:190, sat:57, lit:53,
+  syl:["tar", "tep", "kel", "gram", "vi", "sek", "nul", "bem"],
+  voice:{wave:"triangle",base:246,range:.3,rate:5.2,glide:.16,vib:2,vibAmt:4,fx:"robot",amp:.4},
+  trait:"Knows the precise weight of a kind word.",
+  chat:[
+    "Your good morning weighed a little more than yesterday's. Slept well?",
+    "A sigh weighs almost nothing until everyone does it at once.",
+    "I balanced the accounts. Had to move one pencil.",
+    "Wind adds weight on the left. I turn around before giving bad news.",
+    "The empty crate is a little heavier since they wrote EMPTY on it."
+  ],
+  greet:[
+    "Scale cleared. Say something of moderate weight.",
+    "Hello. I've set aside a pan just for you."
+  ],
+  cargo:[
+    "{good}. The gross weight includes a very sincere apology.",
+    "Counterweights, plus a smaller counterweight for the packing slip."
+  ],
+  joke:["I tried weighing a rumour. It got heavier at every stop."],
+  nice:["That tips the scale. Give me a moment to enjoy it."],
+  bye:["Travel light. I can certify it if you like."],
+  honk:["That one bounced right off the pan."],
+  dock:[
+    "Welcome to {port}. Both pans say it's good to see you.",
+    "At {port} we weigh the ship before we hand out biscuits."
+  ],
+  rumor:"I've weighed the delivery bonus on {planet}. It is a substantial improvement.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.105;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#aafbea',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    oval(rig,body,0,.52,0,.27,.29,.218);
+    for(const side of [-1,1]){
+      rig.add(T.cyl(.119,.09,.17,dark,side*.154,.28,0,20));
+      oval(rig,signal,side*.154,.113,0,.052,.112,.06);
+    }
+    rig.add(T.rbox(.69,.058,.115,.021,light,0,.83,0));
+    for(const side of [-1,1]){
+      for(const z of [-.065,.065]) rig.add(T.cyl(.009,.009,.23,dark,side*.30,.697,z,8));
+      oval(rig,body,side*.30,.57,0,.104,.033,.13);
+    }
+    rig.add(T.cyl(.064,.09,.19,light,0,.926,0));
+    head.add(T.rbox(.46,.33,.29,.06,body));
+    head.add(T.rbox(.407,.274,.033,.013,glass,0,0,.153));
+    const needle=T.bx(.027,.142,.034,light,0,.252,0);
+    needle.rotation.z=-.38;
+    head.add(needle);
+    head.add(T.sph(.036,signal,.028,.319,0,12,8));
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.123,0.018,0.097);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0657,0.0527,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.123,0.114,0.176,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.085,0.185,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.415,0.76,.085,0.306,.054,dark,light));
+  },
+};
+/* Tessettle: A broad gliding ray with a patchwork back remembers routes as quilt patterns. */
+SPECIES_EXTRA.tessettle = {
+  name:"Tessettle", kind:"tessettle", family:"alien", skin:"matte",
+  script:"angular", col:"#ac76d6", hue:274, sat:54, lit:56,
+  syl:["tes", "set", "ti", "lo", "vai", "fim", "il", "sha"],
+  voice:{wave:"triangle",base:277,range:.47,rate:5.4,glide:.38,vib:5,vibAmt:7,fx:"chorus",amp:.49},
+  trait:"Will mend your map while you sleep under it.",
+  chat:[
+    "The turn at {planet} is two purple squares after the service station.",
+    "I slept under the navigation quilt. Woke up knowing a shortcut.",
+    "I've run out of yellow thread. No more eastbound trips today.",
+    "My aunt sewed a detour into my sleeve. It goes past her house.",
+    "The long way home takes a whole extra spool."
+  ],
+  greet:[
+    "Hello. I have your lane here in running stitch.",
+    "Tell me which way the loose end points. I'll find you."
+  ],
+  cargo:[
+    "{good}, covered by the winter edition of the star chart.",
+    "Thimbles for the cartographers. The outer belt is rather prickly."
+  ],
+  joke:["I sewed a shortcut across the quilt. Now it only covers one knee."],
+  nice:["Thank you. I hemmed it in orbit."],
+  bye:["Follow the blue seam until the lights come on."],
+  honk:["That's the sound my needle makes at a toll gate."],
+  dock:[
+    "Welcome to {port}. The landing strip is the wide grey stripe.",
+    "At {port} I can mend a torn route while you unload."
+  ],
+  rumor:"The star quilt marks {planet} in gold thread. They're paying extra for deliveries.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.74;
+    oval(rig,dark,0,.13,0,.285,.13,.25);
+    oval(rig,body,0,.399,-.023,.335,.261,.305);
+    for(const side of [-1,1]){
+      const wing=oval(rig,body,side*.33,.578,-.065,.27,.10,.283);
+      wing.rotation.z=side*.265;
+      for(let i=0;i<3;i++){
+        const patch=oval(rig,i%2?dark:light,side*(.30+i*.093),.675+i*.016,-.07+(i%2)*.085,.054,.012,.084);
+        patch.rotation.z=side*.265;
+      }
+    }
+    T.head.position.z=.065;
+    oval(head,light,0,0,0,.30,.225,.23);
+    tube(rig,dark,[[0,.49,-.22],[0,.69,-.33],[-.06,.91,-.35],[-.12,1.11,-.31]],.038);
+    const pennant=oval(rig,light,-.122,1.153,-.307,.099,.109,.041);
+    pennant.rotation.z=.45;
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.151,0.035,0.192,0.125,null,T.iris);
+      T.brow(head,U,side*0.151,0.198,0.22,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.1,0.232,.86);
+    T.blush(head,0.23,-0.06,0.176,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.375,0.563,.085,0.29,.054,body,light));
+  },
+};
+/* Timbrelk: A drum-bodied walker with padded mallets counts the rests between noises. */
+SPECIES_EXTRA.timbrelk = {
+  name:"Timbrelk", kind:"timbrelk", family:"alien", skin:"matte",
+  script:"dots", col:"#e58061", hue:14, sat:72, lit:55,
+  syl:["tum", "brel", "ta", "dum", "pa", "rim", "ket", "om"],
+  voice:{wave:"triangle",base:152,range:.44,rate:6.8,glide:.17,vib:3,vibAmt:6,fx:"click",amp:.50},
+  trait:"Thinks the rests deserve equal billing.",
+  chat:[
+    "Nobody has played for a minute. Excellent ensemble work.",
+    "My left shoe squeaks on the offbeat. I have kept it on the payroll.",
+    "The engine missed a beat. I've saved the space in case it wants it back.",
+    "I taught the freight lift to count in. It only knows floors.",
+    "The docks get quiet at noon. That's my favourite part of the piece."
+  ],
+  greet:[
+    "Come in whenever you're ready. We have plenty of rests.",
+    "Hello from the percussion bay. Mind the silence on your way in."
+  ],
+  cargo:[
+    "{good}, padded on every side except the side that sounds best.",
+    "Four boxes of practice pads. It was a very quiet argument with customs."
+  ],
+  joke:["I wrote a solo for an empty room. The room has asked for a bigger part."],
+  nice:["Thank you. I'll give that compliment a whole bar to ring."],
+  bye:["I'll count you out. Then you're on your own time."],
+  honk:["Lovely pickup. I'll take it from there."],
+  dock:[
+    "Welcome to {port}. The ramp lands on the downbeat.",
+    "At {port} we let the last crate finish ringing before lunch."
+  ],
+  rumor:"Freight rates on {planet} just went up. I heard the cashier counting louder.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.95;
+    rig.add(T.cyl(.365,.365,.43,body,0,.58,0,32));
+    const hide=T.phys('#ffda9e');
+    for(const y of [.365,.79]) rig.add(T.cyl(.38,.38,.055,hide,0,y,0,32));
+    for(let i=0;i<10;i++){
+      const a=i*Math.PI/5;
+      const lace=T.cyl(.012,.012,.398,light,Math.sin(a)*.363,.575,Math.cos(a)*.363,8);
+      lace.rotation.z=.17*Math.cos(a)*(i%2?1:-1);
+      lace.rotation.x=-.17*Math.sin(a)*(i%2?1:-1);
+      rig.add(lace);
+    }
+    oval(head,body,0,0,0,.325,.27,.255);
+    for(const side of [-1,1]){
+      oval(head,light,side*.25,.20,-.08,.085,.085,.085);
+    }
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.162,0.035,0.206,0.13,null,T.iris);
+      T.brow(head,U,side*0.162,0.203,0.234,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.11,0.25,.86);
+    T.blush(head,0.241,-0.07,0.19,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.404,0.81,.085,0.32,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.18,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Velveteel: A long-necked velvet swimmer with ribbon fins takes lost currents home. */
+SPECIES_EXTRA.velveteel = {
+  name:"Velveteel", kind:"velveteel", family:"alien", skin:"fuzzy",
+  script:"curvy", col:"#7293da", hue:221, sat:58, lit:56,
+  syl:["vel", "yii", "loo", "sai", "en", "mu", "raal", "nim"],
+  voice:{wave:"sine",base:254,range:.61,rate:4.1,glide:.68,vib:5,vibAmt:11,fx:"chorus",amp:.45},
+  trait:"Has never left a stray breeze behind.",
+  chat:[
+    "A draught came in under the door. It had clearly forgotten where it lived.",
+    "I put a crosswind in a jar. Now the lid goes on sideways.",
+    "The current I'm escorting is homesick for a bend in a river.",
+    "I tried labelling the winds. The labels are over there now.",
+    "The breeze in my cabin knows an excellent shortcut. It leads to the window."
+  ],
+  greet:[
+    "Hello. Did a little gust go past with a ribbon on?",
+    "Current returns desk. Where did you last feel it?"
+  ],
+  cargo:[
+    "{good}. I tucked the packing slip downwind.",
+    "A tailwind on its first flight home. I'm letting it lead."
+  ],
+  joke:["My breeze wanted a round trip. I bought it a fan."],
+  nice:["Thank you. The fins untangle if I hold still."],
+  bye:["May your air remember where it's going."],
+  honk:["That stirred up some old acquaintances."],
+  dock:[
+    "Welcome to {port}. The breeze from bay two belongs in bay five.",
+    "At {port} the windsock is my office. Pull the ribbon."
+  ],
+  rumor:"There's a freight bonus on {planet}. The news blew in under my door.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=1.23;
+    oval(rig,body,0,.156,-.035,.31,.155,.35);
+    oval(rig,body,-.065,.388,-.055,.226,.28,.215);
+    tube(rig,body,[[-.063,.43,-.04],[-.095,.66,-.01],[.04,.92,0],[0,1.16,0]],.145);
+    oval(head,body,0,-.015,0,.27,.24,.23);
+    for(const side of [-1,1]){
+      const ribbon=oval(head,light,side*.303,.055,-.045,.105,.236,.042);
+      ribbon.rotation.z=-side*.98;
+      const tip=oval(head,body,side*.45,.005,-.055,.065,.168,.038);
+      tip.rotation.z=side*.51;
+    }
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.142,0.035,0.185,0.123,null,T.iris);
+      T.brow(head,U,side*0.142,0.196,0.213,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.11,0.226,.86);
+    T.blush(head,0.221,-0.07,0.169,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.246,0.74,.085,0.31,.054,body,light));
+  },
+};
+/* Whorloo: A round-footed courier with a great spiral shell rents out the spare room. */
+SPECIES_EXTRA.whorloo = {
+  name:"Whorloo", kind:"whorloo", family:"alien", skin:"gloss",
+  script:"curvy", col:"#e7ac6a", hue:32, sat:72, lit:57,
+  syl:["who", "rol", "noo", "am", "lo", "vun", "til", "oom"],
+  voice:{wave:"sine",base:172,range:.34,rate:3.9,glide:.42,vib:3,vibAmt:7,fx:"bubble",amp:.54},
+  trait:"Treats a mortgage as a form of outerwear.",
+  chat:[
+    "The shell has a guest room. The hallway is most of it.",
+    "My tenant wants a sea view. I turn left when we pass water.",
+    "Someone knocked on the back door. It was the front door, one lap later.",
+    "I had a rug made for the landing. The carpet fitter is still turning.",
+    "Forward my mail to wherever I am facing."
+  ],
+  greet:[
+    "Welcome to my doorstep. It's the bit just behind the radio.",
+    "Hello from the owner, occupant and vehicle."
+  ],
+  cargo:[
+    "{good}. Top landing, past the first three welcome mats.",
+    "A straight staircase. The architect wants a second opinion."
+  ],
+  joke:["My listing says the flat is around the corner. All of it is."],
+  nice:["Thank you. I finally polished the upstairs outside."],
+  bye:["Come round sometime. It's the only way in."],
+  honk:["I'll tell the tenant their taxi is here."],
+  dock:[
+    "Welcome to {port}. I keep a spare key under the smallest bollard.",
+    "Make yourself at home at {port}. I already have."
+  ],
+  rumor:"The tenants on {planet} voted for higher delivery pay. The landlord was outvoted by one.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.73;
+    oval(rig,light,0,.191,.025,.40,.19,.37);
+    oval(rig,body,0,.43,.055,.34,.30,.29);
+    const amber=T.phys('#ffd7a1');
+    const shell=oval(rig,body,-.04,.79,-.12,.45,.53,.29);
+    shell.rotation.z=-.19;
+    const coil=[];
+    for(let i=0;i<=48;i++){
+      const a=i*.19, r=.021+i*.0078;
+      coil.push([-.04+Math.cos(a)*r,.80+Math.sin(a)*r,-.10-Math.sqrt(1-(r/.49)**2)*.29]);
+    }
+    tube(rig,amber,coil,.028);
+    T.head.position.z=.19;
+    oval(head,light,0,-.01,0,.30,.255,.222);
+    for(const side of [-1,1]){
+      const feeler=oval(head,body,side*.15,.24,0,.038,.14,.04);
+      feeler.rotation.z=-side*.22;
+      oval(head,light,side*.18,.37,0,.053,.053,.053);
+    }
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.15,0.02,0.174,0.124,null,T.iris);
+      T.brow(head,U,side*0.15,0.182,0.202,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.125,0.228,.86);
+    T.blush(head,0.229,-0.085,0.158,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.39,0.62,.085,0.28,.054,body,light));
+  },
+};
+/* Wickindle: A waxy little night gardener carries a steady pearl of light in a curling wick. */
+SPECIES_EXTRA.wickindle = {
+  name:"Wickindle", kind:"wickindle", family:"alien", skin:"gloss",
+  script:"dots", col:"#f1d76f", hue:48, sat:82, lit:60,
+  syl:["wi", "kin", "sel", "di", "li", "rim", "fen", "ish"],
+  voice:{wave:"sine",base:444,range:.41,rate:5.6,glide:.29,vib:7,vibAmt:9,fx:"chirp",amp:.38},
+  trait:"Whispers so the night flowers can sleep.",
+  chat:[
+    "I plant night flowers. If I lean too close they decide it's morning.",
+    "Quiet shift. I tucked the last moth into a lampshade.",
+    "The seed packet says full moon. I've been standing here doing my best.",
+    "Please dim your cabin. The shy buds are rehearsing.",
+    "One blossom stayed open past dawn. We gave it overtime."
+  ],
+  greet:[
+    "Hello. The garden is asleep but I can whisper.",
+    "Good evening, whatever your clock claims."
+  ],
+  cargo:[
+    "{good}. I wrapped the corners so they won't wake the bulbs.",
+    "Curtains for an observatory greenhouse. The stars like some privacy."
+  ],
+  joke:["My sundial is on nights now. It has remarkably little to report."],
+  nice:["How kind. I keep a spare glow for evenings like this."],
+  bye:["Sleep well when your sky gets round to it."],
+  honk:["Ah. All the tulips are up."],
+  dock:[
+    "Welcome to {port}. The little lights by your pad are still growing.",
+    "At {port} please leave the night beds dark. The path has its own glow."
+  ],
+  rumor:"The midnight shift on {planet} is paying extra for freight. Knock softly.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.95;
+    oval(rig,body,0,.53,0,.247,.35,.225);
+    oval(head,body,0,0,0,.285,.30,.235);
+    for(let i=0;i<6;i++){
+      const a=i*Math.PI/3;
+      oval(head,light,Math.sin(a)*.195,.203,Math.cos(a)*.145,.091,.08+(i%3)*.025,.08);
+    }
+    tube(head,dark,[[0,.24,0],[-.04,.34,0],[-.12,.42,0],[-.085,.52,0],[0,.54,0]],.026);
+    oval(head,T.glow('#ffce82',1.4),.026,.54,0,.075,.10,.075);
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.15,0.015,0.195,0.125,null,T.iris);
+      T.brow(head,U,side*0.15,0.178,0.223,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.125,0.235,.86);
+    T.blush(head,0.229,-0.085,0.179,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.291,0.68,.085,0.32,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.13,0.24,0,0.18,.07,dark,null,light));
+  },
+};
+/* Winkmast: A little tracked lighthouse keeps a diary of ships that wink back. */
+SPECIES_EXTRA.winkmast = {
+  name:"Winkmast", kind:"winkmast", family:"robot", skin:"metal",
+  script:"blocks", col:"#e76a6e", hue:358, sat:72, lit:57,
+  syl:["wan", "tik", "lum", "vek", "pim", "hol", "dit", "mas"],
+  voice:{wave:"square",base:329,range:.52,rate:7.1,glide:.1,vib:3,vibAmt:6,fx:"chirp",amp:.23},
+  trait:"Files even accidental flashes under correspondence.",
+  chat:[
+    "One wink means hello. Two means I forgot I'd already said hello.",
+    "A window flashed back at me. I've put it down as a pen pal.",
+    "I point my lamp away from the stars. They have enough on.",
+    "The harbour mirror never misses a shift. Very reliable correspondent.",
+    "Today's log has three freighters and a particularly sociable spoon."
+  ],
+  greet:[
+    "Light on, notebook open. What's your good news?",
+    "Hello from the short tower. Look just below the tall sign."
+  ],
+  cargo:[
+    "{good}, all counted once in light and once in shadow.",
+    "Spare bulbs. They like the night shift because they can see their work."
+  ],
+  joke:["I tried keeping a dark secret. My casing has windows."],
+  nice:["Thank you. That's going on the bright page."],
+  bye:["I'll wink twice when you're out of sight. Habit."],
+  honk:["I'll record that as a wink with sound."],
+  dock:[
+    "Welcome to {port}. One slow blink marks your bay.",
+    "At {port} I leave a lamp on for the last hauler."
+  ],
+  rumor:"The light on {planet} flashed the new freight bonus. I wrote it down before sunrise.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.14;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#ffe89e',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    for(const side of [-1,1]){
+      rig.add(T.rbox(.14,.20,.51,.042,dark,side*.215,.137,0));
+      for(const z of [-.155,0,.155]){
+        const roller=T.cyl(.066,.066,.024,light,side*.316,.135,z,16);
+        roller.rotation.z=Math.PI/2;
+        rig.add(roller);
+      }
+    }
+    rig.add(T.cyl(.165,.286,.586,body,0,.58,0,24));
+    rig.add(T.cyl(.214,.225,.09,light,0,.677,0,24));
+    rig.add(T.cyl(.073,.095,.21,dark,0,.945,0,16));
+    head.add(T.rbox(.47,.33,.35,.052,body));
+    head.add(T.rbox(.416,.277,.035,.015,glass,0,0,.184));
+    head.add(T.cyl(.25,.255,.045,light,0,.21,0,24));
+    head.add(T.cyl(.114,.114,.178,signal,0,.318,0,20));
+    for(const side of [-1,1]) head.add(T.cyl(.015,.015,.19,dark,side*.135,.322,0,10));
+    head.add(T.cyl(.041,.194,.104,body,0,.455,0,24));
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.125,0.014,0.13);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0534,0.0678,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.125,0.11,0.209,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.09,0.218,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.318,0.807,.085,0.301,.054,dark,light));
+  },
+};
 'use strict';
 /* ===================== DATA ===================== */
 const SPECIES = {
@@ -541,6 +1993,9 @@ const SPECIES = {
     rumor:"Promotional notice: deliveries to {planet} currently earn bonus credits. Offer valid while supplies of offer last." },
 };
 const SPECIES_KEYS = Object.keys(SPECIES);
+/* the species pack (src/species/*.js): known to the game by key, but not in the random pools until wired in */
+Object.assign(SPECIES, SPECIES_EXTRA);
+const SPECIES_EXTRA_KEYS = Object.keys(SPECIES_EXTRA);
 
 const CHATTER = {
   port:["{port} Control to all inbound: pad three is closed because something is asleep on it.","{port} Control: winds are light, visibility is good, the coffee machine is broken.","{port} Control: whoever parked across two pads, we can all see you.","{port} Control reminds pilots that landing is automatic. Please stop trying to help.","{port} Control: lost property now holds one boot, one small moon, and a mild smell.","Traffic advisory: slow hauler ahead in the {planet} lane. He is doing his best.","{port} Control: the gift shop is open. It has always been open. Please buy something.","{port} Control: inbound freighter, you are cleared. Outbound freighter, you are also cleared. Try not to meet."],
@@ -2250,14 +3705,19 @@ const Folk = (() => {
   function make(sp, seed, scale=1){
     const S=SPECIES[sp], r=mulberry32((seed|0)+11), hue=Math.round(S.hue+(r()-0.5)*26), K=S.kind;
     const hsl=(l,sa)=>`hsl(${hue},${sa==null?S.sat:sa}%,${Math.round(Math.min(92,l))}%)`;
-    const body=K==='rock'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.85,flatShading:true}):K==='robot'?phys(hsl(S.lit),{roughness:0.3,metalness:0.55,clearcoat:0.8,clearcoatRoughness:0.15})
-      :K==='fluffy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0}):phys(hsl(S.lit));
-    if(K==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
+    const skin=S.skin||({rock:'stone',robot:'metal',fluffy:'fuzzy',jelly:'jelly'}[K]);
+    const body=skin==='stone'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.85,flatShading:true}):skin==='metal'?phys(hsl(S.lit),{roughness:0.3,metalness:0.55,clearcoat:0.8,clearcoatRoughness:0.15})
+      :skin==='fuzzy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0})
+      :skin==='matte'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.8}):phys(hsl(S.lit));
+    if(skin==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
     const dark=phys(hsl(S.lit*0.55),{clearcoat:0.2}), light=phys(hsl(Math.min(92,S.lit*1.28)),{clearcoat:0.3}), browM=new THREE.MeshStandardMaterial({color:C(hsl(S.lit*0.32,Math.min(60,S.sat))),roughness:0.7});
     const F=new THREE.Group(), lift=new THREE.Group(), rig=new THREE.Group(); F.add(lift); lift.add(rig); const head=new THREE.Group(); rig.add(head);
     const U={rig,lift,low0:0,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
     const iris=IRIS[Math.floor(r()*IRIS.length)];
-    switch(K){
+    const X=SPECIES_EXTRA[sp];
+    if(X&&X.build) X.build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
+      glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
+    else switch(K){
       case 'blob': { const b=sph(0.62,body,0,0.7,0); b.scale.set(1,1.18,1); rig.add(b); head.position.y=0.75;
         eye(head,U,-0.21,0.22,0.47,0.17,null,iris); eye(head,U,0.21,0.22,0.47,0.17,null,iris); eye(head,U,0,0.55,0.38,0.12,null,iris);
         brow(head,U,-0.21,0.43,0.5,0.17,0.028,browM,-1); brow(head,U,0.21,0.43,0.5,0.17,0.028,browM,1); mouth(head,U,0,-0.06,0.6,1.2); blush(head,0.38,0.02,0.52,0.1);
@@ -4818,5 +6278,288 @@ const Game = {
   },
 };
 Game.boot();
+/* Standalone, opt-in model and portrait inspector. */
+(() => {
+  if (!new URLSearchParams(location.search).has('gallery')) return;
+
+  const host = document.createElement('dialog');
+  host.setAttribute('aria-label', 'Species gallery');
+  host.style.cssText = 'position:fixed;inset:0;margin:0;padding:0;border:0;width:100%;height:100%;max-width:none;max-height:none;background:#101b20;color:white;overflow:hidden';
+  const shell = document.createElement('div');
+  shell.style.height = '100%';
+  host.append(shell);
+  const root = shell.attachShadow({mode:'open'});
+  root.innerHTML = `
+    <style>
+      * {box-sizing:border-box}
+      :host {font:20px/1.45 system-ui,sans-serif;color:#f0f6f4;color-scheme:dark}
+      [hidden] {display:none!important}
+      .page {height:100%;overflow:auto;background:#101b20}
+      header {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px clamp(16px,3vw,54px);border-bottom:1px solid #44595b;background:#152428}
+      h1,h2,p {margin:0}
+      h1 {font-size:clamp(28px,3.5vw,52px);line-height:1.1;letter-spacing:-.04em}
+      h2 {font-size:30px;letter-spacing:-.025em}
+      main {max-width:1840px;margin:auto;padding:16px clamp(16px,3vw,54px) 40px}
+      section+section {margin-top:36px}
+      .group {display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:8px 0 16px;border-bottom:1px solid #46585b;padding-bottom:8px}
+      .count,.key,.seed {font:20px/1.35 ui-monospace,monospace;color:#c3d6d5}
+      button {appearance:none;font:600 20px/1.2 system-ui,sans-serif;letter-spacing:normal;text-transform:none;color:#f0f6f4;background:#25383d;border:1px solid #668085;border-radius:7px;padding:10px 16px;min-height:48px;cursor:pointer}
+      button:hover {border-color:#bfdfd7;background:#33494d}
+      button:focus-visible {outline:4px solid #ffdd85;outline-offset:3px}
+      button[aria-pressed=true] {color:#102122;background:#bcebd7;border-color:#bcebd7}
+      .grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+      .card {text-align:left;padding:0;overflow:hidden;border-color:#47626a;background:#17292e}
+      .portraits {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:#12232c;aspect-ratio:3}
+      .portraits canvas {display:block;width:100%;height:auto;border-right:1px solid #2d4851}
+      .caption {display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 14px 13px;border-top:3px solid var(--accent)}
+      .name {font-size:25px;font-weight:750}
+      .viewer {display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:clamp(18px,3vw,44px);align-items:start;margin-top:10px}
+      .stage {width:100%;height:clamp(300px,68vh,780px);background:#162b32;border:1px solid #527078;border-radius:10px;overflow:hidden}
+      .stage canvas {display:block;width:100%;height:100%}
+      .controls {display:grid;gap:20px}
+      fieldset {border:0;margin:0;padding:0}
+      legend {font-weight:750;padding:0;margin:0 0 8px}
+      .row {display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+      .measure {display:grid;grid-template-columns:auto 1fr;gap:3px 16px;margin:0;font-variant-numeric:tabular-nums}
+      dt {color:#c3d6d5} dd {margin:0}
+      @media(max-width:760px){.viewer{grid-template-columns:1fr}.stage{height:clamp(265px,44vh,420px)}header{align-items:start}.caption{gap:4px}}
+      @media(max-width:420px){header{flex-wrap:wrap}.row button{flex:1 0 auto}main{padding:12px}.caption{padding:8px}}
+    </style>
+    <div class="page">
+      <header><h1>Species gallery</h1><div class="row"><button id="back" hidden>All species</button><button id="close">Close gallery</button></div></header>
+      <main><div id="catalog"></div>
+        <div id="viewer" class="viewer" hidden>
+          <div class="stage" aria-label="Rotating full-scale model and one-metre marker"></div>
+          <div class="controls">
+            <div><h2 id="name"></h2><p class="seed" id="seed"></p><p id="trait"></p></div>
+            <fieldset><legend>Expression</legend><div class="row" id="moods"></div></fieldset>
+            <fieldset><legend>Pose</legend><div class="row" id="poses"></div></fieldset>
+            <div class="row"><button id="next">Next seed</button><button id="spin" aria-pressed="true">Rotate</button></div>
+            <fieldset><legend>Standing measurements</legend><dl class="measure"></dl></fieldset>
+          </div>
+        </div>
+      </main>
+    </div>`;
+  document.body.append(host);
+  host.showModal();
+  const get = sel => root.querySelector(sel);
+  const page = get('.page'), catalog = get('#catalog'), stage = get('.stage');
+  const seeds = [26, 9, 25];
+  let seedIndex = 0, key, figure, prop, renderer, scene, camera, ruler;
+  let selectedCard, scrollTop = 0, frame, lastTime, elapsed, angle;
+  let expression, walking, waving, seated, holding, rotating;
+  let queue = [], portraitFrame;
+  const bodyGeometries = new Set(), bodyMaterials = new Set();
+
+  function button(parent, label, action) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.onclick = action;
+    parent.append(b);
+    return b;
+  }
+  function addSection(title, keys) {
+    const section = document.createElement('section');
+    const heading = document.createElement('div');
+    heading.className = 'group';
+    const label = document.createElement('h2');
+    label.textContent = title;
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = keys.length + ' species';
+    heading.append(label, count);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    section.append(heading, grid);
+    catalog.append(section);
+    for (const k of keys) {
+      const card = button(grid, '', () => openFigure(k, card));
+      card.className = 'card';
+      card.style.setProperty('--accent', SPECIES[k].col);
+      card.setAttribute('aria-label', 'Inspect ' + SPECIES[k].name);
+      const strip = document.createElement('span');
+      strip.className = 'portraits';
+      strip.setAttribute('aria-hidden','true');
+      const caption = document.createElement('span');
+      caption.className = 'caption';
+      const name = document.createElement('span'), code = document.createElement('span');
+      name.className = 'name'; code.className = 'key';
+      name.textContent = SPECIES[k].name; code.textContent = k;
+      caption.append(name, code);
+      card.append(strip, caption);
+      for (const seed of seeds) queue.push({strip, k, seed});
+    }
+  }
+  function paintPortraits() {
+    if (key || !queue.length) return;
+    const start = performance.now();
+    do {
+      const {strip, k, seed} = queue.shift();
+      strip.append(portraitCanvas(k, seed, 160));
+    } while (queue.length && performance.now() - start < 12);
+    if (queue.length) portraitFrame = requestAnimationFrame(paintPortraits);
+  }
+
+  function setupScene() {
+    if (renderer) return;
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    stage.append(renderer.domElement);
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x162b32);
+    scene.add(new THREE.HemisphereLight(0xecf9ff,0x78765d,.9));
+    for (const [color, strength, x, y, z] of [[0xffefd5,1.45,2,4,3],[0xb0e9ff,.8,-2,1,2],[0x9affdf,.9,0,2,-3]]) {
+      const light = new THREE.DirectionalLight(color,strength);
+      light.position.set(x,y,z);
+      scene.add(light);
+    }
+    scene.add(new THREE.GridHelper(8,32,0x739997,0x38575a));
+    const points = [-.78,0,0,-.78,1,0];
+    for (let i=0; i<=10; i++) points.push(-.78,i/10,0, i%5 ? -.735 : -.68,i/10,0);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(points,3));
+    scene.add(new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({color:0xffda83})));
+    const cv = document.createElement('canvas');
+    cv.width=180; cv.height=80;
+    const ctx=cv.getContext('2d');
+    ctx.font='bold 52px system-ui'; ctx.fillStyle='#ffda83'; ctx.fillText('1 m',8,60);
+    ruler = new THREE.CanvasTexture(cv);
+    const marker = new THREE.Sprite(new THREE.SpriteMaterial({map:ruler,depthTest:false}));
+    marker.scale.set(.34,.15,1); marker.position.set(-.74,1.11,0); scene.add(marker);
+    camera = new THREE.PerspectiveCamera(32,1,.05,30);
+    fit();
+  }
+  function fit() {
+    if (!renderer || stage.clientWidth < 1 || stage.clientHeight < 1) return;
+    const w=stage.clientWidth, h=stage.clientHeight;
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h;
+    camera.position.set(0,1.26,Math.max(4.95,3.55/camera.aspect));
+    camera.lookAt(0,1.03,0);
+    camera.updateProjectionMatrix();
+  }
+  const resize = new ResizeObserver(fit);
+  resize.observe(stage);
+
+  function discardFigure() {
+    if (!figure) return;
+    scene.remove(figure);
+    for (const g of bodyGeometries) g.dispose();
+    for (const m of bodyMaterials) m.dispose();
+    bodyGeometries.clear(); bodyMaterials.clear();
+    figure = null; prop = null;
+  }
+  function loadFigure() {
+    discardFigure();
+    const seed = seedIndex < seeds.length ? seeds[seedIndex] : 100 + seedIndex - seeds.length;
+    figure = Folk.make(key,seed,1);
+    // The house eyes and mouth share materials with the game. Own only the viewer's copies.
+    const copies = new Map();
+    figure.traverse(o => {
+      if (!o.isMesh) return;
+      bodyGeometries.add(o.geometry);
+      if (!copies.has(o.material)) copies.set(o.material,o.material.clone());
+      o.material = copies.get(o.material);
+      bodyMaterials.add(o.material);
+    });
+    scene.add(figure);
+    const bounds = new THREE.Box3(), point = new THREE.Vector3();
+    figure.updateMatrixWorld(true);
+    figure.traverse(o => {
+      if (!o.isMesh) return;
+      const vertices=o.geometry.attributes.position;
+      for (let i=0; i<vertices.count; i++) bounds.expandByPoint(point.fromBufferAttribute(vertices,i).applyMatrix4(o.matrixWorld));
+    });
+    const size = bounds.getSize(new THREE.Vector3());
+    const dl = get('.measure');
+    dl.replaceChildren();
+    for (const [label,value] of [['Height',size.y],['Width',size.x],['Depth',size.z],['Lowest point',bounds.min.y]]) {
+      const dt=document.createElement('dt'), dd=document.createElement('dd');
+      dt.textContent=label; dd.textContent=(Math.abs(value)<.0005 ? 0 : value).toFixed(3)+' m';
+      dl.append(dt,dd);
+    }
+    prop = new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.34,16),new THREE.MeshStandardMaterial({color:0xffaf46}));
+    prop.rotation.x=Math.PI/2; prop.position.z=.13;
+    bodyGeometries.add(prop.geometry); bodyMaterials.add(prop.material);
+    Folk.hold(figure,prop);
+    prop.visible=holding;
+    get('#name').textContent=SPECIES[key].name;
+    get('#seed').textContent=key+' · Seed '+seed;
+    get('#trait').textContent=SPECIES[key].trait;
+    Folk.mood(figure,expression);
+    angle=0;
+    updateControls();
+  }
+  function openFigure(k, card) {
+    scrollTop=page.scrollTop; selectedCard=card; key=k; seedIndex=0;
+    expression='neutral'; walking=waving=seated=holding=false; rotating=true;
+    cancelAnimationFrame(portraitFrame);
+    catalog.hidden=true; get('#viewer').hidden=false; get('#back').hidden=false;
+    page.scrollTop=0; get('#back').focus();
+    setupScene(); fit(); loadFigure();
+    elapsed=0; lastTime=null;
+    frame=requestAnimationFrame(draw);
+  }
+  function draw(time) {
+    const dt=lastTime===null ? 0 : Math.min(.08,(time-lastTime)/1000);
+    lastTime=time; elapsed+=dt;
+    if (rotating) angle+=dt*.42;
+    figure.rotation.y=angle;
+    Folk.walk(figure,elapsed*5.5,walking ? 1 : 0);
+    for (const arm of figure.userData.arms) arm.rotation.z=0;
+    if (waving) Folk.arms(figure,[.3,2.6],[.3,2.6]);
+    figure.position.y=seated ? .47 : 0;
+    if (seated) for (const leg of figure.userData.legs) {
+      leg.rotation.x=-1.45;
+      if (leg.userData.foot) leg.userData.foot.rotation.x=0;
+    }
+    Folk.blink(figure,elapsed);
+    renderer.render(scene,camera);
+    frame=requestAnimationFrame(draw);
+  }
+  function updateControls() {
+    for (const b of get('#moods').children) b.setAttribute('aria-pressed',b.dataset.mood===expression);
+    const poses=[walking,waving,seated,holding];
+    [...get('#poses').children].forEach((b,i)=>b.setAttribute('aria-pressed',poses[i]));
+    get('#spin').setAttribute('aria-pressed',rotating);
+  }
+  for (const m of ['neutral','happy','sad','shock','worried']) {
+    const b=button(get('#moods'),m[0].toUpperCase()+m.slice(1),()=>{expression=m; Folk.mood(figure,m); updateControls();});
+    b.dataset.mood=m;
+  }
+  button(get('#poses'),'Walk',()=>{walking=!walking; seated=false; updateControls();});
+  button(get('#poses'),'Wave',()=>{waving=!waving; updateControls();});
+  button(get('#poses'),'Sit',()=>{seated=!seated; walking=false; updateControls();});
+  button(get('#poses'),'Hold prop',()=>{holding=!holding; prop.visible=holding; updateControls();});
+  get('#next').onclick=()=>{seedIndex++; loadFigure();};
+  get('#spin').onclick=()=>{rotating=!rotating; updateControls();};
+
+  function back() {
+    cancelAnimationFrame(frame); discardFigure(); key=null;
+    get('#viewer').hidden=true; get('#back').hidden=true; catalog.hidden=false;
+    page.scrollTop=scrollTop; selectedCard.focus({preventScroll:true});
+    portraitFrame=requestAnimationFrame(paintPortraits);
+  }
+  function close() {
+    cancelAnimationFrame(frame); cancelAnimationFrame(portraitFrame); queue=[];
+    resize.disconnect(); discardFigure();
+    if (renderer) {
+      scene.traverse(o=>{if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose();});
+      ruler.dispose(); renderer.dispose(); renderer.forceContextLoss();
+    }
+    host.close(); host.remove();
+  }
+  get('#back').onclick=back;
+  get('#close').onclick=close;
+  host.addEventListener('cancel',e=>{e.preventDefault(); if(key) back(); else close();});
+  // The game has window-level flight controls, including Space and the arrow keys.
+  for (const type of ['keydown','keyup','keypress']) host.addEventListener(type,e=>e.stopPropagation());
+  addSection('Original crew',SPECIES_KEYS);
+  addSection('Species pack',SPECIES_EXTRA_KEYS);
+  portraitFrame=requestAnimationFrame(paintPortraits);
+})();
 </script>
 </body></html>
