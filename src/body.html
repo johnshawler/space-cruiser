@@ -6,7 +6,7 @@
   <button id="skip" hidden>Skip ▸ Space</button>
   <div id="toasts" aria-live="polite"></div>
   <div id="tooltip" hidden></div>
-  <div id="keys" hidden><span class="kb-only">? Help · M Map · Double-click to zoom · Drag to look</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
+  <div id="keys" hidden><span class="kb-only">? Help · M Map · I Hold · B Scoop · Drag to look</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
   <div id="caption" hidden aria-live="polite"></div>
 
   <div id="touch" aria-label="Touch controls">
@@ -25,6 +25,8 @@
         <button class="tb" data-act="hail">Hail</button>
         <button class="tb" data-act="next">Next</button>
         <button class="tb" data-act="map">Map</button>
+        <button class="tb" data-act="hold">Hold</button>
+        <button class="tb" id="t-scoop" data-act="scoop">Scoop</button>
         <button class="tb" data-act="help">Help</button>
       </div>
     </div>
@@ -55,6 +57,15 @@
     <canvas id="dlg-face" width="192" height="192"></canvas>
     <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
     <div id="dlg-opts"></div>
+  </section>
+
+  <div id="scoop-badge" hidden>Cargo scoop open</div>
+  <section id="hold" hidden aria-label="Cargo hold">
+    <div class="box">
+      <header><h2>Cargo hold</h2><span id="hold-cap"></span><button class="big ghost" id="hold-scoop">Open scoop · B</button><button class="big ghost" id="hold-close">Close · I</button></header>
+      <div id="hold-list"></div>
+      <footer id="hold-foot"></footer>
+    </div>
   </section>
 
   <section id="map" hidden aria-label="System map">
@@ -102,6 +113,8 @@
         <div><dt>Hail</dt><dd>Talk to the nearest pilot</dd></div>
         <div><dt>Next</dt><dd>Next destination</dd></div>
         <div><dt>Map</dt><dd>System map: tap a world to fly there</dd></div>
+        <div><dt>Hold</dt><dd>See your cargo and drop any of it</dd></div>
+        <div><dt>Scoop</dt><dd>Open the cargo scoop to pick up floating cargo</dd></div>
         <div><dt>Drag the view</dt><dd>Look around</dd></div>
         <div><dt>Double-tap</dt><dd>Lean in to a panel; double-tap open space to lean back</dd></div>
         <div><dt>Tap or drag</dt><dd>Work any knob, switch or lever in the cockpit</dd></div>
@@ -121,6 +134,8 @@
         <div><dt>M</dt><dd>System map (click a world to set destination)</dd></div>
         <div><dt>N</dt><dd>Cabin music on / off</dd></div>
         <div><dt>F (hold)</dt><dd>Mining laser, aimed at a rock in your sights</dd></div>
+        <div><dt>I</dt><dd>Cargo hold: see your cargo and drop any of it</dd></div>
+        <div><dt>B</dt><dd>Cargo scoop open / closed (slow down to scoop)</dd></div>
         <div><dt>1 – 4</dt><dd>Pick an answer when a message pops up</dd></div>
         <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit; again to return</dd></div>
         <div><dt>C / Esc</dt><dd>Centre the view</dd></div>

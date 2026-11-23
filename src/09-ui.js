@@ -13,7 +13,7 @@ const UI = {
     this.render();
   },
   hidePort(){ $('port').hidden=true; },
-  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${d.hold}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span>`;
+  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${d.hold}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true);
     $('port-foot').textContent=G.cargo.length?`${G.cargo.length} delivery${G.cargo.length>1?' contracts':' contract'} aboard`:'Hold empty. Take a job before you launch.'; },
   /* the shopkeeper's hello at the top of each place */
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp]; const box=el('div','venue'); box.appendChild(el('h3','',esc(d.name)));
@@ -49,7 +49,7 @@ const UI = {
         const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), fits=used+j.qty<=d.hold&&!busy; const b=el('button','btn',busy?'One at a time':fits?'Accept':'No room'); b.disabled=!fits;
         b.onclick=()=>{ if(j.kind==='contra'){ Customs.load(j,P); return; }
           if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100});
-          else G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx});
+          else G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true});
           G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
         r.appendChild(b); c.appendChild(r); body.appendChild(c); });
       if(G.cargo.length){ body.appendChild(el('div','note','In your hold:')); const L=el('div','ledger'); G.cargo.forEach(c=>{ L.appendChild(el('span','',`${c.kind==='escort'?esc(c.good):c.qty+'× '+esc(c.good)}${c.illegal?' (contraband)':''} → ${esc(Ev.cargoDest(c))}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); body.appendChild(L); }
@@ -103,20 +103,21 @@ const UI = {
 /* ---------- radio chatter ---------- */
 const Radio = {
   cur:null, wait:4, last:'',
-  retune(){ this.cur=null; this.wait=1.0; if(Sfx.ok()) Sfx.click(); },
+  retune(){ this.cur=null; this.wait=Math.max(this.wait,2); if(Sfx.ok()) Sfx.click(); },
   subs(){ return {planet:pick(PLANETS).name, good:pick(GOODS)[0]}; },
   play(m){ m.alien=alienWords(m.sp,m.english,Math.floor(Math.random()*1e6)); m.t=0; m.dur=clamp(m.english.length*0.058,2.4,7.5); this.cur=m; if(G.sys.power&&G.sys.radioVol>0.01) Sfx.speak(SPECIES[m.sp].voice,m.dur); },
   next(){
+    this.wait=30; if(Math.random()<0.88&&Calls.ring()) return;
     const ch=G.sys.channel, near=World.nearest||PLANETS[0]; let m;
     const pilotLine=()=>{ const cands=Npc.list.filter(n=>n.dist<40000); const pl=cands.length&&Math.random()<0.75?pick(cands).pilot:Npc.pilot(); const S=SPECIES[pl.sp]; return {sp:pl.sp,seed:pl.seed,name:pl.name,english:fill(pick(S.chat),this.subs())}; };
     const portLine=()=>({sp:near.species,seed:near.idx*7+1,name:near.port+' Control',english:fill(pick(CHATTER.port),{port:near.port,planet:near.name})});
     const tradeLine=()=>{ const sp=pick(['qeeble','zkthar','beepul']); return {sp,seed:4242,name:'Trade Net',english:G.hot!=null&&Math.random()<0.3?`Trade Net bulletin: ${PLANETS[G.hot].name} is paying bonus rates on all deliveries.`:fill(pick(CHATTER.trade),this.subs())}; };
     if(ch===0){ const r=Math.random(); m=r<0.72?pilotLine():r<0.86?portLine():tradeLine(); } else if(ch===1) m=tradeLine(); else if(ch===2) m=portLine(); else m={sp:'blorpax',seed:808,name:'DJ Glorp',english:fill(pick(CHATTER.dj),this.subs())};
-    if(m.english===this.last){ this.wait=0.2; return; } this.last=m.english; this.play(m);
+    if(m.english===this.last) return; this.last=m.english; this.play(m);
   },
   update(dt){
-    if(Comms.open){ if(this.cur) this.cur.t+=dt; return; } if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6){ this.cur=null; this.wait=rnd(1.5,4.5); } return; }
-    if(!G.sys.power) return; this.wait-=dt; if(this.wait<=0) this.next();
+    if(Comms.open){ if(this.cur) this.cur.t+=dt; return; } this.wait-=dt; if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6) this.cur=null; return; }
+    if(!G.sys.power||Dlg.open) return; if(this.wait<=0) this.next();
   },
 };
 

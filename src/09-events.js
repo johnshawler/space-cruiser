@@ -102,7 +102,7 @@ const Ev = {
   fuelUnits(f){ return Math.max(1,Math.round(f)); },
   update(dt){
     if(this.hold>0){ this.hold-=dt; G.ship.throttle=0; if(G.ship.warp) Game.dropWarp(); }
-    Nav.update(dt); Distress.update(dt); Mining.update(dt); Customs.update(dt); Escort.update(dt);
+    Nav.update(dt); Distress.update(dt); Mining.update(dt); Customs.update(dt); Escort.update(dt); Flotsam.update(dt); Scoop.update(dt); Calls.update(); if(Hold.open&&Math.floor(Game.time*2)!==Math.floor((Game.time-dt)*2)) Hold.render();
   },
 };
 
@@ -259,7 +259,7 @@ const Customs = {
     const r=this.risk(P), bribe=Math.round(j.pay*0.18/10)*10;
     const go=(risk)=>{ if(Math.random()<risk){ const fine=Math.min(G.credits,Math.round(j.pay*0.25/5)*5); G.credits-=fine; G.jobs.splice(G.jobs.indexOf(j),1); Sfx.deny(); Rep.add(-6,'Caught loading contraband');
         Dlg.info({sp:P.species,seed:P.idx*7+1,tone:'alert',who:`${P.port} security`,text:`Well, well. ${j.good}? That's a ${fmtCr(fine)} fine, and the crate stays here.`,then:()=>UI.render()}); return; }
-      G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,illegal:true}); G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); UI.toast('Loaded. Nobody saw a thing. Probably.','good'); UI.render(); };
+      G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,illegal:true,fresh:true}); G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); UI.toast('Loaded. Nobody saw a thing. Probably.','good'); UI.render(); };
     Dlg.show({sp:j.sp,seed:j.seed,who:`${alienName(j.sp,j.seed)} · a friend of a friend`,text:`The dock scanner sweeps the bay every few minutes. ${P.port} is ${(STRICT[P.species]||0.3)>0.4?'strict':'fairly relaxed'} about this sort of thing.${G.up.hidden?' Your hidden compartment helps.':''}`,
       opts:[{t:'Load it quietly',sub:`${Math.round(r*100)}% chance of getting caught`,fn:()=>go(r)},
             {t:'Bribe the dockmaster',sub:`${fmtCr(bribe)} · ${Math.round(r*25)}% chance`,disabled:G.credits<bribe,fn:()=>{ G.credits-=bribe; Sfx.cash(); go(r*0.25); }},

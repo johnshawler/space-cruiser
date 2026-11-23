@@ -30,7 +30,7 @@ const TouchUI = {
     /* tap buttons */
     const acts={
       warp:()=>Game.toggleWarp(), auto:()=>Game.setAutopilot(!G.sys.autopilot), horn:()=>Game.honk(), hail:()=>Comms.hail(),
-      next:()=>Game.setTarget(G.target+1), map:()=>SysMap.toggle(), help:()=>{ $('help').hidden=false; }, centre:()=>Cockpit.zoomOut(),
+      next:()=>Game.setTarget(G.target+1), map:()=>SysMap.toggle(), hold:()=>Hold.toggle(), scoop:()=>Scoop.toggle(), help:()=>{ $('help').hidden=false; }, centre:()=>Cockpit.zoomOut(),
     };
     document.querySelectorAll('#touch [data-act]').forEach(b=>{ b.addEventListener('click',()=>{ if(G.mode!=='flight') return; Sfx.init(); acts[b.dataset.act](); this.sync(true); }); });
     /* hold buttons act like holding a key */
@@ -44,7 +44,7 @@ const TouchUI = {
     const s=G.ship;
     if(force||this.f%6===0){
       $('t-fill').style.height=(s.throttle*10)+'%'; $('t-val').textContent=s.throttle===0?'STOP':String(s.throttle);
-      $('t-warp').classList.toggle('lit',!!s.warp); $('t-auto').classList.toggle('lit',!!G.sys.autopilot);
+      $('t-warp').classList.toggle('lit',!!s.warp); $('t-scoop').classList.toggle('lit',Scoop.open); $('t-auto').classList.toggle('lit',!!G.sys.autopilot);
       $('t-centre').hidden=!G.head.zoomed&&Math.abs(G.head.yawT)<0.05&&Math.abs(G.head.pitchT-G.head.basePitch)<0.05;
     }
   },
@@ -58,7 +58,7 @@ const TouchUI = {
   },
   /* big readable subtitle for radio chatter, shown when the glare-shield text would be small */
   caption(c){
-    const box=$('caption'), want=!!c&&G.sys.power&&!G.head.zoomed&&!Comms.open&&(this.on||innerWidth<1280);
+    const box=$('caption'), want=!!c&&G.sys.power&&!G.head.zoomed&&!Comms.open&&!Dlg.open&&(this.on||innerWidth<1280);
     if(!want){ if(!box.hidden){ box.hidden=true; this.capKey=''; $('toasts').style.top=''; document.body.classList.remove('cap'); } return; }
     const sp=SPECIES[c.sp], frac=clamp(c.t/Math.max(0.5,c.dur*0.8),0,1), on=G.sys.translator;
     const body=on?c.english.slice(0,Math.ceil(c.english.length*frac)):'Translator off · '+c.alien.slice(0,Math.ceil(c.alien.length*frac));

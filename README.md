@@ -21,17 +21,19 @@ Play it at https://johnshawler.com/long-haul or https://space-cruiser.johnshawle
 | M | System map (click a world to set your destination) |
 | N | Cabin music on / off |
 | F (hold) | Mining laser, aimed at a rock in your sights |
+| I | Cargo hold: see what is aboard and drop any of it |
+| B | Cargo scoop open / closed |
 | 1 – 4 | Pick an answer when a message pops up |
 | Double-click | Lean in to any part of the cockpit; double-click again to lean back |
 | ? | Help |
 
 ### On an iPad or other touch screen
 
-On-screen controls appear by themselves: a steering stick on the left, and a throttle slider plus Warp, Auto, Mine (hold), Horn, Hail, Next, Map and Help buttons on the right. Drag the view to look around, double-tap a panel to lean in, and double-tap open space to lean back. Radio chatter shows as a large caption at the top of the screen. The game fits both landscape and portrait, but landscape shows the whole cockpit.
+On-screen controls appear by themselves: a steering stick on the left, and a throttle slider plus Warp, Auto, Mine (hold), Horn, Hail, Next, Map, Hold, Scoop and Help buttons on the right. Drag the view to look around, double-tap a panel to lean in, and double-tap open space to lean back. Radio chatter shows as a large caption at the top of the screen. The game fits both landscape and portrait, but landscape shows the whole cockpit.
 
 ## Ports
 
-Every planet has its own mix of places, each a small set somewhere around the landing pad with its own shopkeeper. Behind the counter a crew tries to do its job: stacking crates, craning an engine into place, test-firing an engine, painting a panel, opening a mystery box, cracking a rock, or juggling mugs. It usually goes wrong. Sometimes it goes right.
+Every planet has its own mix of places. Each one sits in its own part of the port, a few hundred metres from the pad and from the others, with its own neighbourhood (warehouses, a hangar and showroom, workshops, paint booths, market stalls, a mine head, a cantina with fairy lights) and its own shopkeeper. Previewed ships park on the shipyard's showroom pad. Behind the counter a crew tries to do its job: stacking crates, craning an engine into place, test-firing an engine, painting a panel, opening a mystery box, cracking a rock, or juggling mugs. It usually goes wrong. Sometimes it goes right.
 
 - **Cargo depot** (every port): contracts and fuel.
 - **Shipyard** (Verdanthia, Sloshwell, Amethyne, Jovexa): each sells a different range of ships.
@@ -41,7 +43,15 @@ Every planet has its own mix of places, each a small set somewhere around the la
 - **Assay office** (Scorchmaw, Sloshwell, Candara, Brrrindle): buys mined ore.
 - **Cantina** (most ports): gossip, and tips on where deliveries pay extra.
 
+## Port life
+
+Locals stroll around the landing pad, stop to chat, push carts of crates about, and a marshal waves you in with glowing batons. Other ships land on and take off from the neighbouring pads. When you launch with new cargo, the hatch folds down into a ramp and two dockhands carry it aboard. Sometimes the stack falls over, or the last crate slides back down the ramp and bursts. Sometimes it all goes in without a scratch.
+
 ## Side work
+
+- **Radio calls.** About every 30 seconds someone calls on the band you are tuned to, and most calls come with up to four answers (keys 1 – 4). The answers matter: fees, fines, tips, small jobs, fuel, reputation, races, hugs.
+- **Lost property.** Pilots who have lost something, and Trade Net bulletins about missing shipments, put a real object in space near the planet they name. Open the scoop, fly up to it slowly, and take it to its owner's world to get paid.
+- **Cargo hold and scoop.** Press I to see your hold and drop anything in it. Dropped cargo floats where you left it and can be scooped back up (B opens the scoop; slow below 450 km/s). Dropping a client's cargo costs reputation, which you get back if you recover it. Dumping contraband before a customs stop is allowed, if not encouraged.
 
 - **Distress calls.** Maydays come in mid-route. Answering costs time and fuel and might pay off, or it might be a pirate ambush. Ignoring one costs reputation.
 - **Asteroid mining.** Three asteroid fields are on the system map. Hold F on a rock to mine ore and sell it at an assay office (Scorchmaw, Sloshwell, Candara or Brrrindle). Slower than hauling, a little dangerous, and it never depends on a job board.

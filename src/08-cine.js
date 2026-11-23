@@ -17,6 +17,7 @@ const Cine = {
 
   /* ---------- surface ---------- */
   buildSurface(P){
+    Loading.stop();
     if(this.surf){ if(this.model && this.model.parent===this.surf.scene) World.space.add(this.model); if(this.preview){ this.preview=null; }
       this.surf.scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose()); } }); if(this.surf.env) this.surf.env.dispose(); }
     const S=P.surf, scn=new THREE.Scene(), seed=P.idx*977+5, rr=mulberry32(seed), cloud=!!S.cloudsea, spc=SPECIES[P.species];
@@ -66,29 +67,31 @@ const Cine = {
       else if(st==='shroom'){ const h=20+rr()*60, r=10+rr()*22; b.add(mk(new THREE.CylinderGeometry(r*0.18,r*0.28,h,10),bm('#e9dcc0',0.8,0),0,h/2,0)); const cap=mk(new THREE.SphereGeometry(r,20,12,0,6.3,0,Math.PI/2),bm(pick(['#b5503a','#c98a3a','#7a5ca0']),0.7,0),0,h-2,0); cap.scale.y=0.6; b.add(cap); for(let i=0;i<7;i++){ const a=rr()*6.28, e=0.3+rr()*0.9; b.add(mk(new THREE.SphereGeometry(r*0.09,8,6),win,Math.cos(a)*Math.sin(e)*r,h-2+Math.cos(e)*r*0.6,Math.sin(a)*Math.sin(e)*r)); } }
       else { const r=12+rr()*16; b.add(mk(new THREE.SphereGeometry(r,24,14,0,6.3,0,Math.PI/2),bm('#f2f4f6',0.5,0.1),0,0,0)); const band=mk(new THREE.CylinderGeometry(r*0.985,r*0.985,1.8,32,1,true),warm,0,r*0.2,0); b.add(band); b.add(mk(new THREE.CylinderGeometry(1.2,1.2,r*0.7,8),bm('#8a9098'),r*0.4,r*0.9,0)); }
       return b; };
-    for(let i=0;i<16;i++){ const a=rr()*6.283, d=170+rr()*380, x=Math.cos(a)*d, z=Math.sin(a)*d; let y=hAt(x,z); const b=building();
+    Venues.build(scn,P,cloud,padSide,hAt,S.liquid?liq:null);
+    for(let i=0;i<16;i++){ const a=rr()*6.283, d=170+rr()*380, x=Math.cos(a)*d, z=Math.sin(a)*d; let y=hAt(x,z); const b=building(); if(Venues.near(x,z,75)) continue;
       if(cloud){ y=-10-rr()*60; const pf=mk(new THREE.CylinderGeometry(40,30,8,24),padSide,0,-4,0); b.add(pf); b.add(mk(new THREE.CylinderGeometry(4,8,700,10),padSide,0,-358,0)); } else if(y<liq+2 && S.style!=='bubble') continue; else if(y<liq+2) y=liq-4;
       b.position.set(x,y-2,z); b.rotation.y=rr()*6.28; scn.add(b); }
     // control tower + beacon
     const tw=new THREE.Group(); tw.add(mk(new THREE.CylinderGeometry(3,5,64,12),bm('#9aa0a8',0.5,0.5),0,32,0)); tw.add(mk(new THREE.CylinderGeometry(9,6,8,16),bm('#d8dce0',0.4,0.5),0,68,0)); tw.add(mk(new THREE.CylinderGeometry(9.1,7.6,3,16,1,true),warm,0,68,0));
     const beacon=mk(new THREE.SphereGeometry(1.4,10,8),new THREE.MeshBasicMaterial({color:HDR('#ff3020',6)}),0,76,0); tw.add(beacon); tw.position.set(-96,cloud?-3:0,-70); scn.add(tw);
     // neighbours parked nearby
-    const parked=[]; for(const [x,z,ry] of [[118,74,2.2],[-60,128,-0.6]]){ const idx=Math.floor(rr()*Models.count), n=Models.build(idx); n.position.set(x,n.userData.gearH+(cloud?0:0),z); n.rotation.y=ry; scn.add(n); parked.push(n);
-      const pp=mk(new THREE.CylinderGeometry(30,32,3,32),padSide,x,-1.6,z); pp.castShadow=false; scn.add(pp); if(cloud) scn.add(mk(new THREE.CylinderGeometry(5,9,700,10),padSide,x,-353,z)); }
-    Venues.build(scn,P,cloud,padSide);
+    const PADS=[[118,74,2.2],[-60,128,-0.6],[40,-138,1.1],[-136,-12,0.4]], parked=[];
+    for(const [x,z] of PADS){ const pp=mk(new THREE.CylinderGeometry(30,32,3,32),padSide,x,-1.35,z); pp.castShadow=false; scn.add(pp); if(cloud) scn.add(mk(new THREE.CylinderGeometry(5,9,700,10),padSide,x,-353,z));
+      const ring=new THREE.Mesh(new THREE.TorusGeometry(26,0.6,6,40),new THREE.MeshBasicMaterial({color:HDR('#e8b820',1.2)})); ring.rotation.x=Math.PI/2; ring.position.set(x,0.2,z); scn.add(ring); }
     const flyby=Models.build(Math.floor(rr()*5)); flyby.scale.setScalar(1.5); scn.add(flyby);
     // dust
     const dn=380, dp=new Float32Array(dn*3), dseed=new Float32Array(dn*3); for(let i=0;i<dn;i++){ dseed[i*3]=rr()*6.283; dseed[i*3+1]=rr(); dseed[i*3+2]=rr(); }
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
-    this.surf={scene:scn,env,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
+    Crowd.build(scn,P,cloud,PADS);
+    this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
   updateSurface(dt, t, alt){
     const s=this.surf; if(!s) return;
     s.lamps.forEach((l,i)=>{ const on=((i+Math.floor(t*10))%5)===0; l.material.color.setRGB(on?3.2:0.35,on?2.6:0.28,on?1.2:0.12); });
     s.beacon.visible=(t%1.6)<0.25;
     const ft=(t*0.02)%1; s.flyby.position.set(-2600+ft*5200,520+Math.sin(ft*6)*60,-1700); s.flyby.rotation.y=-Math.PI/2; Models.animate(s.flyby,0.8,t);
-    for(const p of s.parked) Models.animate(p,0,t);
+    Crowd.update(dt,t);
     s.dustMat.opacity=s.dustI*0.42;
     if(s.dustI>0.01){ for(let i=0;i<s.dn;i++){ const a=s.dseed[i*3], ph=(s.dseed[i*3+1]+t*(0.35+s.dseed[i*3+2]*0.35))%1, r=8+ph*95; s.dp[i*3]=Math.cos(a+ph*0.8)*r; s.dp[i*3+1]=0.5+ph*ph*22*s.dseed[i*3+2]; s.dp[i*3+2]=Math.sin(a+ph*0.8)*r; } s.dust.geometry.attributes.position.needsUpdate=true; }
   },
@@ -108,25 +111,37 @@ const Cine = {
     this.fade=1; this.fadeCol.setRGB(0,0,0); this.ui(true); Sfx.roar(8.5,0.45); Sfx.sting(); World.scenes.list=[{scene:World.space,camera:this.cam}];
   },
   startTakeoff(){
-    G.mode='takeoff'; this.mode='T'; this.t=0; UI.hidePort(); this.ui(true); this.setPreview(null); this.model.visible=true; Sfx.roar(4.5,0.6); Sfx.hiss(1.2,0.2);
+    G.mode='takeoff'; UI.hidePort(); this.setPreview(null); this.model.visible=true; this.camFrom=null;
+    // cargo taken on at this port gets carried aboard first
+    const goods=G.cargo.filter(c=>c.fresh&&c.qty>0&&c.kind!=='escort'); G.cargo.forEach(c=>{ delete c.fresh; });
+    if(goods.length&&Loading.start(this.P,this.model,SHIPS[G.shipId].model,goods)){ this.mode='L'; this.t=0; this.ui(true,'Loading cargo',Loading.sub); return; }
+    this.liftoff();
   },
+  liftoff(){ this.mode='T'; this.t=0; this.ui(true); Sfx.roar(4.5,0.6); Sfx.hiss(1.2,0.2); },
   /* drop straight into the port, no descent (used by Continue and Skip) */
   dock(P){
-    if(!this.surf||this.surf.P!==P) this.buildSurface(P); if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
+    Loading.stop(); if(!this.surf||this.surf.P!==P) this.buildSurface(P); if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     if(this.mode!=='port') this.camInit=true; this.P=P; const m=this.model; this.surf.scene.add(m); m.visible=true; m.position.set(0,m.userData.gearH,0); m.rotation.set(0,0.6,0); this.plasma.visible=false; this.setThrust(0,0); this.surf.dustI=0;
     this.mode='port'; this.fade=0; this.shake=0; this.ui(false); World.scenes.list=[{scene:this.surf.scene,camera:this.cam}]; if(!this.landed){ this.landed=true; Game.onLanded(P); }
   },
-  skip(){ if(this.mode==='A'||this.mode==='B'||this.mode==='C'){ this.fadeCol.setRGB(0,0,0); this.dock(this.P); this.fade=1; } else if(this.mode==='T'){ this.t=99; } },
+  skip(){ if(this.mode==='A'||this.mode==='B'||this.mode==='C'){ this.fadeCol.setRGB(0,0,0); this.dock(this.P); this.fade=1; } else if(this.mode==='L'){ Loading.stop(); this.liftoff(); this.t=99; } else if(this.mode==='T'){ this.t=99; } },
+  /* previewed ships park on the shipyard's showroom pad, and the port camera swings over to it */
   setPreview(shipId){
-    if(this.preview){ this.surf.scene.remove(this.preview); this.preview=null; } if(!this.model) return;
-    if(shipId==null||shipId===G.shipId){ this.model.visible=true; return; }
-    const p=this.preview=Models.build(SHIPS[shipId].model); p.position.set(0,p.userData.gearH,0); p.rotation.y=0.6; this.surf.scene.add(p); this.model.visible=false;
+    if(this.preview){ this.surf.scene.remove(this.preview); this.preview=null; } if(!this.model) return; this.model.visible=true; this.previewId=shipId;
+    if(shipId==null) return;
+    const p=this.preview=Models.build(SHIPS[shipId].model,shipId===G.shipId?Game.scheme():null), sr=Venues.showroom();
+    if(sr){ p.position.set(sr.pos.x,sr.pos.y+p.userData.gearH,sr.pos.z); p.rotation.y=sr.ry; }
+    else { p.position.set(0,p.userData.gearH,0); p.rotation.y=0.6; this.model.visible=false; }
+    p.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } }); this.surf.scene.add(p);
   },
+  /* keep the sun's shadow box around whatever the camera is looking at */
+  sunAt(v){ const s=this.surf; if(!s||!s.sun) return; s.sun.target.position.copy(v); s.sun.position.copy(v).addScaledVector(s.sunDir,320); },
   /* the part of the screen not covered by the port panel */
   region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const r=el.getBoundingClientRect();
     if(r.width<W*0.92) return {w:Math.max(1,W-r.width),h:H,ox:-r.width/2,oy:0}; return {w:W,h:Math.max(1,H-r.height),ox:0,oy:r.height/2}; },
   update(dt, time){
     this.t+=dt; const t=this.t, P=this.P, s=G.ship, cam=this.cam, m=this.model; let fov=42; if(this.mode!=='port'&&cam.view&&cam.view.enabled) cam.clearViewOffset();
+    if(this.mode!=='port'&&this.surf&&this.surf.sun&&this.surf.sun.target.position.lengthSq()>1) this.sunAt(new V3());
     if(this.mode==='A'){
       s.pos.copy(this.baseA).addScaledVector(this.hA,-165+72*t); m.quaternion.copy(this.qA); Models.animate(m,0.85,time);
       cam.position.copy(this.camA).sub(s.pos); cam.up.copy(this.up); cam.lookAt(0,0,0); fov=36; this.fade=Math.max(0,1-t/0.7);
@@ -150,17 +165,23 @@ const Cine = {
       if(t>=7.6){ this.dock(P); this.orbit=this.orbit2; }
     } else if(this.mode==='port'){
       Models.animate(m,0,time); Venues.update(dt,time); const V=Venues.active, reg=this.region();
-      if(V){ const tg=Venues.cam(V,reg.w/reg.h);
+      if(V){ const tg=Venues.cam(V,reg.w/reg.h,!!this.preview&&!!V.show);
         if(this.camInit||!this.camP){ this.camInit=false; this.camP=cam.position.clone(); this.camL=new V3(0,m.userData.gearH+2,0); }
         const k=1-Math.exp(-dt*2.2); this.camP.lerp(tg.pos,k); this.camL.lerp(tg.look,k); const far=this.camP.distanceTo(tg.pos); Venues.moving=far>2.5;
-        cam.up.set(0,1,0); cam.position.copy(this.camP); cam.position.y+=Math.min(35,far*0.3); cam.lookAt(this.camL);
+        cam.up.set(0,1,0); cam.position.copy(this.camP); cam.position.y+=Math.min(140,far*0.28); cam.lookAt(this.camL); this.sunAt(this.camL);
         // frame the set in the part of the screen the port panel leaves open
         fov=2*Math.atan(Math.tan(tg.fov*Math.PI/360)*World.h/reg.h)*180/Math.PI; this.fovFixed=true; cam.setViewOffset(World.w,World.h,reg.ox,reg.oy,World.w,World.h);
       } else { this.orbit+=dt*0.05; const a=this.orbit, R=88; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*R,8+2*Math.sin(time*0.2),Math.sin(a)*R); cam.lookAt(0,m.userData.gearH+2,0); fov=42; } this.fade=Math.max(0,this.fade-dt*1.5); this.surf.dustI=Math.max(0,this.surf.dustI-dt*0.3); if(this.preview){ this.preview.rotation.y+=dt*0.25; Models.animate(this.preview,0,time); }
+    } else if(this.mode==='L'){
+      Models.animate(m,0,time); const r=Loading.update(dt,t,time); cam.up.set(0,1,0); cam.position.copy(r.pos); cam.lookAt(r.look); fov=40; this.fade=Math.max(0,this.fade-dt*1.5);
+      if(r.done){ this.camFrom={pos:r.pos.clone(),look:r.look.clone()}; this.liftoff(); }
     } else if(this.mode==='T'){
       const rest=m.userData.gearH, y=rest+(t>0.6?Math.pow(t-0.6,2.3)*16:0); m.position.set(0,y,0); m.rotation.x=smooth(1.2,4,t)*0.45; this.setThrust(smooth(0,0.7,t),time); this.surf.dustI=smooth(0,0.6,t)*smooth(90,10,y-rest);
-      this.shake=0.25*smooth(0,0.8,t); const a=this.orbit; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*88,8,Math.sin(a)*88); cam.lookAt(0,y*0.85+3,0); fov=44;
-      this.fadeCol.set(1,1,1); this.fade=smooth(3.1,3.9,t); if(t>=4){ this.setThrust(0,0); this.shake=0; this.ui(false); World.space.add(m); m.visible=false; Game.enterFlight(P,true); return; }
+      this.shake=0.25*smooth(0,0.8,t); const a=this.orbit; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*88,8,Math.sin(a)*88); const look=new V3(0,y*0.85+3,0);
+      // pull back from the loading ramp to the usual launch view
+      if(this.camFrom){ const k=smooth(0,2.2,t); cam.position.lerpVectors(this.camFrom.pos,cam.position.clone(),k); look.lerpVectors(this.camFrom.look,look,k); }
+      cam.lookAt(look); fov=44; Loading.linger(dt,time);
+      this.fadeCol.set(1,1,1); this.fade=smooth(3.1,3.9,t); if(t>=4){ this.setThrust(0,0); this.shake=0; this.ui(false); Loading.stop(); this.camFrom=null; World.space.add(m); m.visible=false; Game.enterFlight(P,true); return; }
     }
     if(this.mode!=='A'&&this.mode!=='B') this.updateSurface(dt,time);
     if(this.shake>0){ cam.position.x+=(Math.random()-0.5)*this.shake; cam.position.y+=(Math.random()-0.5)*this.shake; cam.rotateZ((Math.random()-0.5)*this.shake*0.012); }
