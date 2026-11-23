@@ -6,7 +6,29 @@
   <button id="skip" hidden>Skip ▸ Space</button>
   <div id="toasts" aria-live="polite"></div>
   <div id="tooltip" hidden></div>
-  <div id="keys" hidden>? Help · M Map · Double-click to zoom · Drag to look</div>
+  <div id="keys" hidden><span class="kb-only">? Help · M Map · Double-click to zoom · Drag to look</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
+  <div id="caption" hidden aria-live="polite"></div>
+
+  <div id="touch" aria-label="Touch controls">
+    <div id="t-left">
+      <div id="t-stick" aria-label="Steering stick"><i id="t-knob"></i></div>
+      <span class="t-cap">Steer</span>
+      <button class="tb wide" id="t-centre" data-act="centre" hidden>Centre view</button>
+    </div>
+    <div id="t-right">
+      <div id="t-thr" aria-label="Throttle"><i id="t-fill"></i><b id="t-val">STOP</b><span>Throttle</span></div>
+      <div id="t-btns">
+        <button class="tb" id="t-warp" data-act="warp">Warp</button>
+        <button class="tb" id="t-auto" data-act="auto">Auto</button>
+        <button class="tb" id="t-mine" data-hold="KeyF">Mine</button>
+        <button class="tb" data-act="horn">Horn</button>
+        <button class="tb" data-act="hail">Hail</button>
+        <button class="tb" data-act="next">Next</button>
+        <button class="tb" data-act="map">Map</button>
+        <button class="tb" data-act="help">Help</button>
+      </div>
+    </div>
+  </div>
 
   <section id="comms" hidden aria-label="Comms link">
     <canvas id="comms-face" width="192" height="192"></canvas>
@@ -49,7 +71,13 @@
       <button class="big" id="btn-new" disabled>Loading…</button>
       <button class="big ghost" id="btn-continue" hidden>Continue</button>
     </div>
-    <dl>
+    <dl class="touch-only">
+      <div><dt>Left stick</dt><dd>Steer</dd></div>
+      <div><dt>Right slider</dt><dd>Throttle</dd></div>
+      <div><dt>Warp · Auto</dt><dd>Warp drive · autopilot</dd></div>
+      <div><dt>Double-tap</dt><dd>Lean in to a panel</dd></div>
+    </dl>
+    <dl class="kb-only">
       <div><dt>W A S D</dt><dd>Steer</dd></div>
       <div><dt>1 – 0</dt><dd>Throttle, slow to full</dd></div>
       <div><dt>Z</dt><dd>Warp drive</dd></div>
@@ -64,7 +92,21 @@
   <section id="help" hidden>
     <div class="box">
       <h2>Flight manual</h2>
-      <dl>
+      <dl class="touch-only">
+        <div><dt>Left stick</dt><dd>Steer: push up to climb, sideways to turn</dd></div>
+        <div><dt>Throttle</dt><dd>Slide up for speed, bottom is stop</dd></div>
+        <div><dt>Warp</dt><dd>Warp drive on / off</dd></div>
+        <div><dt>Auto</dt><dd>Autopilot steers to your destination</dd></div>
+        <div><dt>Mine (hold)</dt><dd>Mining laser, aimed at a rock in your sights</dd></div>
+        <div><dt>Horn</dt><dd>Sound the horn</dd></div>
+        <div><dt>Hail</dt><dd>Talk to the nearest pilot</dd></div>
+        <div><dt>Next</dt><dd>Next destination</dd></div>
+        <div><dt>Map</dt><dd>System map: tap a world to fly there</dd></div>
+        <div><dt>Drag the view</dt><dd>Look around</dd></div>
+        <div><dt>Double-tap</dt><dd>Lean in to a panel; double-tap open space to lean back</dd></div>
+        <div><dt>Tap or drag</dt><dd>Work any knob, switch or lever in the cockpit</dd></div>
+      </dl>
+      <dl class="kb-only">
         <div><dt>W / S</dt><dd>Pitch up / down</dd></div>
         <div><dt>A / D</dt><dd>Yaw left / right</dd></div>
         <div><dt>Q / E</dt><dd>Roll</dd></div>
@@ -85,7 +127,7 @@
         <div><dt>Click, drag, scroll</dt><dd>Work any knob, switch or lever</dd></div>
       </dl>
       <p class="note">Point at your destination, set throttle, press Z. The drive drops out by itself near a planet. Fly on toward it and the port brings you down automatically. Deliveries pay on landing.</p>
-      <p class="note">Side work: answer maydays (or don't), mine the asteroid fields on the map and sell ore at any port, take risky contraband runs, or escort nervous VIPs. Your reputation changes what people pay you and how hard customs look at you.</p>
+      <p class="note">Side work: answer maydays (or don't), mine the asteroid fields on the map and sell the ore at an assay office, take risky contraband runs, or escort nervous VIPs. Your reputation changes what people pay you and how hard customs look at you.</p>
       <button class="big" id="help-close">Back to the cockpit</button>
     </div>
   </section>

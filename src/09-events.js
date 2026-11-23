@@ -94,7 +94,7 @@ const Dlg = {
 /* ---------- helpers ---------- */
 const Ev = {
   hold:0,          // seconds the ship is tethered (fuel transfer etc.)
-  cargoDest(c){ return c.kind==='ore'?'Sell at any port':PLANETS[c.to].name; },
+  cargoDest(c){ return c.kind==='ore'?'Sell at an assay office':PLANETS[c.to].name; },
   clearOfPlanets(k){ const P=World.nearest; return !P||P.dist>P.r*(k||9); },
   around(pos, d){ return pos.clone().add(new V3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize().multiplyScalar(d)); },
   npc(kind, pos, pilot, extra){ const n=Npc.spawn(kind,pos,new V3(),Object.assign({keep:true},extra||{})); if(pilot) Object.assign(n.pilot,pilot); Npc.label(n); return n; },
@@ -209,7 +209,7 @@ const Mining = {
     const s=G.ship, fire=!!G.keys.KeyF&&G.sys.power&&this.lock<=0&&!Dlg.open;
     this.lock=Math.max(0,this.lock-dt); this.hitCD=Math.max(0,this.hitCD-dt); this.msgT=Math.max(0,this.msgT-dt);
     let field=null; for(const F of this.fields){ F.dist=F.pos.distanceTo(s.pos); if(F.dist<F.R*1.4) field=F; F.group.visible=F.dist<400000; }
-    if(field!==this.field){ this.field=field; if(field){ UI.toast(`Entering ${field.name}. Aim at a rock and hold F to mine ${field.ore}.`,'good'); if(s.warp) Game.dropWarp('Asteroid field. Warp disengaged.','warn',true); } }
+    if(field!==this.field){ this.field=field; if(field){ UI.toast(`Entering ${field.name}. Aim at a rock and hold ${TouchUI.on?'MINE':'F'} to mine ${field.ore}.`,'good'); if(s.warp) Game.dropWarp('Asteroid field. Warp disengaged.','warn',true); } }
     // dropping out of warp on the way in
     for(const F of this.fields){ if(s.warp&&F.dist<F.R*2.6&&F.pos.clone().sub(s.pos).normalize().dot(new V3(0,0,-1).applyQuaternion(s.quat))>0.2) Game.dropWarp(F.name+'. Warp disengaged.','good',true); }
     // heat
@@ -232,7 +232,7 @@ const Mining = {
       this.beam.position.copy(start); this.beam.quaternion.copy(lookQuat(dir.normalize())); this.beam.scale.set(9+Math.sin(Game.time*40)*2.5,9+Math.cos(Game.time*37)*2.5,len);
       this.spark.position.copy(start).addScaledVector(dir,len); this.spark.scale.setScalar(best.r*(0.9+Math.random()*0.5));
       this.prog+=dt*this.rate(); if(Math.floor(Game.time*6)!==Math.floor((Game.time-dt)*6)) Sfx.hiss(0.18,0.06);
-      while(this.prog>=1){ this.prog-=1; if(!this.addOre(field)){ if(this.msgT<=0){ this.msgT=3; UI.toast('Hold full. Sell the ore at any port.','warn'); } this.prog=0; break; }
+      while(this.prog>=1){ this.prog-=1; if(!this.addOre(field)){ if(this.msgT<=0){ this.msgT=3; UI.toast('Hold full. Sell the ore at an assay office.','warn'); } this.prog=0; break; }
         best.ore--; best.r=best.r0*(0.45+0.55*best.ore/best.ore0); this.place(field,best); if(best.ore<=0){ UI.toast('Rock cracked open and emptied','good'); Sfx.thump(0.4); } }
     } else this.prog=Math.max(0,this.prog-dt*0.5);
   },
@@ -330,7 +330,7 @@ const Escort = {
     this.hT-=dt; if(this.hT>0) return; this.hT=rnd(45,80);
     const k=pick(['pirates','debris','panic']);
     if(k==='pirates'){ const ps=[0,1].map(()=>Ev.npc('pirate',n.pos.clone().add(Ev.around(new V3(),rnd(500,900))),{sp:pick(['grondar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
-      this.hazard={kind:'pirates',t:20,ps,nag:t=>`Pirates are buzzing ${c.vip.title}! Get within 4,000 km and sound the horn (G). ${t}s`,fail:()=>{ ps.forEach(p=>Ev.dismiss(p)); this.hurt(30,'The pirates rattled the VIP badly'); }};
+      this.hazard={kind:'pirates',t:20,ps,nag:t=>`Pirates are buzzing ${c.vip.title}! Get within 4,000 km and sound the horn (${TouchUI.on?'HORN':'G'}). ${t}s`,fail:()=>{ ps.forEach(p=>Ev.dismiss(p)); this.hurt(30,'The pirates rattled the VIP badly'); }};
       UI.toast(this.hazard.nag(20),'warn'); Sfx.deny(); }
     else if(k==='debris'){ this.hazard={kind:'debris',t:22,ok:0,nag:t=>`Debris ahead! Throttle 4 or lower, no warp, for 8 seconds. ${t}s`,fail:()=>this.hurt(20,`${c.vip.title}'s ship took a beating in the debris`)};
       if(s.warp) Game.dropWarp('Debris ahead! Warp disengaged','warn',true); UI.toast(this.hazard.nag(22),'warn'); }

@@ -138,15 +138,15 @@ const GOODS = [
 /* speeds in km/s; one light-second = 300,000 km */
 const SHIPS = [
   {name:'Rustbucket Mk I', tag:'It flies. Mostly forward.', price:0, hold:6, cruise:900, warp:55000, fuel:100, turn:0.8, model:0,
-   ck:{frame:'#c8693a',panel:'#24464f',trim:'#f2c14e',glow:'#ffb060',leather:'#8c3b2f',cage:true}},
+   ck:{frame:'#3d3a36',panel:'#23211f',trim:'#b5651d',glow:'#ffb060',leather:'#4a3426',cage:true}},
   {name:'Dromedary 400', tag:'A box with ambitions.', price:4500, hold:14, cruise:1000, warp:65000, fuel:140, turn:0.8, model:1,
-   ck:{frame:'#e2a92f',panel:'#243a5c',trim:'#ff6b35',glow:'#ffd27a',leather:'#6b4226',cage:true}},
+   ck:{frame:'#34383c',panel:'#1d2024',trim:'#e0b000',glow:'#ffd27a',leather:'#2e2e30',cage:true}},
   {name:'Stellar Stoat', tag:'Sleek, quick, slightly smug.', price:16000, hold:30, cruise:1200, warp:80000, fuel:180, turn:1.0, model:2,
-   ck:{frame:'#dfe9ee',panel:'#1d4a6a',trim:'#22b8a8',glow:'#7ff5e6',leather:'#2d6a4f',cage:false}},
+   ck:{frame:'#2a3238',panel:'#161b20',trim:'#19b8a6',glow:'#7ff5e6',leather:'#1e2a30',cage:false}},
   {name:'Opulent Manatee', tag:'Heated seats. Heated everything.', price:52000, hold:60, cruise:1350, warp:95000, fuel:240, turn:0.9, model:3,
-   ck:{frame:'#9c2f4d',panel:'#3a1d3a',trim:'#f4c95d',glow:'#ffd9a0',leather:'#d0506e',cage:false}},
+   ck:{frame:'#33252a',panel:'#1a1416',trim:'#c9a24a',glow:'#ffd9a0',leather:'#5a1f28',cage:false}},
   {name:'Quasar Empress', tag:'The last ship you will ever need to brag about.', price:180000, hold:120, cruise:1600, warp:120000, fuel:320, turn:1.1, model:4,
-   ck:{frame:'#c9ccdd',panel:'#27294a',trim:'#7a5cff',glow:'#9fe8ff',leather:'#f1ece2',cage:false}},
+   ck:{frame:'#9aa1aa',panel:'#1b1f26',trim:'#3fd0ff',glow:'#9fe8ff',leather:'#e8e4dc',cage:false}},
 ];
 
 const PLANETS = [

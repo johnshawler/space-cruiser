@@ -9,13 +9,13 @@ const Cockpit = {
     const g=this.group=new THREE.Group(); World.cock.add(g);
     this.hits=[]; this.ctrls={}; this.screens={}; this.glowMats=[]; this.screenMats=[]; this.gauges={}; this.strips=[];
     const ck=def.ck, bump=panelBumpTex(), self=this;
-    const std=(hex,rough,metal,extra)=>Toon.mat(Object.assign({color:C(hex),roughness:rough,metalness:metal},extra||{}));
+    const std=(hex,rough,metal,extra)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:rough,metalness:metal},extra||{}));
     const M={ frame:std(ck.frame,0.55,0.55,{bumpMap:bump,bumpScale:0.0015}), panel:std(ck.panel,0.7,0.3,{bumpMap:bump,bumpScale:0.001}), trim:std(ck.trim,0.32,0.9),
-      rubber:std('#2c2840',0.95,0), leather:std(ck.leather,0.62,0.05), knob:std('#34304a',0.42,0.25), alu:std('#cfd3e6',0.28,0.95),
+      rubber:std('#0c0c0d',0.95,0), leather:std(ck.leather,0.62,0.05,{bumpMap:bump,bumpScale:0.0008}), knob:std('#141416',0.42,0.25), alu:std('#b9bdc4',0.28,0.95),
       ptr:new THREE.MeshBasicMaterial({color:new THREE.Color(1.3,1.3,1.3)}), needle:new THREE.MeshBasicMaterial({color:HDR('#ff8a30',2.2)}),
       hit:new THREE.MeshBasicMaterial({visible:false}), wallDS:std(ck.frame,0.6,0.5,{side:THREE.DoubleSide}),
-      glass:new THREE.MeshBasicMaterial({color:C('#bfeaff'),transparent:true,opacity:0.07,depthWrite:false,side:THREE.DoubleSide}),
-      canopy:new THREE.MeshBasicMaterial({color:C('#9fdcff'),transparent:true,opacity:0.018,depthWrite:false,side:THREE.DoubleSide}) };
+      glass:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.22,transparent:true,opacity:0.06,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.6}),
+      canopy:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.4,transparent:true,opacity:0.045,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.8}) };
     this.M=M;
     const add=(m,cast=true,parent=g)=>{ m.castShadow=cast; m.receiveShadow=true; parent.add(m); return m; };
     const bx=(w,h,d,mat,x,y,z,parent)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); return add(m,true,parent||g); };
@@ -67,7 +67,7 @@ const Cockpit = {
       for(const [sx,sy] of [[28,28],[cw-28,28],[28,ch-28],[cw-28,ch-28]]){ ctx.fillStyle='#8a8e94'; ctx.beginPath(); ctx.arc(sx,sy,9,0,7); ctx.fill(); ctx.strokeStyle='#222'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(sx-6,sy-3); ctx.lineTo(sx+6,sy+3); ctx.stroke(); }
       gctx.fillStyle='#000'; gctx.fillRect(0,0,cw,ch);
       const tex=canvasTex(cv), gtex=canvasTex(gv);
-      const mat=Toon.mat({map:tex,emissiveMap:gtex,emissive:C(ck.glow),emissiveIntensity:1,roughness:0.6,metalness:0.35});
+      const mat=new THREE.MeshStandardMaterial({map:tex,emissiveMap:gtex,emissive:C(ck.glow),emissiveIntensity:1,roughness:0.6,metalness:0.35});
       const pg=new THREE.Group(); const face=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat); face.receiveShadow=true; pg.add(face);
       bx(w+0.014,h+0.014,0.05,M.frame,0,0,-0.0262,pg); this.glowMats.push(mat); g.add(pg);
       const P={g:pg,w,h,px,ctx,gctx,tex,gtex, xy:(x,y)=>[(x+w/2)*px,(h/2-y)*px],
@@ -105,7 +105,7 @@ const Cockpit = {
       P.text(x,y-r-0.012,o.label,0.0085);
       const grp=new THREE.Group(); grp.position.set(x,y,0); P.g.add(grp);
       const bz=new THREE.Mesh(cylZ(r*1.2,r*1.28,0.006),M.alu); bz.position.z=0.003; add(bz,false,grp);
-      const mat=Toon.mat({color:C(o.color),emissive:C(o.color),emissiveIntensity:0.15,roughness:0.35,metalness:0.1});
+      const mat=new THREE.MeshStandardMaterial({color:C(o.color),emissive:C(o.color),emissiveIntensity:0.15,roughness:0.35,metalness:0.1});
       const cap=new THREE.Mesh(cylZ(r*0.94,r,0.012),mat); cap.position.z=0.011; add(cap,true,grp);
       const hit=new THREE.Mesh(cylZ(r*1.3,r*1.3,0.04,10),M.hit); hit.position.z=0.02; grp.add(hit);
       return reg(Object.assign({type:'button',cap,mat,down:0},o),[hit]);
@@ -212,7 +212,7 @@ const Cockpit = {
 
     /* ---- manifest clipboard ---- */
     { const cv=makeCanvas(400,560); const tex=canvasTex(cv); const board=new THREE.Group(); board.position.set(-0.81,-0.412,-0.32); board.rotation.y=0.18; g.add(board);
-      bx(0.2,0.008,0.28,std('#5a4026',0.8,0),0,0,0,board); const pm=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.252),Toon.mat({map:tex,roughness:0.9,metalness:0})); pm.rotation.x=-Math.PI/2; pm.position.y=0.0046; pm.receiveShadow=true; board.add(pm);
+      bx(0.2,0.008,0.28,std('#5a4026',0.8,0),0,0,0,board); const pm=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.252),new THREE.MeshStandardMaterial({map:tex,roughness:0.9,metalness:0})); pm.rotation.x=-Math.PI/2; pm.position.y=0.0046; pm.receiveShadow=true; board.add(pm);
       bx(0.07,0.012,0.02,M.alu,0,0.008,-0.125,board); this.screens.manifest={cv,ctx:cv.getContext('2d'),tex,w:400,h:560}; }
 
     /* ---- wipers ---- */
@@ -227,7 +227,6 @@ const Cockpit = {
       for(const s of [-1,0,1]){ const e=new THREE.Mesh(new THREE.SphereGeometry(0.0065,8,6),std('#ffffff',0.2,0)); e.position.set(s*0.012,0.026+(s?0:0.008),0.02); head.add(e); const p=new THREE.Mesh(new THREE.SphereGeometry(0.003,6,6),std('#000000',0.2,0)); p.position.set(s*0.012,0.026+(s?0:0.008),0.0255); head.add(p); }
       this.bobble=head; this.bobV=new THREE.Vector2(); this.bobA=new THREE.Vector2(); }
 
-    Toon.ink.mark(g);
     this.drawManifest(); this.frame=0;
   },
 
@@ -386,7 +385,7 @@ const Cockpit = {
     const nd=e=>{ const r=cv.getBoundingClientRect(); return new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); };
     const showTip=(c,e)=>{ if(!c){ tip.hidden=true; cv.style.cursor=this.drag&&this.drag.look?'grabbing':'default'; return; } const v=c.get?c.get():null; tip.innerHTML=c.label+(c.fmt&&v!==null?' <b>'+c.fmt(v)+'</b>':c.type==='switch'&&v!==null?' <b>'+(v?'ON':'OFF')+'</b>':c.tip?' <b>'+c.tip+'</b>':'');
       tip.hidden=false; const r=cv.getBoundingClientRect(); tip.style.left=Math.min(e.clientX-r.left+16,r.width-tip.offsetWidth-8)+'px'; tip.style.top=(e.clientY-r.top+18)+'px'; cv.style.cursor='pointer'; };
-    cv.addEventListener('pointerdown',e=>{ if(G.mode!=='flight'||e.button!==0) return; Sfx.init(); cv.focus(); const c=this.pick(nd(e));
+    cv.addEventListener('pointerdown',e=>{ this.lastType=e.pointerType; if(G.mode!=='flight'||e.button!==0) return; Sfx.init(); cv.focus(); const c=this.pick(nd(e));
       this.drag=c?{c,x:e.clientX,y:e.clientY,moved:0,acc:0,start:c.get?c.get():0}:{look:true,x:e.clientX,y:e.clientY,moved:0}; if(c&&c.type==='button'){ c.down=1.4; } try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
     cv.addEventListener('pointermove',e=>{ if(G.mode!=='flight'){ tip.hidden=true; return; } const d=this.drag;
       if(!d){ const c=this.pick(nd(e)); this.hover=c; showTip(c,e); return; }
@@ -395,11 +394,14 @@ const Cockpit = {
       const c=d.c; if(c.type==='knob'||c.type==='lever'){ const delta=c.type==='lever'?-dy:(dx-dy);
         if(c.step){ d.acc+=delta; const stepPx=c.type==='lever'?14:24; while(Math.abs(d.acc)>=stepPx){ const dir=Math.sign(d.acc); d.acc-=dir*stepPx; this.stepCtrl(c,dir); } }
         else c.set(clamp(c.get()+delta/170*(c.max-c.min),c.min,c.max)); showTip(c,e); } });
-    const up=e=>{ const d=this.drag; this.drag=null; if(!d||G.mode!=='flight') return; cv.style.cursor='default';
-      if(d.c&&d.moved<5){ const c=d.c; if(c.type==='switch'){ c.set(!c.get()); Sfx.clunk(); } else if(c.type==='button'){ Sfx.click(); c.press(); } else if(c.step) this.stepCtrl(c,e.shiftKey?-1:1); showTip(c,e); } };
+    const up=e=>{ const d=this.drag; this.drag=null; if(!d||G.mode!=='flight') return; cv.style.cursor='default'; const touch=e.pointerType==='touch', tap=d.moved<(touch?12:5);
+      if(touch){ clearTimeout(this.tipT); this.tipT=setTimeout(()=>{ tip.hidden=true; },1600);
+        // finger double-tap on open space or a panel face leans in (or back out); taps on controls just work the control
+        if(!d.c&&tap){ const now=performance.now(), L=this.lastTap; if(L&&now-L.t<380&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<60){ this.lastTap=null; this.zoomAt(nd(e)); } else this.lastTap={t:now,x:e.clientX,y:e.clientY}; } }
+      if(d.c&&tap){ const c=d.c; if(c.type==='switch'){ c.set(!c.get()); Sfx.clunk(); } else if(c.type==='button'){ Sfx.click(); c.press(); } else if(c.step) this.stepCtrl(c,e.shiftKey?-1:1); showTip(c,e); } };
     cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',()=>{ this.drag=null; });
     cv.addEventListener('wheel',e=>{ if(G.mode!=='flight') return; const c=this.pick(nd(e)); if(c){ e.preventDefault(); this.stepCtrl(c,e.deltaY<0?1:-1); showTip(c,e); } },{passive:false});
-    cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight') return; this.zoomAt(nd(e)); });
+    cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight'||this.lastType==='touch') return; this.zoomAt(nd(e)); });
     cv.addEventListener('pointerleave',()=>{ tip.hidden=true; });
   },
 };

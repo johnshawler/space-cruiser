@@ -4,7 +4,7 @@ const Cine = {
 
   setModel(shipId){
     if(this.model && this.model.parent) this.model.parent.remove(this.model);
-    const m=this.model=Models.build(SHIPS[shipId].model); this.modelId=shipId; m.visible=false; World.space.add(m);
+    const m=this.model=Models.build(SHIPS[shipId].model,shipId===G.shipId?Game.scheme():null); this.modelId=shipId; m.visible=false; World.space.add(m);
     const glow=HDR(m.userData.glow,2.4), fx=new THREE.Group(); m.add(fx); m.userData.fx=fx; m.userData.flames=[];
     const feet=m.userData.gear.children.filter((c,i)=>i%2===1).map(c=>c.position);
     for(const p of feet){ const f=new THREE.Mesh(new THREE.ConeGeometry(1.5,12,14,1,true),new THREE.MeshBasicMaterial({color:glow.clone(),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
@@ -28,9 +28,9 @@ const Cine = {
     const es=new THREE.Scene(); es.add(new THREE.Mesh(sky.geometry,skyMat)); const crt=new THREE.WebGLCubeRenderTarget(128,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,generateMipmaps:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
     new THREE.CubeCamera(10,60000,crt).update(World.renderer,es); const pm=new THREE.PMREMGenerator(World.renderer); const env=pm.fromCubemap(crt.texture).texture; pm.dispose(); crt.dispose(); scn.environment=env; skyU.uMax.value=40;
     scn.fog=new THREE.FogExp2(C(S.hor),S.fog);
-    scn.add(new THREE.HemisphereLight(C(S.hor),C(S.g[0]),0.7));
+    scn.add(new THREE.HemisphereLight(C(S.hor),C(S.g[0]),0.32));
     const sun=new THREE.DirectionalLight(C('#fff2dc'),S.lava?1.1:1.9); sun.position.copy(sunDir).multiplyScalar(320); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
-    const sc=sun.shadow.camera; sc.left=-110; sc.right=110; sc.top=110; sc.bottom=-110; sc.near=60; sc.far=800; sun.shadow.bias=-0.0005; sun.shadow.normalBias=0.4; sun.shadow.radius=3; scn.add(sun); scn.add(sun.target);
+    const sc=sun.shadow.camera; sc.left=-150; sc.right=150; sc.top=150; sc.bottom=-150; sc.near=60; sc.far=800; sun.shadow.bias=-0.0005; sun.shadow.normalBias=0.4; sun.shadow.radius=3; scn.add(sun); scn.add(sun.target);
     const liq=S.liquid?-20:-1e9;
     const hAt=(x,z)=>{ const d=Math.hypot(x,z), n=fbm2(x*0.0011+31,z*0.0011+17,seed,5), rd=1-Math.abs(2*fbm2(x*0.0023+5,z*0.0023+9,seed+3,4)-1);
       const h=(n*0.75+rd*0.25-0.5)*S.amp*2.4+smooth(1200,4300,d)*S.amp*1.6*n; return cloud? -560+h*0.55 : h*smooth(150,800,d); };
@@ -41,8 +41,8 @@ const Cine = {
     tg.setAttribute('color',new THREE.BufferAttribute(cols,3)); tg.computeVertexNormals();
     const gcv=makeCanvas(256,256), gx=gcv.getContext('2d'), gi=gx.createImageData(256,256), gr=mulberry32(3); for(let i=0;i<gi.data.length;i+=4){ const v=222+gr()*33; gi.data[i]=gi.data[i+1]=gi.data[i+2]=v; gi.data[i+3]=255; } gx.putImageData(gi,0,0);
     const gt=canvasTex(gcv); gt.wrapS=gt.wrapT=THREE.RepeatWrapping; gt.repeat.set(90,90);
-    const terr=new THREE.Mesh(tg,Toon.mat({vertexColors:true,map:gt,roughness:cloud?1:0.94,metalness:0})); terr.receiveShadow=true; scn.add(terr);
-    if(S.liquid){ const lm=S.lava?new THREE.MeshBasicMaterial({color:HDR(S.liquid,2.6)}):Toon.mat({color:C(S.liquid),roughness:0.06,metalness:0.55,envMapIntensity:1.4});
+    const terr=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,map:gt,roughness:cloud?1:0.94,metalness:0})); terr.receiveShadow=true; scn.add(terr);
+    if(S.liquid){ const lm=S.lava?new THREE.MeshBasicMaterial({color:HDR(S.liquid,2.6)}):new THREE.MeshStandardMaterial({color:C(S.liquid),roughness:0.06,metalness:0.55,envMapIntensity:1.4});
       const l=new THREE.Mesh(new THREE.PlaneGeometry(26000,26000),lm); l.rotation.x=-Math.PI/2; l.position.y=liq; scn.add(l); if(S.lava){ const ll=new THREE.HemisphereLight(C('#000000'),C(S.liquid),1.1); scn.add(ll); } }
     // pad
     const pcv=makeCanvas(512,512), px=pcv.getContext('2d'); px.fillStyle='#34363a'; px.fillRect(0,0,512,512); const pr=mulberry32(seed+1);
@@ -50,12 +50,12 @@ const Cine = {
     px.strokeStyle='#e8b820'; px.lineWidth=14; px.beginPath(); px.arc(256,256,214,0,7); px.stroke(); px.lineWidth=6; px.beginPath(); px.arc(256,256,120,0,7); px.stroke();
     for(let i=0;i<24;i++){ const a=i/24*6.283; px.save(); px.translate(256+Math.cos(a)*238,256+Math.sin(a)*238); px.rotate(a); px.fillStyle=i%2?'#e8b820':'#1a1a1a'; px.fillRect(-10,-16,20,32); px.restore(); }
     drawGlyphs(px,P.port.slice(0,3),190,210,90,P.species,'#f2f2f2',200);
-    const padTop=Toon.mat({map:canvasTex(pcv),roughness:0.85,metalness:0.1}), padSide=Toon.mat({color:C('#2a2c30'),roughness:0.8,metalness:0.3});
+    const padTop=new THREE.MeshStandardMaterial({map:canvasTex(pcv),roughness:0.85,metalness:0.1}), padSide=new THREE.MeshStandardMaterial({color:C('#2a2c30'),roughness:0.8,metalness:0.3});
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(50,54,5,56),[padSide,padTop,padSide]); pad.position.y=-2.5; pad.receiveShadow=true; scn.add(pad);
     if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(9,16,900,20),padSide); py.position.y=-455; scn.add(py); const rg=new THREE.Mesh(new THREE.TorusGeometry(58,3,10,48),padSide); rg.rotation.x=Math.PI/2; rg.position.y=-6; scn.add(rg); }
     const lamps=[]; for(let i=0;i<20;i++){ const a=i/20*6.283, lm=new THREE.Mesh(new THREE.SphereGeometry(0.45,8,6),new THREE.MeshBasicMaterial({color:0xffffff})); lm.position.set(Math.cos(a)*47,0.35,Math.sin(a)*47); scn.add(lm); lamps.push(lm); }
     // buildings
-    const bm=(hex,rough=0.7,metal=0.2,ex)=>Toon.mat(Object.assign({color:C(hex),roughness:rough,metalness:metal},ex||{}));
+    const bm=(hex,rough=0.7,metal=0.2,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:rough,metalness:metal},ex||{}));
     const win=new THREE.MeshBasicMaterial({color:HDR(spc.col,1.8)}), warm=new THREE.MeshBasicMaterial({color:HDR('#ffd9a0',2)});
     const mk=(geo,mat,x=0,y=0,z=0)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; };
     const building=()=>{ const b=new THREE.Group(), st=S.style;
@@ -75,12 +75,12 @@ const Cine = {
     // neighbours parked nearby
     const parked=[]; for(const [x,z,ry] of [[118,74,2.2],[-60,128,-0.6]]){ const idx=Math.floor(rr()*Models.count), n=Models.build(idx); n.position.set(x,n.userData.gearH+(cloud?0:0),z); n.rotation.y=ry; scn.add(n); parked.push(n);
       const pp=mk(new THREE.CylinderGeometry(30,32,3,32),padSide,x,-1.6,z); pp.castShadow=false; scn.add(pp); if(cloud) scn.add(mk(new THREE.CylinderGeometry(5,9,700,10),padSide,x,-353,z)); }
+    Venues.build(scn,P,cloud,padSide);
     const flyby=Models.build(Math.floor(rr()*5)); flyby.scale.setScalar(1.5); scn.add(flyby);
     // dust
     const dn=380, dp=new Float32Array(dn*3), dseed=new Float32Array(dn*3); for(let i=0;i<dn;i++){ dseed[i*3]=rr()*6.283; dseed[i*3+1]=rr(); dseed[i*3+2]=rr(); }
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
-    Toon.ink.mark(scn);
     this.surf={scene:scn,env,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
   updateSurface(dt, t, alt){
@@ -113,7 +113,7 @@ const Cine = {
   /* drop straight into the port, no descent (used by Continue and Skip) */
   dock(P){
     if(!this.surf||this.surf.P!==P) this.buildSurface(P); if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
-    this.P=P; const m=this.model; this.surf.scene.add(m); m.visible=true; m.position.set(0,m.userData.gearH,0); m.rotation.set(0,0.6,0); this.plasma.visible=false; this.setThrust(0,0); this.surf.dustI=0;
+    if(this.mode!=='port') this.camInit=true; this.P=P; const m=this.model; this.surf.scene.add(m); m.visible=true; m.position.set(0,m.userData.gearH,0); m.rotation.set(0,0.6,0); this.plasma.visible=false; this.setThrust(0,0); this.surf.dustI=0;
     this.mode='port'; this.fade=0; this.shake=0; this.ui(false); World.scenes.list=[{scene:this.surf.scene,camera:this.cam}]; if(!this.landed){ this.landed=true; Game.onLanded(P); }
   },
   skip(){ if(this.mode==='A'||this.mode==='B'||this.mode==='C'){ this.fadeCol.setRGB(0,0,0); this.dock(this.P); this.fade=1; } else if(this.mode==='T'){ this.t=99; } },
@@ -122,8 +122,11 @@ const Cine = {
     if(shipId==null||shipId===G.shipId){ this.model.visible=true; return; }
     const p=this.preview=Models.build(SHIPS[shipId].model); p.position.set(0,p.userData.gearH,0); p.rotation.y=0.6; this.surf.scene.add(p); this.model.visible=false;
   },
+  /* the part of the screen not covered by the port panel */
+  region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const r=el.getBoundingClientRect();
+    if(r.width<W*0.92) return {w:Math.max(1,W-r.width),h:H,ox:-r.width/2,oy:0}; return {w:W,h:Math.max(1,H-r.height),ox:0,oy:r.height/2}; },
   update(dt, time){
-    this.t+=dt; const t=this.t, P=this.P, s=G.ship, cam=this.cam, m=this.model; let fov=42;
+    this.t+=dt; const t=this.t, P=this.P, s=G.ship, cam=this.cam, m=this.model; let fov=42; if(this.mode!=='port'&&cam.view&&cam.view.enabled) cam.clearViewOffset();
     if(this.mode==='A'){
       s.pos.copy(this.baseA).addScaledVector(this.hA,-165+72*t); m.quaternion.copy(this.qA); Models.animate(m,0.85,time);
       cam.position.copy(this.camA).sub(s.pos); cam.up.copy(this.up); cam.lookAt(0,0,0); fov=36; this.fade=Math.max(0,1-t/0.7);
@@ -146,8 +149,14 @@ const Cine = {
       if(t>1.4&&t<7) this.ui(true,P.name,P.port+' · '+SPECIES[P.species].name+' territory'); this.orbit2=a;
       if(t>=7.6){ this.dock(P); this.orbit=this.orbit2; }
     } else if(this.mode==='port'){
-      this.orbit+=dt*0.05; const a=this.orbit, R=88; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*R,8+2*Math.sin(time*0.2),Math.sin(a)*R); cam.lookAt(0,m.userData.gearH+2,0);
-      const wide=World.w>900; if(wide) cam.rotateY(0.2); fov=wide?42:50; Models.animate(m,0,time); this.fade=Math.max(0,this.fade-dt*1.5); this.surf.dustI=Math.max(0,this.surf.dustI-dt*0.3); if(this.preview){ this.preview.rotation.y+=dt*0.25; Models.animate(this.preview,0,time); }
+      Models.animate(m,0,time); Venues.update(dt,time); const V=Venues.active, reg=this.region();
+      if(V){ const tg=Venues.cam(V,reg.w/reg.h);
+        if(this.camInit||!this.camP){ this.camInit=false; this.camP=cam.position.clone(); this.camL=new V3(0,m.userData.gearH+2,0); }
+        const k=1-Math.exp(-dt*2.2); this.camP.lerp(tg.pos,k); this.camL.lerp(tg.look,k); const far=this.camP.distanceTo(tg.pos); Venues.moving=far>2.5;
+        cam.up.set(0,1,0); cam.position.copy(this.camP); cam.position.y+=Math.min(35,far*0.3); cam.lookAt(this.camL);
+        // frame the set in the part of the screen the port panel leaves open
+        fov=2*Math.atan(Math.tan(tg.fov*Math.PI/360)*World.h/reg.h)*180/Math.PI; this.fovFixed=true; cam.setViewOffset(World.w,World.h,reg.ox,reg.oy,World.w,World.h);
+      } else { this.orbit+=dt*0.05; const a=this.orbit, R=88; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*R,8+2*Math.sin(time*0.2),Math.sin(a)*R); cam.lookAt(0,m.userData.gearH+2,0); fov=42; } this.fade=Math.max(0,this.fade-dt*1.5); this.surf.dustI=Math.max(0,this.surf.dustI-dt*0.3); if(this.preview){ this.preview.rotation.y+=dt*0.25; Models.animate(this.preview,0,time); }
     } else if(this.mode==='T'){
       const rest=m.userData.gearH, y=rest+(t>0.6?Math.pow(t-0.6,2.3)*16:0); m.position.set(0,y,0); m.rotation.x=smooth(1.2,4,t)*0.45; this.setThrust(smooth(0,0.7,t),time); this.surf.dustI=smooth(0,0.6,t)*smooth(90,10,y-rest);
       this.shake=0.25*smooth(0,0.8,t); const a=this.orbit; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*88,8,Math.sin(a)*88); cam.lookAt(0,y*0.85+3,0); fov=44;
@@ -155,7 +164,7 @@ const Cine = {
     }
     if(this.mode!=='A'&&this.mode!=='B') this.updateSurface(dt,time);
     if(this.shake>0){ cam.position.x+=(Math.random()-0.5)*this.shake; cam.position.y+=(Math.random()-0.5)*this.shake; cam.rotateZ((Math.random()-0.5)*this.shake*0.012); }
-    if(Math.abs(cam.fov-fov)>0.01){ cam.fov=fov; cam.updateProjectionMatrix(); }
+    this.fovRaw=fov; if(!this.fovFixed) fov=World.fit(fov); this.fovFixed=false; if(Math.abs(cam.fov-fov)>0.01){ cam.fov=fov; cam.updateProjectionMatrix(); }
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },
 };

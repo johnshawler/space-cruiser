@@ -1,6 +1,6 @@
 /* ===================== GAME ===================== */
 const G = {
-  mode:'boot', credits:250, shipId:0, cargo:[], jobs:[], fuel:100, target:2, hot:null, docked:-1, playTime:0, stats:{deliveries:0,earned:0}, rep:0, hull:100, up:{hidden:false,laser:1}, keys:{},
+  mode:'boot', credits:250, shipId:0, cargo:[], jobs:[], fuel:100, target:2, hot:null, docked:-1, playTime:0, stats:{deliveries:0,earned:0}, rep:0, hull:100, up:{hidden:false,laser:1}, paint:null, keys:{},
   ship:{pos:new V3(), quat:new Q4(), vel:new V3(), speed:0, cruise:0, throttle:0, warp:false, warpF:0, angVel:new V3(), ctl:new V3(), temp:0.25, departed:-1},
   sys:{power:true,autopilot:false,hud:true,invert:false,wipers:false,translator:true,radioVol:0.7,channel:0,cabin:0.45,instr:0.8,visor:0,music:0.45,radarRange:1,mfdPage:0,dirt:0.12},
   head:{yaw:0,pitch:-0.12,yawT:0,pitchT:-0.12,basePitch:-0.12,pos:new V3(),posT:new V3(),fov:72,fovT:72,zoomed:null,zoomPt:null},
@@ -10,7 +10,10 @@ window.G = G;
 const Game = {
   clock:new THREE.Clock(), time:0, flash:0, fade:0, fadeCol:new THREE.Color(0,0,0), towFee:0, towing:false, hintT:0, hintI:99, mk:0,
   HINTS:[[2.5,'Steer with W A S D until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press Z for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in, and again to lean back. Every control works'],[38,'H hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically'],[66,'M opens the system map. Click a world there to set your destination'],[84,'Asteroid fields are on the map. Hold F with a rock in your sights to mine ore']],
+  THINTS:[[2.5,'Steer with the stick on the left until the amber marker is dead ahead'],[11,'Slide the throttle on the right. Tap WARP once the nav screen says aligned'],[24,'Double-tap any panel to lean in, and double-tap open space to lean back. Every control works'],[38,'HAIL calls the nearest pilot. What they say shows at the top of the screen'],[52,'Fly at a planet and the port lands you automatically'],[66,'MAP opens the system map. Tap a world there to set your destination'],[84,'Asteroid fields are on the map. Hold MINE with a rock in your sights to mine ore']],
 
+  /* the player's paint job (from a paint shop) on top of the ship's factory finish */
+  scheme(){ const b=Models.SCHEMES[Math.min(SHIPS[G.shipId].model,4)]; return G.paint?{hull:G.paint.hull,trim:G.paint.trim,glow:b.glow,wear:Math.min(b.wear,0.2)}:null; },
   cruiseSpeed(n){ return SHIPS[G.shipId].cruise*Math.pow(n/10,1.5); },
   setThrottle(n){ n=clamp(Math.round(n),0,10); if(!G.sys.power||G.mode!=='flight') return; if(n!==G.ship.throttle){ G.ship.throttle=n; Sfx.click(); } },
   massLock(){ const s=G.ship; if(s.pos.length()<SUN_R*3) return true; for(const P of PLANETS) if(P.pos.distanceTo(s.pos)<P.lockR) return true; return false; },
@@ -63,7 +66,7 @@ const Game = {
 
   updateFlight(dt){
     const s=G.ship, def=SHIPS[G.shipId], K=G.keys, sys=G.sys;
-    let cp=(K.KeyW?1:0)-(K.KeyS?1:0), cy=(K.KeyA?1:0)-(K.KeyD?1:0), cr=(K.KeyQ?1:0)-(K.KeyE?1:0); if(sys.invert) cp=-cp; if(!sys.power) cp=cy=cr=0;
+    let cp=(K.KeyW?1:0)-(K.KeyS?1:0), cy=(K.KeyA?1:0)-(K.KeyD?1:0), cr=(K.KeyQ?1:0)-(K.KeyE?1:0); if(!cp&&!cy){ cp=TouchUI.stick.y; cy=-TouchUI.stick.x; } if(sys.invert) cp=-cp; if(!sys.power) cp=cy=cr=0;
     if(sys.autopilot&&sys.power&&!cp&&!cy&&!cr){ const v=Cockpit.targetLocal().v; cy=clamp(-v.x*4,-1,1); cp=clamp(v.y*4,-1,1); if(v.z>0) cy=v.x<0?1:-1; }
     s.ctl.set(cp,cy,cr); const rate=def.turn*(1-0.82*s.warpF);
     s.angVel.x=damp(s.angVel.x,cp*rate,4.5,dt); s.angVel.y=damp(s.angVel.y,cy*rate,4.5,dt); s.angVel.z=damp(s.angVel.z,cr*rate*1.6,4.5,dt);
@@ -105,32 +108,32 @@ const Game = {
     if(G.mode==='flight'){
       G.playTime+=dt; this.updateFlight(dt);
       if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(s.vel,dt,s.warpF); fov=G.head.fov;
-        if(this.hintI<this.HINTS.length){ this.hintT+=dt; if(this.hintT>this.HINTS[this.hintI][0]) UI.toast(this.HINTS[this.hintI++][1]); } }
+        const HS=TouchUI.on?this.THINTS:this.HINTS; if(this.hintI<HS.length){ this.hintT+=dt; if(this.hintT>HS[this.hintI][0]) UI.toast(HS[this.hintI++][1]); } }
     } else if(G.mode==='title'){
       s.quat.multiply(new Q4().setFromEuler(new THREE.Euler(0,dt*0.004,dt*0.006))); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(new V3(0,0,-1).applyQuaternion(s.quat).multiplyScalar(160),dt,0); fov=G.head.fov;
     }
-    if(G.mode==='landing'||G.mode==='port'||G.mode==='takeoff'){ Cine.update(dt,t); if(G.mode!=='flight') fov=Cine.cam.fov; }
+    if(G.mode==='landing'||G.mode==='port'||G.mode==='takeoff'){ Cine.update(dt,t); if(G.mode!=='flight') fov=Cine.fovRaw||Cine.cam.fov; }
     World.update(dt,s.pos,fov);
     if(G.mode==='flight'||G.mode==='title'){
       this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
-      World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=0.2+s.warpF*0.55;
-    } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.4:0.18; }
-    SysMap.update(dt,t); Dlg.update(dt);
+      World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=0.75+s.warpF*0.7;
+    } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
     World.render();
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up,paint:G.paint})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1}}); Nav.clear(true);
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1},paint:null}); Nav.clear(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
     const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init();
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{})}); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null}); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },
@@ -167,7 +170,7 @@ const Game = {
   async boot(){
     try{ await Promise.race([document.fonts&&document.fonts.load?Promise.all([document.fonts.load(`600 20px ${FONT_DISP}`),document.fonts.load(`20px ${FONT_MONO}`)]):0,new Promise(r=>setTimeout(r,2500))]); }catch(e){}
     try{ World.init($('gl')); Mining.build(); }catch(err){ console.error(err); const b=$('btn-new'); b.textContent='This browser cannot start WebGL'; return; }
-    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); this.bind(); this.setupTitle(); this.loop();
+    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); this.bind(); TouchUI.init(); this.setupTitle(); this.loop();
   },
 };
 Game.boot();
