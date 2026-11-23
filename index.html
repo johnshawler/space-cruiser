@@ -344,7 +344,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Independent freight · nine worlds · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.20</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.21</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -2877,7 +2877,7 @@ const Loading = (() => {
     for(let i=0;i<n;i++){ const g=goods[i%goods.length], bad=!!g.illegal;
       const o=new THREE.Mesh(new THREE.BoxGeometry(CS,CS,CS),M('#ffffff',0.85,0.02,{map:crateTex(bad?'Definitely not contraband':g.good,bad)})); o.castShadow=true; o.receiveShadow=true;
       o.position.set(stack.x+(i%2?0.06:-0.05),CS/2+i*CS,stack.z+(i%2?-0.04:0.05)); o.rotation.y=(Math.random()-0.5)*0.25; root.add(o);
-      crates.push({o,i,taken:false,phys:null,col:pick(['#ff6b6b','#ffd43b','#51cf66','#4dabf7','#cc5de8','#ff922b','#f8f9fa'])}); }
+      crates.push({o,i,g,taken:false,phys:null,col:pick(['#ff6b6b','#ffd43b','#51cf66','#4dabf7','#cc5de8','#ff922b','#f8f9fa'])}); }
 
     // two dockhands from this world
     const seed=P.idx*131+Math.floor(Math.random()*1e5), crew=[0,1].map(k=>{ const F=Folk.make(P.species,seed+k*57,SC); root.add(F);
@@ -2885,15 +2885,25 @@ const Loading = (() => {
       return {F,k,rest,st:'wait',wait:k?1.7:0.9,path:null,crate:null,act:null,actT:0,ph:0,onRamp:false}; });
 
     const r=Math.random(), out=api.force||(r<0.38?'ok':r<0.69?'tumble':'topple');
-    S={P,D,a,ca,sa,root,door,hinge,model,ramp,foot,stack,crates,crew,n,out,inCount:0,lost:0,toppled:false,phys:[],parts:[],bits:[],fired:{},closeT:-1,t:0,finished:false,sub:''};
+    S={P,D,a,ca,sa,root,door,hinge,model,ramp,foot,stack,crates,crew,n,out,inCount:0,lost:0,toppled:false,losses:[],lossDone:false,cracked:false,phys:[],parts:[],bits:[],fired:{},closeT:-1,t:0,finished:false,sub:''};
     const u=goods.reduce((s,g)=>s+g.qty,0);
     S.sub=goods.length===1?`${goods[0].qty}× ${goods[0].good}`:`${goods.length} contracts · ${u} units`;
     api.sub=S.sub;
     return true;
   }
 
+  /* a disaster costs real cargo: the crate's share of its contract (at least one unit), and the pay drops to match */
+  function lose(g, frac){ if(!g||!G.cargo.includes(g)||g.qty<=0) return 0; const per=g.qty/Math.max(1,S.crates.filter(x=>x.g===g).length), units=Math.max(1,Math.min(g.qty,Math.round(per*frac))), before=g.qty;
+    g.qty-=units; if(g.qty<=0) G.cargo.splice(G.cargo.indexOf(g),1); else g.pay=Math.max(5,Math.round(g.pay*g.qty/before/5)*5);
+    S.losses.push({good:g.illegal?'special crate':g.good,units,left:g.qty,pay:g.qty>0?g.pay:0}); if(Cockpit.drawManifest) Cockpit.drawManifest(); Game.save(); return units; }
+  const unitWord=n=>n===1?'unit':'units';
   function stop(){
-    if(!S) return; const kill=o=>o.traverse(q=>{ if(q.geometry) q.geometry.dispose(); if(q.material){ (Array.isArray(q.material)?q.material:[q.material]).forEach(m=>{ if(m.map) m.map.dispose(); m.dispose(); }); } });
+    if(!S) return;
+    // skipped before the disaster played out: it still happened, you just did not watch
+    if(S.out==='tumble'&&!S.lossDone){ S.lossDone=true; lose((S.crates.find(x=>x.fail)||S.crates[0]).g,1); }
+    if(S.out==='topple'&&!S.cracked){ S.cracked=true; lose(S.crates[S.crates.length-1].g,0.5); }
+    if(S.losses.length){ const L=S.losses.map(l=>l.left>0?`${l.units} ${unitWord(l.units)} of ${l.good} (now pays ${fmtCr(l.pay)})`:`all of the ${l.good}, so that contract is gone`).join('; ');
+      setTimeout(()=>UI.toast(`Lost in loading: ${L}. The depot is very sorry, in writing.`,'warn'),4200); } const kill=o=>o.traverse(q=>{ if(q.geometry) q.geometry.dispose(); if(q.material){ (Array.isArray(q.material)?q.material:[q.material]).forEach(m=>{ if(m.map) m.map.dispose(); m.dispose(); }); } });
     for(const c of S.crew) S.root.remove(c.F); // their materials are shared with the shop folk
     if(S.root.parent) S.root.parent.remove(S.root); kill(S.root); if(S.door.parent) S.door.parent.remove(S.door); kill(S.door); S=null;
   }
@@ -2930,19 +2940,23 @@ const Loading = (() => {
 
   function topple(except){
     S.toppled=true; S.crates.forEach(x=>{ if(x===except||x.taken) return; const h=x.o.position.y;
-      x.phys=toss(x.o,new V3(rnd(0.4,2.4),rnd(0.5,2),rnd(-2.2,2.2)).multiplyScalar(0.6+h*0.35),new V3(rnd(-7,7),rnd(-3,3),rnd(-7,7)),CS/2,p=>{ if(p.hit===1&&live()) Sfx.crash(0.45); }); });
+      x.phys=toss(x.o,new V3(rnd(0.4,2.4),rnd(0.5,2),rnd(-2.2,2.2)).multiplyScalar(0.6+h*0.35),new V3(rnd(-7,7),rnd(-3,3),rnd(-7,7)),CS/2,p=>{ if(p.hit===1){ if(live()) Sfx.crash(0.45); if(!S.cracked) crack(x); } }); });
     if(live()) Sfx.crash(0.7); setTimeout(()=>{ if(S&&live()) void 0; },700);
     S.crew.forEach(o=>{ Folk.mood(o.F,'shock'); if(o!==S.crew.find(q=>q.crate===except)){ o.act='gasp'; o.actT=0; } });
     say('The stack had other ideas.');
   }
 
+  function crack(x){ S.cracked=true; const at=x.o.position.clone(), u=lose(x.g,0.5); puff(at.clone().setY(0.3),'#c9b79a',6,1.6,0.25,0.9);
+    for(let i=0;i<6;i++){ const s=0.12+Math.random()*0.12, o=new THREE.Mesh(i%2?new THREE.BoxGeometry(s,s,s):new THREE.SphereGeometry(s*0.6,8,6),M(i%2?x.col:pick(['#ffd43b','#f8f9fa','#4dabf7']),0.6,0.05)); o.position.copy(at); S.root.add(o); S.bits.push(o); toss(o,new V3(rnd(-1.5,2.5),rnd(1.5,3.5),rnd(-2,2)),new V3(rnd(-9,9),rnd(-9,9),rnd(-9,9)),s/2); }
+    if(u) setTimeout(()=>{ if(S&&live()) say(`One crate cracked on landing. ${u} ${unitWord(u)} of ${x.g.illegal?'something unmentionable':x.g.good} rattled out of it.`); },900); }
   function burst(x){
     x.o.visible=false; S.lost++; const at=x.o.position.clone(); if(live()){ Sfx.crash(1); setTimeout(()=>{ if(S&&live()) void 0; },500); }
     puff(at.clone().setY(0.3),'#c9b79a',10,2.2,0.32,1.1);
     for(let i=0;i<12;i++){ const s=0.16+Math.random()*0.16, o=new THREE.Mesh(i%3?new THREE.BoxGeometry(s,s,s):new THREE.SphereGeometry(s*0.6,8,6),M(i%2?x.col:pick(['#ffd43b','#f8f9fa','#4dabf7','#ff6b6b']),0.6,0.05)); o.castShadow=true;
       o.position.copy(at); S.root.add(o); S.bits.push(o); toss(o,new V3(rnd(-1.5,3.5),rnd(2,5),rnd(-3,3)),new V3(rnd(-9,9),rnd(-9,9),rnd(-9,9)),s/2); }
     for(let i=0;i<4;i++){ const o=new THREE.Mesh(new THREE.BoxGeometry(CS,0.08,CS*0.3),M('#b9823f',0.85,0.02)); o.position.copy(at); S.root.add(o); toss(o,new V3(rnd(-2,2),rnd(1.5,3.5),rnd(-2,2)),new V3(rnd(-6,6),rnd(-6,6),rnd(-6,6)),0.04); }
-    S.crew.forEach(o=>{ Folk.mood(o.F,o.crate?'shock':'sad'); if(!o.crate){ o.act='facepalm'; o.actT=0; } }); say('One crate took the quick way down. Most of it is still in the box.');
+    S.crew.forEach(o=>{ Folk.mood(o.F,o.crate?'shock':'sad'); if(!o.crate){ o.act='facepalm'; o.actT=0; } }); S.lossDone=true; const u=lose(x.g,1);
+    say(u?`One crate took the quick way down. ${u} ${unitWord(u)} of ${x.g.illegal?'something nobody will name':x.g.good} went with it.`:'One crate took the quick way down.');
   }
 
   function update(dt, t, time){
@@ -2998,7 +3012,7 @@ const Loading = (() => {
     // close up once everything is aboard and nobody is on the ramp
     if(S.closeT<0&&S.inCount+S.lost>=S.n&&S.crew.every(c=>!c.onRamp)&&!S.crew.some(c=>c.act==='facepalm'||c.act==='slip')){ S.closeT=t;
       if(S.out==='ok'){ say('Not a scratch on it. The crew can hardly believe it.'); if(live()) void 0; S.crew.forEach(c=>{ c.act='cheer'; c.actT=0; Folk.mood(c.F,'happy'); }); }
-      else if(S.out==='topple'){ say('Everything went in anyway. Nobody needs to know.'); S.crew.forEach(c=>{ c.act='mop'; c.actT=0; Folk.mood(c.F,'worried'); }); }
+      else if(S.out==='topple'){ say('What was left went in anyway. Nobody needs to know.'); S.crew.forEach(c=>{ c.act='mop'; c.actT=0; Folk.mood(c.F,'worried'); }); }
       else { S.crew.forEach(c=>{ c.act='shrug'; c.actT=0; Folk.mood(c.F,'worried'); }); } }
     if(S.closeT>=0&&t>S.closeT+1.2) S.finished=true;
     if(t>24) S.finished=true;

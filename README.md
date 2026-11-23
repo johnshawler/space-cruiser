@@ -47,7 +47,7 @@ Every planet has its own mix of places. Each one sits in its own part of the por
 
 ## Port life
 
-Locals stroll around the landing pad, stop to chat, push carts of crates about, and a marshal waves you in with glowing batons. Other ships land on and take off from the neighbouring pads. When you launch with new cargo, the hatch folds down into a ramp and two dockhands carry it aboard. Sometimes the stack falls over, or the last crate slides back down the ramp and bursts. Sometimes it all goes in without a scratch.
+Locals stroll around the landing pad, stop to chat, push carts of crates about, and a marshal waves you in with glowing batons. Other ships land on and take off from the neighbouring pads. When you launch with new cargo, the hatch folds down into a ramp and two dockhands carry it aboard. Sometimes the stack falls over and a crate cracks open (you lose half that crate's share of the contract), or the last crate slides back down the ramp and bursts (you lose its whole share). Lost units come off the contract and its pay drops to match; a message after takeoff says what went. Skipping the scene doesn't save the cargo. Sometimes it all goes in without a scratch.
 
 ## Your ship
 
