@@ -1,0 +1,227 @@
+/* ===================== WALKING AROUND THE SHIP, FAULTS AND REPAIRS ===================== */
+/* Ship-local coordinates in metres, same frame as the cockpit: the pilot's eye is at the origin, -z is forward,
+   the cockpit floor is at y=-0.97 and its back wall at z=0.68. The rest of the ship is behind that wall:
+   a corridor, a passenger cabin (left), a galley (right), the cargo hold, and the engine room at the back. */
+const FLOOR=-0.97, CEIL=1.33, EYE=0.62;
+
+/* ---------- faults: things that break, where they are, what they do until fixed ---------- */
+const FAULT_DEFS = {
+  coolant:{name:'Coolant leak', where:'engine room', effect:'fuel use up 70%', pos:[-2.25,0.15,16.2], fx:'steam'},
+  thruster:{name:'Thruster misfire', where:'engine room', effect:'top speed down 40%', pos:[1.3,0.35,18.85], fx:'smoke'},
+  fuse:{name:'Blown fuse', where:'galley', effect:'radio is dead', pos:[2.45,0.45,1.46], fx:'sparks'},
+  scrubber:{name:'Air scrubber jammed', where:'passenger cabin', effect:'passengers getting cross, canopy fogging', pos:[-2.6,0.95,5.74], fx:'haze'},
+  crack:{name:'Hull crack', where:'corridor', effect:'hull slowly failing', pos:[-0.86,0.55,5.6], fx:'frost'},
+  strap:{name:'Cargo strap snapped', where:'cargo hold', effect:'cargo getting knocked about, value dropping faster', pos:[1.55,0.1,10.6], fx:'strap'},
+};
+const Faults = {
+  t:45,
+  has(id){ return (G.faults||[]).includes(id); },
+  list(){ return G.faults||(G.faults=[]); },
+  fuelMul(){ return this.has('coolant')?1.7:1; },
+  speedMul(){ return this.has('thruster')?0.6:1; },
+  lagMul(c){ return c.kind==='pax'?(this.has('scrubber')?2:1):(this.has('strap')?2:1); },
+  add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); const d=FAULT_DEFS[id];
+    UI.toast(`⚠ ${d.name} in the ${d.where}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${TouchUI.on?'Tap Walk':'Press L'} to go and fix it.`,'warn');
+    if(Sfx.ok()){ Sfx.beep(880); setTimeout(()=>Sfx.beep(880),220); } Interior.syncFaults(); this.badge(); },
+  fix(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(`Fixed: ${d.name.toLowerCase()}. Nobody saw you hit it with the spanner.`,'good'); Interior.syncFaults(); this.badge(); },
+  random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
+  badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(FAULT_DEFS[k].where)}</span></div>`).join(''); },
+  update(dt){
+    // something new goes wrong every couple of minutes of flight, more often on a battered ship
+    this.t-=dt*(1+(100-G.hull)/60); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
+    if(this.has('crack')){ G.hull=Math.max(0,G.hull-dt*0.1); if(G.hull<=0) Hull.breach(); }
+    if(this.has('scrubber')) G.sys.dirt=Math.min(1,G.sys.dirt+dt*0.01);
+  },
+};
+
+/* ---------- the interior ---------- */
+const Interior = {
+  group:null, shipId:-1, fx:{}, seats:[], pax:[], crates:null, crateKey:'', lights:[],
+  /* rectangles you can stand in (already inset for your body), and round things you cannot walk through */
+  RECTS:[[-0.35,0.35,0.9,1.3],[-0.6,0.6,0.95,6.9],[-1.25,-0.5,3.2,4.0],[-3.15,-1.15,1.7,5.5],[0.5,1.25,2.7,3.5],[1.15,2.9,1.7,4.25],[-0.6,0.6,6.8,7.7],[-1.25,1.25,7.5,13.9],[-0.5,0.5,13.8,14.7],[-2.1,2.1,14.5,18.65]],
+  OBST:[[0,16.6,1.25]],
+  inside(x,z){ for(const r of this.RECTS) if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3]){ for(const o of this.OBST) if(Math.hypot(x-o[0],z-o[1])<o[2]) return false; return true; } return false; },
+  build(){
+    if(this.group){ World.cock.remove(this.group); this.group.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
+    const g=this.group=new THREE.Group(); g.visible=false; World.cock.add(g); this.shipId=G.shipId; this.fx={}; this.seats=[]; this.pax=[]; this.crates=null; this.crateKey=''; this.paxKey='';
+    const ck=SHIPS[G.shipId].ck, bump=panelBumpTex(), std=(hex,r,m,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:r,metalness:m},ex||{}));
+    const M={ wall:std(ck.panel,0.75,0.25,{bumpMap:bump,bumpScale:0.002}), frame:std(ck.frame,0.55,0.55), floor:std('#3a3e44',0.6,0.7,{bumpMap:bump,bumpScale:0.004}), ceil:std('#2a2d32',0.8,0.3),
+      trim:std(ck.trim,0.35,0.85), dark:std('#16181c',0.7,0.4), seat:std(ck.leather,0.6,0.05), hazard:std('#ffffff',0.7,0.2,{map:(()=>{ const cv=makeCanvas(256,32), x=cv.getContext('2d'); for(let i=0;i<16;i++){ x.fillStyle=i%2?'#f2c14e':'#1c1c1e'; x.beginPath(); x.moveTo(i*16,0); x.lineTo(i*16+16,0); x.lineTo(i*16,32); x.lineTo(i*16-16,32); x.fill(); } const t=canvasTex(cv); t.wrapS=THREE.RepeatWrapping; t.repeat.set(4,1); return t; })()}),
+      glass:new THREE.MeshStandardMaterial({color:0x99bbdd,metalness:1,roughness:0.15,transparent:true,opacity:0.08,depthWrite:false,side:THREE.DoubleSide}),
+      lamp:new THREE.MeshBasicMaterial({color:HDR('#ffe8c8',1.8)}), core:new THREE.MeshBasicMaterial({color:HDR('#6fd6ff',3)}), pipe:std('#8a6f4e',0.4,0.8), cool:std('#4f7fa8',0.4,0.7), red:std('#b03a2e',0.5,0.3) };
+    this.M=M;
+    const bx=(w,h,d,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x,y,z); g.add(o); return o; };
+    const cyl=(r1,r2,h,m,x,y,z,seg=20)=>{ const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,seg),m); o.position.set(x,y,z); g.add(o); return o; };
+    const H=CEIL-FLOOR, MY=(FLOOR+CEIL)/2;
+    /* a wall from (x0,z0) to (x1,z1), full height, with holes: [{a,b,y0,y1}] measured along the wall */
+    const wall=(x0,z0,x1,z1,holes=[],m=M.wall)=>{ const L=Math.hypot(x1-x0,z1-z0), ux=(x1-x0)/L, uz=(z1-z0)/L, ang=Math.atan2(-uz,ux), cuts=[0];
+      holes.sort((p,q)=>p.a-q.a); for(const h of holes) cuts.push(h.a,h.b); cuts.push(L);
+      const seg=(a,b,y0,y1)=>{ if(b-a<0.005||y1-y0<0.005) return; const o=new THREE.Mesh(new THREE.BoxGeometry(b-a,y1-y0,0.08),m); const c=(a+b)/2; o.position.set(x0+ux*c,(y0+y1)/2,z0+uz*c); o.rotation.y=ang; g.add(o); };
+      for(let i=0;i<cuts.length;i+=2) seg(cuts[i],cuts[i+1],FLOOR,CEIL);
+      for(const h of holes){ seg(h.a,h.b,FLOOR,h.y0==null?FLOOR:h.y0); seg(h.a,h.b,h.y1==null?0.95:h.y1,CEIL); } };
+    const room=(x0,x1,z0,z1)=>{ const f=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.floor); f.rotation.x=-Math.PI/2; f.position.set((x0+x1)/2,FLOOR,(z0+z1)/2); g.add(f);
+      const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.ceil); c.rotation.x=Math.PI/2; c.position.set((x0+x1)/2,CEIL,(z0+z1)/2); g.add(c);
+      const lamp=bx(Math.min(1.4,(x1-x0)*0.4),0.04,0.3,M.lamp,(x0+x1)/2,CEIL-0.03,(z0+z1)/2); const L=new THREE.PointLight(C('#ffe2c0'),1.8,10,1.5); L.position.set((x0+x1)/2,CEIL-0.25,(z0+z1)/2); g.add(L); this.lights.push(L); return lamp; };
+    this.lights=[]; const hemi=new THREE.HemisphereLight(C('#ffe9d0'),C('#3a3e44'),0.3); g.add(hemi);
+    // rooms
+    room(-0.9,0.9,0.7,7.2); room(-4.4,-0.9,1.4,5.8); room(0.9,4.0,1.4,5.0); room(-3.4,3.4,7.2,14.2); room(-2.4,2.4,14.2,19.0);
+    // the cockpit doorway (above the cockpit's own back wall) and the corridor
+    wall(-0.9,0.7,0.9,0.7,[{a:0.0,b:1.8,y0:FLOOR,y1:0.8}]);
+    wall(-0.9,0.7,-0.9,7.2,[{a:2.3,b:3.5,y0:FLOOR,y1:0.95}]); wall(0.9,0.7,0.9,7.2,[{a:1.8,b:3.0,y0:FLOOR,y1:0.95}]);
+    // cabin: portholes in the outer wall
+    wall(-4.4,1.4,-0.9,1.4); wall(-4.4,5.8,-0.9,5.8); wall(-4.4,1.4,-4.4,5.8,[{a:0.55,b:1.35,y0:0.05,y1:0.75},{a:1.75,b:2.55,y0:0.05,y1:0.75},{a:2.95,b:3.75,y0:0.05,y1:0.75}]);
+    for(const a of [0.95,2.15,3.35]){ const ring=new THREE.Mesh(new THREE.TorusGeometry(0.42,0.06,10,28),M.trim); ring.rotation.y=Math.PI/2; ring.position.set(-4.36,0.4,1.4+a); g.add(ring); const gl=new THREE.Mesh(new THREE.PlaneGeometry(0.8,0.7),M.glass); gl.rotation.y=Math.PI/2; gl.position.set(-4.4,0.4,1.4+a); gl.renderOrder=5; g.add(gl); }
+    // galley
+    wall(0.9,1.4,4.0,1.4); wall(0.9,5.0,4.0,5.0); wall(4.0,1.4,4.0,5.0,[{a:1.6,b:2.4,y0:0.05,y1:0.75}]);
+    { const ring=new THREE.Mesh(new THREE.TorusGeometry(0.42,0.06,10,28),M.trim); ring.rotation.y=Math.PI/2; ring.position.set(3.96,0.4,3.4); g.add(ring); }
+    bx(0.7,0.5,2.0,M.seat,3.6,-0.72,3.0); bx(0.75,0.08,2.05,M.frame,3.6,-0.45,3.0); bx(0.6,0.12,0.5,std('#d8d2c4',0.9,0),3.6,-0.36,2.2);   // bunk + pillow
+    bx(2.6,0.9,0.6,M.frame,2.45,-0.52,4.65); bx(2.62,0.05,0.62,M.trim,2.45,-0.06,4.65); cyl(0.09,0.08,0.22,M.red,1.7,0.06,4.6); cyl(0.05,0.05,0.1,std('#d8d2c4',0.4,0),2.2,0.0,4.6);
+    // fuse box on the galley's front wall
+    bx(0.7,0.8,0.14,M.dark,2.45,0.45,1.5); for(let i=0;i<6;i++) bx(0.06,0.14,0.04,std(['#c0392b','#f1c40f','#2ecc71'][i%3],0.4,0.3),2.2+(i%3)*0.25,0.6-Math.floor(i/3)*0.3,1.58);
+    // hold: wide doorway from the corridor, doorway to the engine room
+    wall(-3.4,7.2,3.4,7.2,[{a:2.5,b:4.3,y0:FLOOR,y1:1.0}]); wall(-3.4,14.2,3.4,14.2,[{a:2.6,b:4.2,y0:FLOOR,y1:0.95}]); wall(-3.4,7.2,-3.4,14.2); wall(3.4,7.2,3.4,14.2);
+    bx(0.04,1.9,3.2,M.hazard,3.36,0.0,10.6); bx(6.7,0.05,0.12,M.hazard,0,FLOOR+0.01,7.3);
+    for(const sx of [-1,1]) for(let z=7.6;z<14;z+=1.6) bx(0.08,H,0.08,M.frame,sx*1.55,MY,z);
+    // engine room: reactor in the middle, pipes on the walls, console at the back
+    wall(-2.4,14.2,-2.4,19.0); wall(2.4,14.2,2.4,19.0); wall(-2.4,19.0,2.4,19.0);
+    cyl(1.0,1.0,0.2,M.frame,0,FLOOR+0.1,16.6,32); cyl(1.0,1.0,0.2,M.frame,0,CEIL-0.1,16.6,32); this.core=cyl(0.55,0.55,H-0.4,M.core,0,MY,16.6,32);
+    for(let i=0;i<6;i++){ const a=i/6*Math.PI*2; cyl(0.06,0.06,H-0.3,M.trim,Math.cos(a)*0.85,MY,16.6+Math.sin(a)*0.85,10); }
+    const eL=new THREE.PointLight(C('#6fd6ff'),2.2,8,1.5); eL.position.set(0,0.3,16.6); g.add(eL); this.lights.push(eL);
+    for(const y of [-0.5,0.15,0.8]){ const p=cyl(0.09,0.09,4.6,y>0?M.cool:M.pipe,-2.28,y,16.6,12); p.rotation.x=Math.PI/2; const q=cyl(0.09,0.09,4.6,M.pipe,2.28,y,16.6,12); q.rotation.x=Math.PI/2; }
+    bx(2.2,0.9,0.5,M.frame,1.0,-0.52,18.7); bx(1.8,0.5,0.04,new THREE.MeshBasicMaterial({color:HDR('#ff9a30',0.6)}),1.0,0.25,18.92);
+    // doorway frames
+    for(const [x,z,ry] of [[-0.9,3.6,Math.PI/2],[0.9,3.0,Math.PI/2],[0,7.2,0],[0,14.2,0]]){ const f=new THREE.Group(); f.position.set(x,0,z); f.rotation.y=ry; g.add(f);
+      for(const s of [-1,1]){ const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,H,0.16),M.hazard); p.position.set(s*(ry?0.62:0.92),MY,0); f.add(p); } }
+    // passenger seats along the cabin's outer wall, under the portholes, facing in
+    const n=Cargo.seats(); for(let i=0;i<4;i++){ if(i>=n) break; const z=1.95+i*1.15, sg=new THREE.Group(); sg.position.set(-3.85,0,z); g.add(sg);
+      const base=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.45,0.6),M.seat); base.position.set(0,FLOOR+0.22,0); sg.add(base); const back=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.85,0.6),M.seat); back.position.set(-0.3,FLOOR+0.82,0); sg.add(back);
+      const belt=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.6,0.08),M.trim); belt.position.set(-0.22,FLOOR+0.75,0.18); sg.add(belt); this.seats.push(sg); }
+    // fault props, hidden until something breaks
+    for(const id in FAULT_DEFS) this.fx[id]=this.faultFx(id);
+    g.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
+    this.syncFaults();
+  },
+  faultFx(id){
+    const d=FAULT_DEFS[id], grp=new THREE.Group(); grp.position.set(...d.pos); this.group.add(grp);
+    const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.07,12,8),new THREE.MeshBasicMaterial({color:HDR('#ff3020',3)})); lamp.position.set(0,0.55,0); grp.add(lamp);
+    const parts=[], add=(n,col,size,opts)=>{ for(let i=0;i<n;i++){ const m=new THREE.Mesh(new THREE.SphereGeometry(size,8,6),new THREE.MeshBasicMaterial({color:opts&&opts.hdr?HDR(col,opts.hdr):C(col),transparent:true,opacity:0.45,depthWrite:false,blending:opts&&opts.add?THREE.AdditiveBlending:THREE.NormalBlending})); grp.add(m); parts.push({m,age:Math.random(),life:0.5+Math.random()*0.8}); } };
+    let strap=null, crack=null;
+    if(d.fx==='steam'){ add(14,'#e8f0f4',0.06); }
+    else if(d.fx==='smoke'){ add(10,'#5a5550',0.07); add(5,'#ff8a30',0.03,{hdr:3,add:true}); }
+    else if(d.fx==='sparks'){ add(10,'#ffd060',0.018,{hdr:4,add:true}); }
+    else if(d.fx==='haze'){ add(12,'#9aa0a6',0.09); }
+    else if(d.fx==='frost'){ add(12,'#dff4ff',0.03,{hdr:1.5}); const cv=makeCanvas(256,256), x=cv.getContext('2d'); x.strokeStyle='#050505'; x.lineWidth=5; x.beginPath(); let px=128,py=20; x.moveTo(px,py); for(let i=0;i<9;i++){ px+=(Math.random()-0.5)*60; py+=24; x.lineTo(px,py); } x.stroke(); x.lineWidth=2.5; for(let k=0;k<5;k++){ x.beginPath(); x.moveTo(128+(Math.random()-0.5)*40,40+k*40); x.lineTo(128+(Math.random()-0.5)*160,60+k*40); x.stroke(); }
+      crack=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.9),new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false})); crack.rotation.y=Math.PI/2; crack.position.x=0.03; grp.add(crack); }
+    else if(d.fx==='strap'){ strap=new THREE.Group(); strap.position.set(0,1.1,0); const s=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.0,0.02),new THREE.MeshStandardMaterial({color:C('#f2c14e'),roughness:0.7})); s.position.y=-0.5; strap.add(s); grp.add(strap); }
+    grp.visible=false; return {grp,lamp,parts,strap,crack,d}; },
+  syncFaults(){ if(!this.group) return; for(const id in this.fx) this.fx[id].grp.visible=Faults.has(id); },
+  /* crates in the hold match how full it is; passengers sit in the cabin */
+  syncCargo(){
+    const used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*28), key=n+'';
+    if(key!==this.crateKey){ this.crateKey=key; if(this.crates) this.group.remove(this.crates); const cg=this.crates=new THREE.Group(); this.group.add(cg); let k=0;
+      const mats=['#b9823f','#9c6a30','#c98d47','#7d6a52'].map(c=>new THREE.MeshStandardMaterial({color:C(c),roughness:0.85}));
+      for(const sx of [-1,1]) for(let z=7.9;z<13.9&&k<n;z+=0.85) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.78,0.78,0.78),mats[(k*7)%4]); c.position.set(sx*(2.35+(lvl?0.05:0)),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
+    const pax=Cargo.pax(), pk=pax.map(p=>p.kind==='escort'?p.vip.seed:p.seed).join(',');
+    if(pk!==this.paxKey){ this.paxKey=pk; for(const F of this.pax) F.parent&&F.parent.remove(F); this.pax=[];
+      pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.78), S=this.seats[i]; F.position.set(-0.05,FLOOR+0.42,0); F.rotation.y=Math.PI/2; const U=F.userData; for(const l of U.legs) l.rotation.x=-1.45; S.add(F); F.userData.cargo=p; this.pax.push(F); }); } },
+  update(dt, t){
+    const g=this.group; g.quaternion.copy(G.ship.quat);
+    for(const id in this.fx){ const f=this.fx[id]; if(!f.grp.visible) continue; f.lamp.material.color.setScalar((Math.sin(t*8)>0?3:0.2)).multiply(new THREE.Color(1,0.12,0.06));
+      for(const p of f.parts){ p.age+=dt; if(p.age>p.life){ p.age=0; p.m.position.set(0,0,0); p.v=new V3((Math.random()-0.5)*0.6,Math.random()*0.8,(Math.random()-0.5)*0.6); if(f.d.fx==='steam') p.v.set(1.6+Math.random(),0.3+Math.random()*0.5,(Math.random()-0.5)*0.6); if(f.d.fx==='haze') p.v.set((Math.random()-0.5)*0.3,-0.25,-0.5-Math.random()*0.3); if(f.d.fx==='frost') p.v.set(0.6+Math.random()*0.4,(Math.random()-0.5)*0.6,(Math.random()-0.5)*0.6); if(f.d.fx==='sparks') p.v.set(0.4+Math.random()*1.2,Math.random()*1.5,(Math.random()-0.5)*1.4).multiplyScalar(1); }
+        if(!p.v) continue; if(f.d.fx==='sparks') p.v.y-=dt*4; if(f.d.fx==='frost') p.m.position.addScaledVector(p.v,-dt*0.0); p.m.position.addScaledVector(p.v,dt); const k=p.age/p.life; p.m.material.opacity=0.5*(1-k); p.m.scale.setScalar(f.d.fx==='sparks'?1:1+k*1.6);
+        if(f.d.fx==='frost'){ p.m.position.copy(p.v).multiplyScalar((1-k)*0.8); } }
+      if(f.strap) f.strap.rotation.z=Math.sin(t*2.3)*0.35+Math.sin(t*5.1)*0.08; }
+    this.core.material.color.setRGB(0.4,1.6+Math.sin(t*3)*0.25,3+Math.sin(t*3)*0.4);
+    // passengers look at you when you are nearby and wear how the trip is going
+    const me=Walk.pos;
+    for(const F of this.pax){ Folk.blink(F,t); const S=F.parent, wp=new V3().setFromMatrixPosition(S.matrix), d=Math.hypot(me.x-wp.x,me.z-wp.z), U=F.userData;
+      const want=d<3.5?clamp(Math.atan2(me.x-wp.x,me.z-wp.z)-Math.PI/2,-0.9,0.9):Math.sin(t*0.3+U.ph)*0.3; U.head.rotation.y=lerp(U.head.rotation.y,want,1-Math.exp(-dt*4));
+      const c=U.cargo, f=c.kind==='escort'?(c.hp>70?1:c.hp>40?0.7:0.4):Cargo.factor(c), m=Escort.hazard&&c.kind==='escort'?'shock':f>=1?(Faults.has('scrubber')?'worried':d<2.2?'happy':'neutral'):f>0.65?'worried':'sad'; if(U.mood!==m) Folk.mood(F,m); }
+  },
+};
+
+/* ---------- walking ---------- */
+const Walk = {
+  on:false, pos:new V3(0,EYE,1.2), yaw:Math.PI, pitch:0, tr:0, trDir:0, bob:0, target:null, hold:0, told:false,
+  toggle(){ if(this.on) this.exit(); else this.enter(); },
+  enter(){
+    if(G.mode!=='flight'||this.on) return; if(!Interior.group||Interior.shipId!==G.shipId) Interior.build();
+    Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
+    this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
+    Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); $('reticle').hidden=false; Sfx.clunk();
+    if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat to sit back down.':'Walking. W A S D to move, drag or arrows to look, hold F to fix things, L to sit back down.','good'); }
+    TouchUI.sync&&TouchUI.sync(true); },
+  exit(instant){
+    if(!this.on) return; this.on=false; document.body.classList.remove('walking'); $('reticle').hidden=true; $('prompt').hidden=true; Cockpit.setDoor(0);
+    if(Interior.group) Interior.group.visible=false; G.head.pos.set(0,0,0); G.head.yaw=G.head.yawT=0; G.head.pitch=G.head.pitchT=G.head.basePitch; if(!instant) Sfx.clunk(); TouchUI.sync&&TouchUI.sync(true); },
+  look(dx, dy){ this.yaw-=dx*0.0042; this.pitch=clamp(this.pitch-dy*0.0042,-1.2,1.2); },
+  update(dt, t){
+    if(!this.on) return; const K=G.keys, s=G.ship;
+    if(K.ArrowLeft) this.yaw+=dt*1.9; if(K.ArrowRight) this.yaw-=dt*1.9; if(K.ArrowUp) this.pitch=Math.min(1.2,this.pitch+dt*1.4); if(K.ArrowDown) this.pitch=Math.max(-1.2,this.pitch-dt*1.4);
+    let f=(K.KeyW?1:0)-(K.KeyS?1:0), r=(K.KeyD?1:0)-(K.KeyA?1:0); if(!f&&!r){ f=TouchUI.stick.y; r=TouchUI.stick.x; }
+    const sp=(K.ShiftLeft||K.ShiftRight?4.4:2.8), fx=-Math.sin(this.yaw), fz=-Math.cos(this.yaw), rx=Math.cos(this.yaw), rz=-Math.sin(this.yaw);
+    let mx=(fx*f+rx*r)*sp*dt, mz=(fz*f+rz*r)*sp*dt; const p=this.pos;
+    if(Interior.inside(p.x+mx,p.z+mz)){ p.x+=mx; p.z+=mz; } else if(Interior.inside(p.x+mx,p.z)) p.x+=mx; else if(Interior.inside(p.x,p.z+mz)) p.z+=mz;
+    const moving=Math.abs(f)+Math.abs(r)>0.05; this.bob+=moving?dt*sp*4.2:0;
+    // the ship shakes more at high throttle and in warp
+    const shake=(s.throttle>5?(s.throttle-5)*0.0025:0)+s.warpF*0.006;
+    p.y=EYE+(moving?Math.sin(this.bob)*0.03:0)+(Math.random()-0.5)*shake;
+    Interior.update(dt,t); if((Game.mk%30)===0) Interior.syncCargo();
+    this.interact(dt);
+  },
+  /* what you are looking at: a fault to fix or a passenger to talk to */
+  interact(dt){
+    const eye=this.pos, dir=new V3(-Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch));
+    let best=null, bs=0;
+    for(const id of Faults.list()){ const q=new V3(...FAULT_DEFS[id].pos), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); const score=dot-d*0.08; if(d<2.6&&(dot>0.72||d<1.1)&&score>bs){ bs=score; best={kind:'fault',id,d}; } }
+    if(!best) for(const F of Interior.pax){ const S=F.parent, q=new V3().setFromMatrixPosition(S.matrix).setY(FLOOR+1.0), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); if(d<3.4&&dot>0.85){ best={kind:'pax',F,d}; break; } }
+    const pr=$('prompt'), K=G.keys, held=!!K.KeyF;
+    if(!best){ pr.hidden=true; this.hold=0; this.target=null; return; }
+    if(best.kind==='fault'){ const D=FAULT_DEFS[best.id], s=G.ship, rough=s.throttle>5||s.warpF>0.2, rate=rough?0.35:1, need=2.6;
+      if(this.target!==best.id){ this.target=best.id; this.hold=0; }
+      if(held){ this.hold+=dt*rate; if(Math.floor(this.hold*3)!==Math.floor((this.hold-dt*rate)*3)) Sfx.click(); if(this.hold>=need){ Faults.fix(best.id); this.hold=0; pr.hidden=true; return; } } else this.hold=Math.max(0,this.hold-dt*2);
+      pr.hidden=false; pr.innerHTML=`<b>${esc(D.name)}</b><span>${TouchUI.on?'Hold Fix':'Hold F'} to repair${rough?' · the ship is shaking: throttle 5 or below to work faster':''}</span><i style="width:${Math.round(this.hold/need*100)}%"></i>`; }
+    else { const c=best.F.userData.cargo, who=c.kind==='escort'?c.vip.title:c.good; this.target=null; pr.hidden=false; pr.innerHTML=`<b>${esc(who)}</b><span>${TouchUI.on?'Tap Fix':'Press F'} to chat · going to ${esc(PLANETS[c.to].name)}</span>`;
+      if(held&&!this.chatLock){ this.chatLock=true; setTimeout(()=>{ this.chatLock=false; },2500); const S=SPECIES[c.kind==='escort'?c.vip.sp:c.sp], f=Cargo.factor(c);
+        const line=Faults.has('scrubber')?pick(["It is very stuffy back here. Is the air meant to be this chewy?","Something is wrong with the air. It tastes of feet. Not my feet."]):f<1?pick([`Are we nearly at ${PLANETS[c.to].name}? We were meant to be there ages ago.`,"I am not paying full fare for this. I am barely paying any fare for this.","I could have walked. I cannot walk in space, but I would have tried."]):fill(pick(S.chat),{planet:PLANETS[c.to].name,good:pick(GOODS)[0]});
+        if(c.kind==='escort'){ Escort.chat(); const v=c.vip; Radio.play({sp:v.sp,seed:v.seed,name:v.title,english:Escort.hazard?pick(["Is it the pirates? It is the pirates. Do something with the horn!","Why is everything shaking? Is shaking normal? Tell me shaking is normal."]):pick(["Thank you for checking on me. I feel slightly less doomed.","Is the ship meant to make that noise? Never mind. I trust you. Mostly.","When we land, I shall mention you favourably in my memoirs. Chapter nine, probably."])}); return; }
+        Radio.play({sp:c.sp,seed:c.seed,name:c.good,english:line}); } }
+  },
+  /* first-person camera inside the ship */
+  camera(){
+    const s=G.ship, q=s.quat.clone().multiply(new Q4().setFromEuler(new THREE.Euler(this.pitch,this.yaw,0,'YXZ'))), p=this.pos.clone().applyQuaternion(s.quat);
+    for(const c of [World.spaceCam,World.cockCam]){ c.position.copy(p); c.quaternion.copy(q); } World.setFov(74); Cockpit.group.quaternion.copy(s.quat); World.shipFrame.quaternion.copy(s.quat);
+  },
+};
+
+/* ---------- reasons not to fly everywhere at full throttle ---------- */
+/* - Ports keep an inbound speed limit of 400 km/s in their approach zone, and fine you if you ignore it.
+   - Throttle 9 and 10 heat the engines; keep it up and something in the engine room breaks.
+   - Fragile cargo takes damage at throttle 8 and above, and when you turn hard at speed.
+   - Repairs go slowly while the ship is shaking (above throttle 5, or in warp). */
+const SPEED_LIMIT=400;
+const Throttle = {
+  heat:0, over:0, zone:null, hotTold:false, warned:false,
+  reset(){ this.over=0; this.zone=null; this.warned=false; },
+  jolt(n){ for(const c of G.cargo) if(c.fragile) c.dmg=Math.min(0.7,(c.dmg||0)+n*0.015); },
+  update(dt){
+    const s=G.ship, thr=s.throttle;
+    // engine heat
+    if(!s.warp&&thr>=9) this.heat+=dt*(thr-8)*0.02; else if(s.warp) this.heat+=dt*0.003; else this.heat-=dt*(thr<=7?0.045:0.008);
+    this.heat=clamp(this.heat,0,1);
+    if(this.heat>0.7&&!this.hotTold){ this.hotTold=true; UI.toast('Engines running hot. Ease the throttle below 9 for a while.','warn'); Sfx.beep(700); }
+    if(this.heat<0.4) this.hotTold=false;
+    if(this.heat>=1){ this.heat=0.5; Faults.add(Math.random()<0.5?'coolant':'thruster','the engines overheated'); }
+    // fragile cargo rattles at high throttle and in hard turns at speed
+    if(s.warpF<0.1){ const rough=(thr>=8?(thr-7)*0.004:0)+(s.speed>450?s.angVel.length()*s.speed/1600*0.012:0);
+      if(rough>0) for(const c of G.cargo){ if(!c.fragile) continue; const was=c.dmg||0; c.dmg=Math.min(0.7,was+dt*rough); if(Math.floor(was*10)!==Math.floor(c.dmg*10)) UI.toast(`Something fragile is rattling in the hold. ${c.qty}× ${c.good} is ${Math.round((1-c.dmg)*100)}% intact. Ease off below throttle 8.`,'warn'); } }
+    // inbound speed limit near ports
+    let zone=null; if(!s.warp){ for(const P of PLANETS){ const to=P.pos.clone().sub(s.pos), d=to.length(); if(d<P.landR+6000&&d>P.landR*0.95&&s.speed>1&&to.dot(s.vel)/(d*s.speed)>0.3){ zone=P; break; } } }
+    if(zone!==this.zone){ this.settle(); this.zone=zone; this.over=0; this.warned=false; this.top=0; }
+    const zb=$('zone-badge'); zb.hidden=!zone; if(zone){ const fast=s.speed>SPEED_LIMIT+20; zb.classList.toggle('fast',fast); zb.textContent=`${zone.port} approach · limit ${SPEED_LIMIT} km/s${fast?' · SLOW DOWN':''}`;
+      if(fast){ this.over+=dt; this.top=Math.max(this.top||0,s.speed); if(this.over>1.2&&!this.warned){ this.warned=true; Sfx.beep(990); UI.toast(`${zone.port} Control: you are doing ${Math.round(s.speed)} in a ${SPEED_LIMIT} zone. Throttle down or expect a fine.`,'warn'); } } }
+  },
+  /* the fine lands when you leave the zone or touch down, if you spent more than a moment over the limit */
+  settle(){ const Z=this.zone; if(!Z||this.over<1.5) { this.over=0; return; } const amt=Math.round((20+((this.top||SPEED_LIMIT)-SPEED_LIMIT)*0.05+this.over*2)*(1+(STRICT[Z.species]||0))/5)*5; this.over=0; this.top=0;
+    setTimeout(()=>{ Fx.cr(-amt,`${Z.port} Control speeding fine`); Rep.add(-1,'Speeding on approach'); },G.mode==='flight'?0:2500); },
+};

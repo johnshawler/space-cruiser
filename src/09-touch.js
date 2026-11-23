@@ -30,7 +30,7 @@ const TouchUI = {
     /* tap buttons */
     const acts={
       warp:()=>Game.toggleWarp(), auto:()=>Game.setAutopilot(!G.sys.autopilot), horn:()=>Game.honk(), hail:()=>Comms.hail(),
-      next:()=>Game.setTarget(G.target+1), map:()=>SysMap.toggle(), hold:()=>Hold.toggle(), scoop:()=>Scoop.toggle(), help:()=>{ $('help').hidden=false; }, centre:()=>Cockpit.zoomOut(),
+      next:()=>Game.setTarget(G.target+1), map:()=>SysMap.toggle(), hold:()=>Hold.toggle(), scoop:()=>Scoop.toggle(), walk:()=>{ G.keys={}; Walk.toggle(); }, help:()=>{ $('help').hidden=false; }, centre:()=>Cockpit.zoomOut(),
     };
     document.querySelectorAll('#touch [data-act]').forEach(b=>{ b.addEventListener('click',()=>{ if(G.mode!=='flight') return; Sfx.init(); acts[b.dataset.act](); this.sync(true); }); });
     /* hold buttons act like holding a key */

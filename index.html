@@ -133,7 +133,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #map-close{font-size:22px;padding:12px 22px}
 #map-main{flex:1;min-height:0;display:flex}
 #map-view{flex:1;min-width:0;position:relative}
-#map-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#map-cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #map-list{width:500px;overflow:auto;border-left:1px solid var(--line);background:var(--glass);padding:8px max(8px,env(safe-area-inset-right,0px)) 8px 8px;display:flex;flex-direction:column;gap:4px}
 .mrow{display:grid;grid-template-columns:30px 1fr auto;gap:4px 14px;align-items:center;text-align:left;background:transparent;border:1px solid transparent;border-radius:2px;padding:8px 10px;color:var(--ink);font:inherit}
 .mrow:hover{background:var(--glass-2);border-color:var(--line)}
@@ -211,6 +211,16 @@ body.touch #title dl div{white-space:normal}
   #title .row{margin-bottom:2.6vh}#title .big{font-size:clamp(17px,3vh,24px);padding:1.6vh 2.2em}#title dl{font-size:clamp(15px,3vh,24px);gap:.6vh 40px}
 }
 @media (max-height:520px) and (min-aspect-ratio:4/3){ #title .pitch{display:none}#title dl{grid-template-columns:repeat(2,max-content)} }
+.hrow small.due{color:#8fe3a8}.hrow small.late{color:var(--bad)}
+#zone-badge{position:absolute;left:50%;transform:translateX(-50%);top:calc(34% + 54px);z-index:9;font-family:var(--mono);font-size:24px;letter-spacing:.1em;text-transform:uppercase;color:#ffd166;background:var(--glass);border:1px solid #ffd166;padding:6px 16px;pointer-events:none;white-space:nowrap}
+#zone-badge.fast{color:#fff;background:#a8322a;border-color:#ff7a6a}
+#fault-badge{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:30%;z-index:9;font-family:var(--mono);font-size:22px;color:#ffb3a8;background:var(--glass);border:1px solid #ff7a6a;border-left:6px solid #ff5a4a;padding:8px 14px;pointer-events:none;max-width:44vw}
+#fault-badge div{padding:2px 0}#fault-badge span{color:var(--dim)}
+#reticle{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 0 2px rgba(0,0,0,.5);z-index:9;pointer-events:none}
+#prompt{position:absolute;left:50%;transform:translateX(-50%);top:64%;z-index:9;background:var(--glass);border:1px solid var(--line);border-top:3px solid #7fd6ff;padding:10px 20px 14px;min-width:320px;text-align:center;pointer-events:none;overflow:hidden}
+#prompt b{display:block;font-size:28px;font-weight:600}#prompt span{display:block;font-family:var(--mono);font-size:20px;color:var(--dim);margin-top:4px}#prompt i{position:absolute;left:0;bottom:0;height:6px;background:#7fd6ff}
+body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not(.wk){display:none}body:not(.walking) #t-btns .tb.wk{display:none}
+@media (max-width:900px){ #fault-badge{font-size:16px}#zone-badge{font-size:16px}#prompt b{font-size:22px}#prompt span{font-size:16px} }
 #dlg.radio{border-top-color:var(--cyan)}#dlg.radio .who{color:var(--cyan)}
 #scoop-badge{position:absolute;left:50%;transform:translateX(-50%);top:34%;z-index:9;font-family:var(--mono);font-size:26px;letter-spacing:.16em;text-transform:uppercase;color:#7fd6ff;background:var(--glass);border:1px solid #7fd6ff;padding:8px 18px;pointer-events:none;animation:scoopPulse 1.6s ease-in-out infinite}
 @keyframes scoopPulse{50%{opacity:.55}}
@@ -233,7 +243,7 @@ body.touch #title dl div{white-space:normal}
   <button id="skip" hidden>Skip ▸ Space</button>
   <div id="toasts" aria-live="polite"></div>
   <div id="tooltip" hidden></div>
-  <div id="keys" hidden><span class="kb-only">? Help · M Map · I Hold · B Scoop · Drag to look</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
+  <div id="keys" hidden><span class="kb-only">? Help · M Map · I Hold · B Scoop · L Walk</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
   <div id="caption" hidden aria-live="polite"></div>
 
   <div id="touch" aria-label="Touch controls">
@@ -253,6 +263,9 @@ body.touch #title dl div{white-space:normal}
         <button class="tb" data-act="next">Next</button>
         <button class="tb" data-act="map">Map</button>
         <button class="tb" data-act="hold">Hold</button>
+        <button class="tb" id="t-walk" data-act="walk">Walk</button>
+        <button class="tb wk" id="t-fix" data-hold="KeyF">Fix · Chat</button>
+        <button class="tb wk" data-act="walk">Seat</button>
         <button class="tb" id="t-scoop" data-act="scoop">Scoop</button>
         <button class="tb" data-act="help">Help</button>
       </div>
@@ -287,6 +300,10 @@ body.touch #title dl div{white-space:normal}
   </section>
 
   <div id="scoop-badge" hidden>Cargo scoop open</div>
+  <div id="zone-badge" hidden></div>
+  <div id="fault-badge" hidden></div>
+  <div id="reticle" hidden></div>
+  <div id="prompt" hidden></div>
   <section id="hold" hidden aria-label="Cargo hold">
     <div class="box">
       <header><h2>Cargo hold</h2><span id="hold-cap"></span><button class="big ghost" id="hold-scoop">Open scoop · B</button><button class="big ghost" id="hold-close">Close · I</button></header>
@@ -342,6 +359,8 @@ body.touch #title dl div{white-space:normal}
         <div><dt>Map</dt><dd>System map: tap a world to fly there</dd></div>
         <div><dt>Hold</dt><dd>See your cargo and drop any of it</dd></div>
         <div><dt>Scoop</dt><dd>Open the cargo scoop to pick up floating cargo</dd></div>
+        <div><dt>Walk · Seat</dt><dd>Get up and walk around the ship, or sit back down</dd></div>
+        <div><dt>Fix · Chat</dt><dd>While walking: hold to repair, tap to talk to a passenger</dd></div>
         <div><dt>Drag the view</dt><dd>Look around</dd></div>
         <div><dt>Double-tap</dt><dd>Lean in to a panel; double-tap open space to lean back</dd></div>
         <div><dt>Tap or drag</dt><dd>Work any knob, switch or lever in the cockpit</dd></div>
@@ -363,6 +382,8 @@ body.touch #title dl div{white-space:normal}
         <div><dt>F (hold)</dt><dd>Mining laser, aimed at a rock in your sights</dd></div>
         <div><dt>I</dt><dd>Cargo hold: see your cargo and drop any of it</dd></div>
         <div><dt>B</dt><dd>Cargo scoop open / closed (slow down to scoop)</dd></div>
+        <div><dt>L</dt><dd>Leave the seat and walk around the ship; L again to sit</dd></div>
+        <div><dt>Walking</dt><dd>W A S D to move, drag or arrows to look, hold F to repair, F to chat</dd></div>
         <div><dt>1 – 4</dt><dd>Pick an answer when a message pops up</dd></div>
         <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit; again to return</dd></div>
         <div><dt>C / Esc</dt><dd>Centre the view</dd></div>
@@ -1486,6 +1507,8 @@ const Cockpit = {
       rubber:std('#0c0c0d',0.95,0), leather:std(ck.leather,0.62,0.05,{bumpMap:bump,bumpScale:0.0008}), knob:std('#141416',0.42,0.25), alu:std('#b9bdc4',0.28,0.95),
       ptr:new THREE.MeshBasicMaterial({color:new THREE.Color(1.3,1.3,1.3)}), needle:new THREE.MeshBasicMaterial({color:HDR('#ff8a30',2.2)}),
       hit:new THREE.MeshBasicMaterial({visible:false}), wallDS:std(ck.frame,0.6,0.5,{side:THREE.DoubleSide}),
+      // screen covers ignore the lights, so the sun never flares on the displays
+      screenGlass:new THREE.MeshBasicMaterial({color:0xb8c8d8,transparent:true,opacity:0.035,depthWrite:false}),
       glass:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.22,transparent:true,opacity:0.06,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.6}),
       canopy:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.4,transparent:true,opacity:0.045,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.8}) };
     this.M=M;
@@ -1495,7 +1518,8 @@ const Cockpit = {
 
     /* ---- shell ---- */
     bx(2.1,0.04,2.2,M.panel,0,-0.97,-0.38); bx(0.05,0.74,2.1,M.frame,-1.0,-0.62,-0.38); bx(0.05,0.74,2.1,M.frame,1.0,-0.62,-0.38);
-    bx(2.1,0.78,0.05,M.frame,0,-0.62,-1.43); bx(2.1,1.8,0.05,M.frame,0,-0.1,0.68); bx(2.0,0.03,0.62,M.rubber,0,-0.238,-1.12);
+    bx(2.1,0.78,0.05,M.frame,0,-0.62,-1.43); bx(0.63,1.8,0.05,M.frame,-0.735,-0.1,0.68); bx(0.63,1.8,0.05,M.frame,0.735,-0.1,0.68); bx(0.84,0.18,0.05,M.frame,0,0.71,0.68); bx(2.0,0.03,0.62,M.rubber,0,-0.238,-1.12);
+    this.door=bx(0.84,1.59,0.035,M.panel,0,-0.175,0.665); this.doorT=0; for(const yy of [-0.6,0.2]) bx(0.5,0.04,0.012,M.trim,0,yy,0.645,this.door).position.set(0,yy+0.175,-0.02);
     bx(1.9,0.5,0.05,M.panel,0,-0.74,-0.98);
     const A1=s=>new V3(s*0.96,-0.23,-1.41), A2=s=>new V3(s*0.6,0.64,-0.45), B1=s=>new V3(s*1.0,-0.26,0.3), B2=s=>new V3(s*0.62,0.64,0.3);
     const th=ck.cage?0.085:0.06;
@@ -1594,7 +1618,7 @@ const Cockpit = {
       const bz=new THREE.Mesh(new THREE.TorusGeometry(r*1.03,r*0.065,10,44),M.alu); bz.position.z=0.006; add(bz,false,grp);
       const piv=new THREE.Group(); piv.position.z=0.008; grp.add(piv); const nd=new THREE.Mesh(new THREE.BoxGeometry(r*0.05,r*0.92,0.0015),M.needle); nd.position.y=r*0.33; piv.add(nd);
       const hub=new THREE.Mesh(cylZ(r*0.11,r*0.11,0.005,16),M.knob); hub.position.z=0.01; grp.add(hub);
-      const gl=new THREE.Mesh(new THREE.CircleGeometry(r,36),M.glass); gl.position.z=0.014; gl.renderOrder=3; grp.add(gl);
+      const gl=new THREE.Mesh(new THREE.CircleGeometry(r,36),M.screenGlass); gl.position.z=0.014; gl.renderOrder=3; grp.add(gl);
       return this.gauges[o.id]={piv,val:0,target:0};
     };
     const screen=(P,x,y,w,h,cw,ch,name,round)=>{
@@ -1603,7 +1627,7 @@ const Cockpit = {
       const [cx,cy]=P.xy(x,y); P.ctx.fillStyle='#050506'; if(round){ P.ctx.beginPath(); P.ctx.arc(cx,cy,w/2*P.px+10,0,7); P.ctx.fill(); } else P.ctx.fillRect(cx-w/2*P.px-10,cy-h/2*P.px-10,w*P.px+20,h*P.px+20);
       if(round){ const bz=new THREE.Mesh(new THREE.TorusGeometry(w/2*1.03,w*0.022,10,48),M.rubber); bz.position.set(x,y,0.006); add(bz,false,P.g); }
       else { const t=0.008; bx(w+2*t,t,0.012,M.rubber,x,y+h/2+t/2,0.004,P.g); bx(w+2*t,t,0.012,M.rubber,x,y-h/2-t/2,0.004,P.g); bx(t,h,0.012,M.rubber,x-w/2-t/2,y,0.004,P.g); bx(t,h,0.012,M.rubber,x+w/2+t/2,y,0.004,P.g); }
-      const gl=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),M.glass); gl.position.set(x,y,0.0065); gl.renderOrder=3; P.g.add(gl);
+      const gl=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),M.screenGlass); gl.position.set(x,y,0.0065); gl.renderOrder=3; P.g.add(gl);
       this.screenMats.push(mat); return this.screens[name]={cv,ctx:cv.getContext('2d'),tex,mat,w:cw,h:ch};
     };
 
@@ -1703,8 +1727,10 @@ const Cockpit = {
   },
 
   /* ---------- per-frame ---------- */
+  setDoor(v){ this.doorT=v; if(Sfx.ok()) Sfx.hiss(0.4,0.08); },
   update(dt, t){
     const s=G.ship, sys=G.sys, pw=sys.power?1:0, def=SHIPS[G.shipId]; this.frame++;
+    if(this.door) this.door.position.x=damp(this.door.position.x,this.doorT?0.86:0,9,dt);
     for(const id in this.ctrls){ const c=this.ctrls[id];
       if(c.type==='knob'){ let a=-c.angle(c.get()), d=a-c.cur; if(c.wrap){ d=((d+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; } c.cur+=d*(1-Math.exp(-dt*16)); c.rot.rotation.z=c.cur; }
       else if(c.type==='switch'){ const on=c.get(), amp=c.amp||0.5; c.piv.rotation.x=damp(c.piv.rotation.x,on?-amp:amp,18,dt); if(c.ledOn){ c.led.material.color.copy(c.ledOn).multiplyScalar(on?(0.7+0.3*Math.sin(t*9)):s.warpF>0?0.3:(Game.canWarp()===true?0.25+0.12*Math.sin(t*3):0.02)); } else c.led.material.color.setRGB(on&&pw?0.3:0.02,on&&pw?2.2:0.03,on&&pw?0.5:0.02); }
@@ -1756,8 +1782,8 @@ const Cockpit = {
       else if(T.ang<0.14){ msg='ALIGNED · PRESS Z TO WARP'; col='#7dffa8'; } else msg='TURN TO DESTINATION';
       if(Math.floor(t*2)%2||col!=='#7dffa8'){ x.fillStyle=col; x.font=`42px ${FONT_MONO}`; x.textAlign='center'; x.fillText(msg,W/2,H-12,W-24); }
     } else if(page===1){
-      x.textAlign='left'; let used=0; G.cargo.forEach(c=>used+=c.qty); x.fillStyle='#ffb454'; x.font=`600 48px ${FONT_DISP}`; const ht=`HOLD ${used} / ${def.hold}`; x.fillText(ht,18,132); const bx=18+x.measureText(ht).width+28;
-      x.fillStyle='#0a2a38'; x.fillRect(bx,100,W-bx-18,32); x.fillStyle='#ffb454'; x.fillRect(bx,100,(W-bx-18)*used/def.hold,32);
+      x.textAlign='left'; let used=0; G.cargo.forEach(c=>used+=c.qty); x.fillStyle='#ffb454'; x.font=`600 48px ${FONT_DISP}`; const ht=`HOLD ${used} / ${holdCap()}`; x.fillText(ht,18,132); const bx=18+x.measureText(ht).width+28;
+      x.fillStyle='#0a2a38'; x.fillRect(bx,100,W-bx-18,32); x.fillStyle='#ffb454'; x.fillRect(bx,100,(W-bx-18)*Math.min(1,used/holdCap()),32);
       x.font=`40px ${FONT_MONO}`;
       if(!G.cargo.length){ x.fillStyle='#5f8fa0'; x.fillText('Hold is empty.',18,214); x.fillText('Take a job at a port.',18,266,W-36); }
       const show=G.cargo.length>3?2:3;
@@ -1829,7 +1855,7 @@ const Cockpit = {
     x.textAlign='right'; const cw=Game.canWarp(); x.fillStyle=s.warp?'#6ab8ff':cw===true?'#7dffa8':'#ff6f61'; x.fillText(s.warp?'WARP ON':cw===true?'WARP RDY':'WARP LOCK',S.w-14,42); S.tex.needsUpdate=true; },
   drawClock(t){ const S=this.screens.clock, x=S.ctx, m=Math.floor(G.playTime/60), sc=Math.floor(G.playTime%60); x.fillStyle='#0a1a10'; x.fillRect(0,0,S.w,S.h); x.fillStyle='#8dff9a'; x.font=`44px ${FONT_MONO}`; x.textAlign='center'; x.textBaseline='middle';
     x.fillText('T+'+String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')+':'+String(sc).padStart(2,'0'),S.w/2,44); S.tex.needsUpdate=true; },
-  drawHold(){ const S=this.screens.hold, x=S.ctx; let used=0; G.cargo.forEach(c=>used+=c.qty); x.fillStyle='#160d04'; x.fillRect(0,0,S.w,S.h); x.fillStyle='#ffb454'; x.font=`44px ${FONT_MONO}`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(`HOLD ${used}/${SHIPS[G.shipId].hold}`,S.w/2,44); S.tex.needsUpdate=true; },
+  drawHold(){ const S=this.screens.hold, x=S.ctx; let used=0; G.cargo.forEach(c=>used+=c.qty); x.fillStyle='#160d04'; x.fillRect(0,0,S.w,S.h); x.fillStyle='#ffb454'; x.font=`44px ${FONT_MONO}`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(`HOLD ${used}/${holdCap()}`,S.w/2,44); S.tex.needsUpdate=true; },
   drawManifest(){
     const S=this.screens.manifest; if(!S) return; const x=S.ctx; x.fillStyle='#efe8d6'; x.fillRect(0,0,400,560); x.fillStyle='#222'; x.font=`700 30px ${FONT_DISP}`; x.textAlign='left'; x.textBaseline='alphabetic'; x.fillText('CARGO MANIFEST',24,50);
     x.strokeStyle='#222'; x.lineWidth=2; x.beginPath(); x.moveTo(24,62); x.lineTo(376,62); x.stroke(); x.font=`17px ${FONT_MONO}`;
@@ -1857,11 +1883,12 @@ const Cockpit = {
     const nd=e=>{ const r=cv.getBoundingClientRect(); return new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); };
     const showTip=(c,e)=>{ if(!c){ tip.hidden=true; cv.style.cursor=this.drag&&this.drag.look?'grabbing':'default'; return; } const v=c.get?c.get():null; tip.innerHTML=c.label+(c.fmt&&v!==null?' <b>'+c.fmt(v)+'</b>':c.type==='switch'&&v!==null?' <b>'+(v?'ON':'OFF')+'</b>':c.tip?' <b>'+c.tip+'</b>':'');
       tip.hidden=false; const r=cv.getBoundingClientRect(); tip.style.left=Math.min(e.clientX-r.left+16,r.width-tip.offsetWidth-8)+'px'; tip.style.top=(e.clientY-r.top+18)+'px'; cv.style.cursor='pointer'; };
-    cv.addEventListener('pointerdown',e=>{ this.lastType=e.pointerType; if(G.mode!=='flight'||e.button!==0) return; Sfx.init(); cv.focus(); const c=this.pick(nd(e));
+    cv.addEventListener('pointerdown',e=>{ this.lastType=e.pointerType; if(G.mode!=='flight'||e.button!==0) return; Sfx.init(); cv.focus(); const c=Walk.on?null:this.pick(nd(e));
       this.drag=c?{c,x:e.clientX,y:e.clientY,moved:0,acc:0,start:c.get?c.get():0}:{look:true,x:e.clientX,y:e.clientY,moved:0}; if(c&&c.type==='button'){ c.down=1.4; } try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
     cv.addEventListener('pointermove',e=>{ if(G.mode!=='flight'){ tip.hidden=true; return; } const d=this.drag;
-      if(!d){ const c=this.pick(nd(e)); this.hover=c; showTip(c,e); return; }
+      if(!d){ if(Walk.on){ tip.hidden=true; return; } const c=this.pick(nd(e)); this.hover=c; showTip(c,e); return; }
       const dx=e.clientX-d.x, dy=e.clientY-d.y; d.x=e.clientX; d.y=e.clientY; d.moved+=Math.abs(dx)+Math.abs(dy);
+      if(d.look&&Walk.on){ Walk.look(dx,dy); return; }
       if(d.look){ const H=G.head, k=0.0032*(H.fov/72); H.yawT=clamp(H.yawT-dx*k,-2.5,2.5); H.pitchT=clamp(H.pitchT-dy*k,-1.25,1.3); cv.style.cursor='grabbing'; return; }
       const c=d.c; if(c.type==='knob'||c.type==='lever'){ const delta=c.type==='lever'?-dy:(dx-dy);
         if(c.step){ d.acc+=delta; const stepPx=c.type==='lever'?14:24; while(Math.abs(d.acc)>=stepPx){ const dir=Math.sign(d.acc); d.acc-=dir*stepPx; this.stepCtrl(c,dir); } }
@@ -1869,11 +1896,11 @@ const Cockpit = {
     const up=e=>{ const d=this.drag; this.drag=null; if(!d||G.mode!=='flight') return; cv.style.cursor='default'; const touch=e.pointerType==='touch', tap=d.moved<(touch?12:5);
       if(touch){ clearTimeout(this.tipT); this.tipT=setTimeout(()=>{ tip.hidden=true; },1600);
         // finger double-tap on open space or a panel face leans in (or back out); taps on controls just work the control
-        if(!d.c&&tap){ const now=performance.now(), L=this.lastTap; if(L&&now-L.t<380&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<60){ this.lastTap=null; this.zoomAt(nd(e)); } else this.lastTap={t:now,x:e.clientX,y:e.clientY}; } }
+        if(!d.c&&tap&&!Walk.on){ const now=performance.now(), L=this.lastTap; if(L&&now-L.t<380&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<60){ this.lastTap=null; this.zoomAt(nd(e)); } else this.lastTap={t:now,x:e.clientX,y:e.clientY}; } }
       if(d.c&&tap){ const c=d.c; if(c.type==='switch'){ c.set(!c.get()); Sfx.clunk(); } else if(c.type==='button'){ Sfx.click(); c.press(); } else if(c.step) this.stepCtrl(c,e.shiftKey?-1:1); showTip(c,e); } };
     cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',()=>{ this.drag=null; });
     cv.addEventListener('wheel',e=>{ if(G.mode!=='flight') return; const c=this.pick(nd(e)); if(c){ e.preventDefault(); this.stepCtrl(c,e.deltaY<0?1:-1); showTip(c,e); } },{passive:false});
-    cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight'||this.lastType==='touch') return; this.zoomAt(nd(e)); });
+    cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight'||this.lastType==='touch'||Walk.on) return; this.zoomAt(nd(e)); });
     cv.addEventListener('pointerleave',()=>{ tip.hidden=true; });
   },
 };
@@ -1979,7 +2006,7 @@ const Cine = {
   /* ---------- sequences ---------- */
   ui(on, title, sub){ document.body.classList.toggle('cine',on); $('skip').hidden=!on; if(on) $('keys').hidden=true; if(title){ $('cine-h').textContent=title; $('cine-p').textContent=sub; } $('cine-title').classList.toggle('on',!!title); },
   startLanding(P){
-    G.mode='landing'; this.mode='A'; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
+    Walk.exit(true); G.mode='landing'; this.mode='A'; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
     if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     this.buildSurface(P); World.space.add(this.model); this.model.visible=true; this.model.position.set(0,0,0); this.model.rotation.set(0,0,0); this.plasma.visible=false; this.setThrust(0,0);
     const s=G.ship, out=this.out=new V3().subVectors(s.pos,P.pos).normalize(); let up=new V3(0,1,0); if(Math.abs(out.y)>0.9) up.set(1,0,0);
@@ -2837,7 +2864,31 @@ const Crowd = (() => {
 /* ===================== CARGO HOLD, SCOOP, FLOATING CARGO, RADIO CALLS ===================== */
 
 const holdUsed=()=>G.cargo.reduce((a,b)=>a+(b.qty||0),0);
-const holdFree=()=>SHIPS[G.shipId].hold-holdUsed();
+const fmtTime=s=>{ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+
+/* ---------- deliveries lose value the longer they take ---------- */
+/* each contract gets an expected trip time from the distance; deliver within it for full pay, after that the pay
+   slides down to a floor of 30%. Only flight time counts. Faults (a snapped cargo strap, a jammed air scrubber) make it
+   slide faster. Passengers work the same way. */
+const SEATS=[2,2,3,4,4];
+const Cargo = {
+  seats(){ return SEATS[Math.min(SHIPS[G.shipId].model,SEATS.length-1)]; },
+  pax(){ return G.cargo.filter(c=>c.kind==='pax'||c.kind==='escort'); },
+  decays(c){ return c.to>=0&&c.kind!=='ore'&&c.kind!=='escort'&&!c.quest; },
+  est(c){ const from=c.from>=0?PLANETS[c.from]:(World.nearest||PLANETS[0]), d=from.pos.distanceTo(PLANETS[c.to].pos); return Math.round(d/SHIPS[G.shipId].warp*2.2+150); },
+  stamp(c){ if(!this.decays(c)||c.est!=null) return; c.est=this.est(c); c.el=0; if(c.pay0==null) c.pay0=c.pay; },
+  stampAll(){ for(const c of G.cargo) this.stamp(c); },
+  factor(c){ if(!this.decays(c)||c.est==null) return 1; const late=Math.max(0,c.el-c.est); return clamp(1-0.5*late/c.est,0.3,1); },
+  value(c){ return this.decays(c)&&c.pay0!=null?Math.max(5,Math.round(c.pay0*this.factor(c)*(1-(c.dmg||0))/5)*5):c.pay; },
+  left(c){ return c.est==null?Infinity:c.est-c.el; },
+  tick(dt){
+    for(const c of G.cargo){ this.stamp(c); if(!this.decays(c)) continue; const was=c.el<=c.est; c.el+=dt*Faults.lagMul(c); c.pay=this.value(c);
+      if(was&&c.el>c.est&&!c.told){ c.told=1; UI.toast(c.kind==='pax'?`${c.good} is now running late. Their fare is dropping.`:`${c.qty}× ${c.good} is now late. The pay is dropping.`,'warn'); } } },
+  label(c){ if(!this.decays(c)||c.est==null) return ''; const l=this.left(c), fr=c.fragile?` · fragile, ${Math.round((1-(c.dmg||0))*100)}% intact`:''; return (l>0?`on time for ${fmtTime(l)} more`:`late, pay down to ${fmtCr(c.pay)} from ${fmtCr(c.pay0)}`)+fr; },
+};
+/* hold capacity: the ship's hold, plus one unit under the false floor if a hidden compartment is fitted */
+const holdCap=()=>SHIPS[G.shipId].hold+(G.up&&G.up.hidden?1:0);
+const holdFree=()=>holdCap()-holdUsed();
 
 /* ---------- things floating in space: cargo you dropped, lost property, missing shipments ---------- */
 const Flotsam = {
@@ -2899,21 +2950,23 @@ const Scoop = {
 const Hold = {
   open:false, confirm:null,
   toggle(v){ v=v==null?!this.open:v; this.open=v; $('hold').hidden=!v; this.confirm=null; if(v){ if(SysMap.open) SysMap.close(); this.render(); } if(Sfx.ok()) Sfx.click(); },
-  render(){ if(!this.open) return; const d=SHIPS[G.shipId], list=$('hold-list'); list.innerHTML='';
-    $('hold-cap').textContent=`${holdUsed()} of ${d.hold} units used`;
+  render(){ if(!this.open) return; const d=SHIPS[G.shipId], list=$('hold-list'); list.innerHTML=''; Cargo.stampAll();
+    $('hold-cap').textContent=`${holdUsed()} of ${holdCap()} units · ${Cargo.pax().length} of ${Cargo.seats()} seats`;
     if(!G.cargo.length) list.appendChild(el('p','hold-empty','The hold is empty. It echoes slightly.'));
     G.cargo.forEach((c,i)=>{ const row=el('div','hrow'), info=el('div','');
-      const what=c.kind==='escort'?esc(c.good):`${c.qty}× ${esc(c.good)}`, tag=c.illegal?'<span class="tag bad">CONTRABAND</span>':c.quest?'<span class="tag esc">LOST PROPERTY</span>':c.kind==='ore'?'<span class="tag">ORE</span>':'';
-      const dest=c.kind==='escort'?`Escorting to ${PLANETS[c.to].name}`:c.kind==='ore'?'Sell at an assay office':`To ${PLANETS[c.to].name} · pays ${fmtCr(c.pay)}`;
-      info.innerHTML=`<b>${what}</b>${tag}<small>${esc(dest)}</small>`; row.appendChild(info);
-      if(c.kind==='escort'){ row.appendChild(el('span','hnote','A VIP. Not droppable.')); }
-      else { const sure=this.confirm===c, b=el('button','btn'+(sure?' danger':''),sure?'Sure? Drop it':'Drop'); b.onclick=()=>{ if(this.confirm===c) this.drop(c); else { this.confirm=c; this.render(); } }; row.appendChild(b); }
+      const what=c.kind==='escort'||c.kind==='pax'?esc(c.good):`${c.qty}× ${esc(c.good)}`, tag=c.illegal?'<span class="tag bad">CONTRABAND</span>':c.quest?'<span class="tag esc">LOST PROPERTY</span>':c.kind==='ore'?'<span class="tag">ORE</span>':c.kind==='pax'?'<span class="tag">PASSENGER</span>':'';
+      const dest=c.kind==='escort'?`Escorting to ${PLANETS[c.to].name}`:c.kind==='ore'?'Sell at an assay office':`To ${PLANETS[c.to].name} · pays ${fmtCr(c.pay)}`, lab=Cargo.label(c), late=Cargo.decays(c)&&Cargo.left(c)<=0;
+      info.innerHTML=`<b>${what}</b>${tag}<small>${esc(dest)}</small>${lab?`<small class="${late?'late':'due'}">${esc(lab)}</small>`:''}`; row.appendChild(info);
+      if(c.kind==='escort'){ row.appendChild(el('span','hnote',`A VIP in your cabin · calm ${Math.round(c.hp)}%`)); }
+      else if(c.kind==='pax'&&G.mode!=='port'){ row.appendChild(el('span','hnote','Seated in the cabin. Let them off at a port.')); }
+      else { const sure=this.confirm===c, b=el('button','btn'+(sure?' danger':''),sure?(c.kind==='pax'?'Sure? Let them off':'Sure? Drop it'):(c.kind==='pax'?'Let off here':'Drop')); b.onclick=()=>{ if(this.confirm===c) this.drop(c); else { this.confirm=c; this.render(); } }; row.appendChild(b); }
       list.appendChild(row); });
     const fl=G.mode==='flight', n=Flotsam.nearest();
     $('hold-foot').innerHTML=fl?`Scoop: <b>${Scoop.open?'OPEN':'closed'}</b>${n?` · nearest floating cargo ${esc(n.label)}, ${fmtDist(n.dist)}`:''}`:'Dropping cargo here leaves it on the pad.';
     const sb=$('hold-scoop'); sb.hidden=!fl; sb.textContent=Scoop.open?'Close scoop · B':'Open scoop · B'; },
   drop(c){
     const i=G.cargo.indexOf(c); if(i<0) return; G.cargo.splice(i,1); this.confirm=null; const contract=c.to>=0&&!c.illegal&&!c.quest&&c.kind!=='ore';
+    if(c.kind==='pax'){ UI.toast(`${c.good} gets off here, muttering. They will find another ride. Probably soup-related.`); Rep.add(-2,'You put a passenger off early'); Cockpit.drawManifest(); this.render(); if(G.mode==='port'){ UI.render(); Game.save(); } return; }
     if(G.mode==='flight'){ const s=G.ship, back=new V3(0,0,1).applyQuaternion(s.quat), down=new V3(0,-1,0).applyQuaternion(s.quat);
       c.dropped=contract; Flotsam.spawn(c,s.pos.clone().addScaledVector(back,220).addScaledVector(down,60),{vel:back.multiplyScalar(40).addScaledVector(s.vel,0.02),label:c.quest?c.good:`${c.qty}× ${c.good}`,kind:c.quest?'lost':'crate'});
       Sfx.hiss(0.6,0.12); UI.toast(`Dropped ${c.quest?c.good:c.qty+'× '+c.good}. It floats off, looking betrayed.`); }
@@ -2944,7 +2997,8 @@ const Fx = {
   fuel(n, why){ const d=SHIPS[G.shipId]; G.fuel=clamp(G.fuel+n,0,d.fuel); UI.toast(`${why?why+' · ':''}Fuel ${n>0?'+':''}${Math.round(n)}`,n>0?'good':'warn'); },
   hull(n, why){ if(n<0) Hull.hit(-n,why); else { G.hull=Math.min(100,G.hull+n); UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'good'); } },
   tip(P, why){ G.hot=P.idx; UI.toast(`${why||'Tip logged'}: ${P.name} deliveries pay +50%`,'good'); },
-  give(c, why){ if(holdFree()<c.qty){ UI.toast("No room in the hold. They seem relieved, somehow.",'warn'); return false; } G.cargo.push(c); Cockpit.drawManifest(); UI.toast(`${why||'Loaded'}: ${c.qty}× ${c.good} → ${PLANETS[c.to].name} · ${fmtCr(c.pay)}`,'good'); if(!G.cargo.some(x=>x.to===G.target)) Game.setTarget(c.to,true); return true; },
+  give(c, why){ if(c.kind==='pax'&&Cargo.pax().length>=Cargo.seats()){ UI.toast('No free seats in the cabin. They say they will wait for the next ship, pointedly.','warn'); return false; }
+    if(holdFree()<c.qty){ UI.toast("No room in the hold. They seem relieved, somehow.",'warn'); return false; } G.cargo.push(c); Cockpit.drawManifest(); UI.toast(`${why||'Loaded'}: ${c.kind==='pax'?c.good:c.qty+'× '+c.good} → ${PLANETS[c.to].name} · ${fmtCr(c.pay)}`,'good'); if(!G.cargo.some(x=>x.to===G.target)) Game.setTarget(c.to,true); return true; },
 };
 const other=()=>{ let P; do{ P=pick(PLANETS); }while(World.nearest&&P===World.nearest&&PLANETS.length>1); return P; };
 const r5=v=>Math.round(v/5)*5;
@@ -3024,7 +3078,7 @@ const CALLS = [
              {t:'Refuse',sub:'They might be bluffing',fn:()=>{ if(Math.random()<0.6) Calls.reply(c,'Fine. We were bluffing. We do not even have a gun. It is a hairdryer.'); else { Fx.hull(-8,'Warning shot. It was not a hairdryer'); } }},
              {t:'Honk aggressively',fn:()=>{ Game.honk(); if(Math.random()<0.6) Calls.reply(c,'Aaah! A horn! Leaving! Leaving!'); else Fx.hull(-5,'They did not like the horn'); }}] },
   { ch:[0], who:'pilot', text:c=>`Excuse me. I am hitchhiking to ${c.P.name}. I can pay in money, or in a long story about my cousin. Mostly money.`, pre:c=>{ c.P=other(); c.pay=r5(rnd(150,260)); },
-    opts:c=>[{t:'Pick them up',sub:`1 unit · ${fmtCr(c.pay)}`,fn:()=>{ if(Fx.give({good:'Hitchhiker (sitting on a crate)',qty:1,to:c.P.idx,pay:c.pay,from:-1},'Passenger aboard')) Calls.reply(c,'Thank you. So. My cousin.'); }},
+    opts:c=>[{t:'Pick them up',sub:`A cabin seat · ${fmtCr(c.pay)}`,fn:()=>{ if(Fx.give({kind:'pax',good:`${c.name} (hitchhiker)`,sp:c.sp,seed:c.seed,qty:0,to:c.P.idx,pay:c.pay,from:-1},'Passenger aboard')) Calls.reply(c,'Thank you. I will sit in the back. So. My cousin.'); }},
              {t:'Ask about the cousin',fn:()=>{ Calls.reply(c,'Well, my cousin once ate a moon. A small one. Nobody was using it. That is the whole story.'); }},
              {t:'No passengers',fn:()=>{ Calls.reply(c,'Understood. I will continue standing in space. It is fine.'); }}] },
   { ch:[2], who:'port', text:c=>`This is an automated call about your ship's extended warranty. Press one to speak to an agent.`, ok:c=>!!c.near,
@@ -3107,7 +3161,7 @@ const Rep = {
   payMul(){ return 1+G.rep/400; },
 };
 const Hull = {
-  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
+  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Math.random()<0.35) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
     UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
   breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
 };
@@ -3203,7 +3257,7 @@ const Distress = {
     if(r<0.5){ const cr=Math.round(f*rnd(9,14)/5)*5; G.credits+=cr; Sfx.cash(); text=`Engines are humming! Here's ${fmtCr(cr)} for the trouble. You're a star. Not literally. Stars are hot.`; }
     else if(r<0.8){ let h; do{ h=Math.floor(Math.random()*PLANETS.length); }while(h===G.target&&PLANETS.length>1); G.hot=h; text=`We can't pay much, but here's a secret: ${PLANETS[h].name} is paying a fat bonus on deliveries right now.`; }
     else { const to=Math.floor(Math.random()*PLANETS.length), used=G.cargo.reduce((a,b)=>a+b.qty,0);
-      if(used+1<=SHIPS[G.shipId].hold){ G.cargo.push({good:'Thank-You Fruitcake',qty:1,to,pay:Math.round(rnd(220,380)/5)*5,from:-1}); Cockpit.drawManifest(); text=`Please take this fruitcake to ${PLANETS[to].name}. They'll pay you for it. Nobody has ever eaten one.`; }
+      if(used+1<=holdCap()){ G.cargo.push({good:'Thank-You Fruitcake',qty:1,to,pay:Math.round(rnd(220,380)/5)*5,from:-1}); Cockpit.drawManifest(); text=`Please take this fruitcake to ${PLANETS[to].name}. They'll pay you for it. Nobody has ever eaten one.`; }
       else { const cr=150; G.credits+=cr; Sfx.cash(); text=`Here's ${fmtCr(cr)}. We wanted to give you a fruitcake but your hold is full. Lucky you.`; } }
     Dlg.info({sp:c.sp,seed:c.seed,who:`${c.name} · ${c.ship}`,text,then:()=>{ Rep.add(6,'Rescue complete'); Ev.dismiss(c.npc); this.cur=null; }});
   },
@@ -3261,12 +3315,12 @@ const Mining = {
     x.textAlign='center'; x.font=`600 46px ${FONT_DISP}`; x.fillText(`ORE ${k.ore}`,cx,cy-s-62); x.font=`40px ${FONT_MONO}`; x.fillText(fmtDist(d),cx,cy-s-16); this.sightTex.needsUpdate=true;
   },
   addOre(F){
-    const def=SHIPS[G.shipId], used=G.cargo.reduce((a,b)=>a+b.qty,0); if(used>=def.hold) return false;
+    const used=G.cargo.reduce((a,b)=>a+b.qty,0); if(used>=holdCap()) return false;
     let c=G.cargo.find(x=>x.kind==='ore'&&x.good===F.ore); if(!c){ c={kind:'ore',good:F.ore,qty:0,to:-1,pay:0,val:F.val,from:-1}; G.cargo.push(c); }
     c.qty++; c.pay=c.qty*F.val; this.got++; this.gotT=1.2; Cockpit.drawManifest(); return true;
   },
   update(dt){
-    const s=G.ship, fire=!!G.keys.KeyF&&G.sys.power&&this.lock<=0&&!Dlg.open;
+    const s=G.ship, fire=!!G.keys.KeyF&&G.sys.power&&this.lock<=0&&!Dlg.open&&!Walk.on;
     this.lock=Math.max(0,this.lock-dt); this.hitCD=Math.max(0,this.hitCD-dt); this.msgT=Math.max(0,this.msgT-dt);
     let field=null; for(const F of this.fields){ F.dist=F.pos.distanceTo(s.pos); if(F.dist<F.R*1.4) field=F; F.group.visible=F.dist<400000; }
     if(field!==this.field){ this.field=field; if(field){ UI.toast(`Entering ${field.name}. Aim at a rock and hold ${TouchUI.on?'MINE':'F'} to mine ${field.ore}.`,'good'); if(s.warp) Game.dropWarp('Asteroid field. Warp disengaged.','warn',true); } }
@@ -3359,26 +3413,17 @@ const Customs = {
 const Escort = {
   npc:null, hazard:null, hT:60, farT:0, warnT:0,
   contract(){ return G.cargo.find(c=>c.kind==='escort'); },
+  /* the VIP rides in your passenger cabin; your job is to keep the trip calm */
   spawn(){
     const c=this.contract(); this.npc=null; this.hazard=null; this.hT=rnd(35,60); if(!c) return;
-    const s=G.ship, side=new V3(1,0,0).applyQuaternion(s.quat), back=new V3(0,0,1).applyQuaternion(s.quat);
-    this.npc=Ev.npc('escort',s.pos.clone().addScaledVector(side,600).addScaledVector(back,400),{sp:c.vip.sp,seed:c.vip.seed,name:c.vip.title,ship:c.vip.ship,cargo:'Nothing. I am the cargo.'});
-    this.label(); UI.toast(`${c.vip.title} is flying with you. Keep close.`,'good');
+    UI.toast(`${c.vip.title} is aboard, in the passenger cabin. Keep the trip calm.`,'good');
   },
-  label(){ const n=this.npc, c=this.contract(); if(!n||!c) return; Npc.label(n,`${c.vip.ship.toUpperCase()} · ${Math.round(c.hp)}%`,c.vip.title,c.hp>50?'#7dffa8':c.hp>25?'#ffb454':'#ff6f61'); },
+  label(){},
   hurt(d, why){ const c=this.contract(); if(!c) return; c.hp=Math.max(0,c.hp-d); this.label(); UI.toast(`${why}. ${c.vip.title}: ${Math.round(c.hp)}%`,'warn'); Sfx.deny();
-    if(c.hp<=0){ G.cargo.splice(G.cargo.indexOf(c),1); Cockpit.drawManifest(); Ev.dismiss(this.npc); this.npc=null; this.hazard=null; Rep.add(-8,`${c.vip.title} has had enough and turned back. Contract void`); } },
+    if(c.hp<=0){ G.cargo.splice(G.cargo.indexOf(c),1); Cockpit.drawManifest(); Ev.dismiss(this.npc); this.npc=null; this.hazard=null; Rep.add(-8,`${c.vip.title} has locked themselves in the galley and cancelled the contract`); } },
   heal(d){ const c=this.contract(); if(c){ c.hp=Math.min(100,c.hp+d); this.label(); } },
   update(dt){
-    const n=this.npc, c=this.contract(); if(!n||!c||Npc.list.indexOf(n)<0) return;
-    const s=G.ship, def=SHIPS[G.shipId], side=new V3(1,0,0).applyQuaternion(s.quat), back=new V3(0,0,1).applyQuaternion(s.quat), up=new V3(0,1,0).applyQuaternion(s.quat);
-    const tgt=s.pos.clone().addScaledVector(side,650).addScaledVector(back,500).addScaledVector(up,120), to=tgt.sub(n.pos), d=to.length();
-    const vmax=s.warp||s.warpF>0.1?def.warp*0.8:Math.max(def.cruise*1.15,1200), want=Math.min(vmax,s.speed+d*1.3);
-    n.vel.copy(to.normalize()).multiplyScalar(Math.min(want,d/Math.max(dt,1e-3)));
-    if(n.vel.lengthSq()<4) n.vel.copy(new V3(0,0,-1).applyQuaternion(s.quat)).multiplyScalar(2);
-    // falling behind
-    if(n.dist>25000){ this.farT+=dt; c.hp=Math.max(0,c.hp-dt*1.2); this.warnT-=dt; if(this.warnT<=0){ this.warnT=6; this.label(); UI.toast(`You're leaving ${c.vip.title} behind! Ease off the warp.`,'warn'); } if(c.hp<=0) this.hurt(0,'Lost contact'); }
-    else this.farT=0;
+    const c=this.contract(); if(!c) return; const s=G.ship;
     // hazards
     const h=this.hazard;
     if(h){ h.t-=dt; Game.escortAlarm=true;
@@ -3389,14 +3434,17 @@ const Escort = {
     if(Dlg.open||!Ev.clearOfPlanets(8)) return;
     this.hT-=dt; if(this.hT>0) return; this.hT=rnd(45,80);
     const k=pick(['pirates','debris','panic']);
-    if(k==='pirates'){ const ps=[0,1].map(()=>Ev.npc('pirate',n.pos.clone().add(Ev.around(new V3(),rnd(500,900))),{sp:pick(['grondar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
-      this.hazard={kind:'pirates',t:20,ps,nag:t=>`Pirates are buzzing ${c.vip.title}! Get within 4,000 km and sound the horn (${TouchUI.on?'HORN':'G'}). ${t}s`,fail:()=>{ ps.forEach(p=>Ev.dismiss(p)); this.hurt(30,'The pirates rattled the VIP badly'); }};
+    if(k==='pirates'){ const fwd=new V3(0,0,-1).applyQuaternion(s.quat), ps=[0,1].map(()=>Ev.npc('pirate',s.pos.clone().addScaledVector(fwd,rnd(900,1500)).add(Ev.around(new V3(),rnd(300,700))),{sp:pick(['grondar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
+      this.hazard={kind:'pirates',t:20,ps,nag:t=>`Pirates are buzzing your ship and ${c.vip.title} is terrified! Sound the horn (${TouchUI.on?'HORN':'G'}) to scare them off. ${t}s`,fail:()=>{ ps.forEach(p=>Ev.dismiss(p)); this.hurt(30,'The pirates rattled the VIP badly'); }};
       UI.toast(this.hazard.nag(20),'warn'); Sfx.deny(); }
     else if(k==='debris'){ this.hazard={kind:'debris',t:22,ok:0,nag:t=>`Debris ahead! Throttle 4 or lower, no warp, for 8 seconds. ${t}s`,fail:()=>this.hurt(20,`${c.vip.title}'s ship took a beating in the debris`)};
       if(s.warp) Game.dropWarp('Debris ahead! Warp disengaged','warn',true); UI.toast(this.hazard.nag(22),'warn'); }
+    else if(Walk.on&&!Dlg.open){ this.hT=8; }
     else this.panic(c);
   },
-  onHonk(){ const h=this.hazard; if(!h||h.kind!=='pirates'||!this.npc) return; if(this.npc.dist<4000){ h.ps.forEach(p=>Ev.dismiss(p)); this.hazard=null; Game.escortAlarm=false; this.heal(2); setTimeout(()=>UI.toast('The pirates scatter. Your horn is terrifying.','good'),600); } else UI.toast('Too far away. Get within 4,000 km and honk again.','warn'); },
+  onHonk(){ const h=this.hazard; if(!h||h.kind!=='pirates') return; h.ps.forEach(p=>Ev.dismiss(p)); this.hazard=null; Game.escortAlarm=false; this.heal(2); setTimeout(()=>UI.toast('The pirates scatter. Your horn is terrifying.','good'),600); },
+  /* talking to the VIP in the cabin settles their nerves a little */
+  chat(){ const c=this.contract(); if(!c) return null; if(!this.chatT||Game.time-this.chatT>20){ this.chatT=Game.time; this.heal(4); } return c; },
   panic(c){
     const v=c.vip, tough=['grondar','zkthar'].includes(v.sp), jokey=['blorpax','qeeble','sporrin','momwump'].includes(v.sp);
     const out=(good,why)=>{ if(good){ this.heal(6); UI.toast(why,'good'); } else this.hurt(12,why); };
@@ -3409,15 +3457,15 @@ const Escort = {
   /* on landing: pay out if the VIP is with you */
   land(P){
     const c=this.contract(); if(!c||c.to!==P.idx) return null; G.cargo.splice(G.cargo.indexOf(c),1);
-    const n=this.npc, with_=n&&Npc.list.indexOf(n)>=0&&n.dist<80000&&c.hp>0; this.npc=null; this.hazard=null;
-    if(!with_){ Rep.add(-6,`${c.vip.title} never arrived. Contract failed`); return null; }
+    this.npc=null; this.hazard=null;
+    if(c.hp<=0){ Rep.add(-6,`${c.vip.title} refused to get off and demanded to go home. Contract failed`); return null; }
     const pay=Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5; Rep.add(5,`${c.vip.title} arrived safely`); return {good:`Escort of ${c.vip.title} (${Math.round(c.hp)}%)`,qty:0,pay};
   },
 };
 /* ===================== SYSTEM MAP ===================== */
 /* Top-down chart of the system. M toggles it in flight and in port; click a world to set the destination. */
 const SysMap = {
-  open:false, f:0, hover:-1, pts:[], listT:0, maxR:0,
+  open:false, f:0, hover:-1, pts:[], listT:0, maxR:0, zoom:1, ox:0, oz:0, base:1,
   toggle(){ if(this.open) this.close(); else this.show(); },
   show(){
     if(this.open) return; this.open=true; this.hover=-1; this.f=0; this.listT=0.5;
@@ -3437,9 +3485,22 @@ const SysMap = {
     const at=e=>{ const r=cv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top; let best=-1, bd=1e9; this.pts.forEach(p=>{ const d=Math.hypot(p.x-mx,p.y-my); if(d<Math.max(p.r+12,20)&&d<bd){ bd=d; best=p.i; } }); return best; };
     cv.addEventListener('pointermove',e=>{ const h=at(e); if(h!==this.hover){ this.hover=h; cv.style.cursor=h>=0?'pointer':'default'; this.draw(Game.time); } });
     cv.addEventListener('pointerleave',()=>{ if(this.hover!==-1){ this.hover=-1; this.draw(Game.time); } });
-    cv.addEventListener('click',e=>{ const h=at(e); if(h>=0) this.pick(h); });
+    cv.addEventListener('click',e=>{ if(this.dragged){ this.dragged=false; return; } const h=at(e); if(h>=0) this.pick(h); });
     $('map-list').addEventListener('click',e=>{ const b=e.target.closest('[data-i]'); if(b) this.pick(+b.dataset.i); });
     $('map-close').onclick=()=>this.close();
+    /* zoom: mouse wheel (toward the pointer), pinch on a touch screen; drag to pan; double-click to reset */
+    const zoomAt=(f,mx,my)=>{ const r=cv.getBoundingClientRect(), w=r.width, h=r.height, k0=this.base*this.zoom, wx=this.ox+(mx-w/2)/k0, wz=this.oz+(my-h/2)/k0;
+      this.zoom=clamp(this.zoom*f,1,14); const k1=this.base*this.zoom; this.ox=wx-(mx-w/2)/k1; this.oz=wz-(my-h/2)/k1; if(this.zoom<=1.001){ this.ox=0; this.oz=0; } this.draw(Game.time); };
+    cv.addEventListener('wheel',e=>{ if(!this.open) return; e.preventDefault(); const r=cv.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY*(e.deltaMode===1?0.05:0.0016)),e.clientX-r.left,e.clientY-r.top); },{passive:false});
+    const ptrs=new Map(); let drag=null, pinch=null;
+    cv.addEventListener('pointerdown',e=>{ ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+      if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y)}; drag=null; } else drag={x:e.clientX,y:e.clientY,moved:0}; });
+    cv.addEventListener('pointermove',e=>{ if(!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(pinch&&ptrs.size===2){ const [a,b]=[...ptrs.values()], d=Math.hypot(a.x-b.x,a.y-b.y), r=cv.getBoundingClientRect(); if(pinch.d>10) zoomAt(d/pinch.d,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top); pinch.d=d; return; }
+      if(drag){ const dx=e.clientX-drag.x, dy=e.clientY-drag.y; drag.x=e.clientX; drag.y=e.clientY; drag.moved+=Math.abs(dx)+Math.abs(dy); if(this.zoom>1&&drag.moved>6){ const k=this.base*this.zoom; this.ox-=dx/k; this.oz-=dy/k; cv.style.cursor='grabbing'; this.draw(Game.time); } } });
+    const up=e=>{ ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null; if(!ptrs.size){ this.dragged=drag&&drag.moved>6; drag=null; cv.style.cursor='default'; } };
+    cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+    cv.addEventListener('dblclick',()=>{ this.zoom=1; this.ox=0; this.oz=0; this.draw(Game.time); });
   },
 
   update(dt,t){
@@ -3460,14 +3521,14 @@ const SysMap = {
     FIELDS.forEach(F=>{ const tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx; rows.push(`<button class="mrow${tg?' tg':''}" data-i="${100+F.idx}"><i style="background:radial-gradient(circle at 35% 35%,#e8dcc8,${F.col} 60%,#3a3040);border-radius:30%"></i><span class="n">${esc(F.name)}</span><span class="d">${fmtDist(Math.max(0,F.pos.distanceTo(G.ship.pos)-F.R))}</span><span class="p">Asteroid field · ${esc(F.ore)}</span>${tg?'<span class="b"><em class="t">Waypoint</em></span>':''}</button>`); });
     $('map-list').innerHTML=rows.join('');
     const nT=G.mode==='flight'?Npc.list.length:0;
-    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+(TouchUI.on?' · Tap a world or field to set your course':' · Click a world or field to set your course · M or Esc to close');
+    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+(TouchUI.on?' · Tap a world or field to set your course · pinch to zoom, drag to pan':' · Click a world or field to set your course · scroll to zoom, drag to pan, double-click to reset · M or Esc to close');
   },
 
   draw(t){
     const cv=$('map-cv'), box=cv.parentNode, w=box.clientWidth, h=box.clientHeight; if(w<20||h<20) return;
     const dpr=Math.min(window.devicePixelRatio||1,2), W=Math.round(w*dpr), Hh=Math.round(h*dpr); if(cv.width!==W||cv.height!==Hh){ cv.width=W; cv.height=Hh; }
     const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
-    const cx=w/2, cy=h/2, R=Math.max(70,Math.min(w,h)/2-44), k=R/this.maxR, TAU=Math.PI*2;
+    const R=Math.max(70,Math.min(w,h)/2-44); this.base=R/this.maxR; const k=this.base*this.zoom, cx=w/2-this.ox*k, cy=h/2-this.oz*k, TAU=Math.PI*2;
     const s=G.ship, docked=G.mode==='port'&&G.docked>=0, T=Nav.target();
     x.lineWidth=1; x.textBaseline='middle';
 
@@ -3569,7 +3630,7 @@ const TouchUI = {
     /* tap buttons */
     const acts={
       warp:()=>Game.toggleWarp(), auto:()=>Game.setAutopilot(!G.sys.autopilot), horn:()=>Game.honk(), hail:()=>Comms.hail(),
-      next:()=>Game.setTarget(G.target+1), map:()=>SysMap.toggle(), hold:()=>Hold.toggle(), scoop:()=>Scoop.toggle(), help:()=>{ $('help').hidden=false; }, centre:()=>Cockpit.zoomOut(),
+      next:()=>Game.setTarget(G.target+1), map:()=>SysMap.toggle(), hold:()=>Hold.toggle(), scoop:()=>Scoop.toggle(), walk:()=>{ G.keys={}; Walk.toggle(); }, help:()=>{ $('help').hidden=false; }, centre:()=>Cockpit.zoomOut(),
     };
     document.querySelectorAll('#touch [data-act]').forEach(b=>{ b.addEventListener('click',()=>{ if(G.mode!=='flight') return; Sfx.init(); acts[b.dataset.act](); this.sync(true); }); });
     /* hold buttons act like holding a key */
@@ -3621,7 +3682,7 @@ const UI = {
     this.render();
   },
   hidePort(){ $('port').hidden=true; },
-  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${d.hold}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true);
+  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${holdCap()}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true);
     $('port-foot').textContent=G.cargo.length?`${G.cargo.length} delivery${G.cargo.length>1?' contracts':' contract'} aboard`:'Hold empty. Take a job before you launch.'; },
   /* the shopkeeper's hello at the top of each place */
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp]; const box=el('div','venue'); box.appendChild(el('h3','',esc(d.name)));
@@ -3649,15 +3710,15 @@ const UI = {
       if(!G.jobs.length) body.appendChild(el('div','note','The board is empty. Fly somewhere else and come back.'));
       G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
         let h3, meta;
-        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · aboard the ${esc(j.vip.ship)} · needs no hold space`; }
+        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · rides in your passenger cabin · needs a free seat`; }
         else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>`; meta=`To <i>${esc(T.name)}</i> · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrols en route`; }
-        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · for ${esc(alienName(j.sp,j.seed))}`; }
+        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · full pay if delivered within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying`; }
         c.appendChild(el('div','mid',`<h3>${h3}</h3><p>${esc(j.note)}</p><div class="meta">${meta}</div>`));
         const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay)));
-        const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), fits=used+j.qty<=d.hold&&!busy; const b=el('button','btn',busy?'One at a time':fits?'Accept':'No room'); b.disabled=!fits;
+        const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat; const b=el('button','btn',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
         b.onclick=()=>{ if(j.kind==='contra'){ Customs.load(j,P); return; }
           if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100});
-          else G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true});
+          else G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile});
           G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
         r.appendChild(b); c.appendChild(r); body.appendChild(c); });
       if(G.cargo.length){ body.appendChild(el('div','note','In your hold:')); const L=el('div','ledger'); G.cargo.forEach(c=>{ L.appendChild(el('span','',`${c.kind==='escort'?esc(c.good):c.qty+'× '+esc(c.good)}${c.illegal?' (contraband)':''} → ${esc(Ev.cargoDest(c))}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); body.appendChild(L); }
@@ -3670,7 +3731,7 @@ const UI = {
         c.appendChild(el('div','mid',`<h3>${esc(sh.name)}${mine?'<span class="tag">YOURS</span>':''}</h3><p>${esc(sh.tag)}</p><div class="meta">Hold <i>${sh.hold}</i> · Cruise <i>${sh.cruise}</i> km/s · Warp <i>${(sh.warp/LS).toFixed(2)}c</i> · Tank <i>${sh.fuel}</i></div>`));
         const r=el('div','right'); r.appendChild(el('div','pay',mine?'—':fmtCr(net)));
         const pv=el('button','btn','Preview'); pv.onclick=()=>{ Sfx.click(); Cine.setPreview(i); }; r.appendChild(pv);
-        if(!mine){ const b=el('button','btn','Buy'); b.disabled=G.credits<net||used>sh.hold; b.onclick=()=>{ G.credits-=net; G.shipId=i; G.fuel=sh.fuel; G.paint=null; cash(); Cine.setPreview(null); Cine.setModel(i); Cine.dock(P); Cockpit.build(sh); UI.toast('You now own the '+sh.name,'good'); Game.genJobs(P.idx); Game.save(); this.render(); }; r.appendChild(b); }
+        if(!mine){ const b=el('button','btn','Buy'); b.disabled=G.credits<net||used>sh.hold+(G.up.hidden?1:0); b.onclick=()=>{ G.credits-=net; G.shipId=i; G.fuel=sh.fuel; G.paint=null; cash(); Cine.setPreview(null); Cine.setModel(i); Cine.dock(P); Cockpit.build(sh); UI.toast('You now own the '+sh.name,'good'); Game.genJobs(P.idx); Game.save(); this.render(); }; r.appendChild(b); }
         c.appendChild(r); body.appendChild(c); });
     } else if(this.tab==='garage'){
       body.appendChild(this.keeper(v));
@@ -3686,7 +3747,7 @@ const UI = {
       const f=Models.SCHEMES[Math.min(SHIPS[G.shipId].model,4)]; this.card(body,sw(f.hull,f.trim),'Factory finish','Strip it back to how it left the factory.','',fmtCr(100),G.paint?'Restore':'Applied',!G.paint||G.credits<100,()=>{ G.credits-=100; apply(null); cash(); });
     } else if(this.tab==='outfit'){
       body.appendChild(this.keeper(v));
-      const items={ hidden:()=>this.card(body,'🗄','Hidden compartment','A false floor for cargo that would rather not be found. Halves the chance of contraband being discovered, everywhere.','',G.up.hidden?'Installed':fmtCr(2500),G.up.hidden?'Installed':'Install',G.up.hidden||G.credits<2500,()=>{ G.credits-=2500; G.up.hidden=true; cash(); }),
+      const items={ hidden:()=>this.card(body,'🗄','Hidden compartment','A false floor for cargo that would rather not be found. Halves the chance of contraband being discovered, everywhere, and adds one unit of hold space underneath.','',G.up.hidden?'Installed':fmtCr(2500),G.up.hidden?'Installed':'Install',G.up.hidden||G.credits<2500,()=>{ G.credits-=2500; G.up.hidden=true; cash(); }),
         laser:()=>this.card(body,'⚡','Mining laser Mk II','Cuts rock nearly twice as fast and runs cooler, so it overheats less.','',G.up.laser>1?'Installed':fmtCr(1800),G.up.laser>1?'Installed':'Install',G.up.laser>1||G.credits<1800,()=>{ G.credits-=1800; G.up.laser=2; cash(); }) };
       v.items.forEach(k=>items[k]());
     } else if(this.tab==='assay'){
@@ -3703,6 +3764,14 @@ const UI = {
       const rr=el('div','right'); rr.appendChild(el('div','pay',fmtCr(30))); const b=el('button','btn','Buy'); b.disabled=G.credits<30;
       b.onclick=()=>{ G.credits-=30; let h; do{ h=Math.floor(Math.random()*PLANETS.length); }while(h===P.idx); G.hot=h; const sp=pick(locals); Sfx.speak(SPECIES[sp].voice,2.5,true); Venues.react('cash'); Game.genJobs(P.idx); Game.save(); this.render(); const bd=$('port-body'); bd.insertBefore(this.quote(sp,Math.floor(Math.random()*999),'Overheard · '+SPECIES[sp].name,fill(SPECIES[sp].rumor,{planet:PLANETS[h].name})),bd.children[2]||null); };
       rr.appendChild(b); c.appendChild(rr); body.appendChild(c);
+      // passengers looking for a ride
+      const seats=Cargo.seats(), taken=Cargo.pax().length; body.appendChild(el('div','note',`Passengers looking for a ride · your cabin has ${seats-taken} of ${seats} seats free. Their fares drop if the trip runs long.`));
+      (G.paxJobs||[]).forEach(j=>{ const T=PLANETS[j.to], pc=el('div','card'); pc.appendChild(portraitCanvas(j.sp,j.seed,128));
+        pc.appendChild(el('div','mid',`<h3>${esc(j.good)}<span class="tag">PASSENGER</span></h3><p>${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.</p><div class="meta">To <i>${esc(T.name)}</i> · full fare within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying</div>`));
+        const pr=el('div','right'); pr.appendChild(el('div','pay',fmtCr(j.pay))); const pb=el('button','btn',taken>=seats?'No seats':'Take them'); pb.disabled=taken>=seats;
+        pb.onclick=()=>{ G.cargo.push({kind:'pax',good:j.good,sp:j.sp,seed:j.seed,qty:0,to:j.to,pay:j.pay,from:P.idx}); G.paxJobs.splice(G.paxJobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
+        pr.appendChild(pb); pc.appendChild(pr); body.appendChild(pc); });
+      if(!(G.paxJobs||[]).length) body.appendChild(el('div','note','Nobody needs a ride right now. Someone always does eventually.'));
     }
   },
   icon(ch){ const cv=makeCanvas(128,128), x=cv.getContext('2d'); x.fillStyle='#0b1620'; x.fillRect(0,0,128,128); x.fillStyle='#ffb454'; x.font='72px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(ch,64,70); return cv; },
@@ -3725,7 +3794,7 @@ const Radio = {
   },
   update(dt){
     if(Comms.open){ if(this.cur) this.cur.t+=dt; return; } this.wait-=dt; if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6) this.cur=null; return; }
-    if(!G.sys.power||Dlg.open) return; if(this.wait<=0) this.next();
+    if(!G.sys.power||Dlg.open||Faults.has('fuse')) return; if(this.wait<=0) this.next();
   },
 };
 
@@ -3759,6 +3828,233 @@ const Comms = {
     if(this.typer<this.text.length){ this.typer=Math.min(this.text.length,this.typer+dt*42); $('comms-text').textContent=this.text.slice(0,Math.floor(this.typer)); } },
   close(silent){ if(!this.open) return; this.open=false; this.target=null; $('comms').hidden=true; if(!silent&&Sfx.ok()) Sfx.beep(440); Radio.cur=null; Radio.wait=2; },
 };
+/* ===================== WALKING AROUND THE SHIP, FAULTS AND REPAIRS ===================== */
+/* Ship-local coordinates in metres, same frame as the cockpit: the pilot's eye is at the origin, -z is forward,
+   the cockpit floor is at y=-0.97 and its back wall at z=0.68. The rest of the ship is behind that wall:
+   a corridor, a passenger cabin (left), a galley (right), the cargo hold, and the engine room at the back. */
+const FLOOR=-0.97, CEIL=1.33, EYE=0.62;
+
+/* ---------- faults: things that break, where they are, what they do until fixed ---------- */
+const FAULT_DEFS = {
+  coolant:{name:'Coolant leak', where:'engine room', effect:'fuel use up 70%', pos:[-2.25,0.15,16.2], fx:'steam'},
+  thruster:{name:'Thruster misfire', where:'engine room', effect:'top speed down 40%', pos:[1.3,0.35,18.85], fx:'smoke'},
+  fuse:{name:'Blown fuse', where:'galley', effect:'radio is dead', pos:[2.45,0.45,1.46], fx:'sparks'},
+  scrubber:{name:'Air scrubber jammed', where:'passenger cabin', effect:'passengers getting cross, canopy fogging', pos:[-2.6,0.95,5.74], fx:'haze'},
+  crack:{name:'Hull crack', where:'corridor', effect:'hull slowly failing', pos:[-0.86,0.55,5.6], fx:'frost'},
+  strap:{name:'Cargo strap snapped', where:'cargo hold', effect:'cargo getting knocked about, value dropping faster', pos:[1.55,0.1,10.6], fx:'strap'},
+};
+const Faults = {
+  t:45,
+  has(id){ return (G.faults||[]).includes(id); },
+  list(){ return G.faults||(G.faults=[]); },
+  fuelMul(){ return this.has('coolant')?1.7:1; },
+  speedMul(){ return this.has('thruster')?0.6:1; },
+  lagMul(c){ return c.kind==='pax'?(this.has('scrubber')?2:1):(this.has('strap')?2:1); },
+  add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); const d=FAULT_DEFS[id];
+    UI.toast(`⚠ ${d.name} in the ${d.where}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${TouchUI.on?'Tap Walk':'Press L'} to go and fix it.`,'warn');
+    if(Sfx.ok()){ Sfx.beep(880); setTimeout(()=>Sfx.beep(880),220); } Interior.syncFaults(); this.badge(); },
+  fix(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(`Fixed: ${d.name.toLowerCase()}. Nobody saw you hit it with the spanner.`,'good'); Interior.syncFaults(); this.badge(); },
+  random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
+  badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(FAULT_DEFS[k].where)}</span></div>`).join(''); },
+  update(dt){
+    // something new goes wrong every couple of minutes of flight, more often on a battered ship
+    this.t-=dt*(1+(100-G.hull)/60); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
+    if(this.has('crack')){ G.hull=Math.max(0,G.hull-dt*0.1); if(G.hull<=0) Hull.breach(); }
+    if(this.has('scrubber')) G.sys.dirt=Math.min(1,G.sys.dirt+dt*0.01);
+  },
+};
+
+/* ---------- the interior ---------- */
+const Interior = {
+  group:null, shipId:-1, fx:{}, seats:[], pax:[], crates:null, crateKey:'', lights:[],
+  /* rectangles you can stand in (already inset for your body), and round things you cannot walk through */
+  RECTS:[[-0.35,0.35,0.9,1.3],[-0.6,0.6,0.95,6.9],[-1.25,-0.5,3.2,4.0],[-3.15,-1.15,1.7,5.5],[0.5,1.25,2.7,3.5],[1.15,2.9,1.7,4.25],[-0.6,0.6,6.8,7.7],[-1.25,1.25,7.5,13.9],[-0.5,0.5,13.8,14.7],[-2.1,2.1,14.5,18.65]],
+  OBST:[[0,16.6,1.25]],
+  inside(x,z){ for(const r of this.RECTS) if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3]){ for(const o of this.OBST) if(Math.hypot(x-o[0],z-o[1])<o[2]) return false; return true; } return false; },
+  build(){
+    if(this.group){ World.cock.remove(this.group); this.group.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
+    const g=this.group=new THREE.Group(); g.visible=false; World.cock.add(g); this.shipId=G.shipId; this.fx={}; this.seats=[]; this.pax=[]; this.crates=null; this.crateKey=''; this.paxKey='';
+    const ck=SHIPS[G.shipId].ck, bump=panelBumpTex(), std=(hex,r,m,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:r,metalness:m},ex||{}));
+    const M={ wall:std(ck.panel,0.75,0.25,{bumpMap:bump,bumpScale:0.002}), frame:std(ck.frame,0.55,0.55), floor:std('#3a3e44',0.6,0.7,{bumpMap:bump,bumpScale:0.004}), ceil:std('#2a2d32',0.8,0.3),
+      trim:std(ck.trim,0.35,0.85), dark:std('#16181c',0.7,0.4), seat:std(ck.leather,0.6,0.05), hazard:std('#ffffff',0.7,0.2,{map:(()=>{ const cv=makeCanvas(256,32), x=cv.getContext('2d'); for(let i=0;i<16;i++){ x.fillStyle=i%2?'#f2c14e':'#1c1c1e'; x.beginPath(); x.moveTo(i*16,0); x.lineTo(i*16+16,0); x.lineTo(i*16,32); x.lineTo(i*16-16,32); x.fill(); } const t=canvasTex(cv); t.wrapS=THREE.RepeatWrapping; t.repeat.set(4,1); return t; })()}),
+      glass:new THREE.MeshStandardMaterial({color:0x99bbdd,metalness:1,roughness:0.15,transparent:true,opacity:0.08,depthWrite:false,side:THREE.DoubleSide}),
+      lamp:new THREE.MeshBasicMaterial({color:HDR('#ffe8c8',1.8)}), core:new THREE.MeshBasicMaterial({color:HDR('#6fd6ff',3)}), pipe:std('#8a6f4e',0.4,0.8), cool:std('#4f7fa8',0.4,0.7), red:std('#b03a2e',0.5,0.3) };
+    this.M=M;
+    const bx=(w,h,d,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x,y,z); g.add(o); return o; };
+    const cyl=(r1,r2,h,m,x,y,z,seg=20)=>{ const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,seg),m); o.position.set(x,y,z); g.add(o); return o; };
+    const H=CEIL-FLOOR, MY=(FLOOR+CEIL)/2;
+    /* a wall from (x0,z0) to (x1,z1), full height, with holes: [{a,b,y0,y1}] measured along the wall */
+    const wall=(x0,z0,x1,z1,holes=[],m=M.wall)=>{ const L=Math.hypot(x1-x0,z1-z0), ux=(x1-x0)/L, uz=(z1-z0)/L, ang=Math.atan2(-uz,ux), cuts=[0];
+      holes.sort((p,q)=>p.a-q.a); for(const h of holes) cuts.push(h.a,h.b); cuts.push(L);
+      const seg=(a,b,y0,y1)=>{ if(b-a<0.005||y1-y0<0.005) return; const o=new THREE.Mesh(new THREE.BoxGeometry(b-a,y1-y0,0.08),m); const c=(a+b)/2; o.position.set(x0+ux*c,(y0+y1)/2,z0+uz*c); o.rotation.y=ang; g.add(o); };
+      for(let i=0;i<cuts.length;i+=2) seg(cuts[i],cuts[i+1],FLOOR,CEIL);
+      for(const h of holes){ seg(h.a,h.b,FLOOR,h.y0==null?FLOOR:h.y0); seg(h.a,h.b,h.y1==null?0.95:h.y1,CEIL); } };
+    const room=(x0,x1,z0,z1)=>{ const f=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.floor); f.rotation.x=-Math.PI/2; f.position.set((x0+x1)/2,FLOOR,(z0+z1)/2); g.add(f);
+      const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.ceil); c.rotation.x=Math.PI/2; c.position.set((x0+x1)/2,CEIL,(z0+z1)/2); g.add(c);
+      const lamp=bx(Math.min(1.4,(x1-x0)*0.4),0.04,0.3,M.lamp,(x0+x1)/2,CEIL-0.03,(z0+z1)/2); const L=new THREE.PointLight(C('#ffe2c0'),1.8,10,1.5); L.position.set((x0+x1)/2,CEIL-0.25,(z0+z1)/2); g.add(L); this.lights.push(L); return lamp; };
+    this.lights=[]; const hemi=new THREE.HemisphereLight(C('#ffe9d0'),C('#3a3e44'),0.3); g.add(hemi);
+    // rooms
+    room(-0.9,0.9,0.7,7.2); room(-4.4,-0.9,1.4,5.8); room(0.9,4.0,1.4,5.0); room(-3.4,3.4,7.2,14.2); room(-2.4,2.4,14.2,19.0);
+    // the cockpit doorway (above the cockpit's own back wall) and the corridor
+    wall(-0.9,0.7,0.9,0.7,[{a:0.0,b:1.8,y0:FLOOR,y1:0.8}]);
+    wall(-0.9,0.7,-0.9,7.2,[{a:2.3,b:3.5,y0:FLOOR,y1:0.95}]); wall(0.9,0.7,0.9,7.2,[{a:1.8,b:3.0,y0:FLOOR,y1:0.95}]);
+    // cabin: portholes in the outer wall
+    wall(-4.4,1.4,-0.9,1.4); wall(-4.4,5.8,-0.9,5.8); wall(-4.4,1.4,-4.4,5.8,[{a:0.55,b:1.35,y0:0.05,y1:0.75},{a:1.75,b:2.55,y0:0.05,y1:0.75},{a:2.95,b:3.75,y0:0.05,y1:0.75}]);
+    for(const a of [0.95,2.15,3.35]){ const ring=new THREE.Mesh(new THREE.TorusGeometry(0.42,0.06,10,28),M.trim); ring.rotation.y=Math.PI/2; ring.position.set(-4.36,0.4,1.4+a); g.add(ring); const gl=new THREE.Mesh(new THREE.PlaneGeometry(0.8,0.7),M.glass); gl.rotation.y=Math.PI/2; gl.position.set(-4.4,0.4,1.4+a); gl.renderOrder=5; g.add(gl); }
+    // galley
+    wall(0.9,1.4,4.0,1.4); wall(0.9,5.0,4.0,5.0); wall(4.0,1.4,4.0,5.0,[{a:1.6,b:2.4,y0:0.05,y1:0.75}]);
+    { const ring=new THREE.Mesh(new THREE.TorusGeometry(0.42,0.06,10,28),M.trim); ring.rotation.y=Math.PI/2; ring.position.set(3.96,0.4,3.4); g.add(ring); }
+    bx(0.7,0.5,2.0,M.seat,3.6,-0.72,3.0); bx(0.75,0.08,2.05,M.frame,3.6,-0.45,3.0); bx(0.6,0.12,0.5,std('#d8d2c4',0.9,0),3.6,-0.36,2.2);   // bunk + pillow
+    bx(2.6,0.9,0.6,M.frame,2.45,-0.52,4.65); bx(2.62,0.05,0.62,M.trim,2.45,-0.06,4.65); cyl(0.09,0.08,0.22,M.red,1.7,0.06,4.6); cyl(0.05,0.05,0.1,std('#d8d2c4',0.4,0),2.2,0.0,4.6);
+    // fuse box on the galley's front wall
+    bx(0.7,0.8,0.14,M.dark,2.45,0.45,1.5); for(let i=0;i<6;i++) bx(0.06,0.14,0.04,std(['#c0392b','#f1c40f','#2ecc71'][i%3],0.4,0.3),2.2+(i%3)*0.25,0.6-Math.floor(i/3)*0.3,1.58);
+    // hold: wide doorway from the corridor, doorway to the engine room
+    wall(-3.4,7.2,3.4,7.2,[{a:2.5,b:4.3,y0:FLOOR,y1:1.0}]); wall(-3.4,14.2,3.4,14.2,[{a:2.6,b:4.2,y0:FLOOR,y1:0.95}]); wall(-3.4,7.2,-3.4,14.2); wall(3.4,7.2,3.4,14.2);
+    bx(0.04,1.9,3.2,M.hazard,3.36,0.0,10.6); bx(6.7,0.05,0.12,M.hazard,0,FLOOR+0.01,7.3);
+    for(const sx of [-1,1]) for(let z=7.6;z<14;z+=1.6) bx(0.08,H,0.08,M.frame,sx*1.55,MY,z);
+    // engine room: reactor in the middle, pipes on the walls, console at the back
+    wall(-2.4,14.2,-2.4,19.0); wall(2.4,14.2,2.4,19.0); wall(-2.4,19.0,2.4,19.0);
+    cyl(1.0,1.0,0.2,M.frame,0,FLOOR+0.1,16.6,32); cyl(1.0,1.0,0.2,M.frame,0,CEIL-0.1,16.6,32); this.core=cyl(0.55,0.55,H-0.4,M.core,0,MY,16.6,32);
+    for(let i=0;i<6;i++){ const a=i/6*Math.PI*2; cyl(0.06,0.06,H-0.3,M.trim,Math.cos(a)*0.85,MY,16.6+Math.sin(a)*0.85,10); }
+    const eL=new THREE.PointLight(C('#6fd6ff'),2.2,8,1.5); eL.position.set(0,0.3,16.6); g.add(eL); this.lights.push(eL);
+    for(const y of [-0.5,0.15,0.8]){ const p=cyl(0.09,0.09,4.6,y>0?M.cool:M.pipe,-2.28,y,16.6,12); p.rotation.x=Math.PI/2; const q=cyl(0.09,0.09,4.6,M.pipe,2.28,y,16.6,12); q.rotation.x=Math.PI/2; }
+    bx(2.2,0.9,0.5,M.frame,1.0,-0.52,18.7); bx(1.8,0.5,0.04,new THREE.MeshBasicMaterial({color:HDR('#ff9a30',0.6)}),1.0,0.25,18.92);
+    // doorway frames
+    for(const [x,z,ry] of [[-0.9,3.6,Math.PI/2],[0.9,3.0,Math.PI/2],[0,7.2,0],[0,14.2,0]]){ const f=new THREE.Group(); f.position.set(x,0,z); f.rotation.y=ry; g.add(f);
+      for(const s of [-1,1]){ const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,H,0.16),M.hazard); p.position.set(s*(ry?0.62:0.92),MY,0); f.add(p); } }
+    // passenger seats along the cabin's outer wall, under the portholes, facing in
+    const n=Cargo.seats(); for(let i=0;i<4;i++){ if(i>=n) break; const z=1.95+i*1.15, sg=new THREE.Group(); sg.position.set(-3.85,0,z); g.add(sg);
+      const base=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.45,0.6),M.seat); base.position.set(0,FLOOR+0.22,0); sg.add(base); const back=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.85,0.6),M.seat); back.position.set(-0.3,FLOOR+0.82,0); sg.add(back);
+      const belt=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.6,0.08),M.trim); belt.position.set(-0.22,FLOOR+0.75,0.18); sg.add(belt); this.seats.push(sg); }
+    // fault props, hidden until something breaks
+    for(const id in FAULT_DEFS) this.fx[id]=this.faultFx(id);
+    g.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
+    this.syncFaults();
+  },
+  faultFx(id){
+    const d=FAULT_DEFS[id], grp=new THREE.Group(); grp.position.set(...d.pos); this.group.add(grp);
+    const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.07,12,8),new THREE.MeshBasicMaterial({color:HDR('#ff3020',3)})); lamp.position.set(0,0.55,0); grp.add(lamp);
+    const parts=[], add=(n,col,size,opts)=>{ for(let i=0;i<n;i++){ const m=new THREE.Mesh(new THREE.SphereGeometry(size,8,6),new THREE.MeshBasicMaterial({color:opts&&opts.hdr?HDR(col,opts.hdr):C(col),transparent:true,opacity:0.45,depthWrite:false,blending:opts&&opts.add?THREE.AdditiveBlending:THREE.NormalBlending})); grp.add(m); parts.push({m,age:Math.random(),life:0.5+Math.random()*0.8}); } };
+    let strap=null, crack=null;
+    if(d.fx==='steam'){ add(14,'#e8f0f4',0.06); }
+    else if(d.fx==='smoke'){ add(10,'#5a5550',0.07); add(5,'#ff8a30',0.03,{hdr:3,add:true}); }
+    else if(d.fx==='sparks'){ add(10,'#ffd060',0.018,{hdr:4,add:true}); }
+    else if(d.fx==='haze'){ add(12,'#9aa0a6',0.09); }
+    else if(d.fx==='frost'){ add(12,'#dff4ff',0.03,{hdr:1.5}); const cv=makeCanvas(256,256), x=cv.getContext('2d'); x.strokeStyle='#050505'; x.lineWidth=5; x.beginPath(); let px=128,py=20; x.moveTo(px,py); for(let i=0;i<9;i++){ px+=(Math.random()-0.5)*60; py+=24; x.lineTo(px,py); } x.stroke(); x.lineWidth=2.5; for(let k=0;k<5;k++){ x.beginPath(); x.moveTo(128+(Math.random()-0.5)*40,40+k*40); x.lineTo(128+(Math.random()-0.5)*160,60+k*40); x.stroke(); }
+      crack=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.9),new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false})); crack.rotation.y=Math.PI/2; crack.position.x=0.03; grp.add(crack); }
+    else if(d.fx==='strap'){ strap=new THREE.Group(); strap.position.set(0,1.1,0); const s=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.0,0.02),new THREE.MeshStandardMaterial({color:C('#f2c14e'),roughness:0.7})); s.position.y=-0.5; strap.add(s); grp.add(strap); }
+    grp.visible=false; return {grp,lamp,parts,strap,crack,d}; },
+  syncFaults(){ if(!this.group) return; for(const id in this.fx) this.fx[id].grp.visible=Faults.has(id); },
+  /* crates in the hold match how full it is; passengers sit in the cabin */
+  syncCargo(){
+    const used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*28), key=n+'';
+    if(key!==this.crateKey){ this.crateKey=key; if(this.crates) this.group.remove(this.crates); const cg=this.crates=new THREE.Group(); this.group.add(cg); let k=0;
+      const mats=['#b9823f','#9c6a30','#c98d47','#7d6a52'].map(c=>new THREE.MeshStandardMaterial({color:C(c),roughness:0.85}));
+      for(const sx of [-1,1]) for(let z=7.9;z<13.9&&k<n;z+=0.85) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.78,0.78,0.78),mats[(k*7)%4]); c.position.set(sx*(2.35+(lvl?0.05:0)),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
+    const pax=Cargo.pax(), pk=pax.map(p=>p.kind==='escort'?p.vip.seed:p.seed).join(',');
+    if(pk!==this.paxKey){ this.paxKey=pk; for(const F of this.pax) F.parent&&F.parent.remove(F); this.pax=[];
+      pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.78), S=this.seats[i]; F.position.set(-0.05,FLOOR+0.42,0); F.rotation.y=Math.PI/2; const U=F.userData; for(const l of U.legs) l.rotation.x=-1.45; S.add(F); F.userData.cargo=p; this.pax.push(F); }); } },
+  update(dt, t){
+    const g=this.group; g.quaternion.copy(G.ship.quat);
+    for(const id in this.fx){ const f=this.fx[id]; if(!f.grp.visible) continue; f.lamp.material.color.setScalar((Math.sin(t*8)>0?3:0.2)).multiply(new THREE.Color(1,0.12,0.06));
+      for(const p of f.parts){ p.age+=dt; if(p.age>p.life){ p.age=0; p.m.position.set(0,0,0); p.v=new V3((Math.random()-0.5)*0.6,Math.random()*0.8,(Math.random()-0.5)*0.6); if(f.d.fx==='steam') p.v.set(1.6+Math.random(),0.3+Math.random()*0.5,(Math.random()-0.5)*0.6); if(f.d.fx==='haze') p.v.set((Math.random()-0.5)*0.3,-0.25,-0.5-Math.random()*0.3); if(f.d.fx==='frost') p.v.set(0.6+Math.random()*0.4,(Math.random()-0.5)*0.6,(Math.random()-0.5)*0.6); if(f.d.fx==='sparks') p.v.set(0.4+Math.random()*1.2,Math.random()*1.5,(Math.random()-0.5)*1.4).multiplyScalar(1); }
+        if(!p.v) continue; if(f.d.fx==='sparks') p.v.y-=dt*4; if(f.d.fx==='frost') p.m.position.addScaledVector(p.v,-dt*0.0); p.m.position.addScaledVector(p.v,dt); const k=p.age/p.life; p.m.material.opacity=0.5*(1-k); p.m.scale.setScalar(f.d.fx==='sparks'?1:1+k*1.6);
+        if(f.d.fx==='frost'){ p.m.position.copy(p.v).multiplyScalar((1-k)*0.8); } }
+      if(f.strap) f.strap.rotation.z=Math.sin(t*2.3)*0.35+Math.sin(t*5.1)*0.08; }
+    this.core.material.color.setRGB(0.4,1.6+Math.sin(t*3)*0.25,3+Math.sin(t*3)*0.4);
+    // passengers look at you when you are nearby and wear how the trip is going
+    const me=Walk.pos;
+    for(const F of this.pax){ Folk.blink(F,t); const S=F.parent, wp=new V3().setFromMatrixPosition(S.matrix), d=Math.hypot(me.x-wp.x,me.z-wp.z), U=F.userData;
+      const want=d<3.5?clamp(Math.atan2(me.x-wp.x,me.z-wp.z)-Math.PI/2,-0.9,0.9):Math.sin(t*0.3+U.ph)*0.3; U.head.rotation.y=lerp(U.head.rotation.y,want,1-Math.exp(-dt*4));
+      const c=U.cargo, f=c.kind==='escort'?(c.hp>70?1:c.hp>40?0.7:0.4):Cargo.factor(c), m=Escort.hazard&&c.kind==='escort'?'shock':f>=1?(Faults.has('scrubber')?'worried':d<2.2?'happy':'neutral'):f>0.65?'worried':'sad'; if(U.mood!==m) Folk.mood(F,m); }
+  },
+};
+
+/* ---------- walking ---------- */
+const Walk = {
+  on:false, pos:new V3(0,EYE,1.2), yaw:Math.PI, pitch:0, tr:0, trDir:0, bob:0, target:null, hold:0, told:false,
+  toggle(){ if(this.on) this.exit(); else this.enter(); },
+  enter(){
+    if(G.mode!=='flight'||this.on) return; if(!Interior.group||Interior.shipId!==G.shipId) Interior.build();
+    Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
+    this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
+    Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); $('reticle').hidden=false; Sfx.clunk();
+    if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat to sit back down.':'Walking. W A S D to move, drag or arrows to look, hold F to fix things, L to sit back down.','good'); }
+    TouchUI.sync&&TouchUI.sync(true); },
+  exit(instant){
+    if(!this.on) return; this.on=false; document.body.classList.remove('walking'); $('reticle').hidden=true; $('prompt').hidden=true; Cockpit.setDoor(0);
+    if(Interior.group) Interior.group.visible=false; G.head.pos.set(0,0,0); G.head.yaw=G.head.yawT=0; G.head.pitch=G.head.pitchT=G.head.basePitch; if(!instant) Sfx.clunk(); TouchUI.sync&&TouchUI.sync(true); },
+  look(dx, dy){ this.yaw-=dx*0.0042; this.pitch=clamp(this.pitch-dy*0.0042,-1.2,1.2); },
+  update(dt, t){
+    if(!this.on) return; const K=G.keys, s=G.ship;
+    if(K.ArrowLeft) this.yaw+=dt*1.9; if(K.ArrowRight) this.yaw-=dt*1.9; if(K.ArrowUp) this.pitch=Math.min(1.2,this.pitch+dt*1.4); if(K.ArrowDown) this.pitch=Math.max(-1.2,this.pitch-dt*1.4);
+    let f=(K.KeyW?1:0)-(K.KeyS?1:0), r=(K.KeyD?1:0)-(K.KeyA?1:0); if(!f&&!r){ f=TouchUI.stick.y; r=TouchUI.stick.x; }
+    const sp=(K.ShiftLeft||K.ShiftRight?4.4:2.8), fx=-Math.sin(this.yaw), fz=-Math.cos(this.yaw), rx=Math.cos(this.yaw), rz=-Math.sin(this.yaw);
+    let mx=(fx*f+rx*r)*sp*dt, mz=(fz*f+rz*r)*sp*dt; const p=this.pos;
+    if(Interior.inside(p.x+mx,p.z+mz)){ p.x+=mx; p.z+=mz; } else if(Interior.inside(p.x+mx,p.z)) p.x+=mx; else if(Interior.inside(p.x,p.z+mz)) p.z+=mz;
+    const moving=Math.abs(f)+Math.abs(r)>0.05; this.bob+=moving?dt*sp*4.2:0;
+    // the ship shakes more at high throttle and in warp
+    const shake=(s.throttle>5?(s.throttle-5)*0.0025:0)+s.warpF*0.006;
+    p.y=EYE+(moving?Math.sin(this.bob)*0.03:0)+(Math.random()-0.5)*shake;
+    Interior.update(dt,t); if((Game.mk%30)===0) Interior.syncCargo();
+    this.interact(dt);
+  },
+  /* what you are looking at: a fault to fix or a passenger to talk to */
+  interact(dt){
+    const eye=this.pos, dir=new V3(-Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch));
+    let best=null, bs=0;
+    for(const id of Faults.list()){ const q=new V3(...FAULT_DEFS[id].pos), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); const score=dot-d*0.08; if(d<2.6&&(dot>0.72||d<1.1)&&score>bs){ bs=score; best={kind:'fault',id,d}; } }
+    if(!best) for(const F of Interior.pax){ const S=F.parent, q=new V3().setFromMatrixPosition(S.matrix).setY(FLOOR+1.0), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); if(d<3.4&&dot>0.85){ best={kind:'pax',F,d}; break; } }
+    const pr=$('prompt'), K=G.keys, held=!!K.KeyF;
+    if(!best){ pr.hidden=true; this.hold=0; this.target=null; return; }
+    if(best.kind==='fault'){ const D=FAULT_DEFS[best.id], s=G.ship, rough=s.throttle>5||s.warpF>0.2, rate=rough?0.35:1, need=2.6;
+      if(this.target!==best.id){ this.target=best.id; this.hold=0; }
+      if(held){ this.hold+=dt*rate; if(Math.floor(this.hold*3)!==Math.floor((this.hold-dt*rate)*3)) Sfx.click(); if(this.hold>=need){ Faults.fix(best.id); this.hold=0; pr.hidden=true; return; } } else this.hold=Math.max(0,this.hold-dt*2);
+      pr.hidden=false; pr.innerHTML=`<b>${esc(D.name)}</b><span>${TouchUI.on?'Hold Fix':'Hold F'} to repair${rough?' · the ship is shaking: throttle 5 or below to work faster':''}</span><i style="width:${Math.round(this.hold/need*100)}%"></i>`; }
+    else { const c=best.F.userData.cargo, who=c.kind==='escort'?c.vip.title:c.good; this.target=null; pr.hidden=false; pr.innerHTML=`<b>${esc(who)}</b><span>${TouchUI.on?'Tap Fix':'Press F'} to chat · going to ${esc(PLANETS[c.to].name)}</span>`;
+      if(held&&!this.chatLock){ this.chatLock=true; setTimeout(()=>{ this.chatLock=false; },2500); const S=SPECIES[c.kind==='escort'?c.vip.sp:c.sp], f=Cargo.factor(c);
+        const line=Faults.has('scrubber')?pick(["It is very stuffy back here. Is the air meant to be this chewy?","Something is wrong with the air. It tastes of feet. Not my feet."]):f<1?pick([`Are we nearly at ${PLANETS[c.to].name}? We were meant to be there ages ago.`,"I am not paying full fare for this. I am barely paying any fare for this.","I could have walked. I cannot walk in space, but I would have tried."]):fill(pick(S.chat),{planet:PLANETS[c.to].name,good:pick(GOODS)[0]});
+        if(c.kind==='escort'){ Escort.chat(); const v=c.vip; Radio.play({sp:v.sp,seed:v.seed,name:v.title,english:Escort.hazard?pick(["Is it the pirates? It is the pirates. Do something with the horn!","Why is everything shaking? Is shaking normal? Tell me shaking is normal."]):pick(["Thank you for checking on me. I feel slightly less doomed.","Is the ship meant to make that noise? Never mind. I trust you. Mostly.","When we land, I shall mention you favourably in my memoirs. Chapter nine, probably."])}); return; }
+        Radio.play({sp:c.sp,seed:c.seed,name:c.good,english:line}); } }
+  },
+  /* first-person camera inside the ship */
+  camera(){
+    const s=G.ship, q=s.quat.clone().multiply(new Q4().setFromEuler(new THREE.Euler(this.pitch,this.yaw,0,'YXZ'))), p=this.pos.clone().applyQuaternion(s.quat);
+    for(const c of [World.spaceCam,World.cockCam]){ c.position.copy(p); c.quaternion.copy(q); } World.setFov(74); Cockpit.group.quaternion.copy(s.quat); World.shipFrame.quaternion.copy(s.quat);
+  },
+};
+
+/* ---------- reasons not to fly everywhere at full throttle ---------- */
+/* - Ports keep an inbound speed limit of 400 km/s in their approach zone, and fine you if you ignore it.
+   - Throttle 9 and 10 heat the engines; keep it up and something in the engine room breaks.
+   - Fragile cargo takes damage at throttle 8 and above, and when you turn hard at speed.
+   - Repairs go slowly while the ship is shaking (above throttle 5, or in warp). */
+const SPEED_LIMIT=400;
+const Throttle = {
+  heat:0, over:0, zone:null, hotTold:false, warned:false,
+  reset(){ this.over=0; this.zone=null; this.warned=false; },
+  jolt(n){ for(const c of G.cargo) if(c.fragile) c.dmg=Math.min(0.7,(c.dmg||0)+n*0.015); },
+  update(dt){
+    const s=G.ship, thr=s.throttle;
+    // engine heat
+    if(!s.warp&&thr>=9) this.heat+=dt*(thr-8)*0.02; else if(s.warp) this.heat+=dt*0.003; else this.heat-=dt*(thr<=7?0.045:0.008);
+    this.heat=clamp(this.heat,0,1);
+    if(this.heat>0.7&&!this.hotTold){ this.hotTold=true; UI.toast('Engines running hot. Ease the throttle below 9 for a while.','warn'); Sfx.beep(700); }
+    if(this.heat<0.4) this.hotTold=false;
+    if(this.heat>=1){ this.heat=0.5; Faults.add(Math.random()<0.5?'coolant':'thruster','the engines overheated'); }
+    // fragile cargo rattles at high throttle and in hard turns at speed
+    if(s.warpF<0.1){ const rough=(thr>=8?(thr-7)*0.004:0)+(s.speed>450?s.angVel.length()*s.speed/1600*0.012:0);
+      if(rough>0) for(const c of G.cargo){ if(!c.fragile) continue; const was=c.dmg||0; c.dmg=Math.min(0.7,was+dt*rough); if(Math.floor(was*10)!==Math.floor(c.dmg*10)) UI.toast(`Something fragile is rattling in the hold. ${c.qty}× ${c.good} is ${Math.round((1-c.dmg)*100)}% intact. Ease off below throttle 8.`,'warn'); } }
+    // inbound speed limit near ports
+    let zone=null; if(!s.warp){ for(const P of PLANETS){ const to=P.pos.clone().sub(s.pos), d=to.length(); if(d<P.landR+6000&&d>P.landR*0.95&&s.speed>1&&to.dot(s.vel)/(d*s.speed)>0.3){ zone=P; break; } } }
+    if(zone!==this.zone){ this.settle(); this.zone=zone; this.over=0; this.warned=false; this.top=0; }
+    const zb=$('zone-badge'); zb.hidden=!zone; if(zone){ const fast=s.speed>SPEED_LIMIT+20; zb.classList.toggle('fast',fast); zb.textContent=`${zone.port} approach · limit ${SPEED_LIMIT} km/s${fast?' · SLOW DOWN':''}`;
+      if(fast){ this.over+=dt; this.top=Math.max(this.top||0,s.speed); if(this.over>1.2&&!this.warned){ this.warned=true; Sfx.beep(990); UI.toast(`${zone.port} Control: you are doing ${Math.round(s.speed)} in a ${SPEED_LIMIT} zone. Throttle down or expect a fine.`,'warn'); } } }
+  },
+  /* the fine lands when you leave the zone or touch down, if you spent more than a moment over the limit */
+  settle(){ const Z=this.zone; if(!Z||this.over<1.5) { this.over=0; return; } const amt=Math.round((20+((this.top||SPEED_LIMIT)-SPEED_LIMIT)*0.05+this.over*2)*(1+(STRICT[Z.species]||0))/5)*5; this.over=0; this.top=0;
+    setTimeout(()=>{ Fx.cr(-amt,`${Z.port} Control speeding fine`); Rep.add(-1,'Speeding on approach'); },G.mode==='flight'?0:2500); },
+};
 /* ===================== GAME ===================== */
 const G = {
   mode:'boot', credits:250, shipId:0, cargo:[], jobs:[], fuel:100, target:2, hot:null, docked:-1, playTime:0, stats:{deliveries:0,earned:0}, rep:0, hull:100, up:{hidden:false,laser:1}, paint:null, keys:{},
@@ -3775,7 +4071,7 @@ const Game = {
 
   /* the player's paint job (from a paint shop) on top of the ship's factory finish */
   scheme(){ const b=Models.SCHEMES[Math.min(SHIPS[G.shipId].model,4)]; return G.paint?{hull:G.paint.hull,trim:G.paint.trim,glow:b.glow,wear:Math.min(b.wear,0.2)}:null; },
-  cruiseSpeed(n){ return SHIPS[G.shipId].cruise*Math.pow(n/10,1.5); },
+  cruiseSpeed(n){ return SHIPS[G.shipId].cruise*Math.pow(n/10,1.5)*Faults.speedMul(); },
   setThrottle(n){ n=clamp(Math.round(n),0,10); if(!G.sys.power||G.mode!=='flight') return; if(n!==G.ship.throttle){ G.ship.throttle=n; Sfx.click(); } },
   massLock(){ const s=G.ship; if(s.pos.length()<SUN_R*3) return true; for(const P of PLANETS) if(P.pos.distanceTo(s.pos)<P.lockR) return true; return false; },
   canWarp(){ if(!G.sys.power) return 'NO POWER'; if(G.fuel<=0) return 'OUT OF FUEL'; if(this.massLock()) return 'MASS-LOCKED · FLY CLEAR'; return true; },
@@ -3787,11 +4083,12 @@ const Game = {
   honk(){ Sfx.honk(); Escort.onHonk(); const n=Npc.nearest(5000); if(n&&!Comms.open&&G.sys.power) setTimeout(()=>{ if(G.mode==='flight'&&!Comms.open) Radio.play({sp:n.pilot.sp,seed:n.pilot.seed,name:n.pilot.name,english:pick(SPECIES[n.pilot.sp].honk)}); },700); },
 
   genJobs(pi){
-    const P=PLANETS[pi], hold=SHIPS[G.shipId].hold, jobs=[], n=5+Math.floor(Math.random()*3);
+    const P=PLANETS[pi], hold=holdCap(), jobs=[], n=5+Math.floor(Math.random()*3);
     for(let i=0;i<n;i++){ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
       const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to;
       const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(SPECIES_KEYS);
-      jobs.push({good:good[0],note:good[2],qty,to,pay:Math.max(20,Math.round(pay/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot}); }
+      const fragile=i>0&&Math.random()<0.3;
+      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.35:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile}); }
     jobs.sort((a,b)=>a.qty-b.qty);
     const away=()=>{ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); return to; };
     if(Math.random()<0.6){ const to=away(), g=pick(CONTRABAND), qty=Math.max(1,Math.round(hold*rnd(0.15,0.4))), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
@@ -3799,6 +4096,10 @@ const Game = {
     if(!G.cargo.some(c=>c.kind==='escort')&&Math.random()<0.6){ const to=away(), v=pick(VIPS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
       jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,pay:Math.round((320+dist*190)*rnd(0.9,1.2)*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
     G.jobs=jobs;
+    // people wanting a ride, offered at cantinas
+    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,pay:Math.round((140+dist*60)*rnd(0.85,1.25)*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
+    G.paxJobs=px;
   },
   onLanded(P){
     G.mode='port'; G.docked=P.idx; const s=G.ship; s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; G.sys.autopilot=false; Sfx.setEngine(0,0,false);
@@ -3806,7 +4107,7 @@ const Game = {
     const paid=G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='escort'); let total=0; paid.forEach(c=>total+=c.pay); G.cargo=G.cargo.filter(c=>!paid.includes(c));
     const esc=Escort.land(P); if(esc){ paid.push(esc); total+=esc.pay; } if(paid.length) G.rep=clamp(G.rep+paid.length,-100,100);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
-    const fee=Math.min(this.towFee,G.credits+total); this.towFee=0; Calls.landed(P); Scoop.open=false; $('scoop-badge').hidden=true; if(Hold.open) Hold.render(); G.credits+=total-fee; G.stats.deliveries+=paid.length; G.stats.earned+=total; if(G.hot===P.idx) G.hot=null;
+    const fee=Math.min(this.towFee,G.credits+total); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; if(Hold.open) Hold.render(); G.credits+=total-fee; G.stats.deliveries+=paid.length; G.stats.earned+=total; if(G.hot===P.idx) G.hot=null;
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(paid.length) Sfx.cash(); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
@@ -3816,7 +4117,7 @@ const Game = {
     const s=G.ship, T=PLANETS[G.target], up=new V3(0,1,0); G.mode='flight'; G.docked=-1; UI.hidePort(); $('keys').hidden=false; $('title').hidden=true;
     const dir=T!==P?T.pos.clone().sub(P.pos).normalize():P.sunDir.clone().negate(), side=new V3().crossVectors(dir,up).normalize();
     s.pos.copy(P.pos).addScaledVector(dir,P.r*3.7).addScaledVector(side,P.r*0.4); s.quat.copy(lookQuat(dir.clone().applyAxisAngle(up,0.36).applyAxisAngle(side,0.1),up));
-    s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; s.angVel.set(0,0,0); s.departed=P.idx; Npc.clear(); Distress.cur=null; Ev.hold=0; if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Customs.arm(); Escort.spawn(); Radio.cur=null; Radio.wait=10; Cine.mode=null;
+    s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; s.angVel.set(0,0,0); s.departed=P.idx; Npc.clear(); Distress.cur=null; Ev.hold=0; if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Customs.arm(); Escort.spawn(); Radio.cur=null; Radio.wait=10; Cine.mode=null; Walk.exit(true); Faults.badge(); Throttle.reset();
     World.scenes.list=[{scene:World.space,camera:World.spaceCam},{scene:World.cock,camera:World.cockCam}]; Cockpit.zoomOut(); G.head.yaw=G.head.yawT; G.head.pitch=G.head.pitchT; G.head.pos.set(0,0,0);
     this.fade=1; this.fadeCol.setRGB(launch?1:0,launch?1:0,launch?1:0); this.mk=0; this.syncCamera(0.016);
     UI.toast(launch?`Clear of ${P.name}. Destination: ${T.name}`:`Destination: ${T.name}`); this.save();
@@ -3828,7 +4129,7 @@ const Game = {
 
   updateFlight(dt){
     const s=G.ship, def=SHIPS[G.shipId], K=G.keys, sys=G.sys;
-    let cp=(K.KeyW?1:0)-(K.KeyS?1:0), cy=(K.KeyA?1:0)-(K.KeyD?1:0), cr=(K.KeyQ?1:0)-(K.KeyE?1:0); if(!cp&&!cy){ cp=TouchUI.stick.y; cy=-TouchUI.stick.x; } if(sys.invert) cp=-cp; if(!sys.power) cp=cy=cr=0;
+    let cp=(K.KeyW?1:0)-(K.KeyS?1:0), cy=(K.KeyA?1:0)-(K.KeyD?1:0), cr=(K.KeyQ?1:0)-(K.KeyE?1:0); if(!cp&&!cy){ cp=TouchUI.stick.y; cy=-TouchUI.stick.x; } if(sys.invert) cp=-cp; if(!sys.power||Walk.on) cp=cy=cr=0;
     if(sys.autopilot&&sys.power&&!cp&&!cy&&!cr){ const v=Cockpit.targetLocal().v; cy=clamp(-v.x*4,-1,1); cp=clamp(v.y*4,-1,1); if(v.z>0) cy=v.x<0?1:-1; }
     s.ctl.set(cp,cy,cr); const rate=def.turn*(1-0.82*s.warpF);
     s.angVel.x=damp(s.angVel.x,cp*rate,4.5,dt); s.angVel.y=damp(s.angVel.y,cy*rate,4.5,dt); s.angVel.z=damp(s.angVel.z,cr*rate*1.6,4.5,dt);
@@ -3836,11 +4137,11 @@ const Game = {
     s.warpF=clamp(s.warpF+(s.warp?dt*0.7:-dt*2.2),0,1);
     s.cruise=damp(s.cruise,sys.power?this.cruiseSpeed(s.throttle):0,1.4,dt); const w=s.warpF*s.warpF*(3-2*s.warpF); s.speed=s.cruise+(def.warp-s.cruise)*w*w;
     const fwd=new V3(0,0,-1).applyQuaternion(s.quat); s.vel.copy(fwd).multiplyScalar(s.speed); s.pos.addScaledVector(fwd,s.speed*dt);
-    if(G.fuel>0){ G.fuel=Math.max(0,G.fuel-dt*(s.warp?1.5:0.012*s.throttle)); if(G.fuel<=0){ if(s.warp) this.dropWarp('Fuel exhausted','warn'); else UI.toast('Fuel exhausted. Reserve thrusters only.','warn'); } }
+    if(G.fuel>0){ G.fuel=Math.max(0,G.fuel-dt*(s.warp?1.5:0.012*s.throttle)*Faults.fuelMul()); if(G.fuel<=0){ if(s.warp) this.dropWarp('Fuel exhausted','warn'); else UI.toast('Fuel exhausted. Reserve thrusters only.','warn'); } }
     if(G.fuel<=0&&!s.warp&&(!World.nearest||World.nearest.dist>60000)) this.tow();
     const sunD=s.pos.length(); if(s.warp&&sunD<SUN_R*4) this.dropWarp('Solar gravity well. Warp disengaged.','warn',true);
     if(sunD<SUN_R*1.6){ s.pos.multiplyScalar(SUN_R*1.6/sunD); if(!this.sunWarn||G.playTime-this.sunWarn>6){ this.sunWarn=G.playTime; UI.toast('Hull temperature critical. Turn away from the star.','warn'); Sfx.deny(); } }
-    s.temp=damp(s.temp,clamp(0.2+0.45*s.warpF+0.15*s.throttle/10+clamp(SUN_R*4/sunD-0.1,0,0.6)+Mining.heat*0.55,0,1),0.8,dt);
+    s.temp=damp(s.temp,clamp(0.2+0.45*s.warpF+0.15*s.throttle/10+clamp(SUN_R*4/sunD-0.1,0,0.6)+Mining.heat*0.55+Throttle.heat*0.6,0,1),0.8,dt);
     for(const P of PLANETS){ const d=P.pos.distanceTo(s.pos);
       if(s.warp&&d<P.dropR&&P.pos.clone().sub(s.pos).normalize().dot(fwd)>0.2) this.dropWarp(P.name+' gravity well. Warp disengaged.','good',true);
       if(s.departed===P.idx&&d>P.landR*1.2) s.departed=-1;
@@ -3869,8 +4170,8 @@ const Game = {
     const t=this.time+=dt, s=G.ship; let fov=72;
     if(G.mode==='flight'){
       G.playTime+=dt; this.updateFlight(dt);
-      if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(s.vel,dt,s.warpF); fov=G.head.fov;
-        const HS=TouchUI.on?this.THINTS:this.HINTS; if(this.hintI<HS.length){ this.hintT+=dt; if(this.hintT>HS[this.hintI][0]) UI.toast(HS[this.hintI++][1]); } }
+      if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); Cargo.tick(dt); Faults.update(dt); Throttle.update(dt); this.syncCamera(dt); if(Walk.on){ Walk.update(dt,t); Walk.camera(); } World.updateDust(s.vel,dt,s.warpF); fov=Walk.on?74:G.head.fov;
+        const HS=TouchUI.on?this.THINTS:this.HINTS; if(this.hintI<HS.length&&!Walk.on){ this.hintT+=dt; if(this.hintT>HS[this.hintI][0]) UI.toast(HS[this.hintI++][1]); } }
     } else if(G.mode==='title'){
       s.quat.multiply(new Q4().setFromEuler(new THREE.Euler(0,dt*0.004,dt*0.006))); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(new V3(0,0,-1).applyQuaternion(s.quat).multiplyScalar(160),dt,0); fov=G.head.fov;
     }
@@ -3878,7 +4179,7 @@ const Game = {
     World.update(dt,s.pos,fov);
     if(G.mode==='flight'||G.mode==='title'){
       this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
-      World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=0.75+s.warpF*0.7;
+      World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=Walk.on?0.35:0.75+s.warpF*0.7;
     } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
     SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
@@ -3887,15 +4188,15 @@ const Game = {
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[]})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1},paint:null,bet:null}); Nav.clear(true); Flotsam.restore([]);
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[]}); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
     const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init();
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null}); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k])}); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },
@@ -3920,6 +4221,8 @@ const Game = {
       if(c==='KeyI'&&!e.repeat&&(G.mode==='flight'||G.mode==='port')){ Hold.toggle(); return; }
       if(Hold.open&&c==='Escape'){ Hold.toggle(false); return; }
       if(c==='KeyB'&&!e.repeat&&G.mode==='flight'){ Scoop.toggle(); return; }
+      if(c==='KeyL'&&!e.repeat&&G.mode==='flight'){ G.keys={}; Walk.toggle(); return; }
+      if(Walk.on&&G.mode==='flight'){ if(!e.repeat) G.keys[c]=true; if(/^(Key[XZTPHGC]|Digit\d|Numpad\d)$/.test(c)&&!e.repeat) UI.toast(`You need to be in the pilot's seat for that. ${TouchUI.on?'Tap Seat':'Press L'}.`,'warn'); if(c==='Escape') Walk.exit(); return; }
       if(G.mode!=='flight'||e.repeat&&!/^Key[WASDQE]$|^Arrow/.test(c)) return; G.keys[c]=true; if(e.metaKey||e.ctrlKey||e.altKey) return;
       const dm=c.match(/^(?:Digit|Numpad)(\d)$/);
       if(dm){ const n=+dm[1]; if(Comms.open&&n>=1&&n<=5) Comms.choose(n-1); else this.setThrottle(n===0?10:n); return; }

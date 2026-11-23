@@ -47,7 +47,7 @@ const Rep = {
   payMul(){ return 1+G.rep/400; },
 };
 const Hull = {
-  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
+  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Math.random()<0.35) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
     UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
   breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
 };
@@ -143,7 +143,7 @@ const Distress = {
     if(r<0.5){ const cr=Math.round(f*rnd(9,14)/5)*5; G.credits+=cr; Sfx.cash(); text=`Engines are humming! Here's ${fmtCr(cr)} for the trouble. You're a star. Not literally. Stars are hot.`; }
     else if(r<0.8){ let h; do{ h=Math.floor(Math.random()*PLANETS.length); }while(h===G.target&&PLANETS.length>1); G.hot=h; text=`We can't pay much, but here's a secret: ${PLANETS[h].name} is paying a fat bonus on deliveries right now.`; }
     else { const to=Math.floor(Math.random()*PLANETS.length), used=G.cargo.reduce((a,b)=>a+b.qty,0);
-      if(used+1<=SHIPS[G.shipId].hold){ G.cargo.push({good:'Thank-You Fruitcake',qty:1,to,pay:Math.round(rnd(220,380)/5)*5,from:-1}); Cockpit.drawManifest(); text=`Please take this fruitcake to ${PLANETS[to].name}. They'll pay you for it. Nobody has ever eaten one.`; }
+      if(used+1<=holdCap()){ G.cargo.push({good:'Thank-You Fruitcake',qty:1,to,pay:Math.round(rnd(220,380)/5)*5,from:-1}); Cockpit.drawManifest(); text=`Please take this fruitcake to ${PLANETS[to].name}. They'll pay you for it. Nobody has ever eaten one.`; }
       else { const cr=150; G.credits+=cr; Sfx.cash(); text=`Here's ${fmtCr(cr)}. We wanted to give you a fruitcake but your hold is full. Lucky you.`; } }
     Dlg.info({sp:c.sp,seed:c.seed,who:`${c.name} · ${c.ship}`,text,then:()=>{ Rep.add(6,'Rescue complete'); Ev.dismiss(c.npc); this.cur=null; }});
   },
@@ -201,12 +201,12 @@ const Mining = {
     x.textAlign='center'; x.font=`600 46px ${FONT_DISP}`; x.fillText(`ORE ${k.ore}`,cx,cy-s-62); x.font=`40px ${FONT_MONO}`; x.fillText(fmtDist(d),cx,cy-s-16); this.sightTex.needsUpdate=true;
   },
   addOre(F){
-    const def=SHIPS[G.shipId], used=G.cargo.reduce((a,b)=>a+b.qty,0); if(used>=def.hold) return false;
+    const used=G.cargo.reduce((a,b)=>a+b.qty,0); if(used>=holdCap()) return false;
     let c=G.cargo.find(x=>x.kind==='ore'&&x.good===F.ore); if(!c){ c={kind:'ore',good:F.ore,qty:0,to:-1,pay:0,val:F.val,from:-1}; G.cargo.push(c); }
     c.qty++; c.pay=c.qty*F.val; this.got++; this.gotT=1.2; Cockpit.drawManifest(); return true;
   },
   update(dt){
-    const s=G.ship, fire=!!G.keys.KeyF&&G.sys.power&&this.lock<=0&&!Dlg.open;
+    const s=G.ship, fire=!!G.keys.KeyF&&G.sys.power&&this.lock<=0&&!Dlg.open&&!Walk.on;
     this.lock=Math.max(0,this.lock-dt); this.hitCD=Math.max(0,this.hitCD-dt); this.msgT=Math.max(0,this.msgT-dt);
     let field=null; for(const F of this.fields){ F.dist=F.pos.distanceTo(s.pos); if(F.dist<F.R*1.4) field=F; F.group.visible=F.dist<400000; }
     if(field!==this.field){ this.field=field; if(field){ UI.toast(`Entering ${field.name}. Aim at a rock and hold ${TouchUI.on?'MINE':'F'} to mine ${field.ore}.`,'good'); if(s.warp) Game.dropWarp('Asteroid field. Warp disengaged.','warn',true); } }
@@ -299,26 +299,17 @@ const Customs = {
 const Escort = {
   npc:null, hazard:null, hT:60, farT:0, warnT:0,
   contract(){ return G.cargo.find(c=>c.kind==='escort'); },
+  /* the VIP rides in your passenger cabin; your job is to keep the trip calm */
   spawn(){
     const c=this.contract(); this.npc=null; this.hazard=null; this.hT=rnd(35,60); if(!c) return;
-    const s=G.ship, side=new V3(1,0,0).applyQuaternion(s.quat), back=new V3(0,0,1).applyQuaternion(s.quat);
-    this.npc=Ev.npc('escort',s.pos.clone().addScaledVector(side,600).addScaledVector(back,400),{sp:c.vip.sp,seed:c.vip.seed,name:c.vip.title,ship:c.vip.ship,cargo:'Nothing. I am the cargo.'});
-    this.label(); UI.toast(`${c.vip.title} is flying with you. Keep close.`,'good');
+    UI.toast(`${c.vip.title} is aboard, in the passenger cabin. Keep the trip calm.`,'good');
   },
-  label(){ const n=this.npc, c=this.contract(); if(!n||!c) return; Npc.label(n,`${c.vip.ship.toUpperCase()} · ${Math.round(c.hp)}%`,c.vip.title,c.hp>50?'#7dffa8':c.hp>25?'#ffb454':'#ff6f61'); },
+  label(){},
   hurt(d, why){ const c=this.contract(); if(!c) return; c.hp=Math.max(0,c.hp-d); this.label(); UI.toast(`${why}. ${c.vip.title}: ${Math.round(c.hp)}%`,'warn'); Sfx.deny();
-    if(c.hp<=0){ G.cargo.splice(G.cargo.indexOf(c),1); Cockpit.drawManifest(); Ev.dismiss(this.npc); this.npc=null; this.hazard=null; Rep.add(-8,`${c.vip.title} has had enough and turned back. Contract void`); } },
+    if(c.hp<=0){ G.cargo.splice(G.cargo.indexOf(c),1); Cockpit.drawManifest(); Ev.dismiss(this.npc); this.npc=null; this.hazard=null; Rep.add(-8,`${c.vip.title} has locked themselves in the galley and cancelled the contract`); } },
   heal(d){ const c=this.contract(); if(c){ c.hp=Math.min(100,c.hp+d); this.label(); } },
   update(dt){
-    const n=this.npc, c=this.contract(); if(!n||!c||Npc.list.indexOf(n)<0) return;
-    const s=G.ship, def=SHIPS[G.shipId], side=new V3(1,0,0).applyQuaternion(s.quat), back=new V3(0,0,1).applyQuaternion(s.quat), up=new V3(0,1,0).applyQuaternion(s.quat);
-    const tgt=s.pos.clone().addScaledVector(side,650).addScaledVector(back,500).addScaledVector(up,120), to=tgt.sub(n.pos), d=to.length();
-    const vmax=s.warp||s.warpF>0.1?def.warp*0.8:Math.max(def.cruise*1.15,1200), want=Math.min(vmax,s.speed+d*1.3);
-    n.vel.copy(to.normalize()).multiplyScalar(Math.min(want,d/Math.max(dt,1e-3)));
-    if(n.vel.lengthSq()<4) n.vel.copy(new V3(0,0,-1).applyQuaternion(s.quat)).multiplyScalar(2);
-    // falling behind
-    if(n.dist>25000){ this.farT+=dt; c.hp=Math.max(0,c.hp-dt*1.2); this.warnT-=dt; if(this.warnT<=0){ this.warnT=6; this.label(); UI.toast(`You're leaving ${c.vip.title} behind! Ease off the warp.`,'warn'); } if(c.hp<=0) this.hurt(0,'Lost contact'); }
-    else this.farT=0;
+    const c=this.contract(); if(!c) return; const s=G.ship;
     // hazards
     const h=this.hazard;
     if(h){ h.t-=dt; Game.escortAlarm=true;
@@ -329,14 +320,17 @@ const Escort = {
     if(Dlg.open||!Ev.clearOfPlanets(8)) return;
     this.hT-=dt; if(this.hT>0) return; this.hT=rnd(45,80);
     const k=pick(['pirates','debris','panic']);
-    if(k==='pirates'){ const ps=[0,1].map(()=>Ev.npc('pirate',n.pos.clone().add(Ev.around(new V3(),rnd(500,900))),{sp:pick(['grondar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
-      this.hazard={kind:'pirates',t:20,ps,nag:t=>`Pirates are buzzing ${c.vip.title}! Get within 4,000 km and sound the horn (${TouchUI.on?'HORN':'G'}). ${t}s`,fail:()=>{ ps.forEach(p=>Ev.dismiss(p)); this.hurt(30,'The pirates rattled the VIP badly'); }};
+    if(k==='pirates'){ const fwd=new V3(0,0,-1).applyQuaternion(s.quat), ps=[0,1].map(()=>Ev.npc('pirate',s.pos.clone().addScaledVector(fwd,rnd(900,1500)).add(Ev.around(new V3(),rnd(300,700))),{sp:pick(['grondar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
+      this.hazard={kind:'pirates',t:20,ps,nag:t=>`Pirates are buzzing your ship and ${c.vip.title} is terrified! Sound the horn (${TouchUI.on?'HORN':'G'}) to scare them off. ${t}s`,fail:()=>{ ps.forEach(p=>Ev.dismiss(p)); this.hurt(30,'The pirates rattled the VIP badly'); }};
       UI.toast(this.hazard.nag(20),'warn'); Sfx.deny(); }
     else if(k==='debris'){ this.hazard={kind:'debris',t:22,ok:0,nag:t=>`Debris ahead! Throttle 4 or lower, no warp, for 8 seconds. ${t}s`,fail:()=>this.hurt(20,`${c.vip.title}'s ship took a beating in the debris`)};
       if(s.warp) Game.dropWarp('Debris ahead! Warp disengaged','warn',true); UI.toast(this.hazard.nag(22),'warn'); }
+    else if(Walk.on&&!Dlg.open){ this.hT=8; }
     else this.panic(c);
   },
-  onHonk(){ const h=this.hazard; if(!h||h.kind!=='pirates'||!this.npc) return; if(this.npc.dist<4000){ h.ps.forEach(p=>Ev.dismiss(p)); this.hazard=null; Game.escortAlarm=false; this.heal(2); setTimeout(()=>UI.toast('The pirates scatter. Your horn is terrifying.','good'),600); } else UI.toast('Too far away. Get within 4,000 km and honk again.','warn'); },
+  onHonk(){ const h=this.hazard; if(!h||h.kind!=='pirates') return; h.ps.forEach(p=>Ev.dismiss(p)); this.hazard=null; Game.escortAlarm=false; this.heal(2); setTimeout(()=>UI.toast('The pirates scatter. Your horn is terrifying.','good'),600); },
+  /* talking to the VIP in the cabin settles their nerves a little */
+  chat(){ const c=this.contract(); if(!c) return null; if(!this.chatT||Game.time-this.chatT>20){ this.chatT=Game.time; this.heal(4); } return c; },
   panic(c){
     const v=c.vip, tough=['grondar','zkthar'].includes(v.sp), jokey=['blorpax','qeeble','sporrin','momwump'].includes(v.sp);
     const out=(good,why)=>{ if(good){ this.heal(6); UI.toast(why,'good'); } else this.hurt(12,why); };
@@ -349,8 +343,8 @@ const Escort = {
   /* on landing: pay out if the VIP is with you */
   land(P){
     const c=this.contract(); if(!c||c.to!==P.idx) return null; G.cargo.splice(G.cargo.indexOf(c),1);
-    const n=this.npc, with_=n&&Npc.list.indexOf(n)>=0&&n.dist<80000&&c.hp>0; this.npc=null; this.hazard=null;
-    if(!with_){ Rep.add(-6,`${c.vip.title} never arrived. Contract failed`); return null; }
+    this.npc=null; this.hazard=null;
+    if(c.hp<=0){ Rep.add(-6,`${c.vip.title} refused to get off and demanded to go home. Contract failed`); return null; }
     const pay=Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5; Rep.add(5,`${c.vip.title} arrived safely`); return {good:`Escort of ${c.vip.title} (${Math.round(c.hp)}%)`,qty:0,pay};
   },
 };

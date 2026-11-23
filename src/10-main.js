@@ -14,7 +14,7 @@ const Game = {
 
   /* the player's paint job (from a paint shop) on top of the ship's factory finish */
   scheme(){ const b=Models.SCHEMES[Math.min(SHIPS[G.shipId].model,4)]; return G.paint?{hull:G.paint.hull,trim:G.paint.trim,glow:b.glow,wear:Math.min(b.wear,0.2)}:null; },
-  cruiseSpeed(n){ return SHIPS[G.shipId].cruise*Math.pow(n/10,1.5); },
+  cruiseSpeed(n){ return SHIPS[G.shipId].cruise*Math.pow(n/10,1.5)*Faults.speedMul(); },
   setThrottle(n){ n=clamp(Math.round(n),0,10); if(!G.sys.power||G.mode!=='flight') return; if(n!==G.ship.throttle){ G.ship.throttle=n; Sfx.click(); } },
   massLock(){ const s=G.ship; if(s.pos.length()<SUN_R*3) return true; for(const P of PLANETS) if(P.pos.distanceTo(s.pos)<P.lockR) return true; return false; },
   canWarp(){ if(!G.sys.power) return 'NO POWER'; if(G.fuel<=0) return 'OUT OF FUEL'; if(this.massLock()) return 'MASS-LOCKED · FLY CLEAR'; return true; },
@@ -26,11 +26,12 @@ const Game = {
   honk(){ Sfx.honk(); Escort.onHonk(); const n=Npc.nearest(5000); if(n&&!Comms.open&&G.sys.power) setTimeout(()=>{ if(G.mode==='flight'&&!Comms.open) Radio.play({sp:n.pilot.sp,seed:n.pilot.seed,name:n.pilot.name,english:pick(SPECIES[n.pilot.sp].honk)}); },700); },
 
   genJobs(pi){
-    const P=PLANETS[pi], hold=SHIPS[G.shipId].hold, jobs=[], n=5+Math.floor(Math.random()*3);
+    const P=PLANETS[pi], hold=holdCap(), jobs=[], n=5+Math.floor(Math.random()*3);
     for(let i=0;i<n;i++){ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
       const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to;
       const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(SPECIES_KEYS);
-      jobs.push({good:good[0],note:good[2],qty,to,pay:Math.max(20,Math.round(pay/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot}); }
+      const fragile=i>0&&Math.random()<0.3;
+      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.35:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile}); }
     jobs.sort((a,b)=>a.qty-b.qty);
     const away=()=>{ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); return to; };
     if(Math.random()<0.6){ const to=away(), g=pick(CONTRABAND), qty=Math.max(1,Math.round(hold*rnd(0.15,0.4))), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
@@ -38,6 +39,10 @@ const Game = {
     if(!G.cargo.some(c=>c.kind==='escort')&&Math.random()<0.6){ const to=away(), v=pick(VIPS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
       jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,pay:Math.round((320+dist*190)*rnd(0.9,1.2)*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
     G.jobs=jobs;
+    // people wanting a ride, offered at cantinas
+    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,pay:Math.round((140+dist*60)*rnd(0.85,1.25)*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
+    G.paxJobs=px;
   },
   onLanded(P){
     G.mode='port'; G.docked=P.idx; const s=G.ship; s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; G.sys.autopilot=false; Sfx.setEngine(0,0,false);
@@ -45,7 +50,7 @@ const Game = {
     const paid=G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='escort'); let total=0; paid.forEach(c=>total+=c.pay); G.cargo=G.cargo.filter(c=>!paid.includes(c));
     const esc=Escort.land(P); if(esc){ paid.push(esc); total+=esc.pay; } if(paid.length) G.rep=clamp(G.rep+paid.length,-100,100);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
-    const fee=Math.min(this.towFee,G.credits+total); this.towFee=0; Calls.landed(P); Scoop.open=false; $('scoop-badge').hidden=true; if(Hold.open) Hold.render(); G.credits+=total-fee; G.stats.deliveries+=paid.length; G.stats.earned+=total; if(G.hot===P.idx) G.hot=null;
+    const fee=Math.min(this.towFee,G.credits+total); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; if(Hold.open) Hold.render(); G.credits+=total-fee; G.stats.deliveries+=paid.length; G.stats.earned+=total; if(G.hot===P.idx) G.hot=null;
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(paid.length) Sfx.cash(); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
@@ -55,7 +60,7 @@ const Game = {
     const s=G.ship, T=PLANETS[G.target], up=new V3(0,1,0); G.mode='flight'; G.docked=-1; UI.hidePort(); $('keys').hidden=false; $('title').hidden=true;
     const dir=T!==P?T.pos.clone().sub(P.pos).normalize():P.sunDir.clone().negate(), side=new V3().crossVectors(dir,up).normalize();
     s.pos.copy(P.pos).addScaledVector(dir,P.r*3.7).addScaledVector(side,P.r*0.4); s.quat.copy(lookQuat(dir.clone().applyAxisAngle(up,0.36).applyAxisAngle(side,0.1),up));
-    s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; s.angVel.set(0,0,0); s.departed=P.idx; Npc.clear(); Distress.cur=null; Ev.hold=0; if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Customs.arm(); Escort.spawn(); Radio.cur=null; Radio.wait=10; Cine.mode=null;
+    s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; s.angVel.set(0,0,0); s.departed=P.idx; Npc.clear(); Distress.cur=null; Ev.hold=0; if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Customs.arm(); Escort.spawn(); Radio.cur=null; Radio.wait=10; Cine.mode=null; Walk.exit(true); Faults.badge(); Throttle.reset();
     World.scenes.list=[{scene:World.space,camera:World.spaceCam},{scene:World.cock,camera:World.cockCam}]; Cockpit.zoomOut(); G.head.yaw=G.head.yawT; G.head.pitch=G.head.pitchT; G.head.pos.set(0,0,0);
     this.fade=1; this.fadeCol.setRGB(launch?1:0,launch?1:0,launch?1:0); this.mk=0; this.syncCamera(0.016);
     UI.toast(launch?`Clear of ${P.name}. Destination: ${T.name}`:`Destination: ${T.name}`); this.save();
@@ -67,7 +72,7 @@ const Game = {
 
   updateFlight(dt){
     const s=G.ship, def=SHIPS[G.shipId], K=G.keys, sys=G.sys;
-    let cp=(K.KeyW?1:0)-(K.KeyS?1:0), cy=(K.KeyA?1:0)-(K.KeyD?1:0), cr=(K.KeyQ?1:0)-(K.KeyE?1:0); if(!cp&&!cy){ cp=TouchUI.stick.y; cy=-TouchUI.stick.x; } if(sys.invert) cp=-cp; if(!sys.power) cp=cy=cr=0;
+    let cp=(K.KeyW?1:0)-(K.KeyS?1:0), cy=(K.KeyA?1:0)-(K.KeyD?1:0), cr=(K.KeyQ?1:0)-(K.KeyE?1:0); if(!cp&&!cy){ cp=TouchUI.stick.y; cy=-TouchUI.stick.x; } if(sys.invert) cp=-cp; if(!sys.power||Walk.on) cp=cy=cr=0;
     if(sys.autopilot&&sys.power&&!cp&&!cy&&!cr){ const v=Cockpit.targetLocal().v; cy=clamp(-v.x*4,-1,1); cp=clamp(v.y*4,-1,1); if(v.z>0) cy=v.x<0?1:-1; }
     s.ctl.set(cp,cy,cr); const rate=def.turn*(1-0.82*s.warpF);
     s.angVel.x=damp(s.angVel.x,cp*rate,4.5,dt); s.angVel.y=damp(s.angVel.y,cy*rate,4.5,dt); s.angVel.z=damp(s.angVel.z,cr*rate*1.6,4.5,dt);
@@ -75,11 +80,11 @@ const Game = {
     s.warpF=clamp(s.warpF+(s.warp?dt*0.7:-dt*2.2),0,1);
     s.cruise=damp(s.cruise,sys.power?this.cruiseSpeed(s.throttle):0,1.4,dt); const w=s.warpF*s.warpF*(3-2*s.warpF); s.speed=s.cruise+(def.warp-s.cruise)*w*w;
     const fwd=new V3(0,0,-1).applyQuaternion(s.quat); s.vel.copy(fwd).multiplyScalar(s.speed); s.pos.addScaledVector(fwd,s.speed*dt);
-    if(G.fuel>0){ G.fuel=Math.max(0,G.fuel-dt*(s.warp?1.5:0.012*s.throttle)); if(G.fuel<=0){ if(s.warp) this.dropWarp('Fuel exhausted','warn'); else UI.toast('Fuel exhausted. Reserve thrusters only.','warn'); } }
+    if(G.fuel>0){ G.fuel=Math.max(0,G.fuel-dt*(s.warp?1.5:0.012*s.throttle)*Faults.fuelMul()); if(G.fuel<=0){ if(s.warp) this.dropWarp('Fuel exhausted','warn'); else UI.toast('Fuel exhausted. Reserve thrusters only.','warn'); } }
     if(G.fuel<=0&&!s.warp&&(!World.nearest||World.nearest.dist>60000)) this.tow();
     const sunD=s.pos.length(); if(s.warp&&sunD<SUN_R*4) this.dropWarp('Solar gravity well. Warp disengaged.','warn',true);
     if(sunD<SUN_R*1.6){ s.pos.multiplyScalar(SUN_R*1.6/sunD); if(!this.sunWarn||G.playTime-this.sunWarn>6){ this.sunWarn=G.playTime; UI.toast('Hull temperature critical. Turn away from the star.','warn'); Sfx.deny(); } }
-    s.temp=damp(s.temp,clamp(0.2+0.45*s.warpF+0.15*s.throttle/10+clamp(SUN_R*4/sunD-0.1,0,0.6)+Mining.heat*0.55,0,1),0.8,dt);
+    s.temp=damp(s.temp,clamp(0.2+0.45*s.warpF+0.15*s.throttle/10+clamp(SUN_R*4/sunD-0.1,0,0.6)+Mining.heat*0.55+Throttle.heat*0.6,0,1),0.8,dt);
     for(const P of PLANETS){ const d=P.pos.distanceTo(s.pos);
       if(s.warp&&d<P.dropR&&P.pos.clone().sub(s.pos).normalize().dot(fwd)>0.2) this.dropWarp(P.name+' gravity well. Warp disengaged.','good',true);
       if(s.departed===P.idx&&d>P.landR*1.2) s.departed=-1;
@@ -108,8 +113,8 @@ const Game = {
     const t=this.time+=dt, s=G.ship; let fov=72;
     if(G.mode==='flight'){
       G.playTime+=dt; this.updateFlight(dt);
-      if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(s.vel,dt,s.warpF); fov=G.head.fov;
-        const HS=TouchUI.on?this.THINTS:this.HINTS; if(this.hintI<HS.length){ this.hintT+=dt; if(this.hintT>HS[this.hintI][0]) UI.toast(HS[this.hintI++][1]); } }
+      if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); Cargo.tick(dt); Faults.update(dt); Throttle.update(dt); this.syncCamera(dt); if(Walk.on){ Walk.update(dt,t); Walk.camera(); } World.updateDust(s.vel,dt,s.warpF); fov=Walk.on?74:G.head.fov;
+        const HS=TouchUI.on?this.THINTS:this.HINTS; if(this.hintI<HS.length&&!Walk.on){ this.hintT+=dt; if(this.hintT>HS[this.hintI][0]) UI.toast(HS[this.hintI++][1]); } }
     } else if(G.mode==='title'){
       s.quat.multiply(new Q4().setFromEuler(new THREE.Euler(0,dt*0.004,dt*0.006))); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(new V3(0,0,-1).applyQuaternion(s.quat).multiplyScalar(160),dt,0); fov=G.head.fov;
     }
@@ -117,7 +122,7 @@ const Game = {
     World.update(dt,s.pos,fov);
     if(G.mode==='flight'||G.mode==='title'){
       this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
-      World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=0.75+s.warpF*0.7;
+      World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=Walk.on?0.35:0.75+s.warpF*0.7;
     } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
     SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
@@ -126,15 +131,15 @@ const Game = {
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[]})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1},paint:null,bet:null}); Nav.clear(true); Flotsam.restore([]);
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[]}); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
     const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init();
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null}); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k])}); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },
@@ -159,6 +164,8 @@ const Game = {
       if(c==='KeyI'&&!e.repeat&&(G.mode==='flight'||G.mode==='port')){ Hold.toggle(); return; }
       if(Hold.open&&c==='Escape'){ Hold.toggle(false); return; }
       if(c==='KeyB'&&!e.repeat&&G.mode==='flight'){ Scoop.toggle(); return; }
+      if(c==='KeyL'&&!e.repeat&&G.mode==='flight'){ G.keys={}; Walk.toggle(); return; }
+      if(Walk.on&&G.mode==='flight'){ if(!e.repeat) G.keys[c]=true; if(/^(Key[XZTPHGC]|Digit\d|Numpad\d)$/.test(c)&&!e.repeat) UI.toast(`You need to be in the pilot's seat for that. ${TouchUI.on?'Tap Seat':'Press L'}.`,'warn'); if(c==='Escape') Walk.exit(); return; }
       if(G.mode!=='flight'||e.repeat&&!/^Key[WASDQE]$|^Arrow/.test(c)) return; G.keys[c]=true; if(e.metaKey||e.ctrlKey||e.altKey) return;
       const dm=c.match(/^(?:Digit|Numpad)(\d)$/);
       if(dm){ const n=+dm[1]; if(Comms.open&&n>=1&&n<=5) Comms.choose(n-1); else this.setThrottle(n===0?10:n); return; }

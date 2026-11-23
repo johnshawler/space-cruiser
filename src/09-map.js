@@ -1,7 +1,7 @@
 /* ===================== SYSTEM MAP ===================== */
 /* Top-down chart of the system. M toggles it in flight and in port; click a world to set the destination. */
 const SysMap = {
-  open:false, f:0, hover:-1, pts:[], listT:0, maxR:0,
+  open:false, f:0, hover:-1, pts:[], listT:0, maxR:0, zoom:1, ox:0, oz:0, base:1,
   toggle(){ if(this.open) this.close(); else this.show(); },
   show(){
     if(this.open) return; this.open=true; this.hover=-1; this.f=0; this.listT=0.5;
@@ -21,9 +21,22 @@ const SysMap = {
     const at=e=>{ const r=cv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top; let best=-1, bd=1e9; this.pts.forEach(p=>{ const d=Math.hypot(p.x-mx,p.y-my); if(d<Math.max(p.r+12,20)&&d<bd){ bd=d; best=p.i; } }); return best; };
     cv.addEventListener('pointermove',e=>{ const h=at(e); if(h!==this.hover){ this.hover=h; cv.style.cursor=h>=0?'pointer':'default'; this.draw(Game.time); } });
     cv.addEventListener('pointerleave',()=>{ if(this.hover!==-1){ this.hover=-1; this.draw(Game.time); } });
-    cv.addEventListener('click',e=>{ const h=at(e); if(h>=0) this.pick(h); });
+    cv.addEventListener('click',e=>{ if(this.dragged){ this.dragged=false; return; } const h=at(e); if(h>=0) this.pick(h); });
     $('map-list').addEventListener('click',e=>{ const b=e.target.closest('[data-i]'); if(b) this.pick(+b.dataset.i); });
     $('map-close').onclick=()=>this.close();
+    /* zoom: mouse wheel (toward the pointer), pinch on a touch screen; drag to pan; double-click to reset */
+    const zoomAt=(f,mx,my)=>{ const r=cv.getBoundingClientRect(), w=r.width, h=r.height, k0=this.base*this.zoom, wx=this.ox+(mx-w/2)/k0, wz=this.oz+(my-h/2)/k0;
+      this.zoom=clamp(this.zoom*f,1,14); const k1=this.base*this.zoom; this.ox=wx-(mx-w/2)/k1; this.oz=wz-(my-h/2)/k1; if(this.zoom<=1.001){ this.ox=0; this.oz=0; } this.draw(Game.time); };
+    cv.addEventListener('wheel',e=>{ if(!this.open) return; e.preventDefault(); const r=cv.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY*(e.deltaMode===1?0.05:0.0016)),e.clientX-r.left,e.clientY-r.top); },{passive:false});
+    const ptrs=new Map(); let drag=null, pinch=null;
+    cv.addEventListener('pointerdown',e=>{ ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+      if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y)}; drag=null; } else drag={x:e.clientX,y:e.clientY,moved:0}; });
+    cv.addEventListener('pointermove',e=>{ if(!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(pinch&&ptrs.size===2){ const [a,b]=[...ptrs.values()], d=Math.hypot(a.x-b.x,a.y-b.y), r=cv.getBoundingClientRect(); if(pinch.d>10) zoomAt(d/pinch.d,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top); pinch.d=d; return; }
+      if(drag){ const dx=e.clientX-drag.x, dy=e.clientY-drag.y; drag.x=e.clientX; drag.y=e.clientY; drag.moved+=Math.abs(dx)+Math.abs(dy); if(this.zoom>1&&drag.moved>6){ const k=this.base*this.zoom; this.ox-=dx/k; this.oz-=dy/k; cv.style.cursor='grabbing'; this.draw(Game.time); } } });
+    const up=e=>{ ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null; if(!ptrs.size){ this.dragged=drag&&drag.moved>6; drag=null; cv.style.cursor='default'; } };
+    cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+    cv.addEventListener('dblclick',()=>{ this.zoom=1; this.ox=0; this.oz=0; this.draw(Game.time); });
   },
 
   update(dt,t){
@@ -44,14 +57,14 @@ const SysMap = {
     FIELDS.forEach(F=>{ const tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx; rows.push(`<button class="mrow${tg?' tg':''}" data-i="${100+F.idx}"><i style="background:radial-gradient(circle at 35% 35%,#e8dcc8,${F.col} 60%,#3a3040);border-radius:30%"></i><span class="n">${esc(F.name)}</span><span class="d">${fmtDist(Math.max(0,F.pos.distanceTo(G.ship.pos)-F.R))}</span><span class="p">Asteroid field · ${esc(F.ore)}</span>${tg?'<span class="b"><em class="t">Waypoint</em></span>':''}</button>`); });
     $('map-list').innerHTML=rows.join('');
     const nT=G.mode==='flight'?Npc.list.length:0;
-    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+(TouchUI.on?' · Tap a world or field to set your course':' · Click a world or field to set your course · M or Esc to close');
+    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+(TouchUI.on?' · Tap a world or field to set your course · pinch to zoom, drag to pan':' · Click a world or field to set your course · scroll to zoom, drag to pan, double-click to reset · M or Esc to close');
   },
 
   draw(t){
     const cv=$('map-cv'), box=cv.parentNode, w=box.clientWidth, h=box.clientHeight; if(w<20||h<20) return;
     const dpr=Math.min(window.devicePixelRatio||1,2), W=Math.round(w*dpr), Hh=Math.round(h*dpr); if(cv.width!==W||cv.height!==Hh){ cv.width=W; cv.height=Hh; }
     const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
-    const cx=w/2, cy=h/2, R=Math.max(70,Math.min(w,h)/2-44), k=R/this.maxR, TAU=Math.PI*2;
+    const R=Math.max(70,Math.min(w,h)/2-44); this.base=R/this.maxR; const k=this.base*this.zoom, cx=w/2-this.ox*k, cy=h/2-this.oz*k, TAU=Math.PI*2;
     const s=G.ship, docked=G.mode==='port'&&G.docked>=0, T=Nav.target();
     x.lineWidth=1; x.textBaseline='middle';
 

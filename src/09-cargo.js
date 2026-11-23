@@ -1,7 +1,31 @@
 /* ===================== CARGO HOLD, SCOOP, FLOATING CARGO, RADIO CALLS ===================== */
 
 const holdUsed=()=>G.cargo.reduce((a,b)=>a+(b.qty||0),0);
-const holdFree=()=>SHIPS[G.shipId].hold-holdUsed();
+const fmtTime=s=>{ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+
+/* ---------- deliveries lose value the longer they take ---------- */
+/* each contract gets an expected trip time from the distance; deliver within it for full pay, after that the pay
+   slides down to a floor of 30%. Only flight time counts. Faults (a snapped cargo strap, a jammed air scrubber) make it
+   slide faster. Passengers work the same way. */
+const SEATS=[2,2,3,4,4];
+const Cargo = {
+  seats(){ return SEATS[Math.min(SHIPS[G.shipId].model,SEATS.length-1)]; },
+  pax(){ return G.cargo.filter(c=>c.kind==='pax'||c.kind==='escort'); },
+  decays(c){ return c.to>=0&&c.kind!=='ore'&&c.kind!=='escort'&&!c.quest; },
+  est(c){ const from=c.from>=0?PLANETS[c.from]:(World.nearest||PLANETS[0]), d=from.pos.distanceTo(PLANETS[c.to].pos); return Math.round(d/SHIPS[G.shipId].warp*2.2+150); },
+  stamp(c){ if(!this.decays(c)||c.est!=null) return; c.est=this.est(c); c.el=0; if(c.pay0==null) c.pay0=c.pay; },
+  stampAll(){ for(const c of G.cargo) this.stamp(c); },
+  factor(c){ if(!this.decays(c)||c.est==null) return 1; const late=Math.max(0,c.el-c.est); return clamp(1-0.5*late/c.est,0.3,1); },
+  value(c){ return this.decays(c)&&c.pay0!=null?Math.max(5,Math.round(c.pay0*this.factor(c)*(1-(c.dmg||0))/5)*5):c.pay; },
+  left(c){ return c.est==null?Infinity:c.est-c.el; },
+  tick(dt){
+    for(const c of G.cargo){ this.stamp(c); if(!this.decays(c)) continue; const was=c.el<=c.est; c.el+=dt*Faults.lagMul(c); c.pay=this.value(c);
+      if(was&&c.el>c.est&&!c.told){ c.told=1; UI.toast(c.kind==='pax'?`${c.good} is now running late. Their fare is dropping.`:`${c.qty}× ${c.good} is now late. The pay is dropping.`,'warn'); } } },
+  label(c){ if(!this.decays(c)||c.est==null) return ''; const l=this.left(c), fr=c.fragile?` · fragile, ${Math.round((1-(c.dmg||0))*100)}% intact`:''; return (l>0?`on time for ${fmtTime(l)} more`:`late, pay down to ${fmtCr(c.pay)} from ${fmtCr(c.pay0)}`)+fr; },
+};
+/* hold capacity: the ship's hold, plus one unit under the false floor if a hidden compartment is fitted */
+const holdCap=()=>SHIPS[G.shipId].hold+(G.up&&G.up.hidden?1:0);
+const holdFree=()=>holdCap()-holdUsed();
 
 /* ---------- things floating in space: cargo you dropped, lost property, missing shipments ---------- */
 const Flotsam = {
@@ -63,21 +87,23 @@ const Scoop = {
 const Hold = {
   open:false, confirm:null,
   toggle(v){ v=v==null?!this.open:v; this.open=v; $('hold').hidden=!v; this.confirm=null; if(v){ if(SysMap.open) SysMap.close(); this.render(); } if(Sfx.ok()) Sfx.click(); },
-  render(){ if(!this.open) return; const d=SHIPS[G.shipId], list=$('hold-list'); list.innerHTML='';
-    $('hold-cap').textContent=`${holdUsed()} of ${d.hold} units used`;
+  render(){ if(!this.open) return; const d=SHIPS[G.shipId], list=$('hold-list'); list.innerHTML=''; Cargo.stampAll();
+    $('hold-cap').textContent=`${holdUsed()} of ${holdCap()} units · ${Cargo.pax().length} of ${Cargo.seats()} seats`;
     if(!G.cargo.length) list.appendChild(el('p','hold-empty','The hold is empty. It echoes slightly.'));
     G.cargo.forEach((c,i)=>{ const row=el('div','hrow'), info=el('div','');
-      const what=c.kind==='escort'?esc(c.good):`${c.qty}× ${esc(c.good)}`, tag=c.illegal?'<span class="tag bad">CONTRABAND</span>':c.quest?'<span class="tag esc">LOST PROPERTY</span>':c.kind==='ore'?'<span class="tag">ORE</span>':'';
-      const dest=c.kind==='escort'?`Escorting to ${PLANETS[c.to].name}`:c.kind==='ore'?'Sell at an assay office':`To ${PLANETS[c.to].name} · pays ${fmtCr(c.pay)}`;
-      info.innerHTML=`<b>${what}</b>${tag}<small>${esc(dest)}</small>`; row.appendChild(info);
-      if(c.kind==='escort'){ row.appendChild(el('span','hnote','A VIP. Not droppable.')); }
-      else { const sure=this.confirm===c, b=el('button','btn'+(sure?' danger':''),sure?'Sure? Drop it':'Drop'); b.onclick=()=>{ if(this.confirm===c) this.drop(c); else { this.confirm=c; this.render(); } }; row.appendChild(b); }
+      const what=c.kind==='escort'||c.kind==='pax'?esc(c.good):`${c.qty}× ${esc(c.good)}`, tag=c.illegal?'<span class="tag bad">CONTRABAND</span>':c.quest?'<span class="tag esc">LOST PROPERTY</span>':c.kind==='ore'?'<span class="tag">ORE</span>':c.kind==='pax'?'<span class="tag">PASSENGER</span>':'';
+      const dest=c.kind==='escort'?`Escorting to ${PLANETS[c.to].name}`:c.kind==='ore'?'Sell at an assay office':`To ${PLANETS[c.to].name} · pays ${fmtCr(c.pay)}`, lab=Cargo.label(c), late=Cargo.decays(c)&&Cargo.left(c)<=0;
+      info.innerHTML=`<b>${what}</b>${tag}<small>${esc(dest)}</small>${lab?`<small class="${late?'late':'due'}">${esc(lab)}</small>`:''}`; row.appendChild(info);
+      if(c.kind==='escort'){ row.appendChild(el('span','hnote',`A VIP in your cabin · calm ${Math.round(c.hp)}%`)); }
+      else if(c.kind==='pax'&&G.mode!=='port'){ row.appendChild(el('span','hnote','Seated in the cabin. Let them off at a port.')); }
+      else { const sure=this.confirm===c, b=el('button','btn'+(sure?' danger':''),sure?(c.kind==='pax'?'Sure? Let them off':'Sure? Drop it'):(c.kind==='pax'?'Let off here':'Drop')); b.onclick=()=>{ if(this.confirm===c) this.drop(c); else { this.confirm=c; this.render(); } }; row.appendChild(b); }
       list.appendChild(row); });
     const fl=G.mode==='flight', n=Flotsam.nearest();
     $('hold-foot').innerHTML=fl?`Scoop: <b>${Scoop.open?'OPEN':'closed'}</b>${n?` · nearest floating cargo ${esc(n.label)}, ${fmtDist(n.dist)}`:''}`:'Dropping cargo here leaves it on the pad.';
     const sb=$('hold-scoop'); sb.hidden=!fl; sb.textContent=Scoop.open?'Close scoop · B':'Open scoop · B'; },
   drop(c){
     const i=G.cargo.indexOf(c); if(i<0) return; G.cargo.splice(i,1); this.confirm=null; const contract=c.to>=0&&!c.illegal&&!c.quest&&c.kind!=='ore';
+    if(c.kind==='pax'){ UI.toast(`${c.good} gets off here, muttering. They will find another ride. Probably soup-related.`); Rep.add(-2,'You put a passenger off early'); Cockpit.drawManifest(); this.render(); if(G.mode==='port'){ UI.render(); Game.save(); } return; }
     if(G.mode==='flight'){ const s=G.ship, back=new V3(0,0,1).applyQuaternion(s.quat), down=new V3(0,-1,0).applyQuaternion(s.quat);
       c.dropped=contract; Flotsam.spawn(c,s.pos.clone().addScaledVector(back,220).addScaledVector(down,60),{vel:back.multiplyScalar(40).addScaledVector(s.vel,0.02),label:c.quest?c.good:`${c.qty}× ${c.good}`,kind:c.quest?'lost':'crate'});
       Sfx.hiss(0.6,0.12); UI.toast(`Dropped ${c.quest?c.good:c.qty+'× '+c.good}. It floats off, looking betrayed.`); }
@@ -108,7 +134,8 @@ const Fx = {
   fuel(n, why){ const d=SHIPS[G.shipId]; G.fuel=clamp(G.fuel+n,0,d.fuel); UI.toast(`${why?why+' · ':''}Fuel ${n>0?'+':''}${Math.round(n)}`,n>0?'good':'warn'); },
   hull(n, why){ if(n<0) Hull.hit(-n,why); else { G.hull=Math.min(100,G.hull+n); UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'good'); } },
   tip(P, why){ G.hot=P.idx; UI.toast(`${why||'Tip logged'}: ${P.name} deliveries pay +50%`,'good'); },
-  give(c, why){ if(holdFree()<c.qty){ UI.toast("No room in the hold. They seem relieved, somehow.",'warn'); return false; } G.cargo.push(c); Cockpit.drawManifest(); UI.toast(`${why||'Loaded'}: ${c.qty}× ${c.good} → ${PLANETS[c.to].name} · ${fmtCr(c.pay)}`,'good'); if(!G.cargo.some(x=>x.to===G.target)) Game.setTarget(c.to,true); return true; },
+  give(c, why){ if(c.kind==='pax'&&Cargo.pax().length>=Cargo.seats()){ UI.toast('No free seats in the cabin. They say they will wait for the next ship, pointedly.','warn'); return false; }
+    if(holdFree()<c.qty){ UI.toast("No room in the hold. They seem relieved, somehow.",'warn'); return false; } G.cargo.push(c); Cockpit.drawManifest(); UI.toast(`${why||'Loaded'}: ${c.kind==='pax'?c.good:c.qty+'× '+c.good} → ${PLANETS[c.to].name} · ${fmtCr(c.pay)}`,'good'); if(!G.cargo.some(x=>x.to===G.target)) Game.setTarget(c.to,true); return true; },
 };
 const other=()=>{ let P; do{ P=pick(PLANETS); }while(World.nearest&&P===World.nearest&&PLANETS.length>1); return P; };
 const r5=v=>Math.round(v/5)*5;
@@ -188,7 +215,7 @@ const CALLS = [
              {t:'Refuse',sub:'They might be bluffing',fn:()=>{ if(Math.random()<0.6) Calls.reply(c,'Fine. We were bluffing. We do not even have a gun. It is a hairdryer.'); else { Fx.hull(-8,'Warning shot. It was not a hairdryer'); } }},
              {t:'Honk aggressively',fn:()=>{ Game.honk(); if(Math.random()<0.6) Calls.reply(c,'Aaah! A horn! Leaving! Leaving!'); else Fx.hull(-5,'They did not like the horn'); }}] },
   { ch:[0], who:'pilot', text:c=>`Excuse me. I am hitchhiking to ${c.P.name}. I can pay in money, or in a long story about my cousin. Mostly money.`, pre:c=>{ c.P=other(); c.pay=r5(rnd(150,260)); },
-    opts:c=>[{t:'Pick them up',sub:`1 unit · ${fmtCr(c.pay)}`,fn:()=>{ if(Fx.give({good:'Hitchhiker (sitting on a crate)',qty:1,to:c.P.idx,pay:c.pay,from:-1},'Passenger aboard')) Calls.reply(c,'Thank you. So. My cousin.'); }},
+    opts:c=>[{t:'Pick them up',sub:`A cabin seat · ${fmtCr(c.pay)}`,fn:()=>{ if(Fx.give({kind:'pax',good:`${c.name} (hitchhiker)`,sp:c.sp,seed:c.seed,qty:0,to:c.P.idx,pay:c.pay,from:-1},'Passenger aboard')) Calls.reply(c,'Thank you. I will sit in the back. So. My cousin.'); }},
              {t:'Ask about the cousin',fn:()=>{ Calls.reply(c,'Well, my cousin once ate a moon. A small one. Nobody was using it. That is the whole story.'); }},
              {t:'No passengers',fn:()=>{ Calls.reply(c,'Understood. I will continue standing in space. It is fine.'); }}] },
   { ch:[2], who:'port', text:c=>`This is an automated call about your ship's extended warranty. Press one to speak to an agent.`, ok:c=>!!c.near,

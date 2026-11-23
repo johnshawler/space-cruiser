@@ -14,6 +14,8 @@ const Cockpit = {
       rubber:std('#0c0c0d',0.95,0), leather:std(ck.leather,0.62,0.05,{bumpMap:bump,bumpScale:0.0008}), knob:std('#141416',0.42,0.25), alu:std('#b9bdc4',0.28,0.95),
       ptr:new THREE.MeshBasicMaterial({color:new THREE.Color(1.3,1.3,1.3)}), needle:new THREE.MeshBasicMaterial({color:HDR('#ff8a30',2.2)}),
       hit:new THREE.MeshBasicMaterial({visible:false}), wallDS:std(ck.frame,0.6,0.5,{side:THREE.DoubleSide}),
+      // screen covers ignore the lights, so the sun never flares on the displays
+      screenGlass:new THREE.MeshBasicMaterial({color:0xb8c8d8,transparent:true,opacity:0.035,depthWrite:false}),
       glass:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.22,transparent:true,opacity:0.06,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.6}),
       canopy:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.4,transparent:true,opacity:0.045,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:1.8}) };
     this.M=M;
@@ -23,7 +25,8 @@ const Cockpit = {
 
     /* ---- shell ---- */
     bx(2.1,0.04,2.2,M.panel,0,-0.97,-0.38); bx(0.05,0.74,2.1,M.frame,-1.0,-0.62,-0.38); bx(0.05,0.74,2.1,M.frame,1.0,-0.62,-0.38);
-    bx(2.1,0.78,0.05,M.frame,0,-0.62,-1.43); bx(2.1,1.8,0.05,M.frame,0,-0.1,0.68); bx(2.0,0.03,0.62,M.rubber,0,-0.238,-1.12);
+    bx(2.1,0.78,0.05,M.frame,0,-0.62,-1.43); bx(0.63,1.8,0.05,M.frame,-0.735,-0.1,0.68); bx(0.63,1.8,0.05,M.frame,0.735,-0.1,0.68); bx(0.84,0.18,0.05,M.frame,0,0.71,0.68); bx(2.0,0.03,0.62,M.rubber,0,-0.238,-1.12);
+    this.door=bx(0.84,1.59,0.035,M.panel,0,-0.175,0.665); this.doorT=0; for(const yy of [-0.6,0.2]) bx(0.5,0.04,0.012,M.trim,0,yy,0.645,this.door).position.set(0,yy+0.175,-0.02);
     bx(1.9,0.5,0.05,M.panel,0,-0.74,-0.98);
     const A1=s=>new V3(s*0.96,-0.23,-1.41), A2=s=>new V3(s*0.6,0.64,-0.45), B1=s=>new V3(s*1.0,-0.26,0.3), B2=s=>new V3(s*0.62,0.64,0.3);
     const th=ck.cage?0.085:0.06;
@@ -122,7 +125,7 @@ const Cockpit = {
       const bz=new THREE.Mesh(new THREE.TorusGeometry(r*1.03,r*0.065,10,44),M.alu); bz.position.z=0.006; add(bz,false,grp);
       const piv=new THREE.Group(); piv.position.z=0.008; grp.add(piv); const nd=new THREE.Mesh(new THREE.BoxGeometry(r*0.05,r*0.92,0.0015),M.needle); nd.position.y=r*0.33; piv.add(nd);
       const hub=new THREE.Mesh(cylZ(r*0.11,r*0.11,0.005,16),M.knob); hub.position.z=0.01; grp.add(hub);
-      const gl=new THREE.Mesh(new THREE.CircleGeometry(r,36),M.glass); gl.position.z=0.014; gl.renderOrder=3; grp.add(gl);
+      const gl=new THREE.Mesh(new THREE.CircleGeometry(r,36),M.screenGlass); gl.position.z=0.014; gl.renderOrder=3; grp.add(gl);
       return this.gauges[o.id]={piv,val:0,target:0};
     };
     const screen=(P,x,y,w,h,cw,ch,name,round)=>{
@@ -131,7 +134,7 @@ const Cockpit = {
       const [cx,cy]=P.xy(x,y); P.ctx.fillStyle='#050506'; if(round){ P.ctx.beginPath(); P.ctx.arc(cx,cy,w/2*P.px+10,0,7); P.ctx.fill(); } else P.ctx.fillRect(cx-w/2*P.px-10,cy-h/2*P.px-10,w*P.px+20,h*P.px+20);
       if(round){ const bz=new THREE.Mesh(new THREE.TorusGeometry(w/2*1.03,w*0.022,10,48),M.rubber); bz.position.set(x,y,0.006); add(bz,false,P.g); }
       else { const t=0.008; bx(w+2*t,t,0.012,M.rubber,x,y+h/2+t/2,0.004,P.g); bx(w+2*t,t,0.012,M.rubber,x,y-h/2-t/2,0.004,P.g); bx(t,h,0.012,M.rubber,x-w/2-t/2,y,0.004,P.g); bx(t,h,0.012,M.rubber,x+w/2+t/2,y,0.004,P.g); }
-      const gl=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),M.glass); gl.position.set(x,y,0.0065); gl.renderOrder=3; P.g.add(gl);
+      const gl=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),M.screenGlass); gl.position.set(x,y,0.0065); gl.renderOrder=3; P.g.add(gl);
       this.screenMats.push(mat); return this.screens[name]={cv,ctx:cv.getContext('2d'),tex,mat,w:cw,h:ch};
     };
 
@@ -231,8 +234,10 @@ const Cockpit = {
   },
 
   /* ---------- per-frame ---------- */
+  setDoor(v){ this.doorT=v; if(Sfx.ok()) Sfx.hiss(0.4,0.08); },
   update(dt, t){
     const s=G.ship, sys=G.sys, pw=sys.power?1:0, def=SHIPS[G.shipId]; this.frame++;
+    if(this.door) this.door.position.x=damp(this.door.position.x,this.doorT?0.86:0,9,dt);
     for(const id in this.ctrls){ const c=this.ctrls[id];
       if(c.type==='knob'){ let a=-c.angle(c.get()), d=a-c.cur; if(c.wrap){ d=((d+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; } c.cur+=d*(1-Math.exp(-dt*16)); c.rot.rotation.z=c.cur; }
       else if(c.type==='switch'){ const on=c.get(), amp=c.amp||0.5; c.piv.rotation.x=damp(c.piv.rotation.x,on?-amp:amp,18,dt); if(c.ledOn){ c.led.material.color.copy(c.ledOn).multiplyScalar(on?(0.7+0.3*Math.sin(t*9)):s.warpF>0?0.3:(Game.canWarp()===true?0.25+0.12*Math.sin(t*3):0.02)); } else c.led.material.color.setRGB(on&&pw?0.3:0.02,on&&pw?2.2:0.03,on&&pw?0.5:0.02); }
@@ -284,8 +289,8 @@ const Cockpit = {
       else if(T.ang<0.14){ msg='ALIGNED · PRESS Z TO WARP'; col='#7dffa8'; } else msg='TURN TO DESTINATION';
       if(Math.floor(t*2)%2||col!=='#7dffa8'){ x.fillStyle=col; x.font=`42px ${FONT_MONO}`; x.textAlign='center'; x.fillText(msg,W/2,H-12,W-24); }
     } else if(page===1){
-      x.textAlign='left'; let used=0; G.cargo.forEach(c=>used+=c.qty); x.fillStyle='#ffb454'; x.font=`600 48px ${FONT_DISP}`; const ht=`HOLD ${used} / ${def.hold}`; x.fillText(ht,18,132); const bx=18+x.measureText(ht).width+28;
-      x.fillStyle='#0a2a38'; x.fillRect(bx,100,W-bx-18,32); x.fillStyle='#ffb454'; x.fillRect(bx,100,(W-bx-18)*used/def.hold,32);
+      x.textAlign='left'; let used=0; G.cargo.forEach(c=>used+=c.qty); x.fillStyle='#ffb454'; x.font=`600 48px ${FONT_DISP}`; const ht=`HOLD ${used} / ${holdCap()}`; x.fillText(ht,18,132); const bx=18+x.measureText(ht).width+28;
+      x.fillStyle='#0a2a38'; x.fillRect(bx,100,W-bx-18,32); x.fillStyle='#ffb454'; x.fillRect(bx,100,(W-bx-18)*Math.min(1,used/holdCap()),32);
       x.font=`40px ${FONT_MONO}`;
       if(!G.cargo.length){ x.fillStyle='#5f8fa0'; x.fillText('Hold is empty.',18,214); x.fillText('Take a job at a port.',18,266,W-36); }
       const show=G.cargo.length>3?2:3;
@@ -357,7 +362,7 @@ const Cockpit = {
     x.textAlign='right'; const cw=Game.canWarp(); x.fillStyle=s.warp?'#6ab8ff':cw===true?'#7dffa8':'#ff6f61'; x.fillText(s.warp?'WARP ON':cw===true?'WARP RDY':'WARP LOCK',S.w-14,42); S.tex.needsUpdate=true; },
   drawClock(t){ const S=this.screens.clock, x=S.ctx, m=Math.floor(G.playTime/60), sc=Math.floor(G.playTime%60); x.fillStyle='#0a1a10'; x.fillRect(0,0,S.w,S.h); x.fillStyle='#8dff9a'; x.font=`44px ${FONT_MONO}`; x.textAlign='center'; x.textBaseline='middle';
     x.fillText('T+'+String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')+':'+String(sc).padStart(2,'0'),S.w/2,44); S.tex.needsUpdate=true; },
-  drawHold(){ const S=this.screens.hold, x=S.ctx; let used=0; G.cargo.forEach(c=>used+=c.qty); x.fillStyle='#160d04'; x.fillRect(0,0,S.w,S.h); x.fillStyle='#ffb454'; x.font=`44px ${FONT_MONO}`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(`HOLD ${used}/${SHIPS[G.shipId].hold}`,S.w/2,44); S.tex.needsUpdate=true; },
+  drawHold(){ const S=this.screens.hold, x=S.ctx; let used=0; G.cargo.forEach(c=>used+=c.qty); x.fillStyle='#160d04'; x.fillRect(0,0,S.w,S.h); x.fillStyle='#ffb454'; x.font=`44px ${FONT_MONO}`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(`HOLD ${used}/${holdCap()}`,S.w/2,44); S.tex.needsUpdate=true; },
   drawManifest(){
     const S=this.screens.manifest; if(!S) return; const x=S.ctx; x.fillStyle='#efe8d6'; x.fillRect(0,0,400,560); x.fillStyle='#222'; x.font=`700 30px ${FONT_DISP}`; x.textAlign='left'; x.textBaseline='alphabetic'; x.fillText('CARGO MANIFEST',24,50);
     x.strokeStyle='#222'; x.lineWidth=2; x.beginPath(); x.moveTo(24,62); x.lineTo(376,62); x.stroke(); x.font=`17px ${FONT_MONO}`;
@@ -385,11 +390,12 @@ const Cockpit = {
     const nd=e=>{ const r=cv.getBoundingClientRect(); return new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); };
     const showTip=(c,e)=>{ if(!c){ tip.hidden=true; cv.style.cursor=this.drag&&this.drag.look?'grabbing':'default'; return; } const v=c.get?c.get():null; tip.innerHTML=c.label+(c.fmt&&v!==null?' <b>'+c.fmt(v)+'</b>':c.type==='switch'&&v!==null?' <b>'+(v?'ON':'OFF')+'</b>':c.tip?' <b>'+c.tip+'</b>':'');
       tip.hidden=false; const r=cv.getBoundingClientRect(); tip.style.left=Math.min(e.clientX-r.left+16,r.width-tip.offsetWidth-8)+'px'; tip.style.top=(e.clientY-r.top+18)+'px'; cv.style.cursor='pointer'; };
-    cv.addEventListener('pointerdown',e=>{ this.lastType=e.pointerType; if(G.mode!=='flight'||e.button!==0) return; Sfx.init(); cv.focus(); const c=this.pick(nd(e));
+    cv.addEventListener('pointerdown',e=>{ this.lastType=e.pointerType; if(G.mode!=='flight'||e.button!==0) return; Sfx.init(); cv.focus(); const c=Walk.on?null:this.pick(nd(e));
       this.drag=c?{c,x:e.clientX,y:e.clientY,moved:0,acc:0,start:c.get?c.get():0}:{look:true,x:e.clientX,y:e.clientY,moved:0}; if(c&&c.type==='button'){ c.down=1.4; } try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
     cv.addEventListener('pointermove',e=>{ if(G.mode!=='flight'){ tip.hidden=true; return; } const d=this.drag;
-      if(!d){ const c=this.pick(nd(e)); this.hover=c; showTip(c,e); return; }
+      if(!d){ if(Walk.on){ tip.hidden=true; return; } const c=this.pick(nd(e)); this.hover=c; showTip(c,e); return; }
       const dx=e.clientX-d.x, dy=e.clientY-d.y; d.x=e.clientX; d.y=e.clientY; d.moved+=Math.abs(dx)+Math.abs(dy);
+      if(d.look&&Walk.on){ Walk.look(dx,dy); return; }
       if(d.look){ const H=G.head, k=0.0032*(H.fov/72); H.yawT=clamp(H.yawT-dx*k,-2.5,2.5); H.pitchT=clamp(H.pitchT-dy*k,-1.25,1.3); cv.style.cursor='grabbing'; return; }
       const c=d.c; if(c.type==='knob'||c.type==='lever'){ const delta=c.type==='lever'?-dy:(dx-dy);
         if(c.step){ d.acc+=delta; const stepPx=c.type==='lever'?14:24; while(Math.abs(d.acc)>=stepPx){ const dir=Math.sign(d.acc); d.acc-=dir*stepPx; this.stepCtrl(c,dir); } }
@@ -397,11 +403,11 @@ const Cockpit = {
     const up=e=>{ const d=this.drag; this.drag=null; if(!d||G.mode!=='flight') return; cv.style.cursor='default'; const touch=e.pointerType==='touch', tap=d.moved<(touch?12:5);
       if(touch){ clearTimeout(this.tipT); this.tipT=setTimeout(()=>{ tip.hidden=true; },1600);
         // finger double-tap on open space or a panel face leans in (or back out); taps on controls just work the control
-        if(!d.c&&tap){ const now=performance.now(), L=this.lastTap; if(L&&now-L.t<380&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<60){ this.lastTap=null; this.zoomAt(nd(e)); } else this.lastTap={t:now,x:e.clientX,y:e.clientY}; } }
+        if(!d.c&&tap&&!Walk.on){ const now=performance.now(), L=this.lastTap; if(L&&now-L.t<380&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<60){ this.lastTap=null; this.zoomAt(nd(e)); } else this.lastTap={t:now,x:e.clientX,y:e.clientY}; } }
       if(d.c&&tap){ const c=d.c; if(c.type==='switch'){ c.set(!c.get()); Sfx.clunk(); } else if(c.type==='button'){ Sfx.click(); c.press(); } else if(c.step) this.stepCtrl(c,e.shiftKey?-1:1); showTip(c,e); } };
     cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',()=>{ this.drag=null; });
     cv.addEventListener('wheel',e=>{ if(G.mode!=='flight') return; const c=this.pick(nd(e)); if(c){ e.preventDefault(); this.stepCtrl(c,e.deltaY<0?1:-1); showTip(c,e); } },{passive:false});
-    cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight'||this.lastType==='touch') return; this.zoomAt(nd(e)); });
+    cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight'||this.lastType==='touch'||Walk.on) return; this.zoomAt(nd(e)); });
     cv.addEventListener('pointerleave',()=>{ tip.hidden=true; });
   },
 };

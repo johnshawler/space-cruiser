@@ -23,13 +23,15 @@ Play it at https://johnshawler.com/long-haul or https://space-cruiser.johnshawle
 | F (hold) | Mining laser, aimed at a rock in your sights |
 | I | Cargo hold: see what is aboard and drop any of it |
 | B | Cargo scoop open / closed |
+| L | Leave the pilot's seat and walk around the ship (L again to sit) |
+| Walking | W A S D to move, Shift to hurry, drag or arrows to look, hold F to repair, F to chat |
 | 1 – 4 | Pick an answer when a message pops up |
 | Double-click | Lean in to any part of the cockpit; double-click again to lean back |
 | ? | Help |
 
 ### On an iPad or other touch screen
 
-On-screen controls appear by themselves: a steering stick on the left, and a throttle slider plus Warp, Auto, Mine (hold), Horn, Hail, Next, Map, Hold, Scoop and Help buttons on the right. Drag the view to look around, double-tap a panel to lean in, and double-tap open space to lean back. Radio chatter shows as a large caption at the top of the screen. The game fits both landscape and portrait, but landscape shows the whole cockpit.
+On-screen controls appear by themselves: a steering stick on the left, and a throttle slider plus Warp, Auto, Mine (hold), Horn, Hail, Next, Map, Hold, Walk, Scoop and Help buttons (while walking: Fix · Chat and Seat) on the right. Drag the view to look around, double-tap a panel to lean in, and double-tap open space to lean back. Radio chatter shows as a large caption at the top of the screen. The game fits both landscape and portrait, but landscape shows the whole cockpit.
 
 ## Ports
 
@@ -47,7 +49,25 @@ Every planet has its own mix of places. Each one sits in its own part of the por
 
 Locals stroll around the landing pad, stop to chat, push carts of crates about, and a marshal waves you in with glowing batons. Other ships land on and take off from the neighbouring pads. When you launch with new cargo, the hatch folds down into a ramp and two dockhands carry it aboard. Sometimes the stack falls over, or the last crate slides back down the ramp and bursts. Sometimes it all goes in without a scratch.
 
+## Your ship
+
+Get up from the pilot's seat (L) and walk around inside: a corridor, a passenger cabin with portholes, a galley with a bunk, the cargo hold (its crates match how full it is) and the engine room. The ship keeps flying while you walk, on autopilot if it is set.
+
+Things break. A coolant leak (fuel use up), a thruster misfire (top speed down), a blown fuse (radio dead), a jammed air scrubber (passengers cross, canopy fogs), a hull crack (hull slowly failing), a snapped cargo strap (cargo loses value faster). Each shows on screen and in the ship itself. Walk to it and hold F to fix it. It goes slowly while the ship is shaking, above throttle 5 or in warp.
+
+## Time and throttle
+
+Every delivery has an on-time window based on the distance. Deliver within it for full pay; after that the pay slides, down to 30%. Only flight time counts. Passengers work the same way.
+
+Full throttle is not always the answer:
+- Ports keep a 400 km/s inbound speed limit in their approach zone. Speeding gets you a fine when you land.
+- Throttle 9 and 10 heat the engines. Keep it up and something in the engine room breaks.
+- Fragile cargo (better paid) takes damage at throttle 8 and above, and when you turn hard at speed.
+- Repairs, the scoop and mining all want you going slowly.
+
 ## Side work
+
+- **Passengers.** Cantinas have people wanting a ride. They sit in your cabin (two to four seats, by ship), and you can go back and chat. Their fare drops if the trip runs long.
 
 - **Radio calls.** About every 30 seconds someone calls on the band you are tuned to, and most calls come with up to four answers (keys 1 – 4). The answers matter: fees, fines, tips, small jobs, fuel, reputation, races, hugs.
 - **Lost property.** Pilots who have lost something, and Trade Net bulletins about missing shipments, put a real object in space near the planet they name. Open the scoop, fly up to it slowly, and take it to its owner's world to get paid.
@@ -55,7 +75,7 @@ Locals stroll around the landing pad, stop to chat, push carts of crates about, 
 
 - **Distress calls.** Maydays come in mid-route. Answering costs time and fuel and might pay off, or it might be a pirate ambush. Ignoring one costs reputation.
 - **Asteroid mining.** Three asteroid fields are on the system map. Hold F on a rock to mine ore and sell it at an assay office (Scorchmaw, Sloshwell, Candara or Brrrindle). Slower than hauling, a little dangerous, and it never depends on a job board.
-- **Contraband.** High-paying, illegal cargo with a discovery roll at three points: loading, a customs stop on the way, and unloading. Bribes and a hidden compartment change the odds.
+- **Contraband.** High-paying, illegal cargo with a discovery roll at three points: loading, a customs stop on the way, and unloading. Bribes and a hidden compartment change the odds; the compartment also adds one unit of hold space.
 - **Escorts.** Protect a nervous VIP's ship to its destination. Keep close, scare off pirates with the horn, slow down for debris, and talk them down when they panic.
 
 Your reputation changes what jobs pay and how closely customs look at you.

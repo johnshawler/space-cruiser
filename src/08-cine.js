@@ -100,7 +100,7 @@ const Cine = {
   /* ---------- sequences ---------- */
   ui(on, title, sub){ document.body.classList.toggle('cine',on); $('skip').hidden=!on; if(on) $('keys').hidden=true; if(title){ $('cine-h').textContent=title; $('cine-p').textContent=sub; } $('cine-title').classList.toggle('on',!!title); },
   startLanding(P){
-    G.mode='landing'; this.mode='A'; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
+    Walk.exit(true); G.mode='landing'; this.mode='A'; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
     if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     this.buildSurface(P); World.space.add(this.model); this.model.visible=true; this.model.position.set(0,0,0); this.model.rotation.set(0,0,0); this.plasma.visible=false; this.setThrust(0,0);
     const s=G.ship, out=this.out=new V3().subVectors(s.pos,P.pos).normalize(); let up=new V3(0,1,0); if(Math.abs(out.y)>0.9) up.set(1,0,0);

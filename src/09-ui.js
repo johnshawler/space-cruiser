@@ -13,7 +13,7 @@ const UI = {
     this.render();
   },
   hidePort(){ $('port').hidden=true; },
-  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${d.hold}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true);
+  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${holdCap()}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true);
     $('port-foot').textContent=G.cargo.length?`${G.cargo.length} delivery${G.cargo.length>1?' contracts':' contract'} aboard`:'Hold empty. Take a job before you launch.'; },
   /* the shopkeeper's hello at the top of each place */
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp]; const box=el('div','venue'); box.appendChild(el('h3','',esc(d.name)));
@@ -41,15 +41,15 @@ const UI = {
       if(!G.jobs.length) body.appendChild(el('div','note','The board is empty. Fly somewhere else and come back.'));
       G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
         let h3, meta;
-        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · aboard the ${esc(j.vip.ship)} · needs no hold space`; }
+        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · rides in your passenger cabin · needs a free seat`; }
         else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>`; meta=`To <i>${esc(T.name)}</i> · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrols en route`; }
-        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · for ${esc(alienName(j.sp,j.seed))}`; }
+        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · full pay if delivered within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying`; }
         c.appendChild(el('div','mid',`<h3>${h3}</h3><p>${esc(j.note)}</p><div class="meta">${meta}</div>`));
         const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay)));
-        const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), fits=used+j.qty<=d.hold&&!busy; const b=el('button','btn',busy?'One at a time':fits?'Accept':'No room'); b.disabled=!fits;
+        const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat; const b=el('button','btn',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
         b.onclick=()=>{ if(j.kind==='contra'){ Customs.load(j,P); return; }
           if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100});
-          else G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true});
+          else G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile});
           G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
         r.appendChild(b); c.appendChild(r); body.appendChild(c); });
       if(G.cargo.length){ body.appendChild(el('div','note','In your hold:')); const L=el('div','ledger'); G.cargo.forEach(c=>{ L.appendChild(el('span','',`${c.kind==='escort'?esc(c.good):c.qty+'× '+esc(c.good)}${c.illegal?' (contraband)':''} → ${esc(Ev.cargoDest(c))}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); body.appendChild(L); }
@@ -62,7 +62,7 @@ const UI = {
         c.appendChild(el('div','mid',`<h3>${esc(sh.name)}${mine?'<span class="tag">YOURS</span>':''}</h3><p>${esc(sh.tag)}</p><div class="meta">Hold <i>${sh.hold}</i> · Cruise <i>${sh.cruise}</i> km/s · Warp <i>${(sh.warp/LS).toFixed(2)}c</i> · Tank <i>${sh.fuel}</i></div>`));
         const r=el('div','right'); r.appendChild(el('div','pay',mine?'—':fmtCr(net)));
         const pv=el('button','btn','Preview'); pv.onclick=()=>{ Sfx.click(); Cine.setPreview(i); }; r.appendChild(pv);
-        if(!mine){ const b=el('button','btn','Buy'); b.disabled=G.credits<net||used>sh.hold; b.onclick=()=>{ G.credits-=net; G.shipId=i; G.fuel=sh.fuel; G.paint=null; cash(); Cine.setPreview(null); Cine.setModel(i); Cine.dock(P); Cockpit.build(sh); UI.toast('You now own the '+sh.name,'good'); Game.genJobs(P.idx); Game.save(); this.render(); }; r.appendChild(b); }
+        if(!mine){ const b=el('button','btn','Buy'); b.disabled=G.credits<net||used>sh.hold+(G.up.hidden?1:0); b.onclick=()=>{ G.credits-=net; G.shipId=i; G.fuel=sh.fuel; G.paint=null; cash(); Cine.setPreview(null); Cine.setModel(i); Cine.dock(P); Cockpit.build(sh); UI.toast('You now own the '+sh.name,'good'); Game.genJobs(P.idx); Game.save(); this.render(); }; r.appendChild(b); }
         c.appendChild(r); body.appendChild(c); });
     } else if(this.tab==='garage'){
       body.appendChild(this.keeper(v));
@@ -78,7 +78,7 @@ const UI = {
       const f=Models.SCHEMES[Math.min(SHIPS[G.shipId].model,4)]; this.card(body,sw(f.hull,f.trim),'Factory finish','Strip it back to how it left the factory.','',fmtCr(100),G.paint?'Restore':'Applied',!G.paint||G.credits<100,()=>{ G.credits-=100; apply(null); cash(); });
     } else if(this.tab==='outfit'){
       body.appendChild(this.keeper(v));
-      const items={ hidden:()=>this.card(body,'🗄','Hidden compartment','A false floor for cargo that would rather not be found. Halves the chance of contraband being discovered, everywhere.','',G.up.hidden?'Installed':fmtCr(2500),G.up.hidden?'Installed':'Install',G.up.hidden||G.credits<2500,()=>{ G.credits-=2500; G.up.hidden=true; cash(); }),
+      const items={ hidden:()=>this.card(body,'🗄','Hidden compartment','A false floor for cargo that would rather not be found. Halves the chance of contraband being discovered, everywhere, and adds one unit of hold space underneath.','',G.up.hidden?'Installed':fmtCr(2500),G.up.hidden?'Installed':'Install',G.up.hidden||G.credits<2500,()=>{ G.credits-=2500; G.up.hidden=true; cash(); }),
         laser:()=>this.card(body,'⚡','Mining laser Mk II','Cuts rock nearly twice as fast and runs cooler, so it overheats less.','',G.up.laser>1?'Installed':fmtCr(1800),G.up.laser>1?'Installed':'Install',G.up.laser>1||G.credits<1800,()=>{ G.credits-=1800; G.up.laser=2; cash(); }) };
       v.items.forEach(k=>items[k]());
     } else if(this.tab==='assay'){
@@ -95,6 +95,14 @@ const UI = {
       const rr=el('div','right'); rr.appendChild(el('div','pay',fmtCr(30))); const b=el('button','btn','Buy'); b.disabled=G.credits<30;
       b.onclick=()=>{ G.credits-=30; let h; do{ h=Math.floor(Math.random()*PLANETS.length); }while(h===P.idx); G.hot=h; const sp=pick(locals); Sfx.speak(SPECIES[sp].voice,2.5,true); Venues.react('cash'); Game.genJobs(P.idx); Game.save(); this.render(); const bd=$('port-body'); bd.insertBefore(this.quote(sp,Math.floor(Math.random()*999),'Overheard · '+SPECIES[sp].name,fill(SPECIES[sp].rumor,{planet:PLANETS[h].name})),bd.children[2]||null); };
       rr.appendChild(b); c.appendChild(rr); body.appendChild(c);
+      // passengers looking for a ride
+      const seats=Cargo.seats(), taken=Cargo.pax().length; body.appendChild(el('div','note',`Passengers looking for a ride · your cabin has ${seats-taken} of ${seats} seats free. Their fares drop if the trip runs long.`));
+      (G.paxJobs||[]).forEach(j=>{ const T=PLANETS[j.to], pc=el('div','card'); pc.appendChild(portraitCanvas(j.sp,j.seed,128));
+        pc.appendChild(el('div','mid',`<h3>${esc(j.good)}<span class="tag">PASSENGER</span></h3><p>${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.</p><div class="meta">To <i>${esc(T.name)}</i> · full fare within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying</div>`));
+        const pr=el('div','right'); pr.appendChild(el('div','pay',fmtCr(j.pay))); const pb=el('button','btn',taken>=seats?'No seats':'Take them'); pb.disabled=taken>=seats;
+        pb.onclick=()=>{ G.cargo.push({kind:'pax',good:j.good,sp:j.sp,seed:j.seed,qty:0,to:j.to,pay:j.pay,from:P.idx}); G.paxJobs.splice(G.paxJobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
+        pr.appendChild(pb); pc.appendChild(pr); body.appendChild(pc); });
+      if(!(G.paxJobs||[]).length) body.appendChild(el('div','note','Nobody needs a ride right now. Someone always does eventually.'));
     }
   },
   icon(ch){ const cv=makeCanvas(128,128), x=cv.getContext('2d'); x.fillStyle='#0b1620'; x.fillRect(0,0,128,128); x.fillStyle='#ffb454'; x.font='72px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(ch,64,70); return cv; },
@@ -117,7 +125,7 @@ const Radio = {
   },
   update(dt){
     if(Comms.open){ if(this.cur) this.cur.t+=dt; return; } this.wait-=dt; if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6) this.cur=null; return; }
-    if(!G.sys.power||Dlg.open) return; if(this.wait<=0) this.next();
+    if(!G.sys.power||Dlg.open||Faults.has('fuse')) return; if(this.wait<=0) this.next();
   },
 };
 
