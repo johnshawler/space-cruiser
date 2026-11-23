@@ -53,7 +53,7 @@ const Loading = (() => {
       const rest=new V3(stack.x+1.7,0,stack.z+(k?1.4:-1.6)); F.position.copy(rest); F.rotation.y=-Math.PI/2;
       return {F,k,rest,st:'wait',wait:k?1.7:0.9,path:null,crate:null,act:null,actT:0,ph:0,onRamp:false}; });
 
-    const r=Math.random(), out=r<0.38?'ok':r<0.69?'tumble':'topple';
+    const r=Math.random(), out=api.force||(r<0.38?'ok':r<0.69?'tumble':'topple');
     S={P,D,a,ca,sa,root,door,hinge,model,ramp,foot,stack,crates,crew,n,out,inCount:0,lost:0,toppled:false,phys:[],parts:[],bits:[],fired:{},closeT:-1,t:0,finished:false,sub:''};
     const u=goods.reduce((s,g)=>s+g.qty,0);
     S.sub=goods.length===1?`${goods[0].qty}× ${goods[0].good}`:`${goods.length} contracts · ${u} units`;
@@ -158,7 +158,7 @@ const Loading = (() => {
     // physics and dust
     for(let i=S.phys.length-1;i>=0;i--){ const p=S.phys[i]; if(p.dead){ S.phys.splice(i,1); continue; } p.v.y-=GRAV*dt; p.o.position.addScaledVector(p.v,dt); p.o.rotation.x+=p.w.x*dt; p.o.rotation.y+=p.w.y*dt; p.o.rotation.z+=p.w.z*dt;
       const sink=sinkBelow(p.o,S.root.localToWorld(_fl.set(0,0,0)).y+0.004);
-      if(sink>0){ p.o.position.y+=sink; if(p.v.y<0){ if(Math.abs(p.v.y)>1.2){ p.hit++; if(p.onHit) p.onHit(p); } p.v.y=-p.v.y*0.3; p.v.x*=0.5; p.v.z*=0.5; p.w.multiplyScalar(0.45); }
+      if(sink>0){ p.o.position.y+=sink; if(p.v.y<0){ if(Math.abs(p.v.y)>1.2||!p.hit){ p.hit++; if(p.onHit) p.onHit(p); } p.v.y=-p.v.y*0.3; p.v.x*=0.5; p.v.z*=0.5; p.w.multiplyScalar(0.45); }
         // crates land flat-ish so they can be picked up again
         if(Math.abs(p.v.y)<0.6&&p.v.lengthSq()<0.3){ p.rest+=dt; if(p.rest>0.15){ p.o.rotation.x=Math.round(p.o.rotation.x/(Math.PI/2))*(Math.PI/2); p.o.rotation.z=Math.round(p.o.rotation.z/(Math.PI/2))*(Math.PI/2); S.phys.splice(i,1); const cr=S.crates.find(x=>x.phys===p); if(cr) cr.phys=null; } } } }
     for(let i=S.parts.length-1;i>=0;i--){ const p=S.parts[i]; p.age+=dt; if(p.age>=p.life){ S.root.remove(p.o); p.o.geometry.dispose(); p.o.material.dispose(); S.parts.splice(i,1); continue; }

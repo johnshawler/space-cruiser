@@ -28,6 +28,12 @@ function fill(tpl, o){ return tpl.replace(/\{(\w+)\}/g, (m,k)=> o[k]!==undefined
 /* how far an object dips below a floor at world height y, measured on its real (rotated) bounding box; 0 if it does not */
 const _flBox=new THREE.Box3();
 function sinkBelow(o, y){ o.updateMatrixWorld(true); _flBox.setFromObject(o); return Math.max(0,y-_flBox.min.y); }
+/* text that reads over anything (a bright planet, a sunlit sky): a dark plate behind it and a dark outline around the letters.
+   Uses the context's current font and textAlign; y is the baseline. */
+function plateText(x, str, cx, y, maxW, col, pad=10){ const w=Math.min(maxW||1e9,x.measureText(str).width), fs=parseInt(x.font.match(/(\d+)px/)[1],10), a=x.textAlign;
+  const left=a==='center'?cx-w/2:a==='right'||a==='end'?cx-w:cx; x.save(); x.globalAlpha=1; x.fillStyle='rgba(4,8,12,0.68)'; const r=Math.min(14,fs*0.3);
+  x.beginPath(); if(x.roundRect) x.roundRect(left-pad,y-fs*0.86,w+pad*2,fs*1.16,r); else x.rect(left-pad,y-fs*0.86,w+pad*2,fs*1.16); x.fill();
+  x.lineJoin='round'; x.lineWidth=Math.max(3,fs*0.14); x.strokeStyle='rgba(0,0,0,0.85)'; x.strokeText(str,cx,y,maxW); x.fillStyle=col; x.fillText(str,cx,y,maxW); x.restore(); }
 function makeCanvas(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
 function canvasTex(cv, srgb=true){ const t=new THREE.CanvasTexture(cv); if(srgb) t.encoding=THREE.sRGBEncoding; t.anisotropy=8; return t; }
 const FONT_MONO = '"Share Tech Mono","SF Mono",Menlo,Consolas,monospace';
