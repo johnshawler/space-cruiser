@@ -158,12 +158,14 @@ const Game = {
       if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return; const c=e.code;
       if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(c)) e.preventDefault();
       if(!$('help').hidden){ if(c==='Escape'||c==='Slash'||c==='F1'){ help(false); e.preventDefault(); } return; }
-      if(Dlg.open){ const dm=c.match(/^(?:Digit|Numpad)(\d)$/); if(dm){ const n=+dm[1]; if(n>=1&&n<=Dlg.opts.length) Dlg.choose(n-1); e.preventDefault(); return; } }
+      if(Dlg.open&&Dlg.mini&&(c==='Enter'||c==='NumpadEnter')){ Dlg.expand(); e.preventDefault(); return; }
+      if(Dlg.open&&!Dlg.mini){ const dm=c.match(/^(?:Digit|Numpad)(\d)$/); if(dm){ const n=+dm[1]; if(n>=1&&n<=Dlg.opts.length) Dlg.choose(n-1); e.preventDefault(); return; } }
       if(c==='F1'||(c==='Slash'&&e.shiftKey)){ if(G.mode!=='title'&&G.mode!=='boot'){ help(true); e.preventDefault(); } return; }
       if(G.mode==='landing'||G.mode==='takeoff'){ if(c==='Space'||c==='Enter'||c==='Escape') Cine.skip(); return; }
       if(c==='KeyM'&&!(e.metaKey||e.ctrlKey||e.altKey)){ if(!e.repeat&&(G.mode==='flight'||G.mode==='port')) SysMap.toggle(); return; }
       if(SysMap.open&&c==='Escape'){ SysMap.close(); return; }
       if(c==='KeyI'&&!e.repeat&&(G.mode==='flight'||G.mode==='port')){ Hold.toggle(); return; }
+      if(Specs.open&&c==='Escape'){ Specs.close(); return; }
       if(Hold.open&&c==='Escape'){ Hold.toggle(false); return; }
       if(c==='KeyB'&&!e.repeat&&G.mode==='flight'){ Scoop.toggle(); return; }
       if(c==='KeyL'&&!e.repeat&&G.mode==='flight'){ G.keys={}; Walk.toggle(); return; }
@@ -177,7 +179,7 @@ const Game = {
     });
     window.addEventListener('keyup',e=>{ G.keys[e.code]=false; });
     window.addEventListener('blur',()=>{ G.keys={}; });
-    $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
+    $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
       if(due.length&&!Dlg.open){ Dlg.show({icon:'📦',who:`${UI.P.port} · cargo depot`,text:`You still have ${due.length} deliver${due.length===1?'y':'ies'} for here. Leave without handing ${due.length===1?'it':'them'} over?`,
         opts:[{t:'Hand everything over first',fn:()=>{ UI.deliverAll(UI.P); }},{t:'Launch anyway',sub:'It stays in your hold',fn:()=>Cine.startTakeoff()}]}); return; }
       Cine.startTakeoff(); };

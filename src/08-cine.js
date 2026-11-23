@@ -122,7 +122,7 @@ const Cine = {
   dock(P){
     Loading.stop(); if(!this.surf||this.surf.P!==P) this.buildSurface(P); if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     if(this.mode!=='port') this.camInit=true; this.P=P; const m=this.model; this.surf.scene.add(m); m.visible=true; m.position.set(0,m.userData.gearH,0); m.rotation.set(0,0.6,0); this.plasma.visible=false; this.setThrust(0,0); this.surf.dustI=0;
-    this.mode='port'; this.fade=0; this.shake=0; this.ui(false); World.scenes.list=[{scene:this.surf.scene,camera:this.cam}]; if(!this.landed){ this.landed=true; Game.onLanded(P); }
+    this.mode='port'; this.fade=0; this.xf=null; this.shake=0; this.ui(false); World.scenes.list=[{scene:this.surf.scene,camera:this.cam}]; if(!this.landed){ this.landed=true; Game.onLanded(P); }
   },
   skip(){ if(this.mode==='A'||this.mode==='B'||this.mode==='C'){ this.fadeCol.setRGB(0,0,0); this.dock(this.P); this.fade=1; } else if(this.mode==='L'){ Loading.stop(); this.liftoff(); this.t=99; } else if(this.mode==='T'){ this.t=99; } },
   /* previewed ships park on the shipyard's showroom pad, and the port camera swings over to it */
@@ -164,14 +164,20 @@ const Cine = {
       if(t>1.4&&t<7) this.ui(true,P.name,P.port+' · '+SPECIES[P.species].name+' territory'); this.orbit2=a;
       if(t>=7.6){ this.dock(P); this.orbit=this.orbit2; }
     } else if(this.mode==='port'){
-      Models.animate(m,0,time); Venues.update(dt,time); const V=Venues.active, reg=this.region();
+      Models.animate(m,0,time);
+      // going to another shop (or to the showroom pad and back) is a quick fade to black and back, not a flight across the port:
+      // the old view holds while the screen darkens, the camera cuts at black, and the new view fades in
+      const Vc=Venues.current(), key=Vc?Vc.k+(this.preview&&Vc.show?':show':''):'';
+      if(Vc&&this.camP&&!this.camInit&&key!==this.camKey){ if(!this.xf||this.xf.cut) this.xf={t:this.xf?Math.min(0.3,this.fade*0.3):0,key}; else this.xf.key=key; this.fadeCol.setRGB(0,0,0); }
+      Venues.moving=!!(this.xf&&!this.xf.cut); Venues.update(dt,time); const V=Venues.active, reg=this.region();
       if(V){ const tg=Venues.cam(V,reg.w/reg.h,!!this.preview&&!!V.show);
-        if(this.camInit||!this.camP){ this.camInit=false; this.camP=cam.position.clone(); this.camL=new V3(0,m.userData.gearH+2,0); }
-        const k=1-Math.exp(-dt*2.2); this.camP.lerp(tg.pos,k); this.camL.lerp(tg.look,k); const far=this.camP.distanceTo(tg.pos); Venues.moving=far>2.5;
-        cam.up.set(0,1,0); cam.position.copy(this.camP); cam.position.y+=Math.min(140,far*0.28); cam.lookAt(this.camL); this.sunAt(this.camL);
+        if(this.camInit||!this.camP){ this.camInit=false; this.camP=tg.pos.clone(); this.camL=tg.look.clone(); this.camKey=key; this.fadeCol.setRGB(0,0,0); this.fade=1; }
+        const x=this.xf; if(x){ x.t+=dt; if(x.t>=0.3&&!x.cut){ x.cut=true; this.camP.copy(tg.pos); this.camL.copy(tg.look); this.camKey=x.key; } }
+        if(!x||x.cut){ const k=1-Math.exp(-dt*6); this.camP.lerp(tg.pos,k); this.camL.lerp(tg.look,k); }
+        cam.up.set(0,1,0); cam.position.copy(this.camP); cam.lookAt(this.camL); this.sunAt(this.camL);
         // frame the set in the part of the screen the port panel leaves open
         fov=2*Math.atan(Math.tan(tg.fov*Math.PI/360)*World.h/reg.h)*180/Math.PI; this.fovFixed=true; cam.setViewOffset(World.w,World.h,reg.ox,reg.oy,World.w,World.h);
-      } else { this.orbit+=dt*0.05; const a=this.orbit, R=88; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*R,8+2*Math.sin(time*0.2),Math.sin(a)*R); cam.lookAt(0,m.userData.gearH+2,0); fov=42; } this.fade=Math.max(0,this.fade-dt*1.5); this.surf.dustI=Math.max(0,this.surf.dustI-dt*0.3); if(this.preview){ this.preview.rotation.y+=dt*0.25; Models.animate(this.preview,0,time); }
+      } else { this.orbit+=dt*0.05; const a=this.orbit, R=88; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*R,8+2*Math.sin(time*0.2),Math.sin(a)*R); cam.lookAt(0,m.userData.gearH+2,0); fov=42; } if(this.xf){ const x=this.xf; this.fade=x.cut?Math.max(0,1-(x.t-0.3)/0.35):Math.max(this.fade,x.t/0.3); if(x.cut&&x.t>0.65) this.xf=null; } else this.fade=Math.max(0,this.fade-dt*1.5); this.surf.dustI=Math.max(0,this.surf.dustI-dt*0.3); if(this.preview){ this.preview.rotation.y+=dt*0.25; Models.animate(this.preview,0,time); }
     } else if(this.mode==='L'){
       Models.animate(m,0,time); const r=Loading.update(dt,t,time); cam.up.set(0,1,0); cam.position.copy(r.pos); cam.lookAt(r.look); fov=40; this.fade=Math.max(0,this.fade-dt*1.5);
       if(r.done){ this.camFrom={pos:r.pos.clone(),look:r.look.clone()}; this.liftoff(); }

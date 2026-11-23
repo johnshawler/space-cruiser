@@ -55,7 +55,7 @@ const Crowd = (() => {
         thrust(pad,u<1?0.45+0.55*(1-u):Math.max(0,1-(pad.t-D)*2)*0.45,t); Models.animate(m,0.1,t);
         if(u>=1&&!pad.td){ pad.td=true; const v=loud(m.position,0.6); if(v>0.03) Sfx.thump(v); } if(pad.t>D+0.6){ thrust(pad,0,t); pad.td=false; pad.st='parked'; pad.t=0; pad.wait=14+Math.random()*24; } } }
 
-    for(const a of L.folk){ const F=a.F; Folk.blink(F,t);
+    for(const a of L.folk){ const F=a.F; Folk.blink(F,t); if(F.userData.tent.length) Folk.ground(F,0);
       if(a.kind==='marshal'){ const w=Math.sin(t*2.4+a.ph); Folk.arms(F,[0.25,1.5+w*0.9],[0.25,1.5+w*0.9]); F.userData.rig.position.y=Math.abs(Math.sin(t*2.4))*0.04; continue; }
       if(a.kind==='chat'){ const me=a.mate, face=Math.atan2(me.F.position.x-F.position.x,me.F.position.z-F.position.z); F.rotation.y=ang(F.rotation.y,face,1-Math.exp(-dt*4));
         const turn=Math.floor((t+a.ph*0.1)/2.6)%2===(a.talk?0:1);

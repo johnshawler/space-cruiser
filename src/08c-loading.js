@@ -70,6 +70,7 @@ const Loading = (() => {
   const once=k=>{ if(S.fired[k]) return false; S.fired[k]=1; return true; };
   const say=line=>Cine.ui(true,'Loading cargo',line);
   const live=()=>G.mode==='takeoff'&&Cine.mode==='L';
+  const _fl=new V3();
   function toss(o,v,w,gy,onHit){ const p={o,v:v.clone(),w:w?w.clone():new V3(),gy,hit:0,onHit,rest:0}; S.phys.push(p); return p; }
   function puff(pos,col,n,spd,size,life){ for(let i=0;i<n;i++){ const m=new THREE.MeshBasicMaterial({color:C(col),transparent:true,opacity:0.6,depthWrite:false});
     const o=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),m); o.position.copy(pos); o.scale.setScalar(size*(0.6+Math.random()*0.6)); S.root.add(o);
@@ -149,13 +150,15 @@ const Loading = (() => {
       if(c.leg==='home'&&c.st==='walk'&&!c.path){ c.leg=null; c.st='done'; }
     }
 
+    { const fy=S.root.localToWorld(_fl.set(0,0,0)).y; for(const c of S.crew) Folk.ground(c.F,fy); }
     // a crate sliding back down the ramp, then flying off the end
     for(const x of S.crates){ if(!x.slide) continue; const sl=x.slide; sl.v+=GRAV*S.sa*0.8*dt; sl.s+=sl.v*dt; const p=S.ramp(Math.min(sl.s,L),-LANE); x.o.position.set(p.x,p.y+CS/2,p.z); x.o.rotation.set(0,0,-S.a); x.o.rotation.x+=Math.sin(t*30)*0.05;
       if(sl.s>=L){ x.slide=null; x.phys=toss(x.o,new V3(sl.v*S.ca*1.1,sl.v*0.35,rnd(-0.6,0.6)),new V3(rnd(-3,3),rnd(-2,2),-9),CS/2,p=>{ if(p.hit===1){ burst(x); p.dead=true; } }); } }
 
     // physics and dust
     for(let i=S.phys.length-1;i>=0;i--){ const p=S.phys[i]; if(p.dead){ S.phys.splice(i,1); continue; } p.v.y-=GRAV*dt; p.o.position.addScaledVector(p.v,dt); p.o.rotation.x+=p.w.x*dt; p.o.rotation.y+=p.w.y*dt; p.o.rotation.z+=p.w.z*dt;
-      if(p.o.position.y<p.gy){ p.o.position.y=p.gy; if(Math.abs(p.v.y)>1.2){ p.hit++; if(p.onHit) p.onHit(p); } p.v.y=-p.v.y*0.3; p.v.x*=0.5; p.v.z*=0.5; p.w.multiplyScalar(0.45);
+      const sink=sinkBelow(p.o,S.root.localToWorld(_fl.set(0,0,0)).y+0.004);
+      if(sink>0){ p.o.position.y+=sink; if(p.v.y<0){ if(Math.abs(p.v.y)>1.2){ p.hit++; if(p.onHit) p.onHit(p); } p.v.y=-p.v.y*0.3; p.v.x*=0.5; p.v.z*=0.5; p.w.multiplyScalar(0.45); }
         // crates land flat-ish so they can be picked up again
         if(Math.abs(p.v.y)<0.6&&p.v.lengthSq()<0.3){ p.rest+=dt; if(p.rest>0.15){ p.o.rotation.x=Math.round(p.o.rotation.x/(Math.PI/2))*(Math.PI/2); p.o.rotation.z=Math.round(p.o.rotation.z/(Math.PI/2))*(Math.PI/2); S.phys.splice(i,1); const cr=S.crates.find(x=>x.phys===p); if(cr) cr.phys=null; } } } }
     for(let i=S.parts.length-1;i>=0;i--){ const p=S.parts[i]; p.age+=dt; if(p.age>=p.life){ S.root.remove(p.o); p.o.geometry.dispose(); p.o.material.dispose(); S.parts.splice(i,1); continue; }

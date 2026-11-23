@@ -135,7 +135,7 @@ const Cockpit = {
       if(round){ const bz=new THREE.Mesh(new THREE.TorusGeometry(w/2*1.03,w*0.022,10,48),M.rubber); bz.position.set(x,y,0.006); add(bz,false,P.g); }
       else { const t=0.008; bx(w+2*t,t,0.012,M.rubber,x,y+h/2+t/2,0.004,P.g); bx(w+2*t,t,0.012,M.rubber,x,y-h/2-t/2,0.004,P.g); bx(t,h,0.012,M.rubber,x-w/2-t/2,y,0.004,P.g); bx(t,h,0.012,M.rubber,x+w/2+t/2,y,0.004,P.g); }
       const gl=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),M.screenGlass); gl.position.set(x,y,0.0065); gl.renderOrder=3; P.g.add(gl);
-      this.screenMats.push(mat); return this.screens[name]={cv,ctx:cv.getContext('2d'),tex,mat,w:cw,h:ch};
+      this.screenMats.push(mat); return this.screens[name]={cv,ctx:cv.getContext('2d'),tex,mat,w:cw,h:ch,mesh:m};
     };
 
     /* ---- centre dash ---- */
@@ -212,6 +212,8 @@ const Cockpit = {
     /* ---- translator display on the glare shield ---- */
     const PT=panel(1.0,0.16); PT.g.position.set(0,-0.118,-0.915); PT.g.rotation.set(-0.2,0,0);
     screen(PT,0,0,0.97,0.135,1940,270,'xl'); PT.done();
+    // a waiting radio call is answered by clicking the radio screen itself (it only counts as a control while a call waits)
+    reg({id:'xlcall',type:'screen',label:'Incoming call',tip:'click to answer',when:()=>Dlg.open&&Dlg.mini,press:()=>Dlg.expand()},[this.screens.xl.mesh]);
 
     /* ---- manifest clipboard ---- */
     { const cv=makeCanvas(400,560); const tex=canvasTex(cv); const board=new THREE.Group(); board.position.set(-0.81,-0.412,-0.32); board.rotation.y=0.18; g.add(board);
@@ -337,7 +339,7 @@ const Cockpit = {
   },
   drawXl(t){
     // Wide and low so it stays under the dead-ahead sightline. Words are drawn at twice their original size.
-    const S=this.screens.xl, x=S.ctx, W=S.w, H=S.h, c=Radio.cur; x.fillStyle='#04121a'; x.fillRect(0,0,W,H); x.textBaseline='alphabetic';
+    const S=this.screens.xl, x=S.ctx, W=S.w, H=S.h, c=Radio.cur, pend=Dlg.open&&Dlg.mini; x.fillStyle='#04121a'; x.fillRect(0,0,W,H); x.textBaseline='alphabetic';
     x.strokeStyle='#123846'; x.lineWidth=3; x.strokeRect(6,6,W-12,H-12); const live=c&&c.t<c.dur, PX=20, PY=16, PS=170, TX=PX+PS+30;
     if(!c){ for(let i=0;i<9;i++){ x.fillStyle='#1d5a70'; x.fillRect(PX+10+i*17,H/2+20,11,7); }
       x.textAlign='left'; x.fillStyle='#3a7388'; x.font=`60px ${FONT_MONO}`; x.fillText(G.sys.radioVol<0.02?'RADIO MUTED':'LISTENING'+'.'.repeat(1+Math.floor(t*2)%3),TX,H/2+22); S.tex.needsUpdate=true; return; }
@@ -350,10 +352,13 @@ const Cockpit = {
     const wrap=(str,fs)=>{ x.font=`${fs}px ${FONT_MONO}`; const lh=Math.round(fs*1.17), max=W-TX-26, out=[]; let line='', y=44+fs*0.87;
       for(const w of str.split(' ')){ const tl=line?line+' '+w:w; if(line&&x.measureText(tl).width>max){ out.push([line,y]); y+=lh; line=w; } else line=tl; }
       out.push([line,y]); return out; };
-    let fs=60; for(const f of [60,54,48,42]){ fs=f; const l=wrap(who+full,f); if(l[l.length-1][1]<=H-20) break; }
+    let fs=60; for(const f of [60,54,48,42]){ fs=f; const l=wrap(who+full,f); if(l[l.length-1][1]<=H-20-(pend?64:0)) break; }
     const lines=wrap(who+shown,fs); let left=who.length-1;
     lines.forEach((l,i)=>{ let s=l[0], xx=TX; if(left>0){ const head=s.slice(0,left); x.fillStyle=sp.col; x.fillText(head,xx,l[1]); xx+=x.measureText(head).width; s=s.slice(left); left-=head.length+1; }
       x.fillStyle=on?'#eaf6fa':'#ffb454'; x.fillText(s+(i===lines.length-1&&frac<1&&Math.floor(t*6)%2?'▌':''),xx,l[1]); });
+    // a call waiting for an answer: a flashing bar along the bottom of the screen, with the seconds left
+    if(pend){ const fl=Math.floor(t*2.5)%2, bw=W-TX-26; x.fillStyle=fl?'#62e2ff':'#0e3a4a'; x.fillRect(TX,H-72,bw,54); x.fillStyle=fl?'#04121a':'#62e2ff'; x.font=`700 40px ${FONT_DISP}`; x.textAlign='center'; x.textBaseline='middle';
+      x.fillText(`INCOMING CALL · ${TouchUI.on?'TAP':'CLICK'} THIS SCREEN OR PRESS ENTER TO ANSWER · ${Math.max(0,Math.ceil(Dlg.timer))}`,TX+bw/2,H-44,bw-30); x.textAlign='left'; x.textBaseline='alphabetic'; }
     S.tex.needsUpdate=true;
   },
   drawRadio(){ const S=this.screens.radio, x=S.ctx; x.fillStyle='#0a1a10'; x.fillRect(0,0,S.w,S.h); x.fillStyle='#8dff9a'; x.font=`54px ${FONT_MONO}`; x.textAlign='left'; x.textBaseline='middle'; x.fillText(`CH${G.sys.channel+1} ${CHANNELS[G.sys.channel]}`,12,34,S.w-24);
@@ -381,7 +386,7 @@ const Cockpit = {
     if(h.object.userData.glass){ aim(L.clone().sub(H.pos)); H.posT.set(0,0,0); H.fovT=24; H.zoomed='glass'; return; }
     const len=L.length(); H.posT.copy(L).multiplyScalar(Math.max(0,1-0.3/len)); aim(L); H.fovT=46; H.zoomed='panel'; H.zoomPt=L.clone();
   },
-  pick(nd){ this.ray.setFromCamera(nd,World.cockCam); const hs=this.ray.intersectObjects(this.hits,false); return hs.length?hs[0].object.userData.ctrl:null; },
+  pick(nd){ this.ray.setFromCamera(nd,World.cockCam); for(const h of this.ray.intersectObjects(this.hits,false)){ const c=h.object.userData.ctrl; if(!c.when||c.when()) return c; } return null; },
   stepCtrl(c, dir){
     if(c.type==='knob'||c.type==='lever'){ let v=c.get(); if(c.step){ v+=dir*c.step; if(c.wrap) v=(v+c.max+1)%(c.max+1); else v=clamp(v,c.min,c.max); } else v=clamp(v+dir*(c.max-c.min)*0.1,c.min,c.max); if(v!==c.get()){ c.set(v); Sfx.click(); } }
   },
@@ -404,7 +409,7 @@ const Cockpit = {
       if(touch){ clearTimeout(this.tipT); this.tipT=setTimeout(()=>{ tip.hidden=true; },1600);
         // finger double-tap on open space or a panel face leans in (or back out); taps on controls just work the control
         if(!d.c&&tap&&!Walk.on){ const now=performance.now(), L=this.lastTap; if(L&&now-L.t<380&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<60){ this.lastTap=null; this.zoomAt(nd(e)); } else this.lastTap={t:now,x:e.clientX,y:e.clientY}; } }
-      if(d.c&&tap){ const c=d.c; if(c.type==='switch'){ c.set(!c.get()); Sfx.clunk(); } else if(c.type==='button'){ Sfx.click(); c.press(); } else if(c.step) this.stepCtrl(c,e.shiftKey?-1:1); showTip(c,e); } };
+      if(d.c&&tap){ const c=d.c; if(c.type==='switch'){ c.set(!c.get()); Sfx.clunk(); } else if(c.type==='button'){ Sfx.click(); c.press(); } else if(c.type==='screen') c.press(); else if(c.step) this.stepCtrl(c,e.shiftKey?-1:1); showTip(c.type==='screen'?null:c,e); } };
     cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',()=>{ this.drag=null; });
     cv.addEventListener('wheel',e=>{ if(G.mode!=='flight') return; const c=this.pick(nd(e)); if(c){ e.preventDefault(); this.stepCtrl(c,e.deltaY<0?1:-1); showTip(c,e); } },{passive:false});
     cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight'||this.lastType==='touch'||Walk.on) return; this.zoomAt(nd(e)); });

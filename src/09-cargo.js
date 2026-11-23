@@ -237,15 +237,47 @@ const Calls = {
     return c; },
   /* place a call; returns false if none fits right now */
   ring(){
-    if(Dlg.open||Comms.open||Distress.cur||Customs.cur||Escort.hazard||Hold.open||SysMap.open) return false;
+    if(Walk.on||Dlg.open||Comms.open||Distress.cur||Customs.cur||Escort.hazard||Hold.open||SysMap.open) return false;
     const ch=G.sys.channel, fits=CALLS.filter(k=>k.ch.includes(ch)); if(!fits.length) return false;
     for(let tries=0;tries<8;tries++){ const call=pick(fits), c=this.ctx(call); if(call.pre) call.pre(c); if(call.ok&&!call.ok(c)) continue; if(call===this.lastCall) continue; this.lastCall=call;
       const text=call.text(c), opts=call.opts(c).map(o=>({t:o.t,sub:o.sub,disabled:o.disabled?o.disabled():false,fn:o.fn}));
       const alien=alienWords(c.sp,text,Math.floor(Math.random()*1e6)); Radio.cur={sp:c.sp,seed:c.seed,name:c.name,english:text,alien,t:0,dur:clamp(text.length*0.058,2.4,7.5)};
-      Dlg.show({sp:c.sp,seed:c.seed,tone:'radio',who:c.whoLine,text,timeout:18,opts,onTimeout:()=>{}}); return true; }
+      Dlg.show({sp:c.sp,seed:c.seed,tone:'radio',mini:true,who:c.whoLine,text,timeout:24,opts,onTimeout:()=>{}}); return true; }
     return false; },
   reply(c, text){ setTimeout(()=>{ if(G.mode==='flight'||G.mode==='port') Radio.play({sp:c.sp,seed:c.seed,name:c.name,english:text}); },350); },
   /* races: check on landing, and give up when time runs out */
   landed(P){ const b=G.bet; if(!b) return; G.bet=null; if(P.idx===b.to&&G.playTime<=b.until) setTimeout(()=>Fx.cr(b.stake,`You beat ${b.who} to ${P.name}`),1200); else if(P.idx===b.to) setTimeout(()=>Fx.cr(-b.stake,`${b.who} got there first`),1200); else G.bet=b; },
   update(){ const b=G.bet; if(b&&G.playTime>b.until){ G.bet=null; Fx.cr(-b.stake,`${b.who} won the race to ${PLANETS[b.to].name}`); } },
+};
+
+/* ---------- ship specs: one list of categories, used everywhere a ship's specs are shown ---------- */
+const Specs = {
+  open:false,
+  handling(t){ return t<0.85?'Sluggish':t<0.95?'Steady':t<1.05?'Nimble':'Agile'; },
+  /* the same categories, in the same order, for every ship */
+  rows(i){ const s=SHIPS[i]; return [
+    ['Cargo hold',`${s.hold} units`],
+    ['Passenger seats',`${SEATS[Math.min(s.model,SEATS.length-1)]}`],
+    ['Cruise speed',`${fmtNum(s.cruise)} km/s`],
+    ['Warp speed',`${(s.warp/LS).toFixed(2)}c`],
+    ['Fuel tank',`${s.fuel} units`],
+    ['Handling',`${this.handling(s.turn)} (${s.turn.toFixed(1)})`],
+    ['Price new',s.price?fmtCr(s.price):'Free with the job'] ]; },
+  /* the short form for shop cards: the same names, minus the price */
+  line(i){ return this.rows(i).slice(0,6).map(([k,v])=>`${k} <i>${esc(v)}</i>`).join(' · '); },
+  show(i){ i=i==null?G.shipId:i; const s=SHIPS[i], mine=i===G.shipId, box=$('specs-body'); this.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click();
+    $('specs-name').textContent=s.name; $('specs-tag').textContent=s.tag;
+    const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+    let html=dl('Specs',this.rows(i));
+    if(mine){ const up=[]; if(G.up.hidden) up.push('Hidden compartment (+1 hold)'); if(G.up.laser>1) up.push('Mining laser Mk II'); if(G.up.tow) up.push('Towing insurance');
+      html+=dl('Your ship now',[['Paint',G.paint?G.paint.name:'Factory finish'],['Hull',`${Math.round(G.hull)}%`],['Fuel',`${Math.round(G.fuel)} of ${s.fuel} units`],['Cargo aboard',`${holdUsed()} of ${holdCap()} units`],['Passengers aboard',`${Cargo.pax().length} of ${Cargo.seats()}`],['Upgrades',up.length?up.join(', '):'None'],['Trade-in value',fmtCr(Math.round(s.price/2))]]); }
+    box.innerHTML=html; },
+  close(){ if(!this.open) return; this.open=false; $('specs').hidden=true; if(Sfx.ok()) Sfx.click(); },
+  /* what a yard pays for your ship: half its price new, less what the hull damage would cost to fix */
+  value(){ const s=SHIPS[G.shipId]; return Math.max(0,Math.round((s.price/2-(100-G.hull)*5)/5)*5); },
+  /* does what is aboard fit in ship i? (fittings move across with you) */
+  fits(i){ const s=SHIPS[i]; return holdUsed()<=s.hold+(G.up.hidden?1:0)&&Cargo.pax().length<=SEATS[Math.min(s.model,SEATS.length-1)]; },
+  /* swap to ship i: a fresh ship, so the old one's damage, faults, grime, heat and paint stay with the old one */
+  change(i, P){ const s=SHIPS[i]; Walk.exit(true); G.shipId=i; G.fuel=s.fuel; G.paint=null; G.hull=100; G.faults=[]; G.sys.dirt=0; Throttle.heat=0; Throttle.hotTold=false;
+    Cine.setPreview(null); Cine.setModel(i); Cine.dock(P); Cockpit.build(s); Interior.shipId=-1; Faults.badge(); Game.genJobs(P.idx); Game.save(); },
 };

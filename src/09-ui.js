@@ -30,7 +30,7 @@ const UI = {
     Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); setTimeout(()=>Sfx.cash(),420); Venues.react('cash'); this.paidFx(sum); UI.toast(`Delivered ${due.length} · +${fmtCr(sum)}`,'good'); Cockpit.drawManifest(); Game.save(); this.render(); },
   /* the money floats up out of the panel */
   paidFx(n){ const f=el('div','paidfx','+'+fmtCr(n)); $('port').appendChild(f); setTimeout(()=>f.remove(),1900); },
-  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${holdCap()}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true);
+  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${holdCap()}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <button class="shiplink" id="ship-specs" title="Show this ship's specs">${esc(d.name)}</button></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true); $('ship-specs').onclick=()=>Specs.show();
     $('port-foot').textContent=G.cargo.length?`${G.cargo.length} delivery${G.cargo.length>1?' contracts':' contract'} aboard`:'Hold empty. Take a job before you launch.'; },
   /* the shopkeeper's hello at the top of each place */
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp]; const box=el('div','venue'); box.appendChild(el('h3','',esc(d.name)));
@@ -82,13 +82,16 @@ const UI = {
       body.appendChild(el('div','note guide',this.guide(P)));
     } else if(this.tab==='yard'){
       body.appendChild(this.keeper(v));
-      body.appendChild(el('div','note',`${esc(v.name)} sells ${v.ships.length===SHIPS.length?'every model':v.ships.length===1?'one model':v.ships.length+' models'}. Trade-in is half of what your current ship cost new. Cargo moves across for free. Preview parks the ship on the showroom pad next door.`));
+      const val=Specs.value();
+      body.appendChild(el('div','note',`${esc(v.name)} sells ${v.ships.length===SHIPS.length?'every model':v.ships.length===1?'one model':v.ships.length+' models'}. Your ship is worth <b>${fmtCr(val)}</b> here: half what it cost new, less any hull damage. You get a brand new ship with a full tank and a clean hull; cargo, passengers and fittings move across for free. Preview parks a ship on the showroom pad. Click a name for its specs.`));
+      // selling: you walk out with a free Rustbucket, because nobody gets stranded
+      { const can=G.shipId!==0&&Specs.fits(0); this.card(body,'🏷',`Sell your ${esc(d.name)}`,G.shipId===0?'Nobody will buy a Rustbucket. Three people have tried. One of them is still apologising.':can?`They give you ${fmtCr(val)} and the keys to a free Rustbucket Mk I, so you can still get home. The Rustbucket is not offended. It is used to this.`:`The Rustbucket you would leave in has room for ${SHIPS[0].hold+(G.up.hidden?1:0)} units and ${SEATS[0]} passengers. Deliver some of what is aboard first.`,'',G.shipId===0?'—':fmtCr(val),'Sell',!can,()=>{ const name=d.name; G.credits+=val; Specs.change(0,P); cash(); UI.toast(`Sold the ${name} for ${fmtCr(val)}. The Rustbucket rattles in a way that sounds pleased.`,'good'); }); }
       v.ships.forEach(i=>{ const sh=SHIPS[i]; const cv=makeCanvas(128,128), x=cv.getContext('2d'); x.fillStyle='#0b1620'; x.fillRect(0,0,128,128); x.fillStyle=sh.ck.trim; x.font=`700 76px ${FONT_DISP}`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(['I','II','III','IV','V'][i],64,68);
-        const net=Math.max(0,sh.price-Math.round(d.price/2)), mine=i===G.shipId; const c=el('div','card'); c.appendChild(cv);
-        c.appendChild(el('div','mid',`<h3>${esc(sh.name)}${mine?'<span class="tag">YOURS</span>':''}</h3><p>${esc(sh.tag)}</p><div class="meta">Hold <i>${sh.hold}</i> · Cruise <i>${sh.cruise}</i> km/s · Warp <i>${(sh.warp/LS).toFixed(2)}c</i> · Tank <i>${sh.fuel}</i></div>`));
+        const net=Math.max(0,sh.price-val), mine=i===G.shipId; const c=el('div','card'); c.appendChild(cv);
+        const mid=el('div','mid',`<h3><button class="shiplink">${esc(sh.name)}</button>${mine?'<span class="tag">YOURS</span>':''}</h3><p>${esc(sh.tag)}</p><div class="meta">${Specs.line(i)}</div>`); mid.querySelector('.shiplink').onclick=()=>Specs.show(i); c.appendChild(mid);
         const r=el('div','right'); r.appendChild(el('div','pay',mine?'—':fmtCr(net)));
         const pv=el('button','btn','Preview'); pv.onclick=()=>{ Sfx.click(); Cine.setPreview(i); }; r.appendChild(pv);
-        if(!mine){ const b=el('button','btn','Buy'); b.disabled=G.credits<net||used>sh.hold+(G.up.hidden?1:0); b.onclick=()=>{ G.credits-=net; G.shipId=i; G.fuel=sh.fuel; G.paint=null; cash(); Cine.setPreview(null); Cine.setModel(i); Cine.dock(P); Cockpit.build(sh); UI.toast('You now own the '+sh.name,'good'); Game.genJobs(P.idx); Game.save(); this.render(); }; r.appendChild(b); }
+        if(!mine){ const b=el('button','btn',Specs.fits(i)?'Buy':'Too small'); b.disabled=G.credits<net||!Specs.fits(i); b.onclick=()=>{ G.credits-=net; Specs.change(i,P); cash(); UI.toast('You now own the '+sh.name+'. New ship smell included.','good'); this.render(); }; r.appendChild(b); }
         c.appendChild(r); body.appendChild(c); });
     } else if(this.tab==='garage'){
       body.appendChild(this.keeper(v));
@@ -97,7 +100,7 @@ const UI = {
       this.card(body,'✦','Canopy wash',`Warp travel leaves the glass filthy. ${G.sys.dirt>0.3?'Yours is a disgrace.':'Yours is fine, honestly.'}`,'Or use the wipers. They sort of work.',fmtCr(20),'Wash',G.credits<20||G.sys.dirt<0.05,()=>{ G.credits-=20; G.sys.dirt=0; Sfx.hiss(1.5,0.2); Venues.react('clap'); });
     } else if(this.tab==='livery'){
       body.appendChild(this.keeper(v));
-      body.appendChild(el('div','note',`Paint goes on the ship you own now. ${G.paint?'Currently wearing: <b>'+esc(G.paint.name)+'</b>.':'Currently wearing the factory finish.'} Buying a new ship resets it.`));
+      { const n=el('div','note',`Paint goes on your <button class="shiplink">${esc(d.name)}</button>. ${G.paint?'Currently wearing: <b>'+esc(G.paint.name)+'</b>.':'Currently wearing the factory finish.'} Buying a new ship resets it. Click its name for its specs.`); n.querySelector('.shiplink').onclick=()=>Specs.show(); body.appendChild(n); }
       const sw=(hull,trim)=>{ const cv=makeCanvas(128,128), x=cv.getContext('2d'); x.fillStyle=hull; x.fillRect(0,0,128,128); x.fillStyle=trim; x.fillRect(0,78,128,22); x.fillRect(0,108,128,8); x.strokeStyle='rgba(0,0,0,.35)'; x.lineWidth=4; x.strokeRect(2,2,124,124); return cv; };
       const apply=(pt)=>{ G.paint=pt; Cine.setModel(G.shipId); Cine.dock(P); };
       v.paints.forEach(k=>{ const pt=PAINTS[k], on=G.paint&&G.paint.name===pt.name; this.card(body,sw(pt.hull,pt.trim),esc(pt.name)+(on?'<span class="tag">ON YOUR SHIP</span>':''),esc(pt.note),'',fmtCr(pt.price),on?'Applied':'Paint it',on||G.credits<pt.price,()=>{ G.credits-=pt.price; apply({name:pt.name,hull:pt.hull,trim:pt.trim}); cash(); UI.toast(`Your ship is now ${pt.name}`,'good'); }); });
@@ -150,7 +153,9 @@ const Radio = {
     if(m.english===this.last) return; this.last=m.english; this.play(m);
   },
   update(dt){
-    if(Comms.open){ if(this.cur) this.cur.t+=dt; return; } this.wait-=dt; if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6) this.cur=null; return; }
+    // away from the cockpit you hear nothing from the radio; only a passenger you are talking to shows up
+    if(Walk.on){ if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6) this.cur=null; } return; }
+    if(Comms.open){ if(this.cur) this.cur.t+=dt; return; } this.wait-=dt; if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6&&!(Dlg.open&&Dlg.mini)) this.cur=null; return; }
     if(!G.sys.power||Dlg.open||Faults.has('fuse')) return; if(this.wait<=0) this.next();
   },
 };

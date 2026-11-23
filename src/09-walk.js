@@ -9,9 +9,28 @@ const FAULT_DEFS = {
   coolant:{name:'Coolant leak', where:'engine room', effect:'fuel use up 70%', pos:[-2.25,0.15,16.2], fx:'steam'},
   thruster:{name:'Thruster misfire', where:'engine room', effect:'top speed down 40%', pos:[1.3,0.35,18.85], fx:'smoke'},
   fuse:{name:'Blown fuse', where:'galley', effect:'radio is dead', pos:[2.45,0.45,1.46], fx:'sparks'},
-  scrubber:{name:'Air scrubber jammed', where:'passenger cabin', effect:'passengers getting cross, canopy fogging', pos:[-2.6,0.95,5.74], fx:'haze'},
-  crack:{name:'Hull crack', where:'corridor', effect:'hull slowly failing', pos:[-0.86,0.55,5.6], fx:'frost'},
+  scrubber:{name:'Air scrubber jammed', where:'passenger cabin', effect:'passengers getting cross, canopy fogging', pos:[-3.0,0.95,5.74], fx:'haze'},
+  crack:{name:'Hull crack', where:'corridor', effect:'hull slowly failing', pos:[-0.86,0.55,5.15], fx:'frost'},
   strap:{name:'Cargo strap snapped', where:'cargo hold', effect:'cargo getting knocked about, value dropping faster', pos:[1.55,0.1,10.6], fx:'strap'},
+};
+/* what there is to say after a repair: a few for each fault, and some that fit anything */
+const FIX_LINES = {
+  any:['Nobody saw you hit it with the spanner.','The manual said to call a professional. You are the nearest thing for several light-seconds.','It was not the red wire. It was never the red wire.','You have one screw left over. The ship seems fine without it.','That should hold until it does not.','You did not fix it so much as persuade it.','The warranty expired at roughly the moment you touched it.','It is now the most reliable part of the ship. This is not a compliment to the ship.','You fixed it by turning it off and on again. Nobody needs to know.','The tape was meant to be temporary. So was the last tape.','You gave it a stern look and a firm twist. It was mostly the twist.','Somewhere a qualified engineer has just shuddered and does not know why.'],
+  coolant:['The puddle is now purely decorative.','The pipe has stopped hissing. It still looks cross.','You tightened it until it stopped, then one more for luck.'],
+  thruster:['The thruster coughs twice and settles, like an uncle after dinner.','It fires in the right order again. The order was the whole problem.','You cleared out something that may once have been a sandwich.'],
+  fuse:['The radio crackles back to life. You almost miss the quiet.','You replaced the fuse with a slightly less blown fuse.','The fuse box smells of toast. That is new, but it works.'],
+  scrubber:['The air no longer tastes of feet.','The scrubber hums again. It was full of fluff, as everything eventually is.','Fresh air. Well, air. Well, less of whatever that was.'],
+  crack:['The patch is ugly, airtight and mostly straight.','You sealed it with something from the galley. Best not to say what.','Space is back on the outside, where it belongs.'],
+  strap:['The knot is not in any manual. It is holding anyway.','The cargo has stopped sliding about and started sulking.','Strapped down tight. The crates look almost grateful.'],
+};
+/* where each repair spot's status screen and particles sit, relative to the spot, and which way it faces */
+const FAULT_SPOTS = {
+  coolant:{label:'COOLANT',bad:'LEAK',ry:Math.PI/2,scr:[-0.1,0.42,0],emit:[-0.03,0,0]},
+  thruster:{label:'THRUSTERS',bad:'MISFIRE',ry:Math.PI,scr:[-0.75,0.45,0.1],emit:[0,0.45,0.02]},
+  fuse:{label:'FUSES',bad:'BLOWN',ry:0,scr:[0,0.58,0.03],emit:[0,0.15,0.15]},
+  scrubber:{label:'AIR SCRUBBER',bad:'JAMMED',ry:Math.PI,scr:[-0.8,-0.12,0],emit:[0,0,-0.2]},
+  crack:{label:'HULL',bad:'BREACH',ry:Math.PI/2,scr:[0.005,-0.27,0],emit:[0.02,0,0]},
+  strap:{label:'CARGO STRAPS',bad:'SNAPPED',ry:-Math.PI/2,scr:[-0.05,0.55,0.2],emit:[0,0,0]},
 };
 const Faults = {
   t:45,
@@ -23,7 +42,7 @@ const Faults = {
   add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); const d=FAULT_DEFS[id];
     UI.toast(`⚠ ${d.name} in the ${d.where}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${TouchUI.on?'Tap Walk':'Press L'} to go and fix it.`,'warn');
     if(Sfx.ok()){ Sfx.beep(880); setTimeout(()=>Sfx.beep(880),220); } Interior.syncFaults(); this.badge(); },
-  fix(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(`Fixed: ${d.name.toLowerCase()}. Nobody saw you hit it with the spanner.`,'good'); Interior.syncFaults(); this.badge(); },
+  fix(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(`Fixed: ${d.name.toLowerCase()}. ${pick((FIX_LINES[id]||[]).concat(FIX_LINES.any))}`,'good'); Interior.syncFaults(); this.badge(); },
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
   badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(FAULT_DEFS[k].where)}</span></div>`).join(''); },
   update(dt){
@@ -210,20 +229,74 @@ const Interior = {
     for(const o of dead){ o.parent.remove(o); o.geometry.dispose(); }
     for(const [m,list] of buckets){ const geo=U.mergeBufferGeometries(list); list.forEach(x=>x.dispose()); if(geo) g.add(new THREE.Mesh(geo,m)); }
   },
+  /* Each repair spot is a proper fitting with two looks: broken (flashing red, visibly damaged, leaking or smoking) and
+     working (steady green, closed up, running). A small status screen beside it says which, in big letters. */
   faultFx(id){
-    const d=FAULT_DEFS[id], grp=new THREE.Group(); grp.position.set(...d.pos); this.group.add(grp);
-    const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.07,12,8),new THREE.MeshBasicMaterial({color:HDR('#ff3020',3)})); lamp.position.set(0,0.55,0); grp.add(lamp);
-    const parts=[], add=(n,col,size,opts)=>{ for(let i=0;i<n;i++){ const m=new THREE.Mesh(new THREE.SphereGeometry(size,8,6),new THREE.MeshBasicMaterial({color:opts&&opts.hdr?HDR(col,opts.hdr):C(col),transparent:true,opacity:0.45,depthWrite:false,blending:opts&&opts.add?THREE.AdditiveBlending:THREE.NormalBlending})); grp.add(m); parts.push({m,age:Math.random(),life:0.5+Math.random()*0.8}); } };
-    let strap=null, crack=null;
-    if(d.fx==='steam'){ add(14,'#e8f0f4',0.06); }
-    else if(d.fx==='smoke'){ add(10,'#5a5550',0.07); add(5,'#ff8a30',0.03,{hdr:3,add:true}); }
-    else if(d.fx==='sparks'){ add(10,'#ffd060',0.018,{hdr:4,add:true}); }
-    else if(d.fx==='haze'){ add(12,'#9aa0a6',0.09); }
-    else if(d.fx==='frost'){ add(12,'#dff4ff',0.03,{hdr:1.5}); const cv=makeCanvas(256,256), x=cv.getContext('2d'); x.strokeStyle='#050505'; x.lineWidth=5; x.beginPath(); let px=128,py=20; x.moveTo(px,py); for(let i=0;i<9;i++){ px+=(Math.random()-0.5)*60; py+=24; x.lineTo(px,py); } x.stroke(); x.lineWidth=2.5; for(let k=0;k<5;k++){ x.beginPath(); x.moveTo(128+(Math.random()-0.5)*40,40+k*40); x.lineTo(128+(Math.random()-0.5)*160,60+k*40); x.stroke(); }
-      crack=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.9),new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false})); crack.rotation.y=Math.PI/2; crack.position.x=0.03; grp.add(crack); }
-    else if(d.fx==='strap'){ strap=new THREE.Group(); strap.position.set(0,1.1,0); const s=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.0,0.02),new THREE.MeshStandardMaterial({color:C('#f2c14e'),roughness:0.7})); s.position.y=-0.5; strap.add(s); grp.add(strap); }
-    grp.visible=false; return {grp,lamp,parts,strap,crack,d}; },
-  syncFaults(){ if(!this.group) return; for(const id in this.fx) this.fx[id].grp.visible=Faults.has(id); },
+    const d=FAULT_DEFS[id], S=FAULT_SPOTS[id], M=this.M, grp=new THREE.Group(); grp.position.set(...d.pos); this.group.add(grp);
+    const ok=new THREE.Group(), bad=new THREE.Group(), em=new THREE.Group(); grp.add(ok); grp.add(bad); bad.add(em); em.position.set(...S.emit);
+    const std=(hex,r,m,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:r,metalness:m},ex||{}));
+    const B=(par,w,h,dd,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,dd),m); o.position.set(x,y,z); par.add(o); return o; };
+    const Cy=(par,r1,r2,h,m,x,y,z,seg=18)=>{ const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,seg),m); o.position.set(x,y,z); par.add(o); return o; };
+    const Sp=(par,r,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),m); o.position.set(x,y,z); par.add(o); return o; };
+    const decal=(par,w,h,draw,x,y,z,ry)=>{ const cv=makeCanvas(256,256), c=cv.getContext('2d'); draw(c); const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false})); o.position.set(x,y,z); o.rotation.y=ry; o.renderOrder=4; par.add(o); return o; };
+    const scorch=c=>{ const g=c.createRadialGradient(128,128,8,128,128,124); g.addColorStop(0,'rgba(10,8,6,.95)'); g.addColorStop(0.5,'rgba(20,16,12,.6)'); g.addColorStop(1,'rgba(20,16,12,0)'); c.fillStyle=g; c.fillRect(0,0,256,256); };
+    const yellow=std('#f2c14e',0.7,0.05), steel=std('#7d848c',0.45,0.75), black=std('#141414',0.95,0), rivet=std('#c8ccd0',0.3,0.9);
+    // the status plate: a little screen and a light, facing into the room
+    const face=new THREE.Group(); face.position.set(...S.scr); face.rotation.y=S.ry; grp.add(face);
+    B(face,0.7,0.27,0.03,M.dark,0.05,0,-0.016);
+    const cv=makeCanvas(256,104), tex=canvasTex(cv), scr=new THREE.Mesh(new THREE.PlaneGeometry(0.56,0.22),new THREE.MeshBasicMaterial({map:tex})); scr.position.z=0.001; face.add(scr);
+    const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.045,12,8),new THREE.MeshBasicMaterial({color:HDR('#40ff80',2)})); lamp.position.set(0.34,0,0.01); face.add(lamp);
+    const parts=[], add=(n,col,size,opts)=>{ for(let i=0;i<n;i++){ const m=new THREE.Mesh(new THREE.SphereGeometry(size,8,6),new THREE.MeshBasicMaterial({color:opts&&opts.hdr?HDR(col,opts.hdr):C(col),transparent:true,opacity:0.45,depthWrite:false,blending:opts&&opts.add?THREE.AdditiveBlending:THREE.NormalBlending})); em.add(m); parts.push({m,age:Math.random(),life:0.5+Math.random()*0.8}); } };
+    let strap=null, crack=null, fan=null, ribbon=null;
+    if(id==='coolant'){ // a flanged joint on the coolant pipe; broken, the flange has split and coolant is pooling on the floor
+      const fl=(par,z,h)=>{ const o=Cy(par,0.15,0.15,h,M.chrome,-0.03,0,z,20); o.rotation.x=Math.PI/2; for(let i=0;i<6;i++){ const a=i/6*6.283, b=Cy(par,0.018,0.018,h+0.03,steel,-0.03+Math.cos(a)*0.12,Math.sin(a)*0.12,z,8); b.rotation.x=Math.PI/2; } };
+      fl(ok,0,0.11); const tape=Cy(ok,0.1,0.1,0.26,std('#2e7fb8',0.6,0.1),-0.03,0,0,16); tape.rotation.x=Math.PI/2;
+      fl(bad,-0.08,0.05); fl(bad,0.08,0.05); const gs=Cy(bad,0.12,0.12,0.012,black,-0.03,-0.05,0.02,16); gs.rotation.set(Math.PI/2,0,0.5);
+      const pud=new THREE.Mesh(new THREE.CircleGeometry(0.45,28),std('#5fd8ff',0.05,0.3,{transparent:true,opacity:0.65})); pud.rotation.x=-Math.PI/2; pud.position.set(0.28,FLOOR-d.pos[1]+0.006,0.05); pud.scale.set(1.3,0.8,1); bad.add(pud);
+      for(let i=0;i<3;i++) Sp(bad,0.02,std('#5fd8ff',0.05,0.3),-0.03,-0.18-i*0.25,0.02);
+      add(14,'#e8f0f4',0.06); }
+    else if(id==='thruster'){ // the injector panel on the back wall; broken, its cover hangs open over a glowing coil and loose wires
+      B(grp,0.74,0.5,0.05,M.dark,0,0.45,0.085);
+      const coverM=std('#4f565f',0.45,0.7), cover=(par)=>{ const g=B(par,0.7,0.46,0.03,coverM,0,0,0); for(let i=0;i<4;i++) B(g,0.46,0.025,0.01,M.dark,0,-0.13+i*0.07,0.018); B(g,0.7,0.06,0.01,M.hazard,0,0.19,0.018); return g; };
+      const c1=cover(ok); c1.position.set(0,0.45,0.045); B(ok,0.5,0.03,0.01,new THREE.MeshBasicMaterial({color:HDR('#40ff80',1.6)}),0,0.65,0.065);
+      const hinge=new THREE.Group(); hinge.position.set(0.35,0.45,0.045); hinge.rotation.y=1.25; bad.add(hinge); const c2=cover(hinge); c2.position.set(-0.35,-0.04,0); c2.rotation.z=0.12;
+      const coil=Cy(bad,0.07,0.07,0.5,new THREE.MeshBasicMaterial({color:HDR('#ff6a20',2.4)}),0,0.45,0.06,16); coil.rotation.z=Math.PI/2;
+      for(let i=0;i<6;i++){ const w=Cy(bad,0.012,0.012,0.4+i*0.05,std(['#c0392b','#2e86c1','#f1c40f','#27ae60'][i%4],0.5,0.2),-0.2+i*0.08,0.3-i*0.03,0.02,6); w.rotation.set(0.5+i*0.2,0,0.8-i*0.3); }
+      decal(bad,1.0,0.7,scorch,0,0.85,0.07,Math.PI);
+      add(10,'#5a5550',0.07); add(5,'#ff8a30',0.03,{hdr:3,add:true}); }
+    else if(id==='fuse'){ // the galley fuse box; broken, the door hangs open, one fuse is charred black and sparking
+      B(ok,0.74,0.84,0.03,M.frame,0,0,0.13); B(ok,0.32,0.12,0.01,std('#d8d2c4',0.8,0),0,0.25,0.147); B(ok,0.04,0.16,0.04,M.chrome,0.3,0,0.15);
+      const hinge=new THREE.Group(); hinge.position.set(-0.37,0,0.13); hinge.rotation.y=-1.7; bad.add(hinge); B(hinge,0.74,0.84,0.03,M.frame,0.37,0,0); B(hinge,0.04,0.16,0.04,M.chrome,0.67,0,0.02);
+      B(bad,0.09,0.18,0.06,black,0,0.15,0.125); decal(bad,0.36,0.36,scorch,0,0.2,0.116,0);
+      add(10,'#ffd060',0.018,{hdr:4,add:true}); }
+    else if(id==='scrubber'){ // the cabin air scrubber; working, its fan spins and a ribbon flutters in the draught; jammed, it is stuffed with fluff
+      B(grp,0.8,0.46,0.18,std('#596069',0.5,0.6),0,0,-0.07); const rim=new THREE.Mesh(new THREE.TorusGeometry(0.17,0.022,8,28),M.chrome); rim.position.set(0,0,-0.165); grp.add(rim);
+      Cy(grp,0.17,0.17,0.01,M.dark,0,0,-0.158,24).rotation.x=Math.PI/2; for(let i=-2;i<=2;i++) B(grp,0.32,0.012,0.01,M.chrome,0,i*0.06,-0.172);
+      fan=new THREE.Group(); fan.position.set(0,0,-0.163); grp.add(fan); for(let i=0;i<4;i++){ const b=B(fan,0.06,0.3,0.008,std('#e6e9ec',0.35,0.4),0,0,0); b.rotation.z=i*Math.PI/4; }
+      ribbon=new THREE.Group(); ribbon.position.set(0,0.17,-0.18); ok.add(ribbon); B(ribbon,0.06,0.32,0.004,new THREE.MeshBasicMaterial({color:HDR('#3fe07a',1.2)}),0,-0.16,0);
+      const fluff=std('#8a867e',1,0); for(let i=0;i<14;i++) Sp(bad,0.05+((i*7)%5)*0.012,fluff,Math.cos(i*2.4)*0.12,Math.sin(i*2.4)*0.12,-0.2-((i*3)%4)*0.012);
+      for(let i=0;i<3;i++){ const k=Sp(bad,0.06,fluff,-0.2+i*0.18,-0.3-(i%2)*0.08,-0.2); k.scale.set(1,1.6,1); }
+      B(bad,0.07,0.07,0.02,std('#c0392b',0.5,0.2),0.3,0.16,-0.165);
+      add(12,'#9aa0a6',0.09); }
+    else if(id==='crack'){ // the corridor wall; cracked and frosting over, or covered by a riveted patch plate once it is fixed
+      const pl=B(ok,0.025,0.46,0.56,steel,0.012,0,0); for(let i=0;i<10;i++){ const a=i/10*6.283; Sp(ok,0.016,rivet,0.03,Math.sin(a)*0.19,Math.cos(a)*0.24); } B(ok,0.004,0.05,0.62,yellow,0.026,0.2,0).rotation.x=0.35;
+      const cv2=makeCanvas(256,256), x2=cv2.getContext('2d'); x2.strokeStyle='#050505'; x2.lineWidth=5; x2.beginPath(); let px=128,py=20; x2.moveTo(px,py); for(let i=0;i<9;i++){ px+=(Math.random()-0.5)*60; py+=24; x2.lineTo(px,py); } x2.stroke(); x2.lineWidth=2.5; for(let k=0;k<5;k++){ x2.beginPath(); x2.moveTo(128+(Math.random()-0.5)*40,40+k*40); x2.lineTo(128+(Math.random()-0.5)*160,60+k*40); x2.stroke(); }
+      decal(bad,0.8,0.7,c=>{ const g=c.createRadialGradient(128,128,10,128,128,124); g.addColorStop(0,'rgba(235,248,255,.85)'); g.addColorStop(0.6,'rgba(220,240,255,.35)'); g.addColorStop(1,'rgba(220,240,255,0)'); c.fillStyle=g; c.fillRect(0,0,256,256); },0.022,0,0,Math.PI/2);
+      crack=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.9),new THREE.MeshBasicMaterial({map:canvasTex(cv2),transparent:true,depthWrite:false})); crack.rotation.y=Math.PI/2; crack.position.x=0.03; crack.renderOrder=5; bad.add(crack);
+      add(12,'#dff4ff',0.03,{hdr:1.5}); }
+    else if(id==='strap'){ // the tie-down straps across the crate stacks; taut with a closed ratchet, or snapped and dangling with the ratchet on the floor
+      const band=std('#ff5a2a',0.6,0.05);
+      for(const y of [0.9,0.3]){ B(ok,0.02,0.08,2.6,band,0.35,y,0); B(ok,0.09,0.14,0.22,M.chrome,0.33,y,(y>0.5?-0.4:0.5)); for(const z of [-1.3,1.3]) B(ok,0.06,0.06,0.06,M.dark,0.35,y,z); }
+      strap=new THREE.Group(); strap.position.set(0.35,1.0,-0.45); bad.add(strap); B(strap,0.02,1.0,0.08,band,0,-0.5,0);
+      const fl=B(bad,1.1,0.006,0.08,band,-0.1,FLOOR-d.pos[1]+0.005,-0.9); fl.rotation.y=0.7; B(bad,0.13,0.09,0.22,M.chrome,-0.25,FLOOR-d.pos[1]+0.05,-1.35).rotation.y=0.4;
+      B(bad,0.02,0.08,0.9,band,0.35,0.3,0.9); B(bad,0.02,0.08,0.5,band,0.35,0.9,1.05); }
+    ok.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } }); bad.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
+    const f={grp,ok,bad,lamp,scr,cv,tex,parts,strap,crack,fan,ribbon,d,S}; this.drawSpot(f,false); return f; },
+  /* the status screen beside each repair spot */
+  drawSpot(f, broken){ const x=f.cv.getContext('2d'); x.fillStyle='#050a0c'; x.fillRect(0,0,256,104); x.textAlign='center'; x.textBaseline='middle';
+    x.fillStyle=broken?'#ff9a8a':'#9ff0b8'; x.font=`600 24px ${FONT_MONO}`; x.fillText(f.S.label,128,22,240);
+    x.fillStyle=broken?'#ff5a4a':'#5dff8f'; x.font=`700 52px ${FONT_DISP}`; x.fillText(broken?f.S.bad:'OK',128,70,240); f.tex.needsUpdate=true; },
+  syncFaults(){ if(!this.group) return; for(const id in this.fx){ const f=this.fx[id], has=Faults.has(id); if(f.broken!==has){ f.broken=has; f.bad.visible=has; f.ok.visible=!has; this.drawSpot(f,has); } } },
   /* crates in the hold match how full it is; passengers sit in the cabin */
   syncCargo(){
     const used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*28), key=n+'';
@@ -238,7 +311,10 @@ const Interior = {
         Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
   update(dt, t){
     const g=this.group; g.quaternion.copy(G.ship.quat);
-    for(const id in this.fx){ const f=this.fx[id]; if(!f.grp.visible) continue; f.lamp.material.color.setScalar((Math.sin(t*8)>0?3:0.2)).multiply(new THREE.Color(1,0.12,0.06));
+    for(const id in this.fx){ const f=this.fx[id];
+      // working: a steady green light, the scrubber fan turning and its ribbon blowing out into the room
+      if(!f.broken){ f.lamp.material.color.setRGB(0.35,1.9,0.7); f.scr.material.color.setScalar(1); if(f.fan) f.fan.rotation.z+=dt*16; if(f.ribbon) f.ribbon.rotation.x=0.9+Math.sin(t*19)*0.25; continue; }
+      const on=Math.sin(t*8)>0; f.lamp.material.color.setRGB(on?3:0.3,on?0.36:0.04,on?0.18:0.02); f.scr.material.color.setScalar(on?1:0.55);
       for(const p of f.parts){ p.age+=dt; if(p.age>p.life){ p.age=0; p.m.position.set(0,0,0); p.v=new V3((Math.random()-0.5)*0.6,Math.random()*0.8,(Math.random()-0.5)*0.6); if(f.d.fx==='steam') p.v.set(1.6+Math.random(),0.3+Math.random()*0.5,(Math.random()-0.5)*0.6); if(f.d.fx==='haze') p.v.set((Math.random()-0.5)*0.3,-0.25,-0.5-Math.random()*0.3); if(f.d.fx==='frost') p.v.set(0.6+Math.random()*0.4,(Math.random()-0.5)*0.6,(Math.random()-0.5)*0.6); if(f.d.fx==='sparks') p.v.set(0.4+Math.random()*1.2,Math.random()*1.5,(Math.random()-0.5)*1.4).multiplyScalar(1); }
         if(!p.v) continue; if(f.d.fx==='sparks') p.v.y-=dt*4; if(f.d.fx==='frost') p.m.position.addScaledVector(p.v,-dt*0.0); p.m.position.addScaledVector(p.v,dt); const k=p.age/p.life; p.m.material.opacity=0.5*(1-k); p.m.scale.setScalar(f.d.fx==='sparks'?1:1+k*1.6);
         if(f.d.fx==='frost'){ p.m.position.copy(p.v).multiplyScalar((1-k)*0.8); } }
@@ -262,20 +338,21 @@ const Walk = {
   atDoor(){ return this.pos.z<2.1&&Math.abs(this.pos.x)<0.75; },
   toggle(){ if(!this.on){ this.enter(); return; } if(this.atDoor()) this.exit(); else { UI.toast(`Walk back to the cockpit door to sit down. It is at the front end of the corridor.`,'warn'); Sfx.deny(); } },
   enter(){
-    if(G.mode!=='flight'||this.on) return; if(!Interior.group||Interior.shipId!==G.shipId) Interior.build();
+    if(G.mode!=='flight'||this.on) return; if(Dlg.open){ UI.toast('Someone is waiting on the radio. Answer them before you get up.','warn'); Sfx.deny(); return; }
+    if(!Interior.group||Interior.shipId!==G.shipId) Interior.build(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,6);
     Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
     this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
     Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); $('reticle').hidden=false; Sfx.clunk();
     if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat at the cockpit door to sit down.':'Walking. W A S D to move, Q and E to turn, drag to look, hold F to fix things, L at the cockpit door to sit down.','good'); }
     TouchUI.sync&&TouchUI.sync(true); },
   exit(instant){
-    if(!this.on) return; this.on=false; document.body.classList.remove('walking'); $('reticle').hidden=true; $('prompt').hidden=true; Cockpit.setDoor(0);
+    if(!this.on) return; this.on=false; Radio.cur=null; setTimeout(()=>Dlg.flush(),900); document.body.classList.remove('walking'); $('reticle').hidden=true; $('prompt').hidden=true; Cockpit.setDoor(0);
     if(Interior.group) Interior.group.visible=false; G.head.pos.set(0,0,0); G.head.yaw=G.head.yawT=0; G.head.pitch=G.head.pitchT=G.head.basePitch; if(!instant) Sfx.clunk(); TouchUI.sync&&TouchUI.sync(true); },
   look(dx, dy){ this.yaw-=dx*0.0042; this.pitch=clamp(this.pitch-dy*0.0042,-1.2,1.2); },
   update(dt, t){
     if(!this.on) return; const K=G.keys, s=G.ship;
     if(K.ArrowLeft||K.KeyQ) this.yaw+=dt*1.9; if(K.ArrowRight||K.KeyE) this.yaw-=dt*1.9; if(K.ArrowUp) this.pitch=Math.min(1.2,this.pitch+dt*1.4); if(K.ArrowDown) this.pitch=Math.max(-1.2,this.pitch-dt*1.4);
-    let f=(K.KeyW?1:0)-(K.KeyS?1:0), r=(K.KeyD?1:0)-(K.KeyA?1:0); if(!f&&!r){ f=TouchUI.stick.y; r=TouchUI.stick.x; }
+    let f=(K.KeyW?1:0)-(K.KeyS?1:0), r=(K.KeyD?1:0)-(K.KeyA?1:0); if(!f&&!r){ f=TouchUI.stick.y; r=TouchUI.stick.x; } if(f<0) f*=0.5; // nobody walks backwards quickly without falling over something
     const sp=(K.ShiftLeft||K.ShiftRight?4.4:2.8), fx=-Math.sin(this.yaw), fz=-Math.cos(this.yaw), rx=Math.cos(this.yaw), rz=-Math.sin(this.yaw);
     let mx=(fx*f+rx*r)*sp*dt, mz=(fz*f+rz*r)*sp*dt; const p=this.pos;
     if(Interior.inside(p.x+mx,p.z+mz)){ p.x+=mx; p.z+=mz; } else if(Interior.inside(p.x+mx,p.z)) p.x+=mx; else if(Interior.inside(p.x,p.z+mz)) p.z+=mz;

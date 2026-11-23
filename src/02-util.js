@@ -20,10 +20,14 @@ function vnoise(x,y,seed){
 function fbm2(x,y,seed,oct=5){ let a=0.5,s=0,f=1; for(let i=0;i<oct;i++){ s+=a*vnoise(x*f,y*f,seed+i*17); a*=0.5; f*=2.03; } return s; }
 
 function fmtDist(d){ if(d<1000) return Math.round(d)+' km'; if(d<100000) return (d/1000).toFixed(1)+'k km'; return (d/LS).toFixed(2)+' ls'; }
+function fmtNum(n){ return Math.round(n).toLocaleString('en-US'); }
 function fmtCr(n){ return Math.round(n).toLocaleString('en-US')+' cr'; }
 function fill(tpl, o){ return tpl.replace(/\{(\w+)\}/g, (m,k)=> o[k]!==undefined ? o[k] : m); }
 
 /* ---------- canvas + textures ---------- */
+/* how far an object dips below a floor at world height y, measured on its real (rotated) bounding box; 0 if it does not */
+const _flBox=new THREE.Box3();
+function sinkBelow(o, y){ o.updateMatrixWorld(true); _flBox.setFromObject(o); return Math.max(0,y-_flBox.min.y); }
 function makeCanvas(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
 function canvasTex(cv, srgb=true){ const t=new THREE.CanvasTexture(cv); if(srgb) t.encoding=THREE.sRGBEncoding; t.anisotropy=8; return t; }
 const FONT_MONO = '"Share Tech Mono","SF Mono",Menlo,Consolas,monospace';
@@ -104,7 +108,11 @@ function drawGlyphs(ctx, str, x, y, h, spKey, color, maxW){
 }
 
 /* ---------- alien portraits (100x100 design space) ---------- */
-function drawAlien(ctx, spKey, seed, x, y, s){
+/* portraits are rendered from the same 3D models you see in port (Portrait, in the venues file); this flat drawing is only a fallback */
+function drawAlien(ctx, spKey, seed, x, y, s){ const im=typeof Portrait!=='undefined'&&Portrait.get(spKey,seed); if(!im){ drawAlien2D(ctx,spKey,seed,x,y,s); return; }
+  ctx.save(); ctx.translate(x,y); ctx.scale(s/100,s/100); ctx.beginPath(); ctx.rect(0,0,100,100); ctx.clip(); ctx.drawImage(im,0,0,100,100);
+  ctx.fillStyle='rgba(120,220,255,.05)'; for(let i=0;i<100;i+=4) ctx.fillRect(0,i,100,1.5); ctx.restore(); }
+function drawAlien2D(ctx, spKey, seed, x, y, s){
   const sp=SPECIES[spKey], r=mulberry32((seed|0)+11); ctx.save(); ctx.translate(x,y); ctx.scale(s/100,s/100);
   ctx.beginPath(); ctx.rect(0,0,100,100); ctx.clip();
   const bg=ctx.createLinearGradient(0,0,0,100); bg.addColorStop(0,'#0a1620'); bg.addColorStop(1,'#1b3442'); ctx.fillStyle=bg; ctx.fillRect(0,0,100,100);

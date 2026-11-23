@@ -103,7 +103,7 @@ const Folk = (() => {
     U.mouth={g,arc,o,s}; return g; }
   function blush(parent,x,y,z,r){ for(const sx of [-1,1]){ const b=sph(r,blushM,sx*x,y,z,16,10); b.scale.set(1,0.6,0.35); parent.add(b); } }
   function limb(parent,x,y,z,len,r,m,hand,foot){ const p=new THREE.Group(); p.position.set(x,y,z); p.add(cyl(r,r*0.85,len,m,0,-len/2,0,14)); p.add(sph(r,m,0,0,0,14,10));
-    if(hand) p.add(sph(r*1.45,hand,0,-len,0,20,14)); if(foot){ const f=sph(r*1.55,foot,0,-len,r*0.7,20,14); f.scale.set(1,0.55,1.45); p.add(f); } p.userData.len=len; parent.add(p); return p; }
+    if(hand) p.add(sph(r*1.45,hand,0,-len,0,20,14)); if(foot){ const f=sph(r*1.55,foot,0,-len,r*0.7,20,14); f.scale.set(1,0.55,1.45); p.add(f); p.userData.foot=f; } p.userData.len=len; parent.add(p); return p; }
   const phys=(hex,o)=>new THREE.MeshPhysicalMaterial(Object.assign({color:C(hex),roughness:0.42,metalness:0,clearcoat:0.45,clearcoatRoughness:0.35},o||{}));
 
   function make(sp, seed, scale=1){
@@ -113,8 +113,8 @@ const Folk = (() => {
       :K==='fluffy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0}):phys(hsl(S.lit));
     if(K==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
     const dark=phys(hsl(S.lit*0.55),{clearcoat:0.2}), light=phys(hsl(Math.min(92,S.lit*1.28)),{clearcoat:0.3}), browM=new THREE.MeshStandardMaterial({color:C(hsl(S.lit*0.32,Math.min(60,S.sat))),roughness:0.7});
-    const F=new THREE.Group(), rig=new THREE.Group(); F.add(rig); const head=new THREE.Group(); rig.add(head);
-    const U={rig,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
+    const F=new THREE.Group(), lift=new THREE.Group(), rig=new THREE.Group(); F.add(lift); lift.add(rig); const head=new THREE.Group(); rig.add(head);
+    const U={rig,lift,low0:0,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
     const iris=IRIS[Math.floor(r()*IRIS.length)];
     switch(K){
       case 'blob': { const b=sph(0.62,body,0,0.7,0); b.scale.set(1,1.18,1); rig.add(b); head.position.y=0.75;
@@ -158,7 +158,8 @@ const Folk = (() => {
         for(let i=0;i<8;i++){ const a=r()*6.28, e=0.3+r()*1.0; const dt=sph(0.07+r()*0.05,light,Math.cos(a)*Math.sin(e)*0.64,0.9+Math.cos(e)*0.64*0.62,Math.sin(a)*Math.sin(e)*0.64,14,10); dt.scale.y=0.5; rig.add(dt); }
         head.position.y=0.56; eye(head,U,-0.12,0.1,0.26,0.12,cream,iris); eye(head,U,0.12,0.1,0.26,0.12,cream,iris); brow(head,U,-0.12,0.25,0.3,0.1,0.02,browM,-1); brow(head,U,0.12,0.25,0.3,0.1,0.02,browM,1); mouth(head,U,0,-0.1,0.32,0.75); blush(head,0.21,-0.04,0.28,0.06);
         U.legs=[limb(rig,-0.13,0.12,0,0.1,0.09,cream,null,cream),limb(rig,0.13,0.12,0,0.1,0.09,cream,null,cream)]; U.arms=[limb(rig,-0.34,0.62,0,0.32,0.06,cream,cream),limb(rig,0.34,0.62,0,0.32,0.06,cream,cream)]; break; }
-      default: { rig.add(rbox(0.78,0.82,0.58,0.12,body,0,0.88,0)); rig.add(rbox(0.3,0.16,0.04,0.02,new THREE.MeshBasicMaterial({color:HDR('#5fffd0',1.4)}),0.14,0.76,0.3)); head.position.y=1.52;
+      default: { rig.add(rbox(0.78,0.82,0.58,0.12,body,0,0.88,0)); rig.add(rbox(0.3,0.16,0.04,0.02,new THREE.MeshBasicMaterial({color:HDR('#5fffd0',1.4)}),0.14,0.76,0.3)); head.position.y=1.82;
+        { const steel=phys('#9aa0a8',{roughness:0.3,metalness:0.8,clearcoat:0.4}); rig.add(cyl(0.22,0.26,0.07,dark,0,1.32,0,24)); rig.add(cyl(0.09,0.11,0.3,steel,0,1.46,0,16)); for(let i=0;i<3;i++) rig.add(cyl(0.12,0.12,0.03,dark,0,1.39+i*0.07,0,16)); rig.add(cyl(0.16,0.12,0.05,dark,0,1.58,0,20)); }
         head.add(rbox(0.66,0.5,0.52,0.12,body)); const scr=rbox(0.52,0.34,0.04,0.06,phys('#0c1418',{roughness:0.1,clearcoat:1}),0,0,0.27); head.add(scr);
         const g=new THREE.MeshBasicMaterial({color:HDR('#5fffd0',2.6)}); for(const s of [-1,1]){ const e=sph(0.06,g,s*0.12,0.04,0.3,14,10); e.scale.set(1,1.2,0.3); e.userData.sy=1.2; head.add(e); U.eyes.push(e);
           const bw=bx(0.1,0.022,0.01,g); bw.position.set(s*0.12,0.13,0.3); head.add(bw); U.brows.push({b:bw,side:s,y:0.13}); }
@@ -166,10 +167,18 @@ const Folk = (() => {
         head.add(cyl(0.015,0.015,0.3,dark,0,0.37,0,8)); head.add(sph(0.05,new THREE.MeshBasicMaterial({color:HDR('#ff4040',3)}),0,0.54,0,12,8));
         const alu=phys('#b9bdc4',{roughness:0.25,metalness:0.85,clearcoat:0.5}); U.legs=[limb(rig,-0.2,0.48,0,0.46,0.07,alu,null,body),limb(rig,0.2,0.48,0,0.46,0.07,alu,null,body)]; U.arms=[limb(rig,-0.46,1.18,0,0.52,0.06,alu,alu),limb(rig,0.46,1.18,0,0.52,0.06,alu,alu)]; }
     }
-    U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; }); mood(F,'neutral'); return F;
+    U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; }); mood(F,'neutral'); return F;
   }
   /* attach a prop to the end of the right arm */
-  function hold(F, obj, side=1){ const a=F.userData.arms[side]; if(!a) return obj; obj.position.y=-(a.userData.len||0.4); a.add(obj); return obj; }
+  /* the lowest point of a character, in world space, from its actual vertices (bounding boxes overstate a tilted body) */
+  function lowest(F){ F.updateMatrixWorld(true); let m=Infinity; F.traverse(o=>{ if(!o.isMesh||!o.visible) return; const a=o.geometry.attributes.position, e=o.matrixWorld.elements, st=a.count>400?2:1;
+      for(let i=0;i<a.count;i+=st){ const y=e[1]*a.getX(i)+e[5]*a.getY(i)+e[9]*a.getZ(i)+e[13]; if(y<m) m=y; } }); return m; }
+  /* keep a character out of the floor at world height y: whenever a gag tips, flattens or sinks them, the lift layer raises
+     them just enough that their lowest point rests on the floor (no lower than they stand normally). Upright poses cost nothing. */
+  function ground(F, y=0){ const U=F.userData, L=U.lift, r=U.rig; if(!L) return; L.position.y=0;
+    if(!U.tent.length&&!U.held&&Math.abs(r.rotation.x)+Math.abs(r.rotation.z)+Math.abs(F.rotation.x)+Math.abs(F.rotation.z)<0.01&&r.position.y>=-0.001) return;
+    const d=y+U.low0-lowest(F); if(d>0) L.position.y=d/(F.scale.y||1); }
+  function hold(F, obj, side=1){ const a=F.userData.arms[side]; if(!a) return obj; F.userData.held=true; obj.position.y=-(a.userData.len||0.4); a.add(obj); return obj; }
   /* expressions: neutral, happy, sad, shock, worried */
   function mood(F, m){ const U=F.userData; U.mood=m||'neutral'; const M=U.mouth;
     const P={neutral:{mo:0.55,o:0,bz:0,by:0,lid:-1.0},happy:{mo:1.2,o:0,bz:-0.12,by:0.03,lid:-0.85},sad:{mo:-0.9,o:0,bz:0.32,by:0.0,lid:-0.62},shock:{mo:0,o:1,bz:-0.05,by:0.08,lid:-1.45},worried:{mo:-0.45,o:0,bz:0.38,by:0.03,lid:-0.8}}[U.mood]||{};
@@ -184,13 +193,35 @@ const Folk = (() => {
     const n=Math.floor((t+U.ph)/1.7), lx=Math.sin(n*12.9898+U.ph)*0.35, ly=Math.sin(n*78.233+U.ph)*0.18; for(const L of U.looks){ L.rotation.y=lerp(L.rotation.y,lx,0.15); L.rotation.x=lerp(L.rotation.x,ly,0.15); }
     U.head.position.y=U.headY+Math.sin(t*2.1+U.ph)*0.012;
     for(const tn of U.tent){ if(U.arms.includes(tn)) continue; tn.rotation.x=Math.sin(tn.userData.a)*0.35+Math.sin(t*2.2+tn.userData.a*3)*0.12; } }
-  function walk(F, ph, amt){ const U=F.userData, s=Math.sin(ph)*amt; if(U.legs[0]){ U.legs[0].rotation.x=s*0.7; U.legs[1].rotation.x=-s*0.7; } if(U.arms[0]){ U.arms[0].rotation.x=-s*0.5; U.arms[1].rotation.x=s*0.5; }
+  function walk(F, ph, amt){ const U=F.userData, s=Math.sin(ph)*amt; if(U.legs[0]){ U.legs[0].rotation.x=s*0.7; U.legs[1].rotation.x=-s*0.7; for(const l of U.legs) if(l.userData.foot) l.userData.foot.rotation.x=-l.rotation.x; } if(U.arms[0]){ U.arms[0].rotation.x=-s*0.5; U.arms[1].rotation.x=s*0.5; }
     U.rig.position.y=Math.abs(Math.sin(ph))*0.07*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; }
   function rest(F){ const U=F.userData; U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
   function arms(F, l, r){ const A=F.userData.arms; if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
-  return {make, hold, blink, walk, rest, arms, mood, sph, cyl, bx, rbox};
+  return {make, hold, blink, walk, rest, arms, mood, ground, sph, cyl, bx, rbox};
+})();
+
+/* ---------- portraits, rendered from the 3D models ---------- */
+/* Every face in the side panel, dialogs and the comms screen is a small render of that alien's actual model (same
+   species, same seed, so the same colours and features), cached so each one is only drawn once. */
+const Portrait = (() => {
+  const S=200, cache=new Map(); let R=null, scn=null, cam=null, failed=false;
+  function setup(){ try{ const cv=document.createElement('canvas'); cv.width=cv.height=S; R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,preserveDrawingBuffer:true}); R.setPixelRatio(1); R.setSize(S,S,false);
+      R.outputEncoding=THREE.sRGBEncoding; R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.1; R.physicallyCorrectLights=false;
+      scn=new THREE.Scene(); scn.add(new THREE.HemisphereLight(0xdfefff,0x30404a,0.7)); const k=new THREE.DirectionalLight(0xfff2e0,1.5); k.position.set(1.4,2.2,3); scn.add(k);
+      const f=new THREE.DirectionalLight(0x9fd8ff,0.5); f.position.set(-2.5,0.6,1.5); scn.add(f); const rim=new THREE.DirectionalLight(0x8fe8ff,0.9); rim.position.set(-0.6,1.6,-3); scn.add(rim);
+      cam=new THREE.PerspectiveCamera(26,1,0.05,50); }catch(e){ failed=true; } }
+  function render(sp, seed){ if(!R) setup(); if(failed) return null;
+    const F=Folk.make(sp,seed,1); F.rotation.y=0.32; scn.add(F); F.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(F), sz=new THREE.Vector3(); b.getSize(sz);
+    // head and shoulders: the top of the model, as wide as it needs to be
+    const vh=Math.max(Math.min(sz.y,sz.y*0.62+0.2),sz.x*0.95), cy=b.max.y-vh/2+0.02, d=vh*0.56/Math.tan(13*Math.PI/180);
+    cam.position.set(0,cy+vh*0.08,d+b.max.z*0.5); cam.lookAt(0,cy,0);
+    const cv=makeCanvas(S,S), x=cv.getContext('2d'), bg=x.createLinearGradient(0,0,0,S); bg.addColorStop(0,'#0a1620'); bg.addColorStop(1,'#1b3442'); x.fillStyle=bg; x.fillRect(0,0,S,S);
+    const glow=x.createRadialGradient(S*0.5,S*0.42,S*0.05,S*0.5,S*0.45,S*0.6); glow.addColorStop(0,'rgba(127,214,255,.18)'); glow.addColorStop(1,'rgba(127,214,255,0)'); x.fillStyle=glow; x.fillRect(0,0,S,S);
+    R.setClearColor(0x000000,0); R.clear(); R.render(scn,cam); x.drawImage(R.domElement,0,0);
+    scn.remove(F); F.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); return cv; }
+  return { get(sp, seed){ const k=sp+':'+(seed|0); let c=cache.get(k); if(c){ cache.delete(k); cache.set(k,c); return c; } c=render(sp,seed); if(!c) return null; cache.set(k,c); if(cache.size>160) cache.delete(cache.keys().next().value); return c; } };
 })();
 
 /* ---------- the sets ---------- */
@@ -473,7 +504,8 @@ const Venues = (() => {
       p.v.y-=p.g*dt; p.o.position.addScaledVector(p.v,dt); if(p.g&&p.o.position.y<0.03){ p.o.position.y=0.03; p.v.set(0,0,0); } if(p.spin){ p.o.rotation.x+=p.spin.x*dt; p.o.rotation.z+=p.spin.z*dt; }
       if(p.grow) p.o.scale.multiplyScalar(1+p.grow*dt); p.o.material.opacity=p.op*(1-p.age/p.life); }
     for(const p of V.phys){ p.v.y-=13*dt; p.o.position.addScaledVector(p.v,dt); p.o.rotation.x+=p.w.x*dt; p.o.rotation.y+=p.w.y*dt; p.o.rotation.z+=p.w.z*dt;
-      if(p.o.position.y<p.gy){ p.o.position.y=p.gy; if(Math.abs(p.v.y)>1.2){ p.hit++; if(p.onHit) p.onHit(p); } p.v.y=-p.v.y*0.32; p.v.x*=0.55; p.v.z*=0.55; p.w.multiplyScalar(0.5); } }
+      const fy=V.root.position.y, sink=p.o.userData.rig?Math.max(0,p.gy-p.o.position.y):sinkBelow(p.o,fy+0.004);
+      if(sink>0){ p.o.position.y+=sink; if(p.v.y<0){ if(Math.abs(p.v.y)>1.2){ p.hit++; if(p.onHit) p.onHit(p); } p.v.y=-p.v.y*0.32; p.v.x*=0.55; p.v.z*=0.55; p.w.multiplyScalar(0.5); } } }
   }
   function clearFx(V){ for(const p of V.parts){ V.root.remove(p.o); p.o.geometry.dispose(); p.o.material.dispose(); } V.parts.length=0; V.phys.length=0; }
 
@@ -498,13 +530,13 @@ const Venues = (() => {
         }
         if(t>9.4){ A.rotation.y=-Math.PI/2; A.userData.rig.rotation.set(0,0,0); A.position.x=lerp(A.position.x,-3.8,1-Math.exp(-dt*1.6)); Folk.walk(A,t*9,t<11.6?1:0); g.crates.forEach(c=>{ c.scale.setScalar(Math.max(0.001,1-P_(t,9.4,10.2))); }); }
       } },
-    crane:{ dur:13, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.6,0,-3.0); A.rotation.y=0.5; B.position.set(3.3,0,-3.5); B.rotation.y=-Math.PI/2; g.tro.position.x=-3.6; g.pod.visible=true; g.pod.scale.setScalar(1); g.pod.rotation.set(0,0,0); g.hookY=4.8; },
+    crane:{ dur:13, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.6,0,-3.0); A.rotation.y=0.5; B.position.set(3.3,0,-3.0); B.rotation.y=-Math.PI/2; g.tro.position.x=-3.6; g.pod.visible=true; g.pod.scale.setScalar(1); g.pod.rotation.set(0,0,0); g.hookY=4.8; },
       update(V,t,dt){ const {A,B}=V, g=V.g, ok=V.ok; let tx=g.tro.position.x, hy=g.hookY, swing=0, attached=!V.fired.snap;
         if(t<3){ tx=lerp(-3.6,1.6,E(P_(t,0,3))); swing=Math.sin(t*3)*0.12; }
         else if(ok&&t<6){ tx=1.6; hy=lerp(4.8,2.55,E(P_(t,3,6))); }
         else if(!ok&&t<5.4){ hy=lerp(4.8,3.8,E(P_(t,3,4.4))); tx=t<4.4?1.6:lerp(1.6,3.0,E(P_(t,4.4,5.4))); swing=t<4.4?Math.sin(t*14)*0.05:-0.6*P_(t,4.4,5.4); }
         if(t>9.8){ tx=lerp(tx,-3.6,1-Math.exp(-dt*1.5)); hy=lerp(hy,4.8,1-Math.exp(-dt*2)); }
-        if(!ok&&t>=5.4&&once(V,'snap')){ attached=false; const p=V.phys.length; toss(V,g.pod,new V3(0.5,1.0,0.25),new V3(0,0,-4),0.48); V.phys[p].onHit=q=>{ if(q.hit===1){ snd(V,()=>Sfx.crash(1)); puff(V,q.o.position.clone().setY(0.15),'#b8b0a0',9,1.6,0.22,1.0,{grow:1.8,op:0.6}); V.squash=1; api.react('facepalm'); } }; snd(V,()=>Sfx.clunk()); }
+        if(!ok&&t>=5.4&&once(V,'snap')){ attached=false; const p=V.phys.length; const tgt=B.position, fall=0.87; toss(V,g.pod,new V3((tgt.x-g.pod.position.x)/fall,2.5,(tgt.z+0.3-g.pod.position.z)/fall),new V3(-5,0,0),0.48); g.pod.rotation.z*=0.3; V.phys[p].onHit=q=>{ if(q.hit===1){ snd(V,()=>Sfx.crash(1)); puff(V,q.o.position.clone().setY(0.15),'#b8b0a0',9,1.6,0.22,1.0,{grow:1.8,op:0.6}); V.squash=1; api.react('facepalm'); } }; snd(V,()=>Sfx.clunk()); }
         if(!ok&&t>5.4&&t<6) hy=lerp(hy,6.2,1-Math.exp(-dt*8));
         g.tro.position.x=tx; g.hookY=hy; const len=6.7-hy; g.cable.scale.y=Math.max(0.05,len); g.hook.position.y=-len;
         if(attached){ g.pod.position.set(tx+Math.sin(swing)*len*0.5,hy-0.55,-4.6); g.pod.rotation.z=swing*0.6; }
@@ -557,9 +589,9 @@ const Venues = (() => {
     rock:{ dur:10, reset(V){ const {A,B}=V, g=V.g; A.position.set(0.0,0,-4.0); A.rotation.y=Math.PI/2; B.position.set(3.2,0,-3.7); B.rotation.y=-Math.PI/2; g.hl.position.set(-0.16,0,0); g.hr.position.set(0.16,0,0); g.hl.rotation.set(0,0,0); g.hr.rotation.set(0,0,0); g.gem.visible=false; g.gem.position.y=0; g.gem.scale.setScalar(1); g.stars.visible=false;
         if(!g.hammer.parent||g.hammer.parent===V.root) Folk.hold(A,g.hammer); if(!g.glass.parent||g.glass.parent===V.root) Folk.hold(B,g.glass); },
       update(V,t,dt){ const {A,B}=V, g=V.g, ok=V.ok, ar=A.userData.arms[1]; Folk.arms(B,null,[1.1+Math.sin(t*2)*0.1,0]);
-        if(t<2) ar.rotation.x=lerp(0,2.7,E(P_(t,0,2))); else if(t<2.25) ar.rotation.x=lerp(2.7,-1.25,P_(t,2,2.25));
+        if(t<2) ar.rotation.x=lerp(0,-3.58,E(P_(t,0,2))); else if(t<2.25) ar.rotation.x=lerp(-3.58,-1.25,P_(t,2,2.25));
         if(t>=2.25&&once(V,'hit')){ snd(V,()=>Sfx.clunk()); puff(V,new V3(1.3,1.55,-4.0),'#ffd27a',8,3,0.04,0.4,{add:true,hdr:4,g:6}); }
-        if(!ok){ if(t>2.25&&t<2.75) ar.rotation.x=lerp(-1.25,3.4,E(P_(t,2.25,2.75))); if(t>=2.75&&once(V,'bonk')){ snd(V,()=>Sfx.boing()); api.react('facepalm',0.5); g.stars.visible=true; }
+        if(!ok){ if(t>2.25&&t<2.75) ar.rotation.x=lerp(-1.25,-2.88,E(P_(t,2.25,2.75))); if(t>=2.75&&once(V,'bonk')){ snd(V,()=>Sfx.boing()); api.react('facepalm',0.5); g.stars.visible=true; }
           if(t>2.75){ ar.rotation.x=lerp(ar.rotation.x,0.3,1-Math.exp(-dt*3)); const r=A.userData.rig; r.rotation.x=t<5.2?Math.sin(t*6)*0.12:-1.4*E(P_(t,5.2,5.6))*(1-P_(t,8,8.8)); r.rotation.z=t<5.2?Math.sin(t*4.3)*0.15:0;
             const hp=A.localToWorld(new V3(0,A.userData.head.position.y+0.7,0)).sub(V.root.position).applyQuaternion(V.root.quaternion.clone().invert()); g.stars.position.copy(hp); g.stars.children.forEach((s,i)=>{ const a=t*5+i*2.1; s.position.set(Math.cos(a)*0.4,Math.sin(t*7+i)*0.05,Math.sin(a)*0.4); }); g.stars.visible=t<6.5;
             if(t>3.2&&once(V,'wah')) void 0; } }
@@ -633,10 +665,10 @@ const Venues = (() => {
       const V=this.current(); if(V!==this.active){ this.prev=this.active; this.active=V; }
       for(const v of this.list) v.root.visible=v===V||(this.moving&&v===this.prev); if(!V) return;
       V.t+=dt; if(V.t>V.gag.dur) this.restart(V,0);
-      V.gag.update(V,V.t,dt); stepFx(V,dt); stepDroid(V,dt,t); if(V.spin) for(const o of V.spin) o.rotation.y+=dt*0.8;
+      V.gag.update(V,V.t,dt); stepFx(V,dt); for(const F of [V.A,V.B,V.keeper]) Folk.ground(F,V.root.position.y); stepDroid(V,dt,t); if(V.spin) for(const o of V.spin) o.rotation.y+=dt*0.8;
       for(const F of [V.A,V.B,V.keeper]) Folk.blink(F,t);
       // shopkeeper: breathes, glances at the crew, reacts to how it goes
-      const K=V.keeper, U=K.userData; K.position.y=Math.sin(t*1.8)*0.02; U.head.rotation.y=Math.sin(t*0.4)*0.25+(V.t>V.gag.dur*0.4&&V.t<V.gag.dur*0.6?0.5*Math.sign(Math.sin(V.seed)):0)*0.6;
+      const K=V.keeper, U=K.userData; K.position.y=(1+Math.sin(t*1.8))*0.01; U.head.rotation.y=Math.sin(t*0.4)*0.25+(V.t>V.gag.dur*0.4&&V.t<V.gag.dur*0.6?0.5*Math.sign(Math.sin(V.seed)):0)*0.6;
       const r=V.kr; if(r){ r.t+=dt; const k=Math.sin(Math.min(1,r.t/0.25)*Math.PI/2);
         if(r.kind==='facepalm'){ Folk.arms(K,[0.2,0.15],[2.5*k,0.35*k]); U.head.rotation.x=0.25*k; if(r.t>2.2) V.kr=null; }
         else if(r.kind==='clap'){ const c=Math.abs(Math.sin(r.t*14)); Folk.arms(K,[1.3*k,0.15+c*0.35],[1.3*k,0.15+c*0.35]); K.position.y+=Math.abs(Math.sin(r.t*7))*0.08; if(r.t>1.8) V.kr=null; }

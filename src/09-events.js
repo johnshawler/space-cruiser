@@ -74,10 +74,14 @@ const Nav = {
 
 /* ---------- decision dialog (flight and port) ---------- */
 const Dlg = {
-  open:false, opts:[], timer:0, onTimeout:null,
+  open:false, opts:[], timer:0, onTimeout:null, held:null,
+  /* back in the seat: whatever came in over the radio while you were away */
+  flush(){ const o=this.held; this.held=null; if(o&&!this.open&&G.mode==='flight') this.show(o); },
   show(o){
+    if(Walk.on&&!o.onboard){ if(!this.held) this.held=o; return; }
     Comms.close(true); if(SysMap.open) SysMap.close(); this.open=true; this.opts=o.opts||[{t:'OK'}]; this.timer=o.timeout||0; this.onTimeout=o.onTimeout||null; this.total=this.timer;
-    const box=$('dlg'); box.hidden=false; box.className=o.tone||'';
+    const box=$('dlg'); box.hidden=false; this.mini=!!o.mini; box.className=(o.tone||'')+(this.mini?' mini':''); box.onclick=()=>this.expand();
+    $('dlg-hint').textContent='';
     const x=$('dlg-face').getContext('2d'); x.clearRect(0,0,192,192); if(o.sp) drawAlien(x,o.sp,o.seed||1,0,0,192); else { x.fillStyle='#1d2a3a'; x.fillRect(0,0,192,192); x.font='120px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(o.icon||'⚠',96,104); }
     $('dlg-who').textContent=o.who||''; $('dlg-text').textContent=o.text||''; $('dlg-bar').style.width=this.timer?'100%':'0';
     const box2=$('dlg-opts'); box2.innerHTML='';
@@ -85,8 +89,10 @@ const Dlg = {
     if(o.sp&&Sfx.ok()) Sfx.speak(SPECIES[o.sp].voice,clamp((o.text||'').length*0.05,1.6,5),G.mode!=='flight'); else if(Sfx.ok()) Sfx.beep(520);
   },
   info(o){ o.opts=[{t:o.ok||'OK',fn:o.then}]; this.show(o); },
+  /* open a waiting call card up into the full panel with its replies */
+  expand(){ if(!this.open||!this.mini) return; this.mini=false; $('dlg').classList.remove('mini'); if(Sfx.ok()) Sfx.click(); },
   choose(i){ const op=this.opts[i]; if(!this.open||!op||op.disabled) return; Sfx.click(); this.close(); if(op.fn) op.fn(); },
-  close(){ this.open=false; this.timer=0; $('dlg').hidden=true; },
+  close(){ this.open=false; this.mini=false; this.timer=0; $('dlg').hidden=true; },
   update(dt){ if(!this.open||!this.timer) return; this.timer-=dt; $('dlg-bar').style.width=Math.max(0,this.timer/this.total*100)+'%';
     if(this.timer<=0){ const f=this.onTimeout; this.close(); if(f) f(); } },
 };
@@ -110,7 +116,8 @@ const Ev = {
 const Distress = {
   t:80, cur:null,
   update(dt){
-    if(this.cur||Dlg.open||Escort.hazard||Customs.cur) return;
+    if(this.arrived&&!Walk.on){ this.arrived=false; this.arrive(); return; }
+    if(this.cur||Dlg.open||Escort.hazard||Customs.cur||Walk.on) return;
     if(!Ev.clearOfPlanets(12)||G.playTime<45) return;
     this.t-=dt; if(this.t>0) return; this.t=rnd(110,190);
     if(Math.random()<0.75) this.call();
@@ -127,7 +134,7 @@ const Distress = {
     const fwd=new V3(0,0,-1).applyQuaternion(s.quat), side=new V3(1,0,0).applyQuaternion(s.quat);
     const pos=s.pos.clone().addScaledVector(fwd,rnd(16000,26000)).addScaledVector(side,rnd(-9000,9000));
     c.npc=Ev.npc('derelict',pos,{sp:c.sp,seed:c.seed,name:c.name,ship:c.ship});
-    Nav.set({name:c.ship.toUpperCase(),sub:'Distress beacon',kind:'distress',pos,dropR:9000,arriveR:1200,expire:300,onArrive:()=>this.arrive(),onCancel:()=>{ Ev.dismiss(c.npc); this.cur=null; Rep.add(-2,'You abandoned the rescue'); }});
+    Nav.set({name:c.ship.toUpperCase(),sub:'Distress beacon',kind:'distress',pos,dropR:9000,arriveR:1200,expire:300,onArrive:()=>{ if(Walk.on) this.arrived=true; else this.arrive(); },onCancel:()=>{ Ev.dismiss(c.npc); this.cur=null; Rep.add(-2,'You abandoned the rescue'); }});
     UI.toast('Beacon locked. Press P for autopilot.','good');
   },
   arrive(){
@@ -267,7 +274,7 @@ const Customs = {
   },
   /* 2. the journey: a customs cutter pulls you over */
   update(dt){
-    if(!this.armed||this.cur||Dlg.open||!Ev.clearOfPlanets(10)) return;
+    if(!this.armed||this.cur||Dlg.open||Walk.on||!Ev.clearOfPlanets(10)) return;
     if(!this.illegal().length){ this.armed=false; return; }
     this.t-=dt; if(this.t>0) return; this.armed=false; this.stop();
   },
@@ -334,7 +341,7 @@ const Escort = {
   panic(c){
     const v=c.vip, tough=['grondar','zkthar'].includes(v.sp), jokey=['blorpax','qeeble','sporrin','momwump'].includes(v.sp);
     const out=(good,why)=>{ if(good){ this.heal(6); UI.toast(why,'good'); } else this.hurt(12,why); };
-    Dlg.show({sp:v.sp,seed:v.seed,tone:'alert',who:`${v.title} · ${SPECIES[v.sp].name}`,text:pick(["I can't do this! Space is so big and I am so small! Turn back! Turn back!","Was that a noise? That was a noise. Are we exploding? Tell me if we're exploding.","I have changed my mind about this entire journey and possibly about space."]),
+    Dlg.show({sp:v.sp,seed:v.seed,tone:'alert',onboard:true,who:`${v.title} · ${SPECIES[v.sp].name}`,text:pick(["I can't do this! Space is so big and I am so small! Turn back! Turn back!","Was that a noise? That was a noise. Are we exploding? Tell me if we're exploding.","I have changed my mind about this entire journey and possibly about space."]),
       timeout:20,onTimeout:()=>out(false,`${v.title} panicked with nobody to talk to`),
       opts:[{t:"Breathe. You're safe with me.",fn:()=>out(!tough,tough?`${v.title} finds your tone patronising`:`${v.title} calms down`)},
             {t:'Want to hear a joke?',fn:()=>out(jokey,jokey?`${v.title} laughs so hard they forget to panic`:`${v.title} did not want a joke`)},

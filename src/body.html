@@ -58,7 +58,7 @@
 
   <section id="dlg" hidden aria-label="Decision" aria-live="polite">
     <canvas id="dlg-face" width="192" height="192"></canvas>
-    <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
+    <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-hint"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
     <div id="dlg-opts"></div>
   </section>
 
@@ -67,6 +67,13 @@
   <div id="fault-badge" hidden></div>
   <div id="reticle" hidden></div>
   <div id="prompt" hidden></div>
+  <section id="specs" hidden aria-label="Ship specs">
+    <div class="box">
+      <header><h2 id="specs-name"></h2><button class="big ghost" id="specs-close">Close · Esc</button></header>
+      <p id="specs-tag"></p>
+      <div id="specs-body"></div>
+    </div>
+  </section>
   <section id="hold" hidden aria-label="Cargo hold">
     <div class="box">
       <header><h2>Cargo hold</h2><span id="hold-cap"></span><button class="big ghost" id="hold-scoop">Open scoop · B</button><button class="big ghost" id="hold-close">Close · I</button></header>
@@ -84,7 +91,7 @@
   <section id="title">
     <div class="eyebrow">Independent freight · nine worlds · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.18</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.19</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
