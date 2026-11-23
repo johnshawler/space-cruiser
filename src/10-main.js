@@ -165,7 +165,7 @@ const Game = {
       if(Hold.open&&c==='Escape'){ Hold.toggle(false); return; }
       if(c==='KeyB'&&!e.repeat&&G.mode==='flight'){ Scoop.toggle(); return; }
       if(c==='KeyL'&&!e.repeat&&G.mode==='flight'){ G.keys={}; Walk.toggle(); return; }
-      if(Walk.on&&G.mode==='flight'){ if(!e.repeat) G.keys[c]=true; if(/^(Key[XZTPHGC]|Digit\d|Numpad\d)$/.test(c)&&!e.repeat) UI.toast(`You need to be in the pilot's seat for that. ${TouchUI.on?'Tap Seat':'Press L'}.`,'warn'); if(c==='Escape') Walk.exit(); return; }
+      if(Walk.on&&G.mode==='flight'){ if(!e.repeat) G.keys[c]=true; if(/^(Key[XZTPHGC]|Digit\d|Numpad\d)$/.test(c)&&!e.repeat) UI.toast(`You need to be in the pilot's seat for that. ${TouchUI.on?'Tap Seat':'Press L'}.`,'warn'); if(c==='Escape') Walk.toggle(); return; }
       if(G.mode!=='flight'||e.repeat&&!/^Key[WASDQE]$|^Arrow/.test(c)) return; G.keys[c]=true; if(e.metaKey||e.ctrlKey||e.altKey) return;
       const dm=c.match(/^(?:Digit|Numpad)(\d)$/);
       if(dm){ const n=+dm[1]; if(Comms.open&&n>=1&&n<=5) Comms.choose(n-1); else this.setThrottle(n===0?10:n); return; }

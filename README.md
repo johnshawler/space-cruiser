@@ -23,8 +23,8 @@ Play it at https://johnshawler.com/long-haul or https://space-cruiser.johnshawle
 | F (hold) | Mining laser, aimed at a rock in your sights |
 | I | Cargo hold: see what is aboard and drop any of it |
 | B | Cargo scoop open / closed |
-| L | Leave the pilot's seat and walk around the ship (L again to sit) |
-| Walking | W A S D to move, Shift to hurry, drag or arrows to look, hold F to repair, F to chat |
+| L | Leave the pilot's seat and walk around the ship (L at the cockpit door to sit) |
+| Walking | W A S D to move, Q / E to turn, Shift to hurry, drag or arrows to look, hold F to repair, F to chat |
 | 1 – 4 | Pick an answer when a message pops up |
 | Double-click | Lean in to any part of the cockpit; double-click again to lean back |
 | ? | Help |

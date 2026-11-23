@@ -143,13 +143,15 @@ const Interior = {
 /* ---------- walking ---------- */
 const Walk = {
   on:false, pos:new V3(0,EYE,1.2), yaw:Math.PI, pitch:0, tr:0, trDir:0, bob:0, target:null, hold:0, told:false,
-  toggle(){ if(this.on) this.exit(); else this.enter(); },
+  /* L (or Seat) sits you back down, but only from the cockpit doorway */
+  atDoor(){ return this.pos.z<2.1&&Math.abs(this.pos.x)<0.75; },
+  toggle(){ if(!this.on){ this.enter(); return; } if(this.atDoor()) this.exit(); else { UI.toast(`Walk back to the cockpit door to sit down. It is at the front end of the corridor.`,'warn'); Sfx.deny(); } },
   enter(){
     if(G.mode!=='flight'||this.on) return; if(!Interior.group||Interior.shipId!==G.shipId) Interior.build();
     Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
     this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
     Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); $('reticle').hidden=false; Sfx.clunk();
-    if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat to sit back down.':'Walking. W A S D to move, drag or arrows to look, hold F to fix things, L to sit back down.','good'); }
+    if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat at the cockpit door to sit down.':'Walking. W A S D to move, Q and E to turn, drag to look, hold F to fix things, L at the cockpit door to sit down.','good'); }
     TouchUI.sync&&TouchUI.sync(true); },
   exit(instant){
     if(!this.on) return; this.on=false; document.body.classList.remove('walking'); $('reticle').hidden=true; $('prompt').hidden=true; Cockpit.setDoor(0);
@@ -157,7 +159,7 @@ const Walk = {
   look(dx, dy){ this.yaw-=dx*0.0042; this.pitch=clamp(this.pitch-dy*0.0042,-1.2,1.2); },
   update(dt, t){
     if(!this.on) return; const K=G.keys, s=G.ship;
-    if(K.ArrowLeft) this.yaw+=dt*1.9; if(K.ArrowRight) this.yaw-=dt*1.9; if(K.ArrowUp) this.pitch=Math.min(1.2,this.pitch+dt*1.4); if(K.ArrowDown) this.pitch=Math.max(-1.2,this.pitch-dt*1.4);
+    if(K.ArrowLeft||K.KeyQ) this.yaw+=dt*1.9; if(K.ArrowRight||K.KeyE) this.yaw-=dt*1.9; if(K.ArrowUp) this.pitch=Math.min(1.2,this.pitch+dt*1.4); if(K.ArrowDown) this.pitch=Math.max(-1.2,this.pitch-dt*1.4);
     let f=(K.KeyW?1:0)-(K.KeyS?1:0), r=(K.KeyD?1:0)-(K.KeyA?1:0); if(!f&&!r){ f=TouchUI.stick.y; r=TouchUI.stick.x; }
     const sp=(K.ShiftLeft||K.ShiftRight?4.4:2.8), fx=-Math.sin(this.yaw), fz=-Math.cos(this.yaw), rx=Math.cos(this.yaw), rz=-Math.sin(this.yaw);
     let mx=(fx*f+rx*r)*sp*dt, mz=(fz*f+rz*r)*sp*dt; const p=this.pos;
@@ -176,7 +178,8 @@ const Walk = {
     for(const id of Faults.list()){ const q=new V3(...FAULT_DEFS[id].pos), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); const score=dot-d*0.08; if(d<2.6&&(dot>0.72||d<1.1)&&score>bs){ bs=score; best={kind:'fault',id,d}; } }
     if(!best) for(const F of Interior.pax){ const S=F.parent, q=new V3().setFromMatrixPosition(S.matrix).setY(FLOOR+1.0), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); if(d<3.4&&dot>0.85){ best={kind:'pax',F,d}; break; } }
     const pr=$('prompt'), K=G.keys, held=!!K.KeyF;
-    if(!best){ pr.hidden=true; this.hold=0; this.target=null; return; }
+    if(!best){ this.hold=0; this.target=null;
+      if(this.atDoor()){ pr.hidden=false; pr.innerHTML=`<b>Cockpit</b><span>${TouchUI.on?'Tap Seat':'Press L'} to sit down</span>`; } else pr.hidden=true; return; }
     if(best.kind==='fault'){ const D=FAULT_DEFS[best.id], s=G.ship, rough=s.throttle>5||s.warpF>0.2, rate=rough?0.35:1, need=2.6;
       if(this.target!==best.id){ this.target=best.id; this.hold=0; }
       if(held){ this.hold+=dt*rate; if(Math.floor(this.hold*3)!==Math.floor((this.hold-dt*rate)*3)) Sfx.click(); if(this.hold>=need){ Faults.fix(best.id); this.hold=0; pr.hidden=true; return; } } else this.hold=Math.max(0,this.hold-dt*2);
