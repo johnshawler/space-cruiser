@@ -51,7 +51,7 @@ Locals stroll around the landing pad, stop to chat, push carts of crates about, 
 
 ## Your ship
 
-Get up from the pilot's seat (L) and walk around inside: a corridor, a passenger cabin with portholes, a galley with a bunk, the cargo hold (its crates match how full it is) and the engine room. The ship keeps flying while you walk, on autopilot if it is set.
+Get up from the pilot's seat (L) and walk around inside: a corridor with handrails and signs over every door, a passenger cabin with cushioned seats under the portholes, a galley with cupboards and a bunk, the cargo hold (its crates match how full it is) and the engine room. Passengers sit in the cabin seats, wave when you come over, and wear how the trip is going on their faces. The ship keeps flying while you walk, on autopilot if it is set.
 
 Things break. A coolant leak (fuel use up), a thruster misfire (top speed down), a blown fuse (radio dead), a jammed air scrubber (passengers cross, canopy fogs), a hull crack (hull slowly failing), a snapped cargo strap (cargo loses value faster). Each shows on screen and in the ship itself. Walk to it and hold F to fix it. It goes slowly while the ship is shaking, above throttle 5 or in warp.
 

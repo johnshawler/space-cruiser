@@ -35,11 +35,19 @@ const Faults = {
 };
 
 /* ---------- the interior ---------- */
+/* tread-plate deck tiles, 1.2 m to a tile */
+function floorTex(){
+  if(_texCache.ifloor) return _texCache.ifloor; const S=512, cv=makeCanvas(S,S), x=cv.getContext('2d'); x.fillStyle='#4a4f56'; x.fillRect(0,0,S,S);
+  for(let j=0;j<S;j+=24) for(let i=0;i<S;i+=24){ const o=(j/24)%2?12:0; x.save(); x.translate(i+o+6,j+12); x.rotate(((i/24+j/24)%2)?0.6:-0.6); x.fillStyle='#626870'; x.fillRect(-7,-2,14,4); x.fillStyle='#33373c'; x.fillRect(-7,2,14,1.5); x.restore(); }
+  x.strokeStyle='#1e2125'; x.lineWidth=8; x.strokeRect(0,0,S,S); x.lineWidth=4; x.beginPath(); x.moveTo(S/2,0); x.lineTo(S/2,S); x.stroke();
+  x.fillStyle='#8a9098'; for(const [a,b] of [[14,14],[S-14,14],[14,S-14],[S-14,S-14],[S/2-12,14],[S/2+12,S-14]]){ x.beginPath(); x.arc(a,b,4,0,7); x.fill(); }
+  const t=canvasTex(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; return _texCache.ifloor=t;
+}
 const Interior = {
   group:null, shipId:-1, fx:{}, seats:[], pax:[], crates:null, crateKey:'', lights:[],
   /* rectangles you can stand in (already inset for your body), and round things you cannot walk through */
   RECTS:[[-0.35,0.35,0.9,1.3],[-0.6,0.6,0.95,6.9],[-1.25,-0.5,3.2,4.0],[-3.15,-1.15,1.7,5.5],[0.5,1.25,2.7,3.5],[1.15,2.9,1.7,4.25],[-0.6,0.6,6.8,7.7],[-1.25,1.25,7.5,13.9],[-0.5,0.5,13.8,14.7],[-2.1,2.1,14.5,18.65]],
-  OBST:[[0,16.6,1.25]],
+  OBST:[[0,16.6,1.25],[-1.42,1.55,0.3]],
   inside(x,z){ for(const r of this.RECTS) if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3]){ for(const o of this.OBST) if(Math.hypot(x-o[0],z-o[1])<o[2]) return false; return true; } return false; },
   build(){
     if(this.group){ World.cock.remove(this.group); this.group.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
@@ -49,24 +57,34 @@ const Interior = {
       trim:std(ck.trim,0.35,0.85), dark:std('#16181c',0.7,0.4), seat:std(ck.leather,0.6,0.05), hazard:std('#ffffff',0.7,0.2,{map:(()=>{ const cv=makeCanvas(256,32), x=cv.getContext('2d'); for(let i=0;i<16;i++){ x.fillStyle=i%2?'#f2c14e':'#1c1c1e'; x.beginPath(); x.moveTo(i*16,0); x.lineTo(i*16+16,0); x.lineTo(i*16,32); x.lineTo(i*16-16,32); x.fill(); } const t=canvasTex(cv); t.wrapS=THREE.RepeatWrapping; t.repeat.set(4,1); return t; })()}),
       glass:new THREE.MeshStandardMaterial({color:0x99bbdd,metalness:1,roughness:0.15,transparent:true,opacity:0.08,depthWrite:false,side:THREE.DoubleSide}),
       lamp:new THREE.MeshBasicMaterial({color:HDR('#ffe8c8',1.8)}), core:new THREE.MeshBasicMaterial({color:HDR('#6fd6ff',3)}), pipe:std('#8a6f4e',0.4,0.8), cool:std('#4f7fa8',0.4,0.7), red:std('#b03a2e',0.5,0.3) };
+    M.wall.color.lerp(C('#8a8e94'),0.22); M.accent=std(ck.trim,0.5,0.4); M.cushion=std(ck.leather,0.7,0.02); M.cushion.color.lerp(C('#b0a490'),0.18);
+    M.chrome=std('#c8ccd0',0.25,0.9); M.rug=std('#3a1a22',0.95,0); M.cream=std('#8d887e',0.6,0.1); M.wood=std('#7a5236',0.7,0.05);
+    M.guide=new THREE.MeshBasicMaterial({color:HDR('#5fd0ff',1.3)}); M.warm=new THREE.MeshBasicMaterial({color:HDR('#ffd9a0',1.4)});
     this.M=M;
     const bx=(w,h,d,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x,y,z); g.add(o); return o; };
     const cyl=(r1,r2,h,m,x,y,z,seg=20)=>{ const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,seg),m); o.position.set(x,y,z); g.add(o); return o; };
     const H=CEIL-FLOOR, MY=(FLOOR+CEIL)/2;
     /* a wall from (x0,z0) to (x1,z1), full height, with holes: [{a,b,y0,y1}] measured along the wall */
-    const wall=(x0,z0,x1,z1,holes=[],m=M.wall)=>{ const L=Math.hypot(x1-x0,z1-z0), ux=(x1-x0)/L, uz=(z1-z0)/L, ang=Math.atan2(-uz,ux), cuts=[0];
+    const wall=(x0,z0,x1,z1,holes=[],m=M.wall,deco=true)=>{ const L=Math.hypot(x1-x0,z1-z0), ux=(x1-x0)/L, uz=(z1-z0)/L, ang=Math.atan2(-uz,ux), cuts=[0];
       holes.sort((p,q)=>p.a-q.a); for(const h of holes) cuts.push(h.a,h.b); cuts.push(L);
-      const seg=(a,b,y0,y1)=>{ if(b-a<0.005||y1-y0<0.005) return; const o=new THREE.Mesh(new THREE.BoxGeometry(b-a,y1-y0,0.08),m); const c=(a+b)/2; o.position.set(x0+ux*c,(y0+y1)/2,z0+uz*c); o.rotation.y=ang; g.add(o); };
-      for(let i=0;i<cuts.length;i+=2) seg(cuts[i],cuts[i+1],FLOOR,CEIL);
+      const seg=(a,b,y0,y1,mm=m,dd=0.08)=>{ if(b-a<0.005||y1-y0<0.005) return; const o=new THREE.Mesh(new THREE.BoxGeometry(b-a,y1-y0,dd),mm); const c=(a+b)/2; o.position.set(x0+ux*c,(y0+y1)/2,z0+uz*c); o.rotation.y=ang; g.add(o); };
+      for(let i=0;i<cuts.length;i+=2){ const a=cuts[i], b=cuts[i+1]; seg(a,b,FLOOR,CEIL);
+        // skirting, an accent stripe, a conduit rail near the top and structural ribs, on both faces
+        if(deco&&b-a>0.12){ seg(a,b,FLOOR,FLOOR+0.13,M.dark,0.15); seg(a,b,-0.29,-0.25,M.accent,0.1); seg(a,b,1.0,1.06,M.frame,0.15);
+          for(let r=a+0.3;r<b-0.15;r+=1.3) seg(r-0.045,r+0.045,FLOOR,CEIL,M.frame,0.18); } }
       for(const h of holes){ seg(h.a,h.b,FLOOR,h.y0==null?FLOOR:h.y0); seg(h.a,h.b,h.y1==null?0.95:h.y1,CEIL); } };
-    const room=(x0,x1,z0,z1)=>{ const f=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.floor); f.rotation.x=-Math.PI/2; f.position.set((x0+x1)/2,FLOOR,(z0+z1)/2); g.add(f);
+    const room=(x0,x1,z0,z1)=>{ const ft=floorTex().clone(); ft.needsUpdate=true; ft.repeat.set((x1-x0)/1.2,(z1-z0)/1.2);
+      const f=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),std('#c4c8ce',0.55,0.65,{map:ft})); f.rotation.x=-Math.PI/2; f.position.set((x0+x1)/2,FLOOR,(z0+z1)/2); g.add(f);
       const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.ceil); c.rotation.x=Math.PI/2; c.position.set((x0+x1)/2,CEIL,(z0+z1)/2); g.add(c);
+      // ceiling beams across the shorter side
+      if(x1-x0<z1-z0){ for(let z=z0+0.65;z<z1-0.3;z+=1.3) bx(x1-x0,0.09,0.12,M.frame,(x0+x1)/2,CEIL-0.045,z); }
+      else { for(let x=x0+0.65;x<x1-0.3;x+=1.3) bx(0.12,0.09,z1-z0,M.frame,x,CEIL-0.045,(z0+z1)/2); }
       const lamp=bx(Math.min(1.4,(x1-x0)*0.4),0.04,0.3,M.lamp,(x0+x1)/2,CEIL-0.03,(z0+z1)/2); const L=new THREE.PointLight(C('#ffe2c0'),1.8,10,1.5); L.position.set((x0+x1)/2,CEIL-0.25,(z0+z1)/2); g.add(L); this.lights.push(L); return lamp; };
     this.lights=[]; const hemi=new THREE.HemisphereLight(C('#ffe9d0'),C('#3a3e44'),0.3); g.add(hemi);
     // rooms
     room(-0.9,0.9,0.7,7.2); room(-4.4,-0.9,1.4,5.8); room(0.9,4.0,1.4,5.0); room(-3.4,3.4,7.2,14.2); room(-2.4,2.4,14.2,19.0);
     // the cockpit doorway (above the cockpit's own back wall) and the corridor
-    wall(-0.9,0.7,0.9,0.7,[{a:0.0,b:1.8,y0:FLOOR,y1:0.8}]);
+    wall(-0.9,0.7,0.9,0.7,[{a:0.0,b:1.8,y0:FLOOR,y1:0.8}],M.wall,false);
     wall(-0.9,0.7,-0.9,7.2,[{a:2.3,b:3.5,y0:FLOOR,y1:0.95}]); wall(0.9,0.7,0.9,7.2,[{a:1.8,b:3.0,y0:FLOOR,y1:0.95}]);
     // cabin: portholes in the outer wall
     wall(-4.4,1.4,-0.9,1.4); wall(-4.4,5.8,-0.9,5.8); wall(-4.4,1.4,-4.4,5.8,[{a:0.55,b:1.35,y0:0.05,y1:0.75},{a:1.75,b:2.55,y0:0.05,y1:0.75},{a:2.95,b:3.75,y0:0.05,y1:0.75}]);
@@ -93,13 +111,104 @@ const Interior = {
     for(const [x,z,ry] of [[-0.9,3.6,Math.PI/2],[0.9,3.0,Math.PI/2],[0,7.2,0],[0,14.2,0]]){ const f=new THREE.Group(); f.position.set(x,0,z); f.rotation.y=ry; g.add(f);
       for(const s of [-1,1]){ const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,H,0.16),M.hazard); p.position.set(s*(ry?0.62:0.92),MY,0); f.add(p); } }
     // passenger seats along the cabin's outer wall, under the portholes, facing in
-    const n=Cargo.seats(); for(let i=0;i<4;i++){ if(i>=n) break; const z=1.95+i*1.15, sg=new THREE.Group(); sg.position.set(-3.85,0,z); g.add(sg);
-      const base=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.45,0.6),M.seat); base.position.set(0,FLOOR+0.22,0); sg.add(base); const back=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.85,0.6),M.seat); back.position.set(-0.3,FLOOR+0.82,0); sg.add(back);
-      const belt=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.6,0.08),M.trim); belt.position.set(-0.22,FLOOR+0.75,0.18); sg.add(belt); this.seats.push(sg); }
+    const n=Cargo.seats(); for(let i=0;i<n&&i<4;i++){ const sg=new THREE.Group(); sg.position.set(-3.8,0,1.95+i*1.15); g.add(sg); this.seat(sg,M,i); this.seats.push(sg); }
+    this.decor(g,M,bx,cyl,n);
+    this.core.userData.keep=true;
+    this.merge(g);
     // fault props, hidden until something breaks
     for(const id in FAULT_DEFS) this.fx[id]=this.faultFx(id);
     g.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
     this.syncFaults();
+  },
+  /* a cushioned passenger seat on a pedestal, with armrests, a headrest and a harness; local +x faces into the cabin */
+  seat(sg,M,i){ const rb=Folk.rbox, add=(o,rz)=>{ if(rz) o.rotation.z=rz; sg.add(o); return o; };
+    add(Folk.cyl(0.21,0.23,0.03,M.chrome,0.02,FLOOR+0.015,0,28)); add(Folk.cyl(0.06,0.07,0.3,M.chrome,0.02,FLOOR+0.17,0,16)); add(Folk.bx(0.5,0.05,0.6,M.frame,0.02,FLOOR+0.33,0));
+    add(rb(0.56,0.14,0.68,0.05,M.cushion,0.03,FLOOR+0.42,0));
+    add(Folk.bx(0.04,0.84,0.62,M.frame,-0.36,FLOOR+0.86,0),0.12); add(rb(0.15,0.8,0.66,0.06,M.cushion,-0.28,FLOOR+0.86,0),0.12);
+    add(rb(0.16,0.24,0.42,0.06,M.cushion,-0.35,FLOOR+1.4,0),0.12);
+    for(const s of [-1,1]){ add(Folk.bx(0.05,0.2,0.05,M.chrome,0.2,FLOOR+0.55,s*0.38)); add(rb(0.48,0.07,0.08,0.03,M.frame,0.03,FLOOR+0.66,s*0.38)); add(rb(0.42,0.04,0.09,0.02,M.cushion,0.03,FLOOR+0.71,s*0.38));
+      add(Folk.bx(0.02,0.6,0.07,M.accent,-0.19,FLOOR+1.0,s*0.15),0.12); }
+    add(Folk.bx(0.03,0.08,0.12,M.chrome,-0.15,FLOOR+0.7,0)); },
+  /* signs, posters, rails, furniture and clutter, room by room */
+  decor(g,M,bx,cyl,nSeats){
+    const ry90=Math.PI/2, add=o=>{ g.add(o); return o; };
+    const plane=(w,h,m,x,y,z,ry)=>{ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m); o.position.set(x,y,z); o.rotation.y=ry; return add(o); };
+    const fitFont=(c,txt,max,px,font)=>{ let s=px; do { c.font=font.replace('#',s); s-=2; } while(c.measureText(txt).width>max&&s>8); };
+    const sign=(title,sub,w,h,x,y,z,ry,col)=>{ const W=768, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d'); col=col||'#f2c14e';
+      c.fillStyle='#121418'; c.fillRect(0,0,W,Hh); c.strokeStyle=col; c.lineWidth=12; c.strokeRect(10,10,W-20,Hh-20); c.textAlign='center'; c.textBaseline='middle';
+      c.fillStyle=col; fitFont(c,title,W-70,Math.round(Hh*(sub?0.42:0.6)),`700 #px ${FONT_DISP}`); c.fillText(title,W/2,sub?Hh*0.38:Hh*0.52);
+      if(sub){ c.fillStyle='#e4e8ec'; fitFont(c,sub,W-70,Math.round(Hh*0.22),`600 #px ${FONT_DISP}`); c.fillText(sub,W/2,Hh*0.76); }
+      return plane(w,h,new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)}),x,y,z,ry); };
+    const poster=(title,body,col,w,h,x,y,z,ry)=>{ const W=512, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d');
+      c.fillStyle='#ebe5d6'; c.fillRect(0,0,W,Hh); c.fillStyle=col; c.fillRect(0,0,W,Hh*0.22); c.fillStyle='#ffffff'; c.textAlign='center'; c.textBaseline='middle';
+      fitFont(c,title,W-40,Math.round(Hh*0.1),`700 #px ${FONT_DISP}`); c.fillText(title,W/2,Hh*0.11);
+      c.fillStyle='#202428'; c.font=`600 ${Math.round(Hh*0.058)}px ${FONT_DISP}`; let line='', yy=Hh*0.32; const lh=Hh*0.075;
+      for(const wd of body.split(' ')){ const t=line?line+' '+wd:wd; if(c.measureText(t).width>W-56){ c.fillText(line,W/2,yy); yy+=lh; line=wd; } else line=t; } c.fillText(line,W/2,yy);
+      c.fillStyle=col; c.fillRect(W*0.3,Hh-26,W*0.4,8);
+      const fr=bx(w+0.05,h+0.05,0.02,M.frame,x,y,z); fr.rotation.y=ry; const o=plane(w,h,new THREE.MeshStandardMaterial({map:canvasTex(cv),roughness:0.8}),x+Math.sin(ry)*0.012,y,z+Math.cos(ry)*0.012,ry); return o; };
+    /* ---- corridor ---- */
+    for(const [sx,spans] of [[-1,[[0.75,3.0],[4.2,7.15]]],[1,[[0.75,2.5],[3.7,7.15]]]]) for(const [a,b] of spans){
+      const r=cyl(0.024,0.024,b-a-0.2,M.chrome,sx*0.77,0.08,(a+b)/2,12); r.rotation.x=ry90;
+      for(const z of [a+0.15,(a+b)/2,b-0.15]) bx(0.1,0.035,0.035,M.chrome,sx*0.81,0.08,z);
+      for(let z=a+0.25;z<b-0.1;z+=0.7) bx(0.06,0.012,0.14,M.guide,sx*0.76,FLOOR+0.007,z); }
+    for(const [x,m] of [[-0.6,M.pipe],[0.6,M.cool]]){ const p=cyl(0.04,0.04,6.3,m,x,CEIL-0.16,3.95,10); p.rotation.x=ry90; }
+    cyl(0.08,0.08,0.45,M.red,0.74,FLOOR+0.42,6.6,16); cyl(0.03,0.04,0.1,M.dark,0.74,FLOOR+0.7,6.6,10); bx(0.06,0.06,0.2,M.chrome,0.81,FLOOR+0.5,6.6);
+    bx(0.06,0.4,0.56,M.red,-0.84,0.5,1.5); sign('EMERGENCY','Break glass. Then panic.',0.5,0.3,-0.805,0.5,1.5,ry90,'#ff6a5a');
+    sign('COCKPIT','Pilots only. That means you.',1.3,0.42,0,1.06,0.745,0);
+    sign('CABIN','Passengers, mostly content',1.1,0.32,-0.855,1.14,3.6,ry90);
+    sign('GALLEY','Tea, and other emergencies',1.1,0.32,0.855,1.14,3.1,-ry90);
+    sign('CARGO HOLD','Mind the boxes',1.7,0.3,0,1.165,7.155,Math.PI);
+    sign('TO COCKPIT','Straight on, past the tea',1.7,0.3,0,1.165,7.245,0);
+    sign('ENGINE ROOM','Do not lick the reactor',1.5,0.34,0,1.14,14.155,Math.PI);
+    sign('CARGO HOLD','The boxes are fine. Probably.',1.5,0.34,0,1.14,14.245,0);
+    sign('EXIT','To the corridor',1.1,0.32,-0.945,1.14,3.6,-ry90); sign('EXIT','To the corridor',1.1,0.32,0.945,1.14,3.1,ry90);
+    /* ---- passenger cabin ---- */
+    { const rug=plane(1.7,3.8,M.rug,-2.35,FLOOR+0.004,3.6,0); rug.rotation.x=-ry90; }
+    add(Folk.rbox(0.5,0.3,4.25,0.05,M.cream,-4.12,1.15,3.6)); bx(0.02,0.03,4.2,M.accent,-3.865,1.02,3.6);
+    for(let i=0;i<nSeats&&i<4;i++){ const z=1.95+i*1.15; cyl(0.05,0.05,0.02,M.warm,-4.0,0.99,z,16); sign(`SEAT ${i+1}`,null,0.34,0.13,-3.862,1.16,z,ry90,'#9fe0ff'); }
+    bx(0.3,0.95,0.28,M.cream,-1.42,FLOOR+0.475,1.6); add(new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.32,20),new THREE.MeshStandardMaterial({color:C('#7fc4ff'),transparent:true,opacity:0.6,roughness:0.1}))).position.set(-1.42,FLOOR+1.11,1.6);
+    cyl(0.018,0.018,0.05,M.red,-1.48,FLOOR+0.72,1.75,8).rotation.x=ry90; cyl(0.018,0.018,0.05,M.cool,-1.36,FLOOR+0.72,1.75,8).rotation.x=ry90;
+    poster('IN-FLIGHT SAFETY','In the unlikely event of a water landing, please be very surprised. There is no water. There has never been water.','#2e7fb8',0.58,0.8,-2.15,0.35,1.447,0);
+    poster('PASSENGER CHARTER','You are entitled to one seat, one window and one complaint per light-year. Complaints are read aloud to the reactor, which does not care.','#b8452e',0.58,0.8,-2.15,0.35,5.753,Math.PI);
+    /* ---- galley ---- */
+    add(Folk.rbox(2.4,0.45,0.34,0.03,M.cream,2.45,0.95,4.79));
+    for(const x of [1.65,2.45,3.25]){ bx(0.012,0.4,0.01,M.dark,x,0.95,4.615); bx(0.025,0.12,0.03,M.chrome,x-0.06,0.88,4.61); bx(0.025,0.12,0.03,M.chrome,x+0.06,0.88,4.61); }
+    bx(0.5,0.02,0.36,M.dark,3.15,-0.025,4.62); cyl(0.02,0.02,0.2,M.chrome,3.15,0.08,4.85,8); bx(0.02,0.02,0.14,M.chrome,3.15,0.17,4.79);
+    [[2.4,M.red],[2.56,M.cream],[2.72,M.accent]].forEach(([x,m])=>cyl(0.045,0.04,0.1,m,x,-0.0,4.52,14));
+    add(Folk.rbox(0.62,0.07,1.4,0.03,M.rug,3.6,-0.37,3.25));
+    bx(0.22,0.03,1.2,M.wood,3.84,0.9,2.4); ['#2e7fb8','#b8452e','#e0b000','#3a8a4a','#7a4ab8'].forEach((c,k)=>bx(0.15,0.17+(k%2)*0.03,0.055,std2(c),3.84,1.0+(k%2)*0.015,1.95+k*0.07));
+    poster('WASH YOUR MUG','This means you. Yes, you, reading this. The mugs know what you did.','#3a8a4a',0.48,0.64,1.78,0.35,1.447,0);
+    /* ---- cargo hold ---- */
+    for(const sx of [-1,1]) bx(0.06,0.02,6.6,M.dark,sx*1.85,FLOOR+0.01,10.7);
+    for(let z=8.0;z<13.9;z+=0.7) bx(0.04,0.012,0.12,M.guide,1.35,FLOOR+0.007,z), bx(0.04,0.012,0.12,M.guide,-1.35,FLOOR+0.007,z);
+    bx(0.16,0.12,6.8,M.accent,0,CEIL-0.16,10.7); bx(0.32,0.12,0.32,M.dark,0,CEIL-0.29,10.2); cyl(0.01,0.01,0.3,M.chrome,0,1.0,10.2,6);
+    { const hk=new THREE.Mesh(new THREE.TorusGeometry(0.07,0.018,8,16,Math.PI*1.4),M.chrome); hk.position.set(0,0.8,10.2); add(hk); }
+    { const W=1024,Hh=256,cv=makeCanvas(W,Hh),c=cv.getContext('2d'); c.fillStyle='rgba(242,193,78,0.85)'; c.textAlign='center'; c.textBaseline='middle'; c.font=`700 150px ${FONT_DISP}`; c.fillText('MIND THE BOXES',W/2,Hh/2,W-40);
+      const d=plane(2.2,0.55,new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false,color:0xbbbbbb}),0,FLOOR+0.006,8.2,0); d.rotation.set(-ry90,0,Math.PI); }
+    /* ---- engine room ---- */
+    { const r1=new THREE.Mesh(new THREE.RingGeometry(1.02,1.6,48),M.dark); r1.rotation.x=-ry90; r1.position.set(0,FLOOR+0.005,16.6); add(r1);
+      const r2=new THREE.Mesh(new THREE.RingGeometry(1.6,1.68,48),std2('#f2c14e')); r2.rotation.x=-ry90; r2.position.set(0,FLOOR+0.007,16.6); add(r2); }
+    for(const [y,z] of [[0.15,15.2],[-0.5,17.9],[0.8,17.4]]){ const w=new THREE.Mesh(new THREE.TorusGeometry(0.13,0.022,8,22),M.red); w.rotation.y=ry90; w.position.set(-2.1,y,z); add(w);
+      for(const a of [0,1.05,2.1]){ const s=bx(0.015,0.26,0.015,M.red,-2.1,y,z); s.rotation.x=a; } cyl(0.03,0.03,0.18,M.red,-2.19,y,z,8).rotation.z=ry90; }
+    const dial=(v,lbl)=>{ const S=256,cv=makeCanvas(S,S),c=cv.getContext('2d'); c.fillStyle='#f0ece2'; c.beginPath(); c.arc(S/2,S/2,S/2-4,0,7); c.fill(); c.strokeStyle='#202428'; c.lineWidth=10; c.stroke();
+      c.fillStyle='#c0392b'; c.beginPath(); c.moveTo(S/2,S/2); c.arc(S/2,S/2,S/2-18,-0.3,0.55); c.fill(); c.fillStyle='#f0ece2'; c.beginPath(); c.arc(S/2,S/2,S/2-40,0,7); c.fill();
+      c.strokeStyle='#202428'; c.lineWidth=5; for(let k=0;k<=8;k++){ const a=Math.PI*0.75+k/8*Math.PI*1.5; c.beginPath(); c.moveTo(S/2+Math.cos(a)*(S/2-20),S/2+Math.sin(a)*(S/2-20)); c.lineTo(S/2+Math.cos(a)*(S/2-42),S/2+Math.sin(a)*(S/2-42)); c.stroke(); }
+      c.fillStyle='#202428'; c.font=`700 40px ${FONT_DISP}`; c.textAlign='center'; c.fillText(lbl,S/2,S*0.8);
+      const a=Math.PI*0.75+v*Math.PI*1.5; c.strokeStyle='#c0392b'; c.lineWidth=8; c.beginPath(); c.moveTo(S/2,S/2); c.lineTo(S/2+Math.cos(a)*(S/2-34),S/2+Math.sin(a)*(S/2-34)); c.stroke(); c.fillStyle='#202428'; c.beginPath(); c.arc(S/2,S/2,12,0,7); c.fill();
+      return new THREE.MeshBasicMaterial({map:canvasTex(cv),color:0xcccccc}); };
+    [[0.4,0.35,'TEMP'],[1.0,0.62,'PRESS'],[1.6,0.9,'VIBES']].forEach(([x,v,l])=>{ const d=new THREE.Mesh(new THREE.CircleGeometry(0.13,32),dial(v,l)); d.position.set(x,-0.4,18.444); d.rotation.y=Math.PI; add(d); cyl(0.145,0.145,0.02,M.chrome,x,-0.4,18.452,24).rotation.x=ry90; });
+    cyl(0.02,0.02,0.32,M.chrome,1.95,0.08,18.6,8).rotation.x=-0.4; add(Folk.sph(0.045,M.red,1.95,0.23,18.54));
+    poster('REACTOR NOTICE','Glowing is normal. Humming is normal. If it starts singing, leave quietly and do not join in.','#c0392b',0.55,0.74,-1.45,0.5,18.955,Math.PI);
+    function std2(hex){ return new THREE.MeshStandardMaterial({color:C(hex),roughness:0.6,metalness:0.1}); }
+  },
+  /* fold every static mesh into one mesh per material, so the detail costs a handful of draw calls */
+  merge(g){
+    const U=THREE.BufferGeometryUtils; if(!U) return; g.updateMatrixWorld(true); const inv=new THREE.Matrix4().copy(g.matrixWorld).invert(), buckets=new Map(), dead=[];
+    g.traverse(o=>{ if(!o.isMesh||o.userData.keep||Array.isArray(o.material)||o.material.transparent) return;
+      const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone(); geo.clearGroups(); for(const k of Object.keys(geo.attributes)) if(!['position','normal','uv'].includes(k)) geo.deleteAttribute(k);
+      if(!geo.attributes.uv) return; geo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld)); if(!buckets.has(o.material)) buckets.set(o.material,[]); buckets.get(o.material).push(geo); dead.push(o); });
+    for(const o of dead){ o.parent.remove(o); o.geometry.dispose(); }
+    for(const [m,list] of buckets){ const geo=U.mergeBufferGeometries(list); list.forEach(x=>x.dispose()); if(geo) g.add(new THREE.Mesh(geo,m)); }
   },
   faultFx(id){
     const d=FAULT_DEFS[id], grp=new THREE.Group(); grp.position.set(...d.pos); this.group.add(grp);
@@ -123,7 +232,10 @@ const Interior = {
       for(const sx of [-1,1]) for(let z=7.9;z<13.9&&k<n;z+=0.85) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.78,0.78,0.78),mats[(k*7)%4]); c.position.set(sx*(2.35+(lvl?0.05:0)),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
     const pax=Cargo.pax(), pk=pax.map(p=>p.kind==='escort'?p.vip.seed:p.seed).join(',');
     if(pk!==this.paxKey){ this.paxKey=pk; for(const F of this.pax) F.parent&&F.parent.remove(F); this.pax=[];
-      pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.78), S=this.seats[i]; F.position.set(-0.05,FLOOR+0.42,0); F.rotation.y=Math.PI/2; const U=F.userData; for(const l of U.legs) l.rotation.x=-1.45; S.add(F); F.userData.cargo=p; this.pax.push(F); }); } },
+      pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.66), S=this.seats[i], U=F.userData;
+        // sit hips on the cushion (species without legs just settle into it), legs forward, hands on the armrests
+        const hip=U.legs[0]?U.legs[0].position.y*0.66:0.06; F.position.set(0.04,FLOOR+0.49-hip+0.02,0); F.rotation.y=Math.PI/2; for(const l of U.legs) l.rotation.x=-1.45;
+        Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
   update(dt, t){
     const g=this.group; g.quaternion.copy(G.ship.quat);
     for(const id in this.fx){ const f=this.fx[id]; if(!f.grp.visible) continue; f.lamp.material.color.setScalar((Math.sin(t*8)>0?3:0.2)).multiply(new THREE.Color(1,0.12,0.06));
@@ -136,6 +248,9 @@ const Interior = {
     const me=Walk.pos;
     for(const F of this.pax){ Folk.blink(F,t); const S=F.parent, wp=new V3().setFromMatrixPosition(S.matrix), d=Math.hypot(me.x-wp.x,me.z-wp.z), U=F.userData;
       const want=d<3.5?clamp(Math.atan2(me.x-wp.x,me.z-wp.z)-Math.PI/2,-0.9,0.9):Math.sin(t*0.3+U.ph)*0.3; U.head.rotation.y=lerp(U.head.rotation.y,want,1-Math.exp(-dt*4));
+      // breathe; wave hello when you first come over, and again if you come back after a while
+      U.rig.scale.y=1+Math.sin(t*1.6+U.ph)*0.012; if(d<2.6&&!U.waved){ U.waved=true; U.wave=1.8; } if(d>4.5) U.waved=false;
+      if(U.wave>0){ U.wave-=dt; Folk.arms(F,[0.55,0.28],[2.7,0.35+Math.sin(t*14)*0.35]); if(U.wave<=0) Folk.arms(F,[0.55,0.28],[0.55,0.28]); }
       const c=U.cargo, f=c.kind==='escort'?(c.hp>70?1:c.hp>40?0.7:0.4):Cargo.factor(c), m=Escort.hazard&&c.kind==='escort'?'shock':f>=1?(Faults.has('scrubber')?'worried':d<2.2?'happy':'neutral'):f>0.65?'worried':'sad'; if(U.mood!==m) Folk.mood(F,m); }
   },
 };

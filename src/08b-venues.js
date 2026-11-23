@@ -190,7 +190,7 @@ const Folk = (() => {
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
   function arms(F, l, r){ const A=F.userData.arms; if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
-  return {make, hold, blink, walk, rest, arms, mood, sph, cyl, bx};
+  return {make, hold, blink, walk, rest, arms, mood, sph, cyl, bx, rbox};
 })();
 
 /* ---------- the sets ---------- */
