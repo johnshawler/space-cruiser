@@ -55,6 +55,10 @@ Get up from the pilot's seat (L) and walk around inside: a corridor, a passenger
 
 Things break. A coolant leak (fuel use up), a thruster misfire (top speed down), a blown fuse (radio dead), a jammed air scrubber (passengers cross, canopy fogs), a hull crack (hull slowly failing), a snapped cargo strap (cargo loses value faster). Each shows on screen and in the ship itself. Walk to it and hold F to fix it. It goes slowly while the ship is shaking, above throttle 5 or in warp.
 
+## Deliveries
+
+When you land at a destination, nothing is paid automatically. Go to the cargo depot and hand each delivery over yourself (or see your passengers off) to get paid, or hand over everything at once. If you try to launch with deliveries still aboard, the depot asks first.
+
 ## Time and throttle
 
 Every delivery has an on-time window based on the distance. Deliver within it for full pay; after that the pay slides, down to 30%. Only flight time counts. Passengers work the same way.

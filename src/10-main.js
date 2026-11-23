@@ -47,11 +47,11 @@ const Game = {
   onLanded(P){
     G.mode='port'; G.docked=P.idx; const s=G.ship; s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; G.sys.autopilot=false; Sfx.setEngine(0,0,false);
     Dlg.close(); if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Distress.cur=null; Customs.cur=null; Mining.beam.visible=Mining.spark.visible=Mining.sight.visible=false; Game.escortAlarm=false;
-    const paid=G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='escort'); let total=0; paid.forEach(c=>total+=c.pay); G.cargo=G.cargo.filter(c=>!paid.includes(c));
-    const esc=Escort.land(P); if(esc){ paid.push(esc); total+=esc.pay; } if(paid.length) G.rep=clamp(G.rep+paid.length,-100,100);
+    // deliveries are handed over by hand at the cargo depot now; nothing is paid automatically
+    const paid=[], total=0, due=UI.due(P);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
-    const fee=Math.min(this.towFee,G.credits+total); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; if(Hold.open) Hold.render(); G.credits+=total-fee; G.stats.deliveries+=paid.length; G.stats.earned+=total; if(G.hot===P.idx) G.hot=null;
-    this.genJobs(P.idx); const S=SPECIES[P.species]; if(paid.length) Sfx.cash(); Sfx.speak(S.voice,2.4,true);
+    const fee=Math.min(this.towFee,G.credits); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; if(Hold.open) Hold.render(); G.credits-=fee; if(G.hot===P.idx) G.hot=null;
+    this.genJobs(P.idx); const S=SPECIES[P.species]; if(due.length) setTimeout(()=>UI.toast(`${due.length} deliver${due.length===1?'y':'ies'} for ${P.port}. Hand ${due.length===1?'it':'them'} over at the cargo depot.`,'good'),1200); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
     if(G.cargo.some(c=>c.illegal&&c.to===P.idx)) setTimeout(()=>{ if(G.mode==='port') Customs.unload(P); },1200);
@@ -175,7 +175,10 @@ const Game = {
     });
     window.addEventListener('keyup',e=>{ G.keys[e.code]=false; });
     window.addEventListener('blur',()=>{ G.keys={}; });
-    $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode==='port') Cine.startTakeoff(); };
+    $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
+      if(due.length&&!Dlg.open){ Dlg.show({icon:'📦',who:`${UI.P.port} · cargo depot`,text:`You still have ${due.length} deliver${due.length===1?'y':'ies'} for here. Leave without handing ${due.length===1?'it':'them'} over?`,
+        opts:[{t:'Hand everything over first',fn:()=>{ UI.deliverAll(UI.P); }},{t:'Launch anyway',sub:'It stays in your hold',fn:()=>Cine.startTakeoff()}]}); return; }
+      Cine.startTakeoff(); };
     document.addEventListener('visibilitychange',()=>{ Sfx.setMaster(document.hidden?0:0.85); });
   },
   async boot(){

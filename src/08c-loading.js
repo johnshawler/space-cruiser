@@ -99,13 +99,13 @@ const Loading = (() => {
   function topple(except){
     S.toppled=true; S.crates.forEach(x=>{ if(x===except||x.taken) return; const h=x.o.position.y;
       x.phys=toss(x.o,new V3(rnd(0.4,2.4),rnd(0.5,2),rnd(-2.2,2.2)).multiplyScalar(0.6+h*0.35),new V3(rnd(-7,7),rnd(-3,3),rnd(-7,7)),CS/2,p=>{ if(p.hit===1&&live()) Sfx.crash(0.45); }); });
-    if(live()) Sfx.crash(0.7); setTimeout(()=>{ if(S&&live()) Sfx.wah(); },700);
+    if(live()) Sfx.crash(0.7); setTimeout(()=>{ if(S&&live()) void 0; },700);
     S.crew.forEach(o=>{ Folk.mood(o.F,'shock'); if(o!==S.crew.find(q=>q.crate===except)){ o.act='gasp'; o.actT=0; } });
     say('The stack had other ideas.');
   }
 
   function burst(x){
-    x.o.visible=false; S.lost++; const at=x.o.position.clone(); if(live()){ Sfx.crash(1); setTimeout(()=>{ if(S&&live()) Sfx.wah(); },500); }
+    x.o.visible=false; S.lost++; const at=x.o.position.clone(); if(live()){ Sfx.crash(1); setTimeout(()=>{ if(S&&live()) void 0; },500); }
     puff(at.clone().setY(0.3),'#c9b79a',10,2.2,0.32,1.1);
     for(let i=0;i<12;i++){ const s=0.16+Math.random()*0.16, o=new THREE.Mesh(i%3?new THREE.BoxGeometry(s,s,s):new THREE.SphereGeometry(s*0.6,8,6),M(i%2?x.col:pick(['#ffd43b','#f8f9fa','#4dabf7','#ff6b6b']),0.6,0.05)); o.castShadow=true;
       o.position.copy(at); S.root.add(o); S.bits.push(o); toss(o,new V3(rnd(-1.5,3.5),rnd(2,5),rnd(-3,3)),new V3(rnd(-9,9),rnd(-9,9),rnd(-9,9)),s/2); }
@@ -163,7 +163,7 @@ const Loading = (() => {
 
     // close up once everything is aboard and nobody is on the ramp
     if(S.closeT<0&&S.inCount+S.lost>=S.n&&S.crew.every(c=>!c.onRamp)&&!S.crew.some(c=>c.act==='facepalm'||c.act==='slip')){ S.closeT=t;
-      if(S.out==='ok'){ say('Not a scratch on it. The crew can hardly believe it.'); if(live()) Sfx.tada(); S.crew.forEach(c=>{ c.act='cheer'; c.actT=0; Folk.mood(c.F,'happy'); }); }
+      if(S.out==='ok'){ say('Not a scratch on it. The crew can hardly believe it.'); if(live()) void 0; S.crew.forEach(c=>{ c.act='cheer'; c.actT=0; Folk.mood(c.F,'happy'); }); }
       else if(S.out==='topple'){ say('Everything went in anyway. Nobody needs to know.'); S.crew.forEach(c=>{ c.act='mop'; c.actT=0; Folk.mood(c.F,'worried'); }); }
       else { S.crew.forEach(c=>{ c.act='shrug'; c.actT=0; Folk.mood(c.F,'worried'); }); } }
     if(S.closeT>=0&&t>S.closeT+1.2) S.finished=true;

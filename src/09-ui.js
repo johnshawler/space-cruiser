@@ -13,6 +13,20 @@ const UI = {
     this.render();
   },
   hidePort(){ $('port').hidden=true; },
+  /* what is aboard for this port (contraband goes through the unloading crew instead) */
+  due(P){ return P?G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='ore'):[]; },
+  payFor(c){ return c.kind==='escort'?Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5:c.pay; },
+  deliver(c, P, quiet){
+    let pay, name;
+    if(c.kind==='escort'){ const r=Escort.land(P); if(!r){ Cockpit.drawManifest(); this.render(); return 0; } pay=r.pay; name=c.vip.title; }
+    else { const i=G.cargo.indexOf(c); if(i<0) return 0; G.cargo.splice(i,1); pay=c.pay; name=c.kind==='pax'?c.good:`${c.qty}× ${c.good}`; G.rep=clamp(G.rep+1,-100,100); }
+    G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay;
+    if(!quiet){ Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); Venues.react('cash'); this.paidFx(pay); UI.toast(`${c.kind==='pax'||c.kind==='escort'?'Seen off':'Delivered'}: ${name} · +${fmtCr(pay)}`,'good'); Cockpit.drawManifest(); Game.save(); this.render(); }
+    return pay; },
+  deliverAll(P){ const due=this.due(P); let sum=0; for(const c of due) sum+=this.deliver(c,P,true); if(!due.length) return;
+    Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); setTimeout(()=>Sfx.cash(),420); Venues.react('cash'); this.paidFx(sum); UI.toast(`Delivered ${due.length} · +${fmtCr(sum)}`,'good'); Cockpit.drawManifest(); Game.save(); this.render(); },
+  /* the money floats up out of the panel */
+  paidFx(n){ const f=el('div','paidfx','+'+fmtCr(n)); $('port').appendChild(f); setTimeout(()=>f.remove(),1900); },
   stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${holdCap()}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <b>${esc(d.name)}</b></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true);
     $('port-foot').textContent=G.cargo.length?`${G.cargo.length} delivery${G.cargo.length>1?' contracts':' contract'} aboard`:'Hold empty. Take a job before you launch.'; },
   /* the shopkeeper's hello at the top of each place */
@@ -30,6 +44,14 @@ const UI = {
     const cash=()=>{ Sfx.cash(); Venues.react('cash'); };
     if(this.tab==='depot'){
       const a=this.arrival;
+      // deliveries for this port, handed over one at a time
+      const due=this.due(P);
+      if(due.length){ body.appendChild(el('div','note deliver',`For ${esc(P.port)}: ${due.length} deliver${due.length===1?'y':'ies'} in your hold. Hand ${due.length===1?'it':'them'} over to get paid.`));
+        due.forEach(c=>{ const person=c.kind==='pax'||c.kind==='escort', sp=c.kind==='escort'?c.vip.sp:c.sp, seed=c.kind==='escort'?c.vip.seed:c.seed;
+          const title=c.kind==='escort'?esc(c.vip.title):person?esc(c.good):`${c.qty}× ${esc(c.good)}`, lab=Cargo.label(c);
+          const desc=c.kind==='escort'?`Your VIP, ${c.hp>70?'quite pleased with the trip':c.hp>40?'a little shaken':'badly rattled'} (calm ${Math.round(c.hp)}%).`:c.kind==='pax'?'Your passenger, ready to get off.':c.quest?`Lost property. ${esc(c.owner||'Its owner')} will be delighted, briefly.`:'Signed for on the spot. Mostly legibly.';
+          this.card(body,person?portraitCanvas(sp,seed,128):'📦',title,desc,lab?esc(lab):'',fmtCr(this.payFor(c)),person?'See them off':'Hand it over',false,()=>this.deliver(c,P)); });
+        if(due.length>1){ const b=el('button','big','Hand over everything'); b.style.alignSelf='flex-start'; b.onclick=()=>this.deliverAll(P); body.appendChild(b); } }
       body.appendChild(this.keeper(v,a?a.greet:null));
       if(a){ if(a.paid.length){ const L=el('div','ledger'); a.paid.forEach(c=>{ L.appendChild(el('span','',`${c.qty?c.qty+'× ':''}${esc(c.good)}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); if(a.fee){ L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); }
           L.appendChild(el('span','tot','Delivered and paid')); L.appendChild(el('span','tot',fmtCr(a.total))); body.appendChild(L); }
@@ -37,7 +59,7 @@ const UI = {
       const need=Math.ceil(d.fuel-G.fuel), cost=need*3;
       this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. Every depot sells fuel. Warp drinks it, cruising sips it.`,'3 cr per unit',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=3?'Buy what I can':'Beg',need<=0,()=>{
         if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=3){ const u=Math.floor(G.credits/3); G.fuel+=u; G.credits-=u*3; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
-      body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}. Cargo is loaded when you accept and paid for when you land at the destination.`));
+      body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}. Cargo is loaded when you accept. Hand it over at the destination's cargo depot to get paid.`));
       if(!G.jobs.length) body.appendChild(el('div','note','The board is empty. Fly somewhere else and come back.'));
       G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
         let h3, meta;
