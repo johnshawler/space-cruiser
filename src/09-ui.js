@@ -56,7 +56,7 @@ const UI = {
       body.appendChild(el('div','note guide',this.guide(P)));
     } else if(this.tab==='yard'){
       body.appendChild(this.keeper(v));
-      body.appendChild(el('div','note',`${esc(v.name)} sells ${v.ships.length===SHIPS.length?'every model':v.ships.length===1?'one model':v.ships.length+' models'}. Trade-in is half of what your current ship cost new. Cargo moves across for free. Preview parks the ship on the pad behind the lot.`));
+      body.appendChild(el('div','note',`${esc(v.name)} sells ${v.ships.length===SHIPS.length?'every model':v.ships.length===1?'one model':v.ships.length+' models'}. Trade-in is half of what your current ship cost new. Cargo moves across for free. Preview parks the ship on the showroom pad next door.`));
       v.ships.forEach(i=>{ const sh=SHIPS[i]; const cv=makeCanvas(128,128), x=cv.getContext('2d'); x.fillStyle='#0b1620'; x.fillRect(0,0,128,128); x.fillStyle=sh.ck.trim; x.font=`700 76px ${FONT_DISP}`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(['I','II','III','IV','V'][i],64,68);
         const net=Math.max(0,sh.price-Math.round(d.price/2)), mine=i===G.shipId; const c=el('div','card'); c.appendChild(cv);
         c.appendChild(el('div','mid',`<h3>${esc(sh.name)}${mine?'<span class="tag">YOURS</span>':''}</h3><p>${esc(sh.tag)}</p><div class="meta">Hold <i>${sh.hold}</i> · Cruise <i>${sh.cruise}</i> km/s · Warp <i>${(sh.warp/LS).toFixed(2)}c</i> · Tank <i>${sh.fuel}</i></div>`));
