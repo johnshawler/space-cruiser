@@ -37,7 +37,7 @@ const Flotsam = {
       for(const a of [0,1,2]){ const band=new THREE.Mesh(new THREE.BoxGeometry(25,25,4),new THREE.MeshStandardMaterial({color:C('#3d4147'),roughness:0.5,metalness:0.6})); band.rotation.set(a===1?Math.PI/2:0,a===2?Math.PI/2:0,0); g.add(band); } }
     const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:softDotTex(),color:HDR(kind==='lost'?'#b89cff':'#ffb454',3),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); glow.scale.setScalar(140); g.add(glow); g.userData.glow=glow;
     return g; },
-  marker(){ const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
+  marker(){ const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
     sp.scale.set(0.24,0.15,1); sp.center.set(0.5,1-158/240); sp.renderOrder=21; World.universe.add(sp); return {cv,tex,sprite:sp,key:''}; },
   /* item: a cargo entry that goes into G.cargo when scooped. opts: {kind:'crate'|'lost', label, vel, quest} */
   spawn(item, pos, opts){ opts=opts||{}; const kind=opts.kind||'crate', m=this.mesh(kind); m.position.copy(pos); World.universe.add(m);
@@ -62,7 +62,7 @@ const Flotsam = {
   markers(show){ for(const f of this.list){ const vis=show&&(f.quest||f.kind==='lost'||f.dist<400000); f.mk.sprite.visible=vis; f.mk.sprite.position.copy(f.pos); if(!vis) continue;
     const key=f.label+fmtDist(f.dist); if(f.mk.key===key) continue; f.mk.key=key; const x=f.mk.cv.getContext('2d'); x.clearRect(0,0,384,240); const col=f.kind==='lost'?'#c8b4ff':'#ffc060', cx=192, cy=158;
     x.strokeStyle=x.fillStyle=col; x.lineWidth=4; x.beginPath(); x.arc(cx,cy,20,0,Math.PI*2); x.stroke(); x.beginPath(); x.moveTo(cx-30,cy); x.lineTo(cx-22,cy); x.moveTo(cx+22,cy); x.lineTo(cx+30,cy); x.stroke();
-    x.textAlign='center'; x.font=`600 40px ${FONT_DISP}`; x.fillText(f.label.toUpperCase(),cx,cy-80,376); x.font=`40px ${FONT_MONO}`; x.fillText(fmtDist(f.dist),cx,cy-34,376); f.mk.tex.needsUpdate=true; } },
+    x.textAlign='center'; x.font=`600 40px ${FONT_DISP}`; plateText(x,f.label.toUpperCase(),cx,cy-80,356,col); x.font=`40px ${FONT_MONO}`; plateText(x,fmtDist(f.dist),cx,cy-34,356,col); f.mk.tex.needsUpdate=true; } },
 };
 
 /* ---------- the cargo scoop: open it, slow down, and anything nearby gets pulled in ---------- */

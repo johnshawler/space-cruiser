@@ -17,7 +17,7 @@ const TouchUI = {
       this.stick.x=dz(dx); this.stick.y=dz(-dy); knob.style.transform=`translate(${dx*R*0.62}px,${dy*R*0.62}px)`; };
     base.addEventListener('pointerdown',e=>{ e.preventDefault(); sid=e.pointerId; try{ base.setPointerCapture(sid); }catch(_){} Sfx.init(); base.classList.add('on'); move(e); });
     base.addEventListener('pointermove',e=>{ if(e.pointerId===sid) move(e); });
-    const endS=e=>{ if(e.pointerId!==sid) return; sid=null; this.stick.x=this.stick.y=0; knob.style.transform=''; base.classList.remove('on'); };
+    const endS=e=>{ if(e.pointerId!==sid) return; sid=null; this.stale=false; this.stick.x=this.stick.y=0; knob.style.transform=''; base.classList.remove('on'); };
     base.addEventListener('pointerup',endS); base.addEventListener('pointercancel',endS);
 
     /* throttle slider: drag or tap anywhere on it, top is full */
