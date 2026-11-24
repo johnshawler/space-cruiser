@@ -105,7 +105,8 @@ const UI = {
         this.card(body,person?portraitCanvas(sp,seed,128):'📦',title,desc,'',fmtCr(this.payFor(c)),person?'See them off':'Hand it over',false,()=>this.deliver(c,P)).classList.add('due'); });
       if(due.length>1){ const sum=due.reduce((s,c)=>s+this.payFor(c),0); this.card(body,'✔','Hand over everything',`${due.length} deliveries for ${esc(P.port)}.`,'',fmtCr(sum),'Hand over all',false,()=>this.deliverAll(P)).classList.add('due'); }
       const ppu=Econ.fuelPrice(P), need=Math.ceil(d.fuel-G.fuel), cost=need*ppu;
-      this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. ${ppu} cr a unit${P.station?', the price of being far away':''}.`,'',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=ppu?'Buy what I can':'Beg',need<=0,()=>{
+      // the fuel tag only shows while there's room in the tank
+      if(need>0) this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. ${ppu} cr a unit${P.station?', the price of being far away':''}.`,'',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=ppu?'Buy what I can':'Beg',need<=0,()=>{
         if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=ppu){ const u=Math.floor(G.credits/ppu); G.fuel+=u; G.credits-=u*ppu; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
       // jobs with no model on the shelf (escorts, or a board too long for it) get a ticket button here
       const onShelf=new Set(G.jobs.filter(j=>j.kind!=='escort').slice(0,12));
