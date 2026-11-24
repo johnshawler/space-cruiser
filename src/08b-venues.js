@@ -224,6 +224,8 @@ const Venues = (() => {
     const skirt=new THREE.Mesh(new THREE.PlaneGeometry(4.4,0.5),new THREE.MeshStandardMaterial({map:stripeTex(pal[3],'#f4efe4'),roughness:0.8})); skirt.position.set(0,0.75,0.41); R.add(skirt);
     
     const L=new THREE.PointLight(C('#ffe2b8'),1.1,18,1.6); L.position.set(0,2.9,2.2); R.add(L);
+    // the signpost beside the counter: its arms are the big buttons that take you to the other places in this port
+    R.add(cyl(0.08,0.08,3.3,M('#6b4a2b',0.8,0.05),3.4,1.65,0.7,8)); V.post=new THREE.Object3D(); V.post.position.set(3.4,3.3,0.7); R.add(V.post);
     if(V.k!=='depot') for(let i=0;i<3;i++){ const c=bx(0.6,0.6,0.6,M(['#b07a3a','#9c6a30','#c48a48'][i],0.8,0.02),-5.6+i*0.15,0.3+i*0.6,1.2+(i%2)*0.1); c.rotation.y=i*0.3; R.add(c); }
   }
 

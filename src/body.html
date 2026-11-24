@@ -48,14 +48,11 @@
   <div id="bubble" hidden aria-live="polite"><div class="who"></div><div class="say"></div><div class="qk"></div></div>
   <div id="shelf-tip" hidden></div>
   <section id="port" hidden aria-label="Spaceport">
-    <header>
-      <h2 id="port-name"></h2>
-      <div class="sub" id="port-sub"></div>
-      <div class="stats" id="port-stats"></div>
-    </header>
-    <nav id="port-tabs"></nav>
-    <div id="port-body"></div>
-    <footer><span id="port-foot"></span><button class="big" id="launch">Launch</button></footer>
+    <div id="port-bar"><header id="port-title"><h2 id="port-name"></h2><div class="sub" id="port-sub"></div></header>
+    <div id="port-top"><span id="port-foot"></span><span id="port-top-btns"></span><button class="big" id="launch">Launch</button></div></div>
+    <nav id="port-tabs" aria-label="Places in this port"></nav>
+    <div id="port-card" hidden role="dialog" aria-label="Contract"></div>
+    <div id="port-body" aria-label="At the counter"></div>
   </section>
 
   <section id="dlg" hidden aria-label="Decision" aria-live="polite">
@@ -94,7 +91,7 @@
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.25</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.26</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>

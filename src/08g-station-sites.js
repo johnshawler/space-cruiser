@@ -35,5 +35,5 @@ const PortSites=(()=>{
   for(const e of entries){const b=document.createElement('button');b.className='btn';b.textContent=e.name;b.setAttribute('aria-pressed',String(selected===e));b.onclick=()=>{selected=e;UI.render();};body.append(b);}
   const note=document.createElement('p');note.className='note';note.textContent=(selected.annex?'The '+selected.annex+' annex, built to the same plans as the planetside original. ':'')+kind(selected.info.type)+' · '+selected.info.habit;body.append(note);}
  function camera(aspect){const g=selected.group;const look=g.localToWorld(new THREE.Vector3(0,3.7,0)),offset=new THREE.Vector3(13,10,19).multiplyScalar(Math.max(1,1/aspect));const pos=g.localToWorld(offset.add(new THREE.Vector3(0,3.7,0)));return {look,pos,fov:50};}
- return {populate,panel,camera,has:P=>!!(places[P.name]||[]).length,get selected(){return selected;},get entries(){return entries;}};
+ return {populate,panel,camera,kind,pick(e){selected=e;},has:P=>!!(places[P.name]||[]).length,get selected(){return selected;},get entries(){return entries;}};
 })();

@@ -59,36 +59,11 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #loading{font-family:var(--mono);color:var(--dim);letter-spacing:.2em;font-size:24px;text-transform:uppercase}
 
 /* Port */
-#port{position:absolute;inset:0 auto 0 0;width:min(580px,38%);z-index:15;background:var(--glass);border-right:1px solid var(--line);display:flex;flex-direction:column;background:rgba(8,15,23,.93);isolation:isolate}
-#port header{padding:calc(18px + env(safe-area-inset-top,0px)) 22px 12px;padding-left:max(22px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
-#port h2{font-family:var(--display);font-size:38px;letter-spacing:.14em;text-transform:uppercase;margin:0;line-height:1}
-#port .sub{font-family:var(--mono);font-size:19px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-top:6px}
-#port .stats{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin-top:10px;font-family:var(--mono);font-size:21px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
-#port .stats b{color:var(--cyan);font-weight:400}
-#port nav{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--line)}
-#port nav button{flex:1 1 auto;background:none;border:0;border-bottom:2px solid transparent;padding:10px 10px;font-family:var(--display);letter-spacing:.1em;text-transform:uppercase;font-size:20px;color:var(--dim);white-space:nowrap}
-#port nav button.on{color:var(--ink);border-bottom-color:var(--amber)}
-#port-body{flex:1;overflow-y:auto;overscroll-behavior:contain;transform:translateZ(0);will-change:transform;padding:16px 22px;padding-left:max(22px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;min-height:0}
-#port footer{padding:14px 22px calc(14px + env(safe-area-inset-bottom,0px));padding-left:max(22px,env(safe-area-inset-left,0px));border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}
-#port footer span{font-family:var(--mono);font-size:22px;color:var(--dim);letter-spacing:.06em;display:flex;flex-direction:column;gap:2px}#port footer .cr{color:var(--cyan);font-weight:400;font-size:28px}
-#port .stats:empty{display:none}.facts{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font-family:var(--mono);font-size:21px;color:var(--dim);padding:10px 12px;border:1px solid var(--line);background:rgba(98,226,255,.05)}.facts b{color:var(--cyan);font-weight:400}.facts .shiplink{color:var(--ink)}
-.card{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;padding:12px 14px;background:var(--glass-2);border:1px solid var(--line)}
-.card canvas{width:64px;height:64px;display:block;border:1px solid var(--line)}
-.card .mid p{display:none}.card.open .mid p{display:block;margin-top:6px}.card.open{grid-template-columns:64px 1fr}.card.open .right{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
-#port .stats>span:nth-child(5),#port .stats>span:nth-child(6){grid-column:1/-1}
-@media (max-width:1300px){ .card{grid-template-columns:56px 1fr}.card canvas{width:56px;height:56px}.card .right{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center} }#port .stats .mini{grid-column:1/-1;justify-self:start}.card.has-more{cursor:pointer}.card.has-more .mid h3::after{content:' ▸';color:var(--dim);font-size:.8em}.card.open .mid h3::after{content:' ▾'}
-.card.flash{animation:flash 1.4s ease-out}@keyframes flash{0%,40%{background:rgba(255,180,84,.35);border-color:var(--amber)}100%{background:var(--glass-2)}}
 #bubble{position:absolute;z-index:14;left:0;top:0;max-width:min(460px,42vw);background:#f6f2e6;color:#1d1a14;border-radius:20px;padding:12px 18px 14px;transform:translate(-22%,calc(-100% - 22px));pointer-events:none;border:3px solid #2a2116}
 #bubble::after{content:'';position:absolute;left:22%;bottom:-19px;margin-left:-14px;border:14px solid transparent;border-top:18px solid #2a2116;border-bottom:0}
 #bubble .who{font-family:var(--mono);font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:#6b5a44}#bubble .say{font-size:26px;line-height:1.3;margin-top:2px}#bubble .qk{font-size:17px;font-style:italic;color:#6b5a44;margin-top:6px}
 #shelf-tip{position:absolute;z-index:16;pointer-events:none;background:rgba(6,10,14,.92);border:2px solid var(--amber);color:var(--ink);padding:10px 14px;font-size:22px;line-height:1.3;max-width:360px;transform:translate(16px,16px)}#shelf-tip b{color:var(--amber);display:block}#shelf-tip i{font-style:normal;color:var(--dim);font-size:18px}
 @media (max-width:900px){ #bubble .say{font-size:19px}#bubble .who,#bubble .qk{font-size:14px} }
-.card .mid{min-width:0}
-.card h3{font-family:var(--display);font-size:28px;letter-spacing:.04em;margin:0 0 6px;line-height:1.15;font-weight:600}
-.card p{margin:0;color:var(--dim);font-size:26px;line-height:1.35}.card p.lbl{font-style:italic;opacity:.7;margin-top:6px}.quote.tale{border-left-color:var(--good,#7dffb0)}
-.card .meta{font-family:var(--mono);font-size:24px;color:var(--ink);letter-spacing:.04em;margin-top:8px}
-.card .meta i{font-style:normal;color:var(--amber)}
-.card .right{text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 .pay{font-family:var(--mono);font-size:34px;color:var(--good);font-variant-numeric:tabular-nums;white-space:nowrap}
 .btn{font-family:var(--display);font-size:24px;letter-spacing:.14em;text-transform:uppercase;padding:12px 22px;background:transparent;border:1px solid var(--cyan);color:var(--cyan);border-radius:2px;white-space:nowrap}
 .btn:hover:not(:disabled){background:var(--cyan);color:#04121a}
@@ -104,9 +79,6 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .venue h3{font-family:var(--display);font-size:34px;letter-spacing:.08em;text-transform:uppercase;margin:4px 0 10px;color:var(--amber);line-height:1.1}
 .quirk{font-size:24px;color:var(--dim);font-style:italic;margin:10px 0 2px;line-height:1.4}
 .note.guide{border-top:1px solid var(--line);padding-top:12px;margin-top:6px}.note b{color:var(--ink);font-weight:500}
-/* port panel: a side panel on wide screens, the bottom of the screen on tall ones, so the shop stays in view */
-@media (max-aspect-ratio:1/1){#port{inset:auto 0 0 0;width:100%;height:60%;border-right:0;border-top:1px solid var(--line)}#port header{padding-top:14px}}
-@media (max-width:700px){#port{width:100%}}
 .ledger .tot{border-top:1px solid var(--line);padding-top:6px;color:var(--good)}
 
 /* Comms */
@@ -137,7 +109,6 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #deep-badge.z1{color:#ffd166;border-color:#ffd166}#deep-badge.z2{color:#ff9a4a;border-color:#ff9a4a}#deep-badge.z3{color:#ff6a6a;border-color:#ff6a6a}
 #deep-badge.storm{color:#fff;background:#a8322a;border-color:#ff7a6a;animation:scoopPulse 1s ease-in-out infinite}
 @media (max-width:900px){ #deep-badge{font-size:16px} }
-.card.shady{border-color:rgba(255,111,97,.45)}
 #help{position:absolute;inset:0;z-index:30;background:rgba(2,4,8,.88);display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #help .box{max-width:1280px;width:100%;max-height:100%;overflow:auto;border:1px solid var(--line);background:var(--glass);padding:24px}
 #help h2{font-family:var(--display);letter-spacing:.2em;text-transform:uppercase;margin:0 0 14px;font-size:36px}
@@ -265,6 +236,47 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #hold-foot{font-family:var(--mono);font-size:22px;color:var(--dim);margin-top:12px;border-top:1px solid var(--line);padding-top:12px}#hold-foot b{color:#7fd6ff}
 .btn.mini{font-size:18px;padding:4px 10px;margin-left:auto}
 @media (max-width:900px){ #hold h2{font-size:26px}.hrow b{font-size:22px}.hrow small{font-size:17px}#hold-cap,#hold-foot{font-size:17px} }
-/* residents and landmarks panels: large, readable heading and picker */
-#port-body>h3{font-family:var(--display);font-size:24px;letter-spacing:.04em;margin:0;color:var(--amber)}#port-body>label{font-size:20px;display:flex;flex-direction:column;gap:8px}#port-body select{font:inherit;font-size:20px;padding:8px 10px;background:#0e1620;color:#e8f2ff;border:1px solid var(--line);border-radius:6px}#port-body>.note strong{font-size:24px}
+/* ---------- the port, in the scene: title sign, launch sign, signpost, price tags and job tickets ---------- */
+#port{position:absolute;inset:0;z-index:15;pointer-events:none}
+#port>*{pointer-events:auto}
+#port-bar{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}
+#port-title{flex:0 1 560px;min-width:200px;background:rgba(8,15,23,.84);border:1px solid var(--line);border-left:6px solid var(--amber);padding:10px 18px 12px;pointer-events:none}
+#port h2{font-family:var(--display);font-size:36px;letter-spacing:.12em;text-transform:uppercase;margin:0;line-height:1.05}
+#port .sub{font-family:var(--mono);font-size:18px;letter-spacing:.08em;color:var(--amber);text-transform:uppercase;margin-top:6px;line-height:1.3}
+#port-top{pointer-events:auto;margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:12px;background:rgba(8,15,23,.84);border:1px solid var(--line);padding:10px 12px 10px 18px}
+#port-foot{display:flex;flex-direction:column;font-family:var(--mono);font-size:20px;color:var(--dim);letter-spacing:.04em;line-height:1.2}#port-foot .cr{color:var(--cyan);font-weight:400;font-size:30px}
+#port-top-btns{display:flex;gap:8px}#port-top .btn{font-size:20px;padding:10px 14px}#port-top .big{padding:14px 28px}
+/* the signpost: wooden arms pointing left and right off a pole in the scene */
+#port-tabs{position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:grid;grid-template-columns:auto auto;column-gap:14px;row-gap:8px;padding-bottom:4px}
+#port .arm{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:#fff4dc;background:#7a5230;border:0;padding:10px 30px 10px 18px;cursor:pointer;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 50%,calc(100% - 20px) 100%,0 100%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);white-space:nowrap}
+#port .arm.l{justify-self:end;padding:10px 18px 10px 30px;clip-path:polygon(20px 0,100% 0,100% 100%,20px 100%,0 50%)}
+#port .arm:hover,#port .arm:focus-visible{background:#9a6a3c}
+#port .arm.on{background:var(--amber);color:#1a1206;cursor:default}
+/* price tags along the counter */
+#port-body{position:absolute;left:0;right:0;bottom:0;display:flex;gap:12px;align-items:stretch;justify-content:safe center;overflow-x:auto;overscroll-behavior:contain;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(rgba(4,8,12,0),rgba(4,8,12,.7) 40%)}
+#port-body.empty{display:none}
+#port .card{flex:0 0 auto;width:300px;display:flex;flex-direction:column;gap:8px;padding:12px 14px;background:rgba(10,18,26,.92);border:1px solid var(--line);border-top:4px solid var(--amber)}
+#port .card.due{border-top-color:var(--good)}#port .card.shady{border-top-color:var(--bad)}
+#port .card .head{display:flex;gap:12px;align-items:center}
+#port .card canvas{width:52px;height:52px;flex:0 0 52px;display:block;border:1px solid var(--line)}
+#port .card h3,#port .ticket h3{font-family:var(--display);font-size:23px;letter-spacing:.03em;margin:0;line-height:1.15;font-weight:600}
+#port .card p{margin:0;color:var(--dim);font-size:19px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#port .card .meta,#port .ticket .meta{font-family:var(--mono);font-size:18px;color:var(--ink);letter-spacing:.03em;line-height:1.3}
+#port .card .meta i,#port .ticket .meta i{font-style:normal;color:var(--amber)}
+#port .card .right,#port .ticket .right{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto}
+#port .card .pay,#port .ticket .pay{font-family:var(--mono);font-size:26px;color:var(--cyan);margin-right:auto}
+#port .card .btn{font-size:20px;padding:10px 14px}
+#port .card.plate{width:min(760px,calc(100vw - 32px));flex-direction:row;align-items:center;gap:14px}
+#port .card.plate .mid{flex:1;min-width:0}#port .card.plate h3{font-size:28px}#port .card.plate p{-webkit-line-clamp:4;margin-top:4px}
+#port .card .step{font-size:30px;padding:14px 20px;flex:0 0 auto}
+#port .card .tag,#port .ticket .tag{font-size:15px;padding:1px 7px;margin-left:6px}
+/* a job ticket, popped up over its model on the shelf */
+#port-card{position:absolute;left:0;top:0;transform:translate(-50%,-100%);width:min(460px,calc(100vw - 32px));z-index:2;background:#101b25;border:2px solid var(--amber);padding:14px 16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 40px rgba(0,0,0,.55)}
+#port-card.shady{border-color:var(--bad)}
+#port-card p{margin:0;color:var(--dim);font-size:20px;line-height:1.35}#port-card p.lbl{font-style:italic;opacity:.75}
+#port-card .close{position:absolute;right:6px;top:6px;background:none;border:0;color:var(--dim);font-size:28px;line-height:1;padding:6px 10px;cursor:pointer}
+#port-card .mid{padding-right:34px;display:flex;flex-direction:column;gap:6px}
+#port-card .big{padding:14px 30px}
+@media (max-width:700px){#port-bar{flex-wrap:wrap}#port .sub{display:none}#port-top{flex-wrap:wrap;margin-left:0;flex:1 1 100%}#port-top-btns{margin-left:auto}#port-tabs.dock{width:calc(100vw - 32px);grid-template-columns:1fr 1fr}#port-tabs.dock .arm{font-size:16px;padding:9px 22px 9px 12px}#port-tabs.dock .arm.l{padding:9px 12px 9px 22px}}
+@media (max-width:900px){#port-title{padding:8px 12px}#port h2{font-size:24px}#port .sub{font-size:14px}#port-foot .cr{font-size:22px}#port-foot{font-size:15px}#port-top{gap:8px;padding:8px}#port-top .btn{font-size:16px;padding:8px 10px}#port-top .big{font-size:18px;padding:10px 16px}#port .arm{font-size:17px}#port .card{width:250px}}
 </style>
