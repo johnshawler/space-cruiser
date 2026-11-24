@@ -38,21 +38,31 @@ SPECIES_EXTRA.rilloon = {
       return mesh;
     }
     head.position.y=1.19;
+    const bellows=new THREE.Group();
+    bellows.position.y=.30; rig.add(bellows);
     for(let i=0;i<5;i++){
-      const radius=.25+.055*Math.sin(i*Math.PI/4);
-      rig.add(T.cyl(radius-.06,radius,.075,i%2?body:light,0,.36+i*.15,0,32));
-      rig.add(T.cyl(radius,radius-.06,.075,body,0,.435+i*.15,0,32));
+      const radius=.235+.10*Math.sin(i*Math.PI/4);
+      bellows.add(T.cyl(radius-.06,radius,.075,i%2?body:light,0,.06+i*.15,0,32));
+      bellows.add(T.cyl(radius,radius-.06,.075,body,0,.135+i*.15,0,32));
     }
     oval(head,body,0,-.02,0,.305,.275,.25);
     for(const side of [-1,1]){
       const bell=new THREE.Group();
-      bell.position.set(side*.245,.05,-.035);
-      bell.rotation.z=-side*1.02;
+      bell.position.set(side*.263,.085,-.035);
+      bell.rotation.z=-side*1.27;
       head.add(bell);
-      bell.add(T.cyl(.14,.06,.23,body,0,.085,0,24));
-      bell.add(T.cyl(.146,.146,.032,light,0,.208,0,24));
-      bell.add(T.cyl(.115,.115,.008,dark,0,.227,0,24));
+      bell.add(T.cyl(.163,.054,.25,body,0,.085,0,24));
+      bell.add(T.cyl(.17,.17,.032,light,0,.208,0,24));
+      bell.add(T.cyl(.139,.139,.008,dark,0,.227,0,24));
     }
+    const shoulders=T.cyl(.049,.049,0.62,dark,0,0.86,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const breath=Math.sin(phase)*amount;
+      bellows.scale.set(1-.055*breath,1+.13*breath,1-.055*breath);
+      U.head.position.z=.04*breath;
+      rig.position.y=.038*Math.abs(breath);
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.152,0.04,0.205,0.126,null,T.iris);

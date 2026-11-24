@@ -37,29 +37,39 @@ SPECIES_EXTRA.hushcone = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.125;
+    head.position.y=0.996;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#adeaff',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    rig.add(T.rbox(.465,.46,.346,.075,body,0,.569,0));
-    for(const side of [-1,1]){
-      const reel=T.cyl(.081,.081,.041,light,side*.107,.602,.18,22);
-      reel.rotation.x=Math.PI/2;
-      rig.add(reel);
-      oval(rig,dark,side*.107,.602,.21,.029,.029,.012);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    rig.add(T.cyl(.075,.095,.238,light,0,.892,0));
-    head.add(T.rbox(.428,.355,.291,.062,body));
-    head.add(T.rbox(.385,.278,.033,.014,glass,0,0,.152));
-    const horn=new THREE.Group();
-    horn.position.set(-.14,.176,-.047);
-    horn.rotation.z=.83;
-    horn.rotation.x=.30;
-    head.add(horn);
-    horn.add(T.cyl(.224,.047,.31,body,0,.131,0,28));
-    horn.add(T.cyl(.23,.23,.029,light,0,.292,0,28));
-    horn.add(T.cyl(.199,.199,.007,dark,0,.311,0,28));
-    horn.add(T.cyl(.06,.06,.009,signal,0,.316,0,18));
+    const recorder=T.rbox(.472,.386,.328,.062,body,0,.523,0);
+    rig.add(recorder);
+    for(const side of [-1,1]){
+      const reel=T.cyl(.076,.076,.032,light,side*.107,.552,.179,22);
+      reel.rotation.x=Math.PI/2; rig.add(reel);
+      oval(rig,dark,side*.107,.552,.199,.028,.028,.011);
+    }
+    rig.add(T.cyl(.079,.091,.172,light,0,.804,0));
+    head.add(T.rbox(.401,.281,.296,.046,body));
+    head.add(T.rbox(.364,.235,.037,.014,glass,0,0,.154));
+    const horn=new THREE.Group(); horn.position.set(-.114,.125,-.023);
+    horn.rotation.set(.42,0,.66); head.add(horn);
+    // Double wall and a recessed throat leave a real opening in the bell.
+    turned(horn,body,[[.052,0],[.055,.16],[.12,.302],[.227,.399],[.274,.426],[.278,.451],[.26,.467],[.202,.426],[.102,.335],[.044,.196],[.036,.065]],0,0,0);
+    horn.add(T.cyl(.044,.042,.017,signal,0,.109,0,16));
+    const shoulders=T.cyl(.049,.049,0.576,dark,0,0.677,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const listen=Math.sin(phase*.60)*amount;
+      horn.rotation.z=.66+.205*listen; horn.rotation.y=.21*listen;
+      rig.rotation.z=-.09*listen;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
@@ -74,7 +84,7 @@ SPECIES_EXTRA.hushcone = {
       T.brow(head,U,side*0.117,0.108,0.176,.086,.014,signal,side);
     }
     T.mouth(head,U,0,-0.09,0.185,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.327,0.768,.085,0.31,.054,dark,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.288,0.677,.085,0.275,.054,dark,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.145,0.275,0,0.215,.07,dark,null,body));
   },
 };

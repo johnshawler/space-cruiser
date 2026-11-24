@@ -42,32 +42,76 @@ SPECIES_EXTRA.whorloo = {
       const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
       parent.add(new THREE.Mesh(geometry,material));
     }
-    head.position.y=0.73;
-    oval(rig,light,0,.191,.025,.40,.19,.37);
-    oval(rig,body,0,.43,.055,.34,.30,.29);
-    const amber=T.phys('#ffd7a1');
-    const shell=oval(rig,body,-.04,.79,-.12,.45,.53,.29);
-    shell.rotation.z=-.19;
-    const coil=[];
-    for(let i=0;i<=48;i++){
-      const a=i*.19, r=.021+i*.0078;
-      coil.push([-.04+Math.cos(a)*r,.80+Math.sin(a)*r,-.10-Math.sqrt(1-(r/.49)**2)*.29]);
+    head.position.y=0.517;
+    const sole=oval(rig,light,.025,.145,.015,.47,.145,.355);
+    oval(rig,body,.12,.34,.077,.34,.24,.29);
+    const shell=new THREE.Group();
+    shell.position.set(-.13,.827,-.085);
+    shell.rotation.set(-.08,-.30,-.13);
+    rig.add(shell);
+    oval(shell,body,0,0,0,.373,.408,.219);
+    // A tapered tube forms the outside of the shell itself, including the flared last turn.
+    const vertices=[], triangles=[], centres=[];
+    const turns=58, sides=14;
+    for(let i=0;i<=turns;i++){
+      const t=i/turns, a=-.93+t*Math.PI*3.5, reach=.023+.365*t**1.8;
+      const x=Math.cos(a)*reach, y=Math.sin(a)*reach*1.06;
+      const section=.031+.10*t+.046*t**12;
+      const shellFront=.219*Math.sqrt(Math.max(0,1-(x/.373)**2-(y/.408)**2));
+      centres.push([x,y,Math.max(shellFront,.096+section*1.22)+.012]);
+      for(let j=0;j<sides;j++){
+        const b=j*2*Math.PI/sides;
+        vertices.push(x+Math.cos(a)*section*Math.cos(b),y+Math.sin(a)*section*Math.cos(b),
+          .096+section*1.22*Math.sin(b));
+        if(i<turns){
+          const next=(j+1)%sides, base=i*sides;
+          triangles.push(base+j,base+sides+j,base+next,base+next,base+sides+j,base+sides+next);
+        }
+      }
     }
-    tube(rig,amber,coil,.028);
-    T.head.position.z=.19;
-    oval(head,light,0,-.01,0,.30,.255,.222);
+    const whorl=new THREE.BufferGeometry();
+    whorl.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+    whorl.setIndex(triangles); whorl.computeVertexNormals();
+    body.side=THREE.DoubleSide;
+    shell.add(new THREE.Mesh(whorl,body));
+    // The ridge grows from a pinhead into a raised outer whorl on the forward face.
+    const lip=T.phys('#ffcf8d');
+    tube(shell,lip,centres,.028);
+    const openEnd=new THREE.Group();
+    const last=centres[turns], a=-.93+Math.PI*3.5;
+    openEnd.position.set(last[0],last[1],.096);
+    openEnd.rotation.z=a-Math.PI/2;
+    shell.add(openEnd);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(.16,.026,9,30),lip);
+    rim.rotation.y=Math.PI/2; openEnd.add(rim);
+    oval(openEnd,dark,0,0,0,.022,.147,.161);
+    head.position.set(.287,.489,.193);
+    oval(head,light,0,-.006,0,.253,.225,.206);
+    const feelers=[];
     for(const side of [-1,1]){
-      const feeler=oval(head,body,side*.15,.24,0,.038,.14,.04);
-      feeler.rotation.z=-side*.22;
-      oval(head,light,side*.18,.37,0,.053,.053,.053);
+      const stalk=new THREE.Group();
+      stalk.position.set(side*.132,.144,-.012);
+      head.add(stalk);
+      tube(stalk,body,[[0,0,0],[side*.014,.105,0],[side*.045,.197,.024]],.029);
+      oval(stalk,light,side*.045,.208,.024,.052,.056,.052);
+      feelers.push(stalk);
     }
+    U.gait=(phase,amount)=>{
+      const reach=Math.sin(phase)*amount;
+      rig.rotation.z=0; rig.position.y=0;
+      sole.scale.z=.355*(1+.13*reach);
+      sole.position.z=.015+.041*reach;
+      shell.rotation.z=-.13+.068*Math.sin(phase-.8)*amount;
+      shell.position.y=.827+.015*Math.sin(phase-.6)*amount;
+      feelers[0].rotation.x=.14*reach; feelers[1].rotation.x=-.09*reach;
+    };
 
     for(const side of [-1,1]){
-      T.eye(head,U,side*0.15,0.02,0.174,0.124,null,T.iris);
-      T.brow(head,U,side*0.15,0.182,0.202,.119,.021,T.browM,side);
+      T.eye(head,U,side*0.129,0.024,0.171,0.115,null,T.iris);
+      T.brow(head,U,side*0.129,0.177,0.199,.119,.021,T.browM,side);
     }
-    T.mouth(head,U,0,-0.125,0.228,.86);
-    T.blush(head,0.229,-0.085,0.158,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.39,0.62,.085,0.28,.054,body,light));
+    T.mouth(head,U,0,-0.1,0.201,.86);
+    T.blush(head,0.208,-0.06,0.155,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.33,0.48,.085,0.23,.054,body,light));
   },
 };

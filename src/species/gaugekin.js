@@ -37,36 +37,54 @@ SPECIES_EXTRA.gaugekin = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.095;
+    head.position.y=1.041;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#b4ffe8',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    rig.add(T.rbox(.443,.383,.319,.066,body,0,.584,0));
-    rig.add(T.rbox(.317,.077,.037,.015,dark,0,.62,.168));
-    for(let i=0;i<4;i++) rig.add(T.bx(.013,.023+(i%2)*.02,.014,light,-.112+i*.071,.623,.192));
-    rig.add(T.cyl(.075,.092,.185,light,0,.893,0,16));
-    head.add(T.rbox(.437,.297,.277,.045,body));
-    head.add(T.rbox(.391,.257,.031,.013,glass,0,0,.144));
-    for(const side of [-1,1]){
-      head.add(T.rbox(.089,.316,.099,.018,light,side*.17,.267,0));
-      head.add(T.rbox(.143,.057,.10,.016,body,side*.143,.414,0));
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    head.add(T.sph(.033,signal,-.085,.414,.051,12,8));
+    rig.add(T.rbox(.376,.386,.273,.05,body,0,.57,0));
+    rig.add(T.rbox(.302,.064,.034,.013,dark,0,.625,.145));
+    for(let i=0;i<4;i++) rig.add(T.bx(.013,.024+(i%2)*.016,.011,light,-.096+i*.061,.625,.167));
+    rig.add(T.cyl(.073,.09,.204,light,0,.879,0,16));
+    head.add(T.rbox(.506,.212,.27,.037,body));
+    head.add(T.rbox(.379,.189,.03,.012,glass,0,0,.142));
+    plate(head,light,[[-.044,0],[.048,0],[.018,.344],[.15,.399],[.137,.427],[-.041,.403]],.071,-.221,.098,0);
+    const slide=new THREE.Group(); slide.position.set(.218,.082,0); head.add(slide);
+    plate(slide,body,[[-.041,0],[.05,0],[.05,.309],[.012,.367],[-.141,.398],[-.15,.364],[-.044,.301]],.088,0,0,0);
+    slide.add(T.sph(.031,signal,-.127,.38,.052,12,8));
+    const shoulders=T.cyl(.049,.049,0.488,dark,0,0.727,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const measure=(1-Math.cos(phase*.75))*.5*amount;
+      slide.position.x=.218-.133*measure;
+      rig.position.y=.028*Math.abs(Math.sin(phase))*amount;
+      for(const leg of U.legs){
+        leg.rotation.x*=.68; leg.userData.foot.rotation.x=-leg.rotation.x;
+      }
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
-      gaze.position.set(side*0.119,0.014,0.087);
+      gaze.position.set(side*0.105,0.014,0.091);
       head.add(gaze);
       U.looks.push(gaze);
-      const pixel=oval(gaze,phosphor,0,0,.083,0.0537,0.0649,.016);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0473,0.0572,.016);
       pixel.userData.sy=pixel.scale.y;
       U.eyes.push(pixel);
       const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
       pixel.add(glint);
-      T.brow(head,U,side*0.119,0.11,0.166,.086,.014,signal,side);
+      T.brow(head,U,side*0.105,0.11,0.17,.086,.014,signal,side);
     }
-    T.mouth(head,U,0,-0.077,0.175,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.335,0.777,.085,0.325,.054,dark,light));
+    T.mouth(head,U,0,-0.063,0.172,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.244,0.727,.085,0.303,.054,dark,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.165,0.3,0,0.24,.07,dark,null,body));
   },
 };

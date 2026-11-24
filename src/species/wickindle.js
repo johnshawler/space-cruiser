@@ -43,14 +43,30 @@ SPECIES_EXTRA.wickindle = {
       parent.add(new THREE.Mesh(geometry,material));
     }
     head.position.y=0.95;
-    oval(rig,body,0,.53,0,.247,.35,.225);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    turned(rig,body,[[.001,0],[.28,0],[.30,.038],[.184,.10],[.139,.24],[.168,.49],[.192,.56],[.001,.57]],0,.229,0);
     oval(head,body,0,0,0,.285,.30,.235);
     for(let i=0;i<6;i++){
       const a=i*Math.PI/3;
       oval(head,light,Math.sin(a)*.195,.203,Math.cos(a)*.145,.091,.08+(i%3)*.025,.08);
     }
-    tube(head,dark,[[0,.24,0],[-.04,.34,0],[-.12,.42,0],[-.085,.52,0],[0,.54,0]],.026);
-    oval(head,T.glow('#ffce82',1.4),.026,.54,0,.075,.10,.075);
+    const wick=new THREE.Group(); wick.position.y=.23; head.add(wick);
+    tube(wick,dark,[[0,0,0],[-.03,.13,0],[-.217,.23,0],[-.221,.41,0],[-.113,.485,0],[-.022,.444,0]],.033);
+    const flame=oval(wick,T.glow('#ffce82',1.4),-.014,.41,.008,.073,.113,.065);
+    const shoulders=T.cyl(.049,.049,0.582,body,0,0.68,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const sway=Math.sin(phase*.85)*amount;
+      wick.rotation.z=.20*sway;
+      flame.scale.y=.113*(1+.12*Math.sin(phase*1.7)*amount);
+      rig.rotation.z=-.068*sway;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.15,0.015,0.195,0.125,null,T.iris);

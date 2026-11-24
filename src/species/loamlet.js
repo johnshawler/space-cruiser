@@ -38,21 +38,35 @@ SPECIES_EXTRA.loamlet = {
       return mesh;
     }
     head.position.y=0.88;
-    rig.add(T.cyl(.32,.25,.52,body,0,.53,0,28));
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const pot=turned(rig,body,[[.001,0],[.21,0],[.22,.05],[.324,.40],[.342,.44],[.338,.49],[.001,.49]],0,.279,0);
     rig.add(T.cyl(.355,.34,.09,dark,0,.755,0,28));
     oval(head,body,0,0,0,.34,.29,.285);
     const soil=T.phys('#593836');
     for(const side of [-1,1]){
       const ear=new THREE.Group();
       ear.position.set(side*.20,.22,-.045);
-      ear.rotation.z=-side*.26;
+      ear.rotation.z=side<0?.28:-.48;
+      ear.scale.y=side<0?1.60:.70;
       head.add(ear);
       ear.add(T.cyl(.098,.076,.25,body,0,.09,0,18));
       ear.add(T.cyl(.11,.11,.055,light,0,.22,0,18));
       ear.add(T.cyl(.078,.078,.01,soil,0,.249,0,18));
     }
-    const shoot=oval(head,T.phys('#92ce63'),.30,.55,-.045,.043,.093,.022);
+    const shoot=oval(head,T.phys('#92ce63'),-.35,.69,-.045,.082,.152,.032);
     shoot.rotation.z=-.45;
+    U.gait=(phase,amount)=>{
+      const step=Math.sin(phase)*amount;
+      pot.rotation.z=.075*step;
+      shoot.rotation.z=-.45+.31*Math.sin(phase-.75)*amount;
+      rig.rotation.z=.095*step;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.165,0.045,0.225,0.126,null,T.iris);

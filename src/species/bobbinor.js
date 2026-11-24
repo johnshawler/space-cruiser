@@ -37,26 +37,55 @@ SPECIES_EXTRA.bobbinor = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.16;
+    head.position.y=1.2;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#9cfff0',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    const wheel=T.cyl(.202,.202,.155,dark,0,.202,0,32);
-    wheel.rotation.z=Math.PI/2;
-    rig.add(wheel);
-    for(const side of [-1,1]){
-      const hub=T.cyl(.085,.085,.021,light,side*.083,.202,0,24);
-      hub.rotation.z=Math.PI/2;
-      rig.add(hub);
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    rig.add(T.cyl(.22,.22,.52,light,0,.642,0,32));
-    for(let i=0;i<5;i++) rig.add(T.cyl(.253,.253,.047,body,0,.486+i*.077,0,32));
-    for(const y of [.415,.885]) rig.add(T.cyl(.327,.327,.069,dark,0,y,0,32));
-    rig.add(T.cyl(.081,.10,.20,light,0,.995,0));
-    head.add(T.rbox(.48,.345,.32,.051,body));
-    head.add(T.rbox(.421,.284,.035,.014,glass,0,0,.168));
-    for(const side of [-1,1]) head.add(T.cyl(.036,.055,.135,light,side*.168,.247,0,16));
-    head.add(T.sph(.049,signal,.168,.316,0,14,10));
+    const wheel=new THREE.Group(); wheel.position.set(0,.269,0);
+    wheel.rotation.order='YXZ'; wheel.rotation.y=-.45; rig.add(wheel);
+    const axle=new THREE.Group(); axle.rotation.y=-.45; axle.position.y=.269; rig.add(axle);
+    for(const side of [-1,1]){
+      const fork=plate(axle,light,[[-.032,0],[.032,0],[.036,.25],[.012,.34],[-.035,.32]],.039,side*.129,0,-.012);
+      fork.rotation.x=-.23;
+    }
+    const tyre=T.cyl(.268,.268,.181,dark,0,0,0,28);
+    tyre.rotation.z=Math.PI/2; wheel.add(tyre);
+    for(const side of [-1,1]){
+      const hub=T.cyl(.173,.173,.025,body,side*.104,0,0,24);
+      hub.rotation.z=Math.PI/2; wheel.add(hub);
+      for(let i=0;i<3;i++){
+        const a=i*Math.PI*2/3;
+        wheel.add(T.sph(.036,light,side*.127,.109*Math.sin(a),.109*Math.cos(a),10,8));
+      }
+    }
+    const reel=new THREE.Group(); reel.position.set(0,.78,-.014);
+    reel.rotation.z=Math.PI*.39; rig.add(reel);
+    reel.add(T.cyl(.178,.178,.47,dark));
+    for(let i=0;i<7;i++) reel.add(T.cyl(.208,.208,.045,body,0,-.182+i*.061,0,24));
+    for(const side of [-1,1]) reel.add(T.cyl(.274,.274,.05,light,0,side*.26,0,28));
+    rig.add(T.cyl(.084,.10,.176,dark,.052,1.042,0));
+    head.position.x=.071;
+    head.add(T.rbox(.391,.298,.314,.056,body));
+    head.add(T.rbox(.353,.24,.037,.015,glass,0,0,.165));
+    head.add(T.cyl(.032,.046,.141,light,.119,.224,0,16));
+    head.add(T.sph(.046,signal,.119,.303,0,14,10));
+    const shoulders=T.cyl(.049,.049,0.622,dark,0,0.864,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      wheel.rotation.x=phase*amount;
+      rig.rotation.z=-.076*Math.sin(phase*.52)*amount;
+      rig.position.y=0;
+      reel.rotation.z=Math.PI*.39+.08*Math.sin(phase)*amount;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
@@ -71,6 +100,6 @@ SPECIES_EXTRA.bobbinor = {
       T.brow(head,U,side*0.128,0.116,0.194,.086,.014,signal,side);
     }
     T.mouth(head,U,0,-0.09,0.203,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.354,0.832,.085,0.328,.054,dark,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.311,0.864,.085,0.256,.054,dark,light));
   },
 };

@@ -54,7 +54,7 @@
             <div><h2 id="name"></h2><p class="seed" id="seed"></p><p id="trait"></p></div>
             <fieldset><legend>Expression</legend><div class="row" id="moods"></div></fieldset>
             <fieldset><legend>Pose</legend><div class="row" id="poses"></div></fieldset>
-            <div class="row"><button id="next">Next seed</button><button id="spin" aria-pressed="true">Rotate</button></div>
+            <div class="row"><button id="next">Next seed</button><button id="spin" aria-pressed="true">Rotate</button><button id="outline" aria-pressed="false">Silhouette</button></div>
             <fieldset><legend>Standing measurements</legend><dl class="measure"></dl></fieldset>
           </div>
         </div>
@@ -67,7 +67,9 @@
   const seeds = [26, 9, 25];
   let seedIndex = 0, key, figure, prop, renderer, scene, camera, ruler;
   let selectedCard, scrollTop = 0, frame, lastTime, elapsed, angle;
-  let expression, walking, waving, seated, holding, rotating;
+  let expression, walking, waving, seated, holding, rotating, silhouette;
+  const normalMaterials = new Map();
+  const paper = new THREE.MeshBasicMaterial({color:0xeaf2df, side:THREE.DoubleSide, toneMapped:false});
   let queue = [], portraitFrame;
   const bodyGeometries = new Set(), bodyMaterials = new Set();
 
@@ -169,7 +171,7 @@
     scene.remove(figure);
     for (const g of bodyGeometries) g.dispose();
     for (const m of bodyMaterials) m.dispose();
-    bodyGeometries.clear(); bodyMaterials.clear();
+    bodyGeometries.clear(); bodyMaterials.clear(); normalMaterials.clear();
     figure = null; prop = null;
   }
   function loadFigure() {
@@ -184,6 +186,8 @@
       if (!copies.has(o.material)) copies.set(o.material,o.material.clone());
       o.material = copies.get(o.material);
       bodyMaterials.add(o.material);
+      normalMaterials.set(o,o.material);
+      if (silhouette) o.material=paper;
     });
     scene.add(figure);
     const bounds = new THREE.Box3(), point = new THREE.Vector3();
@@ -215,7 +219,7 @@
   }
   function openFigure(k, card) {
     scrollTop=page.scrollTop; selectedCard=card; key=k; seedIndex=0;
-    expression='neutral'; walking=waving=seated=holding=false; rotating=true;
+    expression='neutral'; walking=waving=seated=holding=silhouette=false; rotating=true;
     cancelAnimationFrame(portraitFrame);
     catalog.hidden=true; get('#viewer').hidden=false; get('#back').hidden=false;
     page.scrollTop=0; get('#back').focus();
@@ -245,6 +249,7 @@
     const poses=[walking,waving,seated,holding];
     [...get('#poses').children].forEach((b,i)=>b.setAttribute('aria-pressed',poses[i]));
     get('#spin').setAttribute('aria-pressed',rotating);
+    get('#outline').setAttribute('aria-pressed',silhouette);
   }
   for (const m of ['neutral','happy','sad','shock','worried']) {
     const b=button(get('#moods'),m[0].toUpperCase()+m.slice(1),()=>{expression=m; Folk.mood(figure,m); updateControls();});
@@ -254,6 +259,11 @@
   button(get('#poses'),'Wave',()=>{waving=!waving; updateControls();});
   button(get('#poses'),'Sit',()=>{seated=!seated; walking=false; updateControls();});
   button(get('#poses'),'Hold prop',()=>{holding=!holding; prop.visible=holding; updateControls();});
+  get('#outline').onclick=()=>{
+    silhouette=!silhouette;
+    for (const [mesh,material] of normalMaterials) mesh.material=silhouette ? paper : material;
+    updateControls();
+  };
   get('#next').onclick=()=>{seedIndex++; loadFigure();};
   get('#spin').onclick=()=>{rotating=!rotating; updateControls();};
 
@@ -270,7 +280,7 @@
       scene.traverse(o=>{if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose();});
       ruler.dispose(); renderer.dispose(); renderer.forceContextLoss();
     }
-    host.close(); host.remove();
+    paper.dispose(); host.close(); host.remove();
   }
   get('#back').onclick=back;
   get('#close').onclick=close;

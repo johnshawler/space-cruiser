@@ -37,41 +37,74 @@ SPECIES_EXTRA.tarestep = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.105;
+    head.position.y=1.064;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#aafbea',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    oval(rig,body,0,.52,0,.27,.29,.218);
-    for(const side of [-1,1]){
-      rig.add(T.cyl(.119,.09,.17,dark,side*.154,.28,0,20));
-      oval(rig,signal,side*.154,.113,0,.052,.112,.06);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    rig.add(T.rbox(.69,.058,.115,.021,light,0,.83,0));
-    for(const side of [-1,1]){
-      for(const z of [-.065,.065]) rig.add(T.cyl(.009,.009,.23,dark,side*.30,.697,z,8));
-      oval(rig,body,side*.30,.57,0,.104,.033,.13);
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    rig.add(T.cyl(.064,.09,.19,light,0,.926,0));
-    head.add(T.rbox(.46,.33,.29,.06,body));
-    head.add(T.rbox(.407,.274,.033,.013,glass,0,0,.153));
-    const needle=T.bx(.027,.142,.034,light,0,.252,0);
-    needle.rotation.z=-.38;
-    head.add(needle);
-    head.add(T.sph(.036,signal,.028,.319,0,12,8));
+    const footlights=[];
+    for(const side of [-1,1]){
+      rig.add(T.cyl(.126,.086,.218,dark,side*.159,.298,0,20));
+      footlights.push(oval(rig,signal,side*.159,.105,0,.066,.104,.069));
+    }
+    plate(rig,body,[[-.235,0],[.235,0],[.233,.10],[.135,.24],[.068,.474],[-.065,.474],[-.135,.24],[-.234,.10]],.18,0,.354,0);
+    const balance=new THREE.Group(); balance.position.y=.826;
+    rig.add(balance);
+    balance.add(T.rbox(.91,.044,.088,.015,light));
+    const pans=[];
+    for(const side of [-1,1]){
+      const hanger=new THREE.Group(); hanger.position.x=side*.412;
+      balance.add(hanger); pans.push(hanger);
+      for(const edge of [-1,1]){
+        const wire=T.cyl(.009,.009,.218,dark,edge*.049,-.10,0,8);
+        wire.rotation.z=edge*.46; hanger.add(wire);
+      }
+      turned(hanger,body,[[.001,0],[.065,.006],[.139,.067],[.13,.071],[.054,.025],[.001,.022]],0,-.266,0);
+    }
+    rig.add(T.cyl(.062,.082,.161,light,0,.941,0,16));
+    head.add(T.cyl(.218,.223,.242,body,0,0,-.006,24));
+    head.add(T.rbox(.39,.212,.041,.016,glass,0,0,.202));
+    const needle=T.bx(.027,.185,.039,light,0,.216,0); head.add(needle);
+    head.add(T.sph(.04,signal,0,.316,0,12,8));
+    U.gait=(phase,amount)=>{
+      const tilt=.19*Math.sin(phase*.73)*amount;
+      balance.rotation.z=tilt;
+      for(let i=0;i<2;i++){
+        pans[i].rotation.z=-tilt;
+        footlights[i].scale.y=.104*(1+(i?1:-1)*tilt);
+      }
+      needle.rotation.z=-tilt*1.8;
+      rig.rotation.z=0; rig.position.y=Math.abs(tilt)*.23;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
-      gaze.position.set(side*0.123,0.018,0.097);
+      gaze.position.set(side*0.108,0.011,0.16);
       head.add(gaze);
       U.looks.push(gaze);
-      const pixel=oval(gaze,phosphor,0,0,.083,0.0657,0.0527,.016);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0625,0.0501,.016);
       pixel.userData.sy=pixel.scale.y;
       U.eyes.push(pixel);
       const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
       pixel.add(glint);
-      T.brow(head,U,side*0.123,0.114,0.176,.086,.014,signal,side);
+      T.brow(head,U,side*0.108,0.107,0.239,.086,.014,signal,side);
     }
-    T.mouth(head,U,0,-0.085,0.185,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.415,0.76,.085,0.306,.054,dark,light));
+    T.mouth(head,U,0,-0.065,0.241,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.24,0.67,.085,0.248,.054,dark,light));
   },
 };

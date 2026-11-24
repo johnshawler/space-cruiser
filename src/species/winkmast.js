@@ -37,41 +37,60 @@ SPECIES_EXTRA.winkmast = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.14;
+    head.position.y=1.147;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#ffe89e',1.65);
     const phosphor=T.glow(T.iris,2.2);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const tracks=[];
     for(const side of [-1,1]){
-      rig.add(T.rbox(.14,.20,.51,.042,dark,side*.215,.137,0));
-      for(const z of [-.155,0,.155]){
-        const roller=T.cyl(.066,.066,.024,light,side*.316,.135,z,16);
-        roller.rotation.z=Math.PI/2;
-        rig.add(roller);
+      rig.add(T.rbox(.16,.205,.552,.043,dark,side*.25,.143,0));
+      for(const z of [-.171,0,.171]){
+        const roller=new THREE.Group(); roller.position.set(side*.36,.134,z);
+        rig.add(roller); tracks.push(roller);
+        const hub=T.cyl(.077,.077,.026,body,0,0,0,16);
+        hub.rotation.z=Math.PI/2; roller.add(hub);
+        roller.add(T.bx(.013,.089,.016,light,side*.018,0,0));
       }
     }
-    rig.add(T.cyl(.165,.286,.586,body,0,.58,0,24));
-    rig.add(T.cyl(.214,.225,.09,light,0,.677,0,24));
-    rig.add(T.cyl(.073,.095,.21,dark,0,.945,0,16));
-    head.add(T.rbox(.47,.33,.35,.052,body));
-    head.add(T.rbox(.416,.277,.035,.015,glass,0,0,.184));
-    head.add(T.cyl(.25,.255,.045,light,0,.21,0,24));
-    head.add(T.cyl(.114,.114,.178,signal,0,.318,0,20));
-    for(const side of [-1,1]) head.add(T.cyl(.015,.015,.19,dark,side*.135,.322,0,10));
-    head.add(T.cyl(.041,.194,.104,body,0,.455,0,24));
+    turned(rig,body,[[.001,0],[.29,0],[.31,.065],[.268,.116],[.148,.664],[.183,.691],[.183,.73],[.001,.73]],0,.205,0);
+    rig.add(T.cyl(.206,.22,.084,light,0,.677,0,28));
+    rig.add(T.cyl(.081,.092,.18,dark,0,1.004,0,20));
+    head.add(T.cyl(.261,.254,.316,body,0,-.015,-.01,12));
+    head.add(T.rbox(.402,.241,.048,.021,glass,0,0,.23));
+    head.add(T.cyl(.291,.274,.056,light,0,.158,-.01,24));
+    head.add(T.cyl(.125,.125,.193,dark,0,.29,-.01,16));
+    const lantern=new THREE.Group(); lantern.position.y=.29; head.add(lantern);
+    oval(lantern,signal,0,0,.106,.093,.086,.065);
+    for(const side of [-1,1]) head.add(T.cyl(.015,.015,.186,light,side*.156,.29,-.01,10));
+    head.add(T.cyl(.057,.233,.126,body,0,.447,-.01,24));
+    const shoulders=T.cyl(.049,.049,0.636,dark,0,0.807,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      for(const hub of tracks) hub.rotation.x=phase*1.7*amount;
+      lantern.rotation.y=phase*.72*amount;
+      rig.position.y=.008*Math.abs(Math.sin(phase*3))*amount; rig.rotation.z=0;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
-      gaze.position.set(side*0.125,0.014,0.13);
+      gaze.position.set(side*0.124,0.015,0.194);
       head.add(gaze);
       U.looks.push(gaze);
-      const pixel=oval(gaze,phosphor,0,0,.083,0.0534,0.0678,.016);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.057,0.0723,.016);
       pixel.userData.sy=pixel.scale.y;
       U.eyes.push(pixel);
       const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
       pixel.add(glint);
-      T.brow(head,U,side*0.125,0.11,0.209,.086,.014,signal,side);
+      T.brow(head,U,side*0.124,0.111,0.273,.086,.014,signal,side);
     }
-    T.mouth(head,U,0,-0.09,0.218,.72,signal);
+    T.mouth(head,U,0,-0.077,0.272,.72,signal);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.318,0.807,.085,0.301,.054,dark,light));
   },
 };

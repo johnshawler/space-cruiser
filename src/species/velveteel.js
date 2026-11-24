@@ -42,17 +42,37 @@ SPECIES_EXTRA.velveteel = {
       const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
       parent.add(new THREE.Mesh(geometry,material));
     }
-    head.position.y=1.23;
-    oval(rig,body,0,.156,-.035,.31,.155,.35);
-    oval(rig,body,-.065,.388,-.055,.226,.28,.215);
-    tube(rig,body,[[-.063,.43,-.04],[-.095,.66,-.01],[.04,.92,0],[0,1.16,0]],.145);
-    oval(head,body,0,-.015,0,.27,.24,.23);
-    for(const side of [-1,1]){
-      const ribbon=oval(head,light,side*.303,.055,-.045,.105,.236,.042);
-      ribbon.rotation.z=-side*.98;
-      const tip=oval(head,body,side*.45,.005,-.055,.065,.168,.038);
-      tip.rotation.z=side*.51;
+    head.position.y=1.244;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
+    const collar=new THREE.Group();
+    collar.position.set(.16,.99,0); rig.add(collar);
+    const tail=oval(rig,body,-.07,.132,-.04,.302,.132,.31);
+    tube(rig,body,[[-.16,.145,-.04],[-.24,.34,-.06],[-.185,.53,-.04],[.014,.653,0],[.159,.81,0],[.16,1.02,0]],.127);
+    tube(collar,body,[[0,0,0],[-.04,.13,0],[-.16,.245,0]],.117);
+    oval(head,body,0,-.015,0,.265,.22,.225);
+    const fins=[];
+    for(const side of [-1,1]){
+      const fin=plate(head,light,[[0,0],[.09,.08],[.27,.13],[.20,-.015],[.29,-.13],[.14,-.095],[.085,-.185]],.042,side*.176,.072,-.055);
+      fin.scale.x=side; fins.push(fin);
+    }
+    const shoulders=T.cyl(.049,.049,0.454,body,0,0.669,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const wave=Math.sin(phase*.68)*amount;
+      rig.position.y=.018*Math.abs(wave); rig.rotation.z=.038*wave;
+      collar.rotation.z=.12*wave;
+      head.position.x=-.04*wave;
+      tail.scale.x=.302*(1+.085*Math.sin(phase*.68-.9)*amount);
+      fins[0].rotation.y=.30*wave; fins[1].rotation.y=.30*wave;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.142,0.035,0.185,0.123,null,T.iris);
@@ -60,6 +80,6 @@ SPECIES_EXTRA.velveteel = {
     }
     T.mouth(head,U,0,-0.11,0.226,.86);
     T.blush(head,0.221,-0.07,0.169,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.246,0.74,.085,0.31,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.227,0.669,.085,0.274,.054,body,light));
   },
 };

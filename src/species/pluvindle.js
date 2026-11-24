@@ -37,16 +37,34 @@ SPECIES_EXTRA.pluvindle = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=0.91;
-    oval(head,body,0,0,-.01,.305,.27,.255);
-    for(const [x,y,z,r] of [[-.28,.02,-.05,.213],[.28,.04,-.05,.216],[-.155,.18,-.06,.202],[.12,.21,-.06,.205]]){
-      oval(head,light,x,y,z,r,r*.88,r*.8);
+    head.position.y=0.97;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    for(let i=0;i<3;i++){
-      const x=(i-1)*.168, y=.12+(i%2)*.054;
-      rig.add(T.cyl(.018,.018,.74-y,dark,x,(.74+y)/2,0,10));
-      oval(rig,light,x,y,0,.078,.119,.067);
+    oval(head,body,0,0,-.01,.30,.25,.235);
+    for(const [x,y,z,r] of [[-.294,0,-.04,.206],[.317,.015,-.057,.188],[-.12,.153,-.054,.205],[.154,.221,-.061,.242]]){
+      oval(head,light,x,y,z,r,r*.85,r*.8);
     }
+    const rain=[];
+    for(const [x,stop] of [[-.24,.23],[-.065,.088],[.12,.157],[.285,.302]]){
+      const line=new THREE.Group(); line.position.set(x,.85,0); rig.add(line);
+      const reach=.85-stop;
+      line.add(T.cyl(.013,.01,reach,dark,0,-reach/2,0,9));
+      turned(line,light,[[.001,0],[.049,.014],[.066,.046],[.062,.077],[.033,.128],[.001,.181]],0,-reach-.086,0);
+      rain.push(line);
+    }
+    U.gait=(phase,amount)=>{
+      for(let i=0;i<rain.length;i++){
+        const beat=phase*.85+i*1.7;
+        rain[i].rotation.z=.14*Math.sin(beat)*amount;
+        rain[i].scale.y=1-.15*(1-Math.cos(beat))*.5*amount;
+      }
+      rig.rotation.z=0; rig.position.y=.017*(1-Math.cos(phase))*amount;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.158,0.02,0.197,0.128,null,T.iris);
@@ -54,6 +72,6 @@ SPECIES_EXTRA.pluvindle = {
     }
     T.mouth(head,U,0,-0.115,0.244,.86);
     T.blush(head,0.237,-0.075,0.181,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.399,0.76,.085,0.29,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.416,0.861,.085,0.233,.054,body,light));
   },
 };

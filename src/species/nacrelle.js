@@ -37,17 +37,40 @@ SPECIES_EXTRA.nacrelle = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=0.755;
-    oval(rig,body,0,.125,0,.31,.125,.30);
-    oval(rig,light,0,.34,0,.32,.24,.26);
-    const pearl=T.phys('#ffe2d7',{clearcoat:.85});
-    T.head.position.z=.075;
-    for(let i=-3;i<=3;i++){
-      const a=i*.248;
-      const rib=oval(head,i%2?body:light,Math.sin(a)*.32,.16+Math.cos(a)*.13,-.15,.104,.36,.095);
-      rib.rotation.z=-a;
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
     }
-    oval(head,pearl,0,0,0,.263,.257,.24);
+    head.position.y=0.646;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    oval(rig,body,0,.131,-.03,.344,.131,.295);
+    oval(rig,light,0,.31,.018,.316,.18,.278);
+    const mantle=new THREE.Group();
+    mantle.position.set(0,.18,-.14); rig.add(mantle);
+    const seam=T.phys('#ffe9ce');
+    plate(mantle,body,[[0,0],[-.25,.29],[-.427,.61],[-.474,.701],[-.345,.764],[-.209,.826],[0,.852],[.209,.826],[.345,.764],[.474,.701],[.427,.61],[.25,.29]],.045,0,0,-.095);
+    for(let i=-4;i<=4;i++){
+      const a=i*.151;
+      const blade=plate(mantle,i%2?body:light,[[-.024,0],[-.074,.44],[-.08,.75],[-.054,.87],[0,.914],[.057,.873],[.084,.76],[.075,.43],[.024,0]],.044,0,0,-.013*Math.abs(i));
+      blade.rotation.z=-a;
+    }
+    tube(mantle,seam,[[-.266,.342,0],[-.11,.162,.041],[0,.13,.045],[.11,.162,.041],[.266,.342,0]],.024);
+    head.position.z=.102;
+    oval(head,T.phys('#ffe2d7',{clearcoat:.85}),0,0,0,.244,.235,.225);
+    U.gait=(phase,amount)=>{
+      const scoop=(1-Math.cos(phase))*.5*amount;
+      mantle.rotation.x=-.29*scoop;
+      rig.position.y=.028*scoop; rig.rotation.z=.045*Math.sin(phase)*amount;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.14,0.025,0.2,0.12,null,T.iris);
@@ -55,6 +78,6 @@ SPECIES_EXTRA.nacrelle = {
     }
     T.mouth(head,U,0,-0.105,0.24,.86);
     T.blush(head,0.219,-0.065,0.184,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.338,0.635,.085,0.27,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.328,0.51,.085,0.241,.054,body,light));
   },
 };

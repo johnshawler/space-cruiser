@@ -37,20 +37,32 @@ SPECIES_EXTRA.cuspiro = {
       parent.add(mesh);
       return mesh;
     }
-    function tube(parent,material,points,radius){
-      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
-      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
-      parent.add(new THREE.Mesh(geometry,material));
+    head.position.y=0.914;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    head.position.y=1.02;
-    oval(rig,body,0,.58,0,.285,.35,.245);
-    oval(head,body,0,-.01,0,.306,.257,.252);
-    const horn=T.phys('#ffe5ab');
+    oval(rig,body,0,.554,-.03,.265,.322,.214);
+    oval(head,body,0,-.035,0,.286,.245,.235);
+    const hornTip=T.phys('#ffedbb'), horns=new THREE.Group(); head.add(horns);
     for(const side of [-1,1]){
-      const points=[[.205,.09,0],[.34,.14,0],[.422,.25,-.016],[.408,.365,-.035],[.34,.431,-.05]];
-      tube(head,body,points.map(([x,y,z])=>[x*side,y,z]),.082);
-      oval(head,horn,side*.335,.434,-.05,.076,.07,.072);
+      const sweep=plate(horns,body,[[.148,.055],[.345,.042],[.49,.157],[.537,.331],[.485,.478],[.372,.526],[.43,.402],[.425,.277],[.343,.202],[.176,.202]],.114,0,0,-.04);
+      sweep.scale.x=side;
+      const cap=plate(horns,hornTip,[[.485,.478],[.372,.526],[.301,.51],[.38,.473],[.43,.402]],.093,0,0,-.04);
+      cap.scale.x=side;
     }
+    const shoulders=T.cyl(.049,.049,0.584,body,0,0.622,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const stride=Math.sin(phase)*amount;
+      horns.rotation.x=.13*Math.abs(stride);
+      rig.rotation.z=.105*stride; rig.position.y=.029*Math.abs(stride);
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.157,0.01,0.206,0.127,null,T.iris);
@@ -58,7 +70,7 @@ SPECIES_EXTRA.cuspiro = {
     }
     T.mouth(head,U,0,-0.127,0.253,.86);
     T.blush(head,0.236,-0.087,0.19,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.335,0.76,.085,0.36,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.292,0.622,.085,0.284,.054,body,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.27,0,0.21,.07,dark,null,light));
   },
 };

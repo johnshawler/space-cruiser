@@ -469,26 +469,55 @@ SPECIES_EXTRA.bobbinor = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.16;
+    head.position.y=1.2;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#9cfff0',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    const wheel=T.cyl(.202,.202,.155,dark,0,.202,0,32);
-    wheel.rotation.z=Math.PI/2;
-    rig.add(wheel);
-    for(const side of [-1,1]){
-      const hub=T.cyl(.085,.085,.021,light,side*.083,.202,0,24);
-      hub.rotation.z=Math.PI/2;
-      rig.add(hub);
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    rig.add(T.cyl(.22,.22,.52,light,0,.642,0,32));
-    for(let i=0;i<5;i++) rig.add(T.cyl(.253,.253,.047,body,0,.486+i*.077,0,32));
-    for(const y of [.415,.885]) rig.add(T.cyl(.327,.327,.069,dark,0,y,0,32));
-    rig.add(T.cyl(.081,.10,.20,light,0,.995,0));
-    head.add(T.rbox(.48,.345,.32,.051,body));
-    head.add(T.rbox(.421,.284,.035,.014,glass,0,0,.168));
-    for(const side of [-1,1]) head.add(T.cyl(.036,.055,.135,light,side*.168,.247,0,16));
-    head.add(T.sph(.049,signal,.168,.316,0,14,10));
+    const wheel=new THREE.Group(); wheel.position.set(0,.269,0);
+    wheel.rotation.order='YXZ'; wheel.rotation.y=-.45; rig.add(wheel);
+    const axle=new THREE.Group(); axle.rotation.y=-.45; axle.position.y=.269; rig.add(axle);
+    for(const side of [-1,1]){
+      const fork=plate(axle,light,[[-.032,0],[.032,0],[.036,.25],[.012,.34],[-.035,.32]],.039,side*.129,0,-.012);
+      fork.rotation.x=-.23;
+    }
+    const tyre=T.cyl(.268,.268,.181,dark,0,0,0,28);
+    tyre.rotation.z=Math.PI/2; wheel.add(tyre);
+    for(const side of [-1,1]){
+      const hub=T.cyl(.173,.173,.025,body,side*.104,0,0,24);
+      hub.rotation.z=Math.PI/2; wheel.add(hub);
+      for(let i=0;i<3;i++){
+        const a=i*Math.PI*2/3;
+        wheel.add(T.sph(.036,light,side*.127,.109*Math.sin(a),.109*Math.cos(a),10,8));
+      }
+    }
+    const reel=new THREE.Group(); reel.position.set(0,.78,-.014);
+    reel.rotation.z=Math.PI*.39; rig.add(reel);
+    reel.add(T.cyl(.178,.178,.47,dark));
+    for(let i=0;i<7;i++) reel.add(T.cyl(.208,.208,.045,body,0,-.182+i*.061,0,24));
+    for(const side of [-1,1]) reel.add(T.cyl(.274,.274,.05,light,0,side*.26,0,28));
+    rig.add(T.cyl(.084,.10,.176,dark,.052,1.042,0));
+    head.position.x=.071;
+    head.add(T.rbox(.391,.298,.314,.056,body));
+    head.add(T.rbox(.353,.24,.037,.015,glass,0,0,.165));
+    head.add(T.cyl(.032,.046,.141,light,.119,.224,0,16));
+    head.add(T.sph(.046,signal,.119,.303,0,14,10));
+    const shoulders=T.cyl(.049,.049,0.622,dark,0,0.864,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      wheel.rotation.x=phase*amount;
+      rig.rotation.z=-.076*Math.sin(phase*.52)*amount;
+      rig.position.y=0;
+      reel.rotation.z=Math.PI*.39+.08*Math.sin(phase)*amount;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
@@ -503,7 +532,7 @@ SPECIES_EXTRA.bobbinor = {
       T.brow(head,U,side*0.128,0.116,0.194,.086,.014,signal,side);
     }
     T.mouth(head,U,0,-0.09,0.203,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.354,0.832,.085,0.328,.054,dark,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.311,0.864,.085,0.256,.054,dark,light));
   },
 };
 /* Bractillo: A walking seed pod with overlapping leaves packs lunches for migrating birds. */
@@ -546,21 +575,40 @@ SPECIES_EXTRA.bractillo = {
       return mesh;
     }
     head.position.y=0.87;
-    oval(rig,body,0,.52,0,.29,.355,.255);
-    for(let i=0;i<7;i++){
-      const a=i*Math.PI*2/7;
-      const bract=oval(rig,i%2?light:dark,Math.sin(a)*.22,.52,Math.cos(a)*.17,.134,.255,.108);
-      bract.rotation.y=a;
-      bract.rotation.z=-Math.sin(a)*.31;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    oval(head,body,0,0,0,.295,.302,.265);
-    const inside=T.phys('#e2ed95');
-    for(const side of [-1,1]){
-      const leaf=oval(head,light,side*.12,.30,-.035,.097,.232,.053);
-      leaf.rotation.z=-side*.52;
-      const vein=oval(head,inside,side*.126,.306,.009,.016,.157,.012);
-      vein.rotation.z=-side*.52;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
+    turned(rig,body,[[.001,0],[.14,.06],[.249,.25],[.213,.46],[.12,.53],[.001,.56]],0,.247,0);
+    const scales=[];
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4, root=new THREE.Group();
+      root.position.set(.15*Math.sin(a),.295,.125*Math.cos(a));
+      root.rotation.y=a; rig.add(root);
+      const blade=plate(root,i%2?light:dark,[[0,0],[-.095,.105],[-.124,.255],[-.085,.39],[0,.505],[.085,.39],[.124,.255],[.095,.105]],.053,0,0,0);
+      blade.rotation.x=.51; scales.push(blade);
+    }
+    oval(head,body,0,0,0,.256,.263,.249);
+    const sprig=plate(head,light,[[-.027,0],[-.17,.10],[-.21,.265],[-.10,.25],[.012,.13],[.098,.29],[.24,.35],[.18,.135],[.045,.023]],.04,0,.185,-.015);
+    const shoulders=T.cyl(.049,.049,0.716,body,0,0.716,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      for(let i=0;i<scales.length;i++) scales[i].rotation.x=.51+.14*Math.sin(phase+i*Math.PI/4)*amount;
+      sprig.rotation.z=.18*Math.sin(phase-.45)*amount;
+      rig.rotation.z=.09*Math.sin(phase)*amount;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.142,0.06,0.215,0.128,null,T.iris);
@@ -568,7 +616,7 @@ SPECIES_EXTRA.bractillo = {
     }
     T.mouth(head,U,0,-0.086,0.268,.86);
     T.blush(head,0.221,-0.046,0.199,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.345,0.67,.085,0.31,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.358,0.716,.085,0.27,.054,body,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.14,0.25,0,0.19,.07,dark,null,light));
   },
 };
@@ -611,20 +659,32 @@ SPECIES_EXTRA.cuspiro = {
       parent.add(mesh);
       return mesh;
     }
-    function tube(parent,material,points,radius){
-      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
-      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
-      parent.add(new THREE.Mesh(geometry,material));
+    head.position.y=0.914;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    head.position.y=1.02;
-    oval(rig,body,0,.58,0,.285,.35,.245);
-    oval(head,body,0,-.01,0,.306,.257,.252);
-    const horn=T.phys('#ffe5ab');
+    oval(rig,body,0,.554,-.03,.265,.322,.214);
+    oval(head,body,0,-.035,0,.286,.245,.235);
+    const hornTip=T.phys('#ffedbb'), horns=new THREE.Group(); head.add(horns);
     for(const side of [-1,1]){
-      const points=[[.205,.09,0],[.34,.14,0],[.422,.25,-.016],[.408,.365,-.035],[.34,.431,-.05]];
-      tube(head,body,points.map(([x,y,z])=>[x*side,y,z]),.082);
-      oval(head,horn,side*.335,.434,-.05,.076,.07,.072);
+      const sweep=plate(horns,body,[[.148,.055],[.345,.042],[.49,.157],[.537,.331],[.485,.478],[.372,.526],[.43,.402],[.425,.277],[.343,.202],[.176,.202]],.114,0,0,-.04);
+      sweep.scale.x=side;
+      const cap=plate(horns,hornTip,[[.485,.478],[.372,.526],[.301,.51],[.38,.473],[.43,.402]],.093,0,0,-.04);
+      cap.scale.x=side;
     }
+    const shoulders=T.cyl(.049,.049,0.584,body,0,0.622,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const stride=Math.sin(phase)*amount;
+      horns.rotation.x=.13*Math.abs(stride);
+      rig.rotation.z=.105*stride; rig.position.y=.029*Math.abs(stride);
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.157,0.01,0.206,0.127,null,T.iris);
@@ -632,7 +692,7 @@ SPECIES_EXTRA.cuspiro = {
     }
     T.mouth(head,U,0,-0.127,0.253,.86);
     T.blush(head,0.236,-0.087,0.19,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.335,0.76,.085,0.36,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.292,0.622,.085,0.284,.054,body,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.27,0,0.21,.07,dark,null,light));
   },
 };
@@ -675,36 +735,54 @@ SPECIES_EXTRA.gaugekin = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.095;
+    head.position.y=1.041;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#b4ffe8',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    rig.add(T.rbox(.443,.383,.319,.066,body,0,.584,0));
-    rig.add(T.rbox(.317,.077,.037,.015,dark,0,.62,.168));
-    for(let i=0;i<4;i++) rig.add(T.bx(.013,.023+(i%2)*.02,.014,light,-.112+i*.071,.623,.192));
-    rig.add(T.cyl(.075,.092,.185,light,0,.893,0,16));
-    head.add(T.rbox(.437,.297,.277,.045,body));
-    head.add(T.rbox(.391,.257,.031,.013,glass,0,0,.144));
-    for(const side of [-1,1]){
-      head.add(T.rbox(.089,.316,.099,.018,light,side*.17,.267,0));
-      head.add(T.rbox(.143,.057,.10,.016,body,side*.143,.414,0));
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    head.add(T.sph(.033,signal,-.085,.414,.051,12,8));
+    rig.add(T.rbox(.376,.386,.273,.05,body,0,.57,0));
+    rig.add(T.rbox(.302,.064,.034,.013,dark,0,.625,.145));
+    for(let i=0;i<4;i++) rig.add(T.bx(.013,.024+(i%2)*.016,.011,light,-.096+i*.061,.625,.167));
+    rig.add(T.cyl(.073,.09,.204,light,0,.879,0,16));
+    head.add(T.rbox(.506,.212,.27,.037,body));
+    head.add(T.rbox(.379,.189,.03,.012,glass,0,0,.142));
+    plate(head,light,[[-.044,0],[.048,0],[.018,.344],[.15,.399],[.137,.427],[-.041,.403]],.071,-.221,.098,0);
+    const slide=new THREE.Group(); slide.position.set(.218,.082,0); head.add(slide);
+    plate(slide,body,[[-.041,0],[.05,0],[.05,.309],[.012,.367],[-.141,.398],[-.15,.364],[-.044,.301]],.088,0,0,0);
+    slide.add(T.sph(.031,signal,-.127,.38,.052,12,8));
+    const shoulders=T.cyl(.049,.049,0.488,dark,0,0.727,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const measure=(1-Math.cos(phase*.75))*.5*amount;
+      slide.position.x=.218-.133*measure;
+      rig.position.y=.028*Math.abs(Math.sin(phase))*amount;
+      for(const leg of U.legs){
+        leg.rotation.x*=.68; leg.userData.foot.rotation.x=-leg.rotation.x;
+      }
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
-      gaze.position.set(side*0.119,0.014,0.087);
+      gaze.position.set(side*0.105,0.014,0.091);
       head.add(gaze);
       U.looks.push(gaze);
-      const pixel=oval(gaze,phosphor,0,0,.083,0.0537,0.0649,.016);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0473,0.0572,.016);
       pixel.userData.sy=pixel.scale.y;
       U.eyes.push(pixel);
       const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
       pixel.add(glint);
-      T.brow(head,U,side*0.119,0.11,0.166,.086,.014,signal,side);
+      T.brow(head,U,side*0.105,0.11,0.17,.086,.014,signal,side);
     }
-    T.mouth(head,U,0,-0.077,0.175,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.335,0.777,.085,0.325,.054,dark,light));
+    T.mouth(head,U,0,-0.063,0.172,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.244,0.727,.085,0.303,.054,dark,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.165,0.3,0,0.24,.07,dark,null,body));
   },
 };
@@ -747,29 +825,39 @@ SPECIES_EXTRA.hushcone = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.125;
+    head.position.y=0.996;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#adeaff',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    rig.add(T.rbox(.465,.46,.346,.075,body,0,.569,0));
-    for(const side of [-1,1]){
-      const reel=T.cyl(.081,.081,.041,light,side*.107,.602,.18,22);
-      reel.rotation.x=Math.PI/2;
-      rig.add(reel);
-      oval(rig,dark,side*.107,.602,.21,.029,.029,.012);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    rig.add(T.cyl(.075,.095,.238,light,0,.892,0));
-    head.add(T.rbox(.428,.355,.291,.062,body));
-    head.add(T.rbox(.385,.278,.033,.014,glass,0,0,.152));
-    const horn=new THREE.Group();
-    horn.position.set(-.14,.176,-.047);
-    horn.rotation.z=.83;
-    horn.rotation.x=.30;
-    head.add(horn);
-    horn.add(T.cyl(.224,.047,.31,body,0,.131,0,28));
-    horn.add(T.cyl(.23,.23,.029,light,0,.292,0,28));
-    horn.add(T.cyl(.199,.199,.007,dark,0,.311,0,28));
-    horn.add(T.cyl(.06,.06,.009,signal,0,.316,0,18));
+    const recorder=T.rbox(.472,.386,.328,.062,body,0,.523,0);
+    rig.add(recorder);
+    for(const side of [-1,1]){
+      const reel=T.cyl(.076,.076,.032,light,side*.107,.552,.179,22);
+      reel.rotation.x=Math.PI/2; rig.add(reel);
+      oval(rig,dark,side*.107,.552,.199,.028,.028,.011);
+    }
+    rig.add(T.cyl(.079,.091,.172,light,0,.804,0));
+    head.add(T.rbox(.401,.281,.296,.046,body));
+    head.add(T.rbox(.364,.235,.037,.014,glass,0,0,.154));
+    const horn=new THREE.Group(); horn.position.set(-.114,.125,-.023);
+    horn.rotation.set(.42,0,.66); head.add(horn);
+    // Double wall and a recessed throat leave a real opening in the bell.
+    turned(horn,body,[[.052,0],[.055,.16],[.12,.302],[.227,.399],[.274,.426],[.278,.451],[.26,.467],[.202,.426],[.102,.335],[.044,.196],[.036,.065]],0,0,0);
+    horn.add(T.cyl(.044,.042,.017,signal,0,.109,0,16));
+    const shoulders=T.cyl(.049,.049,0.576,dark,0,0.677,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const listen=Math.sin(phase*.60)*amount;
+      horn.rotation.z=.66+.205*listen; horn.rotation.y=.21*listen;
+      rig.rotation.z=-.09*listen;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
@@ -784,7 +872,7 @@ SPECIES_EXTRA.hushcone = {
       T.brow(head,U,side*0.117,0.108,0.176,.086,.014,signal,side);
     }
     T.mouth(head,U,0,-0.09,0.185,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.327,0.768,.085,0.31,.054,dark,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.288,0.677,.085,0.275,.054,dark,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.145,0.275,0,0.215,.07,dark,null,body));
   },
 };
@@ -827,24 +915,37 @@ SPECIES_EXTRA.linticker = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.235;
+    head.position.y=1.137;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#ffdf89',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    rig.add(T.rbox(.434,.67,.29,.056,body,0,.61,0));
-    rig.add(T.rbox(.27,.47,.036,.016,glass,0,.613,.159));
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    plate(rig,body,[[-.237,0],[.237,0],[.219,.085],[.16,.14],[.149,.425],[.205,.526],[.219,.596],[-.219,.596],[-.205,.526],[-.149,.425],[-.16,.14],[-.219,.085]],.274,0,.29,0);
+    rig.add(T.rbox(.229,.409,.038,.017,glass,0,.602,.156));
     const pendulum=new THREE.Group();
-    pendulum.position.set(0,.814,.19);
-    pendulum.rotation.z=.25;
-    rig.add(pendulum);
-    pendulum.add(T.cyl(.014,.014,.301,light,0,-.147,0,10));
-    oval(pendulum,light,0,-.311,0,.071,.071,.02);
-    rig.add(T.rbox(.47,.065,.307,.024,dark,0,.313,0));
-    rig.add(T.cyl(.075,.09,.191,light,0,1.022,0,16));
-    head.add(T.rbox(.454,.324,.316,.056,body));
-    head.add(T.rbox(.407,.274,.034,.014,glass,0,0,.167));
-    oval(head,body,0,.167,-.027,.232,.139,.132);
-    oval(head,signal,0,.251,.076,.044,.048,.022);
+    pendulum.position.set(0,.785,.188); rig.add(pendulum);
+    pendulum.add(T.cyl(.012,.012,.294,light,0,-.143,0,10));
+    oval(pendulum,light,0,-.299,0,.074,.074,.019);
+    rig.add(T.cyl(.079,.092,.148,light,0,.979,0,16));
+    head.add(T.rbox(.49,.284,.312,.048,body));
+    head.add(T.rbox(.423,.235,.035,.014,glass,0,0,.164));
+    plate(head,light,[[-.274,0],[-.26,.052],[-.151,.099],[0,.259],[.151,.099],[.26,.052],[.274,0]],.119,0,.155,-.023);
+    oval(head,signal,0,.247,.047,.037,.047,.022);
+    const shoulders=T.cyl(.049,.049,0.52,body,0,0.822,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      pendulum.rotation.z=.48*Math.sin(phase)*amount;
+      rig.rotation.z=-.032*Math.sin(phase)*amount;
+      rig.position.y=.027*Math.abs(Math.sin(phase))*amount;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
@@ -859,7 +960,7 @@ SPECIES_EXTRA.linticker = {
       T.brow(head,U,side*0.127,0.114,0.191,.086,.014,signal,side);
     }
     T.mouth(head,U,0,-0.09,0.2,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.311,0.854,.085,0.338,.054,dark,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.26,0.822,.085,0.315,.054,dark,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.147,0.221,0,0.161,.07,dark,null,body));
   },
 };
@@ -903,21 +1004,35 @@ SPECIES_EXTRA.loamlet = {
       return mesh;
     }
     head.position.y=0.88;
-    rig.add(T.cyl(.32,.25,.52,body,0,.53,0,28));
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const pot=turned(rig,body,[[.001,0],[.21,0],[.22,.05],[.324,.40],[.342,.44],[.338,.49],[.001,.49]],0,.279,0);
     rig.add(T.cyl(.355,.34,.09,dark,0,.755,0,28));
     oval(head,body,0,0,0,.34,.29,.285);
     const soil=T.phys('#593836');
     for(const side of [-1,1]){
       const ear=new THREE.Group();
       ear.position.set(side*.20,.22,-.045);
-      ear.rotation.z=-side*.26;
+      ear.rotation.z=side<0?.28:-.48;
+      ear.scale.y=side<0?1.60:.70;
       head.add(ear);
       ear.add(T.cyl(.098,.076,.25,body,0,.09,0,18));
       ear.add(T.cyl(.11,.11,.055,light,0,.22,0,18));
       ear.add(T.cyl(.078,.078,.01,soil,0,.249,0,18));
     }
-    const shoot=oval(head,T.phys('#92ce63'),.30,.55,-.045,.043,.093,.022);
+    const shoot=oval(head,T.phys('#92ce63'),-.35,.69,-.045,.082,.152,.032);
     shoot.rotation.z=-.45;
+    U.gait=(phase,amount)=>{
+      const step=Math.sin(phase)*amount;
+      pot.rotation.z=.075*step;
+      shoot.rotation.z=-.45+.31*Math.sin(phase-.75)*amount;
+      rig.rotation.z=.095*step;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.165,0.045,0.225,0.126,null,T.iris);
@@ -968,17 +1083,40 @@ SPECIES_EXTRA.nacrelle = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=0.755;
-    oval(rig,body,0,.125,0,.31,.125,.30);
-    oval(rig,light,0,.34,0,.32,.24,.26);
-    const pearl=T.phys('#ffe2d7',{clearcoat:.85});
-    T.head.position.z=.075;
-    for(let i=-3;i<=3;i++){
-      const a=i*.248;
-      const rib=oval(head,i%2?body:light,Math.sin(a)*.32,.16+Math.cos(a)*.13,-.15,.104,.36,.095);
-      rib.rotation.z=-a;
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
     }
-    oval(head,pearl,0,0,0,.263,.257,.24);
+    head.position.y=0.646;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    oval(rig,body,0,.131,-.03,.344,.131,.295);
+    oval(rig,light,0,.31,.018,.316,.18,.278);
+    const mantle=new THREE.Group();
+    mantle.position.set(0,.18,-.14); rig.add(mantle);
+    const seam=T.phys('#ffe9ce');
+    plate(mantle,body,[[0,0],[-.25,.29],[-.427,.61],[-.474,.701],[-.345,.764],[-.209,.826],[0,.852],[.209,.826],[.345,.764],[.474,.701],[.427,.61],[.25,.29]],.045,0,0,-.095);
+    for(let i=-4;i<=4;i++){
+      const a=i*.151;
+      const blade=plate(mantle,i%2?body:light,[[-.024,0],[-.074,.44],[-.08,.75],[-.054,.87],[0,.914],[.057,.873],[.084,.76],[.075,.43],[.024,0]],.044,0,0,-.013*Math.abs(i));
+      blade.rotation.z=-a;
+    }
+    tube(mantle,seam,[[-.266,.342,0],[-.11,.162,.041],[0,.13,.045],[.11,.162,.041],[.266,.342,0]],.024);
+    head.position.z=.102;
+    oval(head,T.phys('#ffe2d7',{clearcoat:.85}),0,0,0,.244,.235,.225);
+    U.gait=(phase,amount)=>{
+      const scoop=(1-Math.cos(phase))*.5*amount;
+      mantle.rotation.x=-.29*scoop;
+      rig.position.y=.028*scoop; rig.rotation.z=.045*Math.sin(phase)*amount;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.14,0.025,0.2,0.12,null,T.iris);
@@ -986,7 +1124,7 @@ SPECIES_EXTRA.nacrelle = {
     }
     T.mouth(head,U,0,-0.105,0.24,.86);
     T.blush(head,0.219,-0.065,0.184,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.338,0.635,.085,0.27,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.328,0.51,.085,0.241,.054,body,light));
   },
 };
 /* Parasolum: A scalloped umbrella glider insures picnics against excessive sunshine. */
@@ -1028,18 +1166,41 @@ SPECIES_EXTRA.parasolum = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=0.94;
-    oval(rig,light,0,.56,0,.26,.34,.21);
-    oval(head,body,0,-.02,0,.29,.28,.225);
-    const hem=T.phys('#ffe8bd');
-    for(let i=0;i<8;i++){
-      const a=i*Math.PI/4;
-      const panel=oval(head,i%2?light:body,Math.sin(a)*.205,.228,Math.cos(a)*.14,.19,.115,.26);
-      panel.rotation.y=a;
-      oval(head,hem,Math.sin(a)*.443,.207,Math.cos(a)*.391,.034,.048,.034);
+    head.position.y=0.97;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    oval(head,body,0,.29,0,.35,.152,.30);
-    oval(head,hem,0,.454,0,.047,.077,.047);
+    turned(rig,light,[[.001,0],[.112,0],[.09,.20],[.12,.39],[.18,.47],[.001,.48]],0,.278,0);
+    oval(head,body,0,-.04,0,.238,.25,.205);
+    const canopy=new THREE.Group();
+    canopy.position.y=.18; head.add(canopy);
+    const gold=T.phys('#ffdb9b');
+    for(let i=0;i<10;i++){
+      const a=i*Math.PI/5,b=(i+1)*Math.PI/5, mid=(a+b)/2;
+      const rib=(theta,r,y)=>[r*Math.sin(theta),y,r*.70*Math.cos(theta)];
+      const crown=[0,.31,0], shoulder=rib(mid,.217,.203), tip=rib(mid,.568,-.099);
+      const left=rib(a,.48,.008),right=rib(b,.48,.008);
+      const points=[crown,shoulder,left, crown,right,shoulder, left,shoulder,tip, tip,shoulder,right];
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(points.flat(),3));
+      g.computeVertexNormals();
+      const m=i%2?light:body; m.side=THREE.DoubleSide;
+      canopy.add(new THREE.Mesh(g,m));
+      oval(canopy,gold,tip[0],tip[1],tip[2],.026,.032,.026);
+    }
+    oval(canopy,gold,0,.329,0,.046,.07,.046);
+    const shoulders=T.cyl(.049,.049,0.44,light,0,0.72,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const gust=Math.sin(phase*.65)*amount;
+      canopy.rotation.z=.16*gust;
+      canopy.scale.y=1+.14*Math.sin(phase*1.3)*amount;
+      rig.rotation.z=-.055*gust;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.145,-0.025,0.187,0.121,null,T.iris);
@@ -1047,7 +1208,7 @@ SPECIES_EXTRA.parasolum = {
     }
     T.mouth(head,U,0,-0.162,0.22,.86);
     T.blush(head,0.224,-0.122,0.171,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.32,0.76,.085,0.31,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.22,0.72,.085,0.3,.054,body,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.13,0.25,0,0.19,.07,dark,null,light));
   },
 };
@@ -1096,18 +1257,32 @@ SPECIES_EXTRA.pipettle = {
       parent.add(new THREE.Mesh(geometry,material));
     }
     head.position.y=0.99;
-    oval(rig,body,0,.57,0,.334,.332,.295);
-    tube(rig,light,[[.22,.69,-.075],[.37,.79,-.085],[.51,.71,-.09],[.51,.55,-.09],[.29,.48,-.07]],.049);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    turned(rig,body,[[.001,0],[.232,0],[.292,.046],[.356,.172],[.358,.294],[.315,.402],[.227,.482],[.182,.53],[.001,.53]],0,.285,0);
+    tube(rig,light,[[.20,.724,-.059],[.381,.855,-.06],[.525,.79,-.06],[.54,.601,-.06],[.315,.512,-.04]],.049);
     const nozzle=new THREE.Group();
     nozzle.position.set(-.309,.71,0);
-    nozzle.rotation.z=.82;
+    nozzle.rotation.z=.63;
     rig.add(nozzle);
-    nozzle.add(T.cyl(.094,.082,.29,body,0,.09,0,20));
-    nozzle.add(T.cyl(.107,.093,.045,light,0,.249,0,20));
-    nozzle.add(T.cyl(.072,.072,.006,dark,0,.274,0,20));
+    nozzle.add(T.cyl(.101,.072,.372,body,0,.125,0,20));
+    nozzle.add(T.cyl(.107,.093,.045,light,0,.329,0,20));
+    nozzle.add(T.cyl(.072,.072,.006,dark,0,.354,0,20));
     oval(head,light,0,0,0,.27,.225,.224);
-    oval(head,body,0,.204,-.01,.22,.061,.181);
+    const lid=oval(head,body,0,.204,-.01,.225,.065,.187);
     oval(head,dark,0,.275,-.01,.059,.06,.058);
+    U.gait=(phase,amount)=>{
+      const pour=Math.sin(phase)*amount;
+      rig.rotation.z=.125*pour;
+      nozzle.rotation.z=.63+.10*pour;
+      lid.rotation.z=-.14*pour;
+      rig.position.y=.037*Math.abs(pour);
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.147,0.023,0.184,0.122,null,T.iris);
@@ -1158,16 +1333,34 @@ SPECIES_EXTRA.pluvindle = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=0.91;
-    oval(head,body,0,0,-.01,.305,.27,.255);
-    for(const [x,y,z,r] of [[-.28,.02,-.05,.213],[.28,.04,-.05,.216],[-.155,.18,-.06,.202],[.12,.21,-.06,.205]]){
-      oval(head,light,x,y,z,r,r*.88,r*.8);
+    head.position.y=0.97;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    for(let i=0;i<3;i++){
-      const x=(i-1)*.168, y=.12+(i%2)*.054;
-      rig.add(T.cyl(.018,.018,.74-y,dark,x,(.74+y)/2,0,10));
-      oval(rig,light,x,y,0,.078,.119,.067);
+    oval(head,body,0,0,-.01,.30,.25,.235);
+    for(const [x,y,z,r] of [[-.294,0,-.04,.206],[.317,.015,-.057,.188],[-.12,.153,-.054,.205],[.154,.221,-.061,.242]]){
+      oval(head,light,x,y,z,r,r*.85,r*.8);
     }
+    const rain=[];
+    for(const [x,stop] of [[-.24,.23],[-.065,.088],[.12,.157],[.285,.302]]){
+      const line=new THREE.Group(); line.position.set(x,.85,0); rig.add(line);
+      const reach=.85-stop;
+      line.add(T.cyl(.013,.01,reach,dark,0,-reach/2,0,9));
+      turned(line,light,[[.001,0],[.049,.014],[.066,.046],[.062,.077],[.033,.128],[.001,.181]],0,-reach-.086,0);
+      rain.push(line);
+    }
+    U.gait=(phase,amount)=>{
+      for(let i=0;i<rain.length;i++){
+        const beat=phase*.85+i*1.7;
+        rain[i].rotation.z=.14*Math.sin(beat)*amount;
+        rain[i].scale.y=1-.15*(1-Math.cos(beat))*.5*amount;
+      }
+      rig.rotation.z=0; rig.position.y=.017*(1-Math.cos(phase))*amount;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.158,0.02,0.197,0.128,null,T.iris);
@@ -1175,7 +1368,7 @@ SPECIES_EXTRA.pluvindle = {
     }
     T.mouth(head,U,0,-0.115,0.244,.86);
     T.blush(head,0.237,-0.075,0.181,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.399,0.76,.085,0.29,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.416,0.861,.085,0.233,.054,body,light));
   },
 };
 /* Rilloon: A bellows-bellied singer takes attendance at every echo. */
@@ -1218,21 +1411,31 @@ SPECIES_EXTRA.rilloon = {
       return mesh;
     }
     head.position.y=1.19;
+    const bellows=new THREE.Group();
+    bellows.position.y=.30; rig.add(bellows);
     for(let i=0;i<5;i++){
-      const radius=.25+.055*Math.sin(i*Math.PI/4);
-      rig.add(T.cyl(radius-.06,radius,.075,i%2?body:light,0,.36+i*.15,0,32));
-      rig.add(T.cyl(radius,radius-.06,.075,body,0,.435+i*.15,0,32));
+      const radius=.235+.10*Math.sin(i*Math.PI/4);
+      bellows.add(T.cyl(radius-.06,radius,.075,i%2?body:light,0,.06+i*.15,0,32));
+      bellows.add(T.cyl(radius,radius-.06,.075,body,0,.135+i*.15,0,32));
     }
     oval(head,body,0,-.02,0,.305,.275,.25);
     for(const side of [-1,1]){
       const bell=new THREE.Group();
-      bell.position.set(side*.245,.05,-.035);
-      bell.rotation.z=-side*1.02;
+      bell.position.set(side*.263,.085,-.035);
+      bell.rotation.z=-side*1.27;
       head.add(bell);
-      bell.add(T.cyl(.14,.06,.23,body,0,.085,0,24));
-      bell.add(T.cyl(.146,.146,.032,light,0,.208,0,24));
-      bell.add(T.cyl(.115,.115,.008,dark,0,.227,0,24));
+      bell.add(T.cyl(.163,.054,.25,body,0,.085,0,24));
+      bell.add(T.cyl(.17,.17,.032,light,0,.208,0,24));
+      bell.add(T.cyl(.139,.139,.008,dark,0,.227,0,24));
     }
+    const shoulders=T.cyl(.049,.049,0.62,dark,0,0.86,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const breath=Math.sin(phase)*amount;
+      bellows.scale.set(1-.055*breath,1+.13*breath,1-.055*breath);
+      U.head.position.z=.04*breath;
+      rig.position.y=.038*Math.abs(breath);
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.152,0.04,0.205,0.126,null,T.iris);
@@ -1294,11 +1497,21 @@ SPECIES_EXTRA.rimebud = {
     crystal(rig,body,0,.60,0,.33,.395,0);
     oval(head,light,0,0,0,.29,.25,.24);
     const frost=T.phys('#d9faff',{roughness:.30});
+    const fan=new THREE.Group(); head.add(fan);
     for(const side of [-1,1]){
-      crystal(head,body,side*.238,.195,-.04,.095,.25,-side*.54);
-      crystal(head,frost,side*.10,.31,-.07,.075,.215,-side*.23);
+      crystal(fan,body,side*.295,.14,-.04,.098,.262,-side*1.03);
+      crystal(fan,frost,side*.20,.30,-.07,.093,.273,-side*.46);
     }
-    crystal(head,body,0,.34,-.06,.106,.28,0);
+    crystal(fan,body,0,.39,-.06,.131,.35,0);
+    const shoulders=T.cyl(.049,.049,0.654,light,0,0.76,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const step=Math.sin(phase)*amount;
+      const settle=step*Math.abs(step);
+      fan.rotation.z=.085*settle;
+      rig.position.y=.042*Math.abs(settle);
+      rig.rotation.z=.105*settle;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.147,0.015,0.193,0.124,null,T.iris);
@@ -1354,40 +1567,65 @@ SPECIES_EXTRA.sealump = {
       const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
       parent.add(new THREE.Mesh(geometry,material));
     }
-    head.position.y=1.07;
+    head.position.y=1.053;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#ffd2a7',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    rig.add(T.rbox(.44,.104,.342,.036,dark,0,.085,0));
-    rig.add(T.rbox(.47,.055,.35,.02,body,0,.162,0));
-    const coil=[];
-    for(let i=0;i<=48;i++){
-      const angle=i*Math.PI/6;
-      coil.push([.12*Math.cos(angle),.194+i*.0073,.12*Math.sin(angle)]);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    tube(rig,light,coil,.024);
-    rig.add(T.rbox(.517,.249,.375,.055,body,0,.695,0));
-    rig.add(T.cyl(.081,.099,.17,light,0,.892,0,16));
-    head.add(T.rbox(.484,.327,.321,.056,body));
-    head.add(T.rbox(.42,.27,.032,.014,glass,0,0,.168));
-    head.add(T.cyl(.065,.08,.106,dark,0,.243,0,16));
-    oval(head,light,0,.333,0,.153,.084,.104);
-    oval(head,signal,0,.34,.097,.041,.025,.011);
+    const foot=T.rbox(.54,.105,.39,.034,dark,0,.083,0);
+    rig.add(foot,T.rbox(.506,.061,.355,.021,body,0,.167,0));
+    const spring=new THREE.Group(), carriage=new THREE.Group();
+    spring.position.y=.197;
+    rig.add(spring,carriage);
+    const coil=[];
+    for(let i=0;i<=72;i++){
+      const a=i*Math.PI/9;
+      coil.push([.146*Math.cos(a),.55*i/72,.146*Math.sin(a)]);
+    }
+    tube(spring,light,coil,.029);
+    carriage.add(T.cyl(.19,.168,.065,dark,0,.785,0,24));
+    carriage.add(T.rbox(.488,.09,.326,.03,body,0,.836,0));
+    carriage.add(T.cyl(.083,.089,.11,light,0,.941,0));
+    carriage.add(head);
+    head.add(T.rbox(.578,.265,.302,.04,body));
+    head.add(T.rbox(.475,.22,.036,.013,glass,0,0,.156));
+    turned(head,body,[[.001,0],[.103,0],[.082,.09],[.068,.14],[.119,.19],[.154,.23],[.14,.285],[.076,.318],[.001,.328]],0,.158,0);
+    oval(head,signal,0,.404,.13,.038,.025,.015);
+    U.gait=(phase,amount)=>{
+      // The ink pad stays planted during the wind-up, then clears the floor in flight.
+      const cycle=((phase/(2*Math.PI))%1+1)%1;
+      let compression=0, lift=0;
+      if(cycle<.38) compression=.24*Math.sin(Math.PI*cycle/.38)**2;
+      else if(cycle<.82){
+        const flight=(cycle-.38)/.44;
+        lift=.236*Math.sin(Math.PI*flight);
+      } else compression=.09*Math.sin(Math.PI*(cycle-.82)/.18)**2;
+      rig.rotation.z=0; rig.position.y=lift*amount;
+      spring.scale.y=1-compression*amount/.55;
+      carriage.position.y=-compression*amount;
+      for(const arm of U.arms) arm.position.y=.83+carriage.position.y;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
-      gaze.position.set(side*0.126,0.017,0.113);
+      gaze.position.set(side*0.14,0.013,0.104);
       head.add(gaze);
       U.looks.push(gaze);
-      const pixel=oval(gaze,phosphor,0,0,.083,0.0568,0.0726,.016);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0516,0.066,.016);
       pixel.userData.sy=pixel.scale.y;
       U.eyes.push(pixel);
       const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
       pixel.add(glint);
-      T.brow(head,U,side*0.126,0.113,0.192,.086,.014,signal,side);
+      T.brow(head,U,side*0.14,0.109,0.183,.086,.014,signal,side);
     }
-    T.mouth(head,U,0,-0.09,0.201,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.338,0.761,.085,0.316,.054,dark,light));
+    T.mouth(head,U,0,-0.07,0.189,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.31,0.83,.085,0.256,.054,dark,light));
   },
 };
 /* Tarestep: A two-pan hover scale weighs compliments before passing them along. */
@@ -1429,42 +1667,75 @@ SPECIES_EXTRA.tarestep = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.105;
+    head.position.y=1.064;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#aafbea',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    oval(rig,body,0,.52,0,.27,.29,.218);
-    for(const side of [-1,1]){
-      rig.add(T.cyl(.119,.09,.17,dark,side*.154,.28,0,20));
-      oval(rig,signal,side*.154,.113,0,.052,.112,.06);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    rig.add(T.rbox(.69,.058,.115,.021,light,0,.83,0));
-    for(const side of [-1,1]){
-      for(const z of [-.065,.065]) rig.add(T.cyl(.009,.009,.23,dark,side*.30,.697,z,8));
-      oval(rig,body,side*.30,.57,0,.104,.033,.13);
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    rig.add(T.cyl(.064,.09,.19,light,0,.926,0));
-    head.add(T.rbox(.46,.33,.29,.06,body));
-    head.add(T.rbox(.407,.274,.033,.013,glass,0,0,.153));
-    const needle=T.bx(.027,.142,.034,light,0,.252,0);
-    needle.rotation.z=-.38;
-    head.add(needle);
-    head.add(T.sph(.036,signal,.028,.319,0,12,8));
+    const footlights=[];
+    for(const side of [-1,1]){
+      rig.add(T.cyl(.126,.086,.218,dark,side*.159,.298,0,20));
+      footlights.push(oval(rig,signal,side*.159,.105,0,.066,.104,.069));
+    }
+    plate(rig,body,[[-.235,0],[.235,0],[.233,.10],[.135,.24],[.068,.474],[-.065,.474],[-.135,.24],[-.234,.10]],.18,0,.354,0);
+    const balance=new THREE.Group(); balance.position.y=.826;
+    rig.add(balance);
+    balance.add(T.rbox(.91,.044,.088,.015,light));
+    const pans=[];
+    for(const side of [-1,1]){
+      const hanger=new THREE.Group(); hanger.position.x=side*.412;
+      balance.add(hanger); pans.push(hanger);
+      for(const edge of [-1,1]){
+        const wire=T.cyl(.009,.009,.218,dark,edge*.049,-.10,0,8);
+        wire.rotation.z=edge*.46; hanger.add(wire);
+      }
+      turned(hanger,body,[[.001,0],[.065,.006],[.139,.067],[.13,.071],[.054,.025],[.001,.022]],0,-.266,0);
+    }
+    rig.add(T.cyl(.062,.082,.161,light,0,.941,0,16));
+    head.add(T.cyl(.218,.223,.242,body,0,0,-.006,24));
+    head.add(T.rbox(.39,.212,.041,.016,glass,0,0,.202));
+    const needle=T.bx(.027,.185,.039,light,0,.216,0); head.add(needle);
+    head.add(T.sph(.04,signal,0,.316,0,12,8));
+    U.gait=(phase,amount)=>{
+      const tilt=.19*Math.sin(phase*.73)*amount;
+      balance.rotation.z=tilt;
+      for(let i=0;i<2;i++){
+        pans[i].rotation.z=-tilt;
+        footlights[i].scale.y=.104*(1+(i?1:-1)*tilt);
+      }
+      needle.rotation.z=-tilt*1.8;
+      rig.rotation.z=0; rig.position.y=Math.abs(tilt)*.23;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
-      gaze.position.set(side*0.123,0.018,0.097);
+      gaze.position.set(side*0.108,0.011,0.16);
       head.add(gaze);
       U.looks.push(gaze);
-      const pixel=oval(gaze,phosphor,0,0,.083,0.0657,0.0527,.016);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0625,0.0501,.016);
       pixel.userData.sy=pixel.scale.y;
       U.eyes.push(pixel);
       const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
       pixel.add(glint);
-      T.brow(head,U,side*0.123,0.114,0.176,.086,.014,signal,side);
+      T.brow(head,U,side*0.108,0.107,0.239,.086,.014,signal,side);
     }
-    T.mouth(head,U,0,-0.085,0.185,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.415,0.76,.085,0.306,.054,dark,light));
+    T.mouth(head,U,0,-0.065,0.241,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.24,0.67,.085,0.248,.054,dark,light));
   },
 };
 /* Tessettle: A broad gliding ray with a patchwork back remembers routes as quilt patterns. */
@@ -1511,22 +1782,64 @@ SPECIES_EXTRA.tessettle = {
       const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
       parent.add(new THREE.Mesh(geometry,material));
     }
-    head.position.y=0.74;
-    oval(rig,dark,0,.13,0,.285,.13,.25);
-    oval(rig,body,0,.399,-.023,.335,.261,.305);
+    head.position.y=0.656;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    // Each wing is a quilt of eight padded panels lofted from root to swept tip.
+    const fabric=T.phys('#ffca80'), fins=[];
+    oval(rig,dark,0,.115,-.025,.235,.115,.245);
+    oval(rig,body,0,.358,-.058,.239,.278,.292);
+    function point(u,v){
+      const halfChord=.225*(1-.79*u);
+      return [.513*u,.035+.29*u*u+.11*Math.sin(u*Math.PI)+(.25*(1-u)+.024)*v-.025*v*v, -.18*u+halfChord*v];
+    }
     for(const side of [-1,1]){
-      const wing=oval(rig,body,side*.33,.578,-.065,.27,.10,.283);
-      wing.rotation.z=side*.265;
-      for(let i=0;i<3;i++){
-        const patch=oval(rig,i%2?dark:light,side*(.30+i*.093),.675+i*.016,-.07+(i%2)*.085,.054,.012,.084);
-        patch.rotation.z=side*.265;
+      const fin=new THREE.Group();
+      fin.position.set(side*.103,.61,-.005);
+      fin.scale.x=side;
+      rig.add(fin); fins.push(fin);
+      for(let row=0;row<2;row++) for(let col=0;col<4;col++){
+        const u=col/4, v=row-1;
+        const corners=[point(u,v),point(u+.25,v),point(u+.25,v+1),point(u,v+1)];
+        const pad=point(u+.125,v+.5);
+        pad[1]+=.038;
+        const underside=pad.slice(); underside[1]-=.079;
+        const vertices=[];
+        for(let j=0;j<4;j++){
+          const a=corners[j], b=corners[(j+1)%4];
+          vertices.push(...pad,...b,...a,...underside,...a,...b);
+        }
+        const geometry=new THREE.BufferGeometry();
+        geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+        geometry.computeVertexNormals();
+        const swatches=[body,light,dark,fabric];
+        fin.add(new THREE.Mesh(geometry,swatches[(col+row*2)%4]));
       }
     }
-    T.head.position.z=.065;
-    oval(head,light,0,0,0,.30,.225,.23);
-    tube(rig,dark,[[0,.49,-.22],[0,.69,-.33],[-.06,.91,-.35],[-.12,1.11,-.31]],.038);
-    const pennant=oval(rig,light,-.122,1.153,-.307,.099,.109,.041);
-    pennant.rotation.z=.45;
+    head.position.z=.10;
+    oval(head,body,0,0,-.025,.264,.212,.233);
+    tube(rig,dark,[[0,.42,-.22],[0,.64,-.327],[-.105,.88,-.321],[-.185,1.051,-.28]],.029);
+    const pennant=plate(rig,light,[[0,-.05],[.083,.016],[.03,.115],[-.07,.059]],.03,-.184,1.066,-.28);
+    const shoulders=T.cyl(.049,.049,0.48,body,0,0.49,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const stroke=Math.sin(phase*.72)*amount;
+      rig.rotation.z=.055*stroke;
+      rig.position.y=(1-Math.cos(phase*.72))*.048*amount;
+      for(let i=0;i<2;i++){
+        const side=i*2-1;
+        fins[i].rotation.z=side*.34*stroke;
+        fins[i].rotation.x=.13*Math.sin(phase*.72-.8)*amount;
+      }
+      pennant.rotation.z=.18*stroke;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.151,0.035,0.192,0.125,null,T.iris);
@@ -1534,7 +1847,7 @@ SPECIES_EXTRA.tessettle = {
     }
     T.mouth(head,U,0,-0.1,0.232,.86);
     T.blush(head,0.23,-0.06,0.176,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.375,0.563,.085,0.29,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.24,0.49,.085,0.215,.054,body,light));
   },
 };
 /* Timbrelk: A drum-bodied walker with padded mallets counts the rests between noises. */
@@ -1577,20 +1890,29 @@ SPECIES_EXTRA.timbrelk = {
       return mesh;
     }
     head.position.y=0.95;
-    rig.add(T.cyl(.365,.365,.43,body,0,.58,0,32));
+    const drum=new THREE.Group(); drum.position.y=.575; rig.add(drum);
+    drum.rotation.z=-.17;
+    drum.add(T.cyl(.411,.346,.43,body,0,0,0,32));
     const hide=T.phys('#ffda9e');
-    for(const y of [.365,.79]) rig.add(T.cyl(.38,.38,.055,hide,0,y,0,32));
+    for(const [y,r] of [[-.211,.36],[.211,.425]]) drum.add(T.cyl(r,r,.052,hide,0,y,0,32));
     for(let i=0;i<10;i++){
       const a=i*Math.PI/5;
-      const lace=T.cyl(.012,.012,.398,light,Math.sin(a)*.363,.575,Math.cos(a)*.363,8);
+      const lace=T.cyl(.012,.012,.398,light,Math.sin(a)*.38,0,Math.cos(a)*.38,8);
       lace.rotation.z=.17*Math.cos(a)*(i%2?1:-1);
       lace.rotation.x=-.17*Math.sin(a)*(i%2?1:-1);
-      rig.add(lace);
+      drum.add(lace);
     }
     oval(head,body,0,0,0,.325,.27,.255);
     for(const side of [-1,1]){
-      oval(head,light,side*.25,.20,-.08,.085,.085,.085);
+      const stick=T.cyl(.021,.023,.241,dark,side*.255,.24,-.07); stick.rotation.z=-side*.6; head.add(stick);
+      oval(head,light,side*.324,.34,-.07,.075,.081,.076);
     }
+    U.gait=(phase,amount)=>{
+      const beat=Math.sin(phase)*amount;
+      drum.rotation.z=-.17+.13*beat;
+      rig.position.y=.083*Math.abs(beat);
+      U.arms[0].rotation.x=-.92*beat; U.arms[1].rotation.x=.92*beat;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.162,0.035,0.206,0.13,null,T.iris);
@@ -1598,7 +1920,7 @@ SPECIES_EXTRA.timbrelk = {
     }
     T.mouth(head,U,0,-0.11,0.25,.86);
     T.blush(head,0.241,-0.07,0.19,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.404,0.81,.085,0.32,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.414,0.737,.085,0.3,.054,body,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.18,0.28,0,0.22,.07,dark,null,light));
   },
 };
@@ -1646,17 +1968,37 @@ SPECIES_EXTRA.velveteel = {
       const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
       parent.add(new THREE.Mesh(geometry,material));
     }
-    head.position.y=1.23;
-    oval(rig,body,0,.156,-.035,.31,.155,.35);
-    oval(rig,body,-.065,.388,-.055,.226,.28,.215);
-    tube(rig,body,[[-.063,.43,-.04],[-.095,.66,-.01],[.04,.92,0],[0,1.16,0]],.145);
-    oval(head,body,0,-.015,0,.27,.24,.23);
-    for(const side of [-1,1]){
-      const ribbon=oval(head,light,side*.303,.055,-.045,.105,.236,.042);
-      ribbon.rotation.z=-side*.98;
-      const tip=oval(head,body,side*.45,.005,-.055,.065,.168,.038);
-      tip.rotation.z=side*.51;
+    head.position.y=1.244;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
+    const collar=new THREE.Group();
+    collar.position.set(.16,.99,0); rig.add(collar);
+    const tail=oval(rig,body,-.07,.132,-.04,.302,.132,.31);
+    tube(rig,body,[[-.16,.145,-.04],[-.24,.34,-.06],[-.185,.53,-.04],[.014,.653,0],[.159,.81,0],[.16,1.02,0]],.127);
+    tube(collar,body,[[0,0,0],[-.04,.13,0],[-.16,.245,0]],.117);
+    oval(head,body,0,-.015,0,.265,.22,.225);
+    const fins=[];
+    for(const side of [-1,1]){
+      const fin=plate(head,light,[[0,0],[.09,.08],[.27,.13],[.20,-.015],[.29,-.13],[.14,-.095],[.085,-.185]],.042,side*.176,.072,-.055);
+      fin.scale.x=side; fins.push(fin);
+    }
+    const shoulders=T.cyl(.049,.049,0.454,body,0,0.669,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const wave=Math.sin(phase*.68)*amount;
+      rig.position.y=.018*Math.abs(wave); rig.rotation.z=.038*wave;
+      collar.rotation.z=.12*wave;
+      head.position.x=-.04*wave;
+      tail.scale.x=.302*(1+.085*Math.sin(phase*.68-.9)*amount);
+      fins[0].rotation.y=.30*wave; fins[1].rotation.y=.30*wave;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.142,0.035,0.185,0.123,null,T.iris);
@@ -1664,7 +2006,7 @@ SPECIES_EXTRA.velveteel = {
     }
     T.mouth(head,U,0,-0.11,0.226,.86);
     T.blush(head,0.221,-0.07,0.169,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.246,0.74,.085,0.31,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.227,0.669,.085,0.274,.054,body,light));
   },
 };
 /* Whorloo: A round-footed courier with a great spiral shell rents out the spare room. */
@@ -1711,33 +2053,77 @@ SPECIES_EXTRA.whorloo = {
       const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
       parent.add(new THREE.Mesh(geometry,material));
     }
-    head.position.y=0.73;
-    oval(rig,light,0,.191,.025,.40,.19,.37);
-    oval(rig,body,0,.43,.055,.34,.30,.29);
-    const amber=T.phys('#ffd7a1');
-    const shell=oval(rig,body,-.04,.79,-.12,.45,.53,.29);
-    shell.rotation.z=-.19;
-    const coil=[];
-    for(let i=0;i<=48;i++){
-      const a=i*.19, r=.021+i*.0078;
-      coil.push([-.04+Math.cos(a)*r,.80+Math.sin(a)*r,-.10-Math.sqrt(1-(r/.49)**2)*.29]);
+    head.position.y=0.517;
+    const sole=oval(rig,light,.025,.145,.015,.47,.145,.355);
+    oval(rig,body,.12,.34,.077,.34,.24,.29);
+    const shell=new THREE.Group();
+    shell.position.set(-.13,.827,-.085);
+    shell.rotation.set(-.08,-.30,-.13);
+    rig.add(shell);
+    oval(shell,body,0,0,0,.373,.408,.219);
+    // A tapered tube forms the outside of the shell itself, including the flared last turn.
+    const vertices=[], triangles=[], centres=[];
+    const turns=58, sides=14;
+    for(let i=0;i<=turns;i++){
+      const t=i/turns, a=-.93+t*Math.PI*3.5, reach=.023+.365*t**1.8;
+      const x=Math.cos(a)*reach, y=Math.sin(a)*reach*1.06;
+      const section=.031+.10*t+.046*t**12;
+      const shellFront=.219*Math.sqrt(Math.max(0,1-(x/.373)**2-(y/.408)**2));
+      centres.push([x,y,Math.max(shellFront,.096+section*1.22)+.012]);
+      for(let j=0;j<sides;j++){
+        const b=j*2*Math.PI/sides;
+        vertices.push(x+Math.cos(a)*section*Math.cos(b),y+Math.sin(a)*section*Math.cos(b),
+          .096+section*1.22*Math.sin(b));
+        if(i<turns){
+          const next=(j+1)%sides, base=i*sides;
+          triangles.push(base+j,base+sides+j,base+next,base+next,base+sides+j,base+sides+next);
+        }
+      }
     }
-    tube(rig,amber,coil,.028);
-    T.head.position.z=.19;
-    oval(head,light,0,-.01,0,.30,.255,.222);
+    const whorl=new THREE.BufferGeometry();
+    whorl.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+    whorl.setIndex(triangles); whorl.computeVertexNormals();
+    body.side=THREE.DoubleSide;
+    shell.add(new THREE.Mesh(whorl,body));
+    // The ridge grows from a pinhead into a raised outer whorl on the forward face.
+    const lip=T.phys('#ffcf8d');
+    tube(shell,lip,centres,.028);
+    const openEnd=new THREE.Group();
+    const last=centres[turns], a=-.93+Math.PI*3.5;
+    openEnd.position.set(last[0],last[1],.096);
+    openEnd.rotation.z=a-Math.PI/2;
+    shell.add(openEnd);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(.16,.026,9,30),lip);
+    rim.rotation.y=Math.PI/2; openEnd.add(rim);
+    oval(openEnd,dark,0,0,0,.022,.147,.161);
+    head.position.set(.287,.489,.193);
+    oval(head,light,0,-.006,0,.253,.225,.206);
+    const feelers=[];
     for(const side of [-1,1]){
-      const feeler=oval(head,body,side*.15,.24,0,.038,.14,.04);
-      feeler.rotation.z=-side*.22;
-      oval(head,light,side*.18,.37,0,.053,.053,.053);
+      const stalk=new THREE.Group();
+      stalk.position.set(side*.132,.144,-.012);
+      head.add(stalk);
+      tube(stalk,body,[[0,0,0],[side*.014,.105,0],[side*.045,.197,.024]],.029);
+      oval(stalk,light,side*.045,.208,.024,.052,.056,.052);
+      feelers.push(stalk);
     }
+    U.gait=(phase,amount)=>{
+      const reach=Math.sin(phase)*amount;
+      rig.rotation.z=0; rig.position.y=0;
+      sole.scale.z=.355*(1+.13*reach);
+      sole.position.z=.015+.041*reach;
+      shell.rotation.z=-.13+.068*Math.sin(phase-.8)*amount;
+      shell.position.y=.827+.015*Math.sin(phase-.6)*amount;
+      feelers[0].rotation.x=.14*reach; feelers[1].rotation.x=-.09*reach;
+    };
 
     for(const side of [-1,1]){
-      T.eye(head,U,side*0.15,0.02,0.174,0.124,null,T.iris);
-      T.brow(head,U,side*0.15,0.182,0.202,.119,.021,T.browM,side);
+      T.eye(head,U,side*0.129,0.024,0.171,0.115,null,T.iris);
+      T.brow(head,U,side*0.129,0.177,0.199,.119,.021,T.browM,side);
     }
-    T.mouth(head,U,0,-0.125,0.228,.86);
-    T.blush(head,0.229,-0.085,0.158,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.39,0.62,.085,0.28,.054,body,light));
+    T.mouth(head,U,0,-0.1,0.201,.86);
+    T.blush(head,0.208,-0.06,0.155,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.33,0.48,.085,0.23,.054,body,light));
   },
 };
 /* Wickindle: A waxy little night gardener carries a steady pearl of light in a curling wick. */
@@ -1785,14 +2171,30 @@ SPECIES_EXTRA.wickindle = {
       parent.add(new THREE.Mesh(geometry,material));
     }
     head.position.y=0.95;
-    oval(rig,body,0,.53,0,.247,.35,.225);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    turned(rig,body,[[.001,0],[.28,0],[.30,.038],[.184,.10],[.139,.24],[.168,.49],[.192,.56],[.001,.57]],0,.229,0);
     oval(head,body,0,0,0,.285,.30,.235);
     for(let i=0;i<6;i++){
       const a=i*Math.PI/3;
       oval(head,light,Math.sin(a)*.195,.203,Math.cos(a)*.145,.091,.08+(i%3)*.025,.08);
     }
-    tube(head,dark,[[0,.24,0],[-.04,.34,0],[-.12,.42,0],[-.085,.52,0],[0,.54,0]],.026);
-    oval(head,T.glow('#ffce82',1.4),.026,.54,0,.075,.10,.075);
+    const wick=new THREE.Group(); wick.position.y=.23; head.add(wick);
+    tube(wick,dark,[[0,0,0],[-.03,.13,0],[-.217,.23,0],[-.221,.41,0],[-.113,.485,0],[-.022,.444,0]],.033);
+    const flame=oval(wick,T.glow('#ffce82',1.4),-.014,.41,.008,.073,.113,.065);
+    const shoulders=T.cyl(.049,.049,0.582,body,0,0.68,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const sway=Math.sin(phase*.85)*amount;
+      wick.rotation.z=.20*sway;
+      flame.scale.y=.113*(1+.12*Math.sin(phase*1.7)*amount);
+      rig.rotation.z=-.068*sway;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.15,0.015,0.195,0.125,null,T.iris);
@@ -1843,41 +2245,60 @@ SPECIES_EXTRA.winkmast = {
       parent.add(mesh);
       return mesh;
     }
-    head.position.y=1.14;
+    head.position.y=1.147;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#ffe89e',1.65);
     const phosphor=T.glow(T.iris,2.2);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const tracks=[];
     for(const side of [-1,1]){
-      rig.add(T.rbox(.14,.20,.51,.042,dark,side*.215,.137,0));
-      for(const z of [-.155,0,.155]){
-        const roller=T.cyl(.066,.066,.024,light,side*.316,.135,z,16);
-        roller.rotation.z=Math.PI/2;
-        rig.add(roller);
+      rig.add(T.rbox(.16,.205,.552,.043,dark,side*.25,.143,0));
+      for(const z of [-.171,0,.171]){
+        const roller=new THREE.Group(); roller.position.set(side*.36,.134,z);
+        rig.add(roller); tracks.push(roller);
+        const hub=T.cyl(.077,.077,.026,body,0,0,0,16);
+        hub.rotation.z=Math.PI/2; roller.add(hub);
+        roller.add(T.bx(.013,.089,.016,light,side*.018,0,0));
       }
     }
-    rig.add(T.cyl(.165,.286,.586,body,0,.58,0,24));
-    rig.add(T.cyl(.214,.225,.09,light,0,.677,0,24));
-    rig.add(T.cyl(.073,.095,.21,dark,0,.945,0,16));
-    head.add(T.rbox(.47,.33,.35,.052,body));
-    head.add(T.rbox(.416,.277,.035,.015,glass,0,0,.184));
-    head.add(T.cyl(.25,.255,.045,light,0,.21,0,24));
-    head.add(T.cyl(.114,.114,.178,signal,0,.318,0,20));
-    for(const side of [-1,1]) head.add(T.cyl(.015,.015,.19,dark,side*.135,.322,0,10));
-    head.add(T.cyl(.041,.194,.104,body,0,.455,0,24));
+    turned(rig,body,[[.001,0],[.29,0],[.31,.065],[.268,.116],[.148,.664],[.183,.691],[.183,.73],[.001,.73]],0,.205,0);
+    rig.add(T.cyl(.206,.22,.084,light,0,.677,0,28));
+    rig.add(T.cyl(.081,.092,.18,dark,0,1.004,0,20));
+    head.add(T.cyl(.261,.254,.316,body,0,-.015,-.01,12));
+    head.add(T.rbox(.402,.241,.048,.021,glass,0,0,.23));
+    head.add(T.cyl(.291,.274,.056,light,0,.158,-.01,24));
+    head.add(T.cyl(.125,.125,.193,dark,0,.29,-.01,16));
+    const lantern=new THREE.Group(); lantern.position.y=.29; head.add(lantern);
+    oval(lantern,signal,0,0,.106,.093,.086,.065);
+    for(const side of [-1,1]) head.add(T.cyl(.015,.015,.186,light,side*.156,.29,-.01,10));
+    head.add(T.cyl(.057,.233,.126,body,0,.447,-.01,24));
+    const shoulders=T.cyl(.049,.049,0.636,dark,0,0.807,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      for(const hub of tracks) hub.rotation.x=phase*1.7*amount;
+      lantern.rotation.y=phase*.72*amount;
+      rig.position.y=.008*Math.abs(Math.sin(phase*3))*amount; rig.rotation.z=0;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
-      gaze.position.set(side*0.125,0.014,0.13);
+      gaze.position.set(side*0.124,0.015,0.194);
       head.add(gaze);
       U.looks.push(gaze);
-      const pixel=oval(gaze,phosphor,0,0,.083,0.0534,0.0678,.016);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.057,0.0723,.016);
       pixel.userData.sy=pixel.scale.y;
       U.eyes.push(pixel);
       const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
       pixel.add(glint);
-      T.brow(head,U,side*0.125,0.11,0.209,.086,.014,signal,side);
+      T.brow(head,U,side*0.124,0.111,0.273,.086,.014,signal,side);
     }
-    T.mouth(head,U,0,-0.09,0.218,.72,signal);
+    T.mouth(head,U,0,-0.077,0.272,.72,signal);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.318,0.807,.085,0.301,.054,dark,light));
   },
 };
@@ -3802,9 +4223,10 @@ const Folk = (() => {
     const n=Math.floor((t+U.ph)/1.7), lx=Math.sin(n*12.9898+U.ph)*0.35, ly=Math.sin(n*78.233+U.ph)*0.18; for(const L of U.looks){ L.rotation.y=lerp(L.rotation.y,lx,0.15); L.rotation.x=lerp(L.rotation.x,ly,0.15); }
     U.head.position.y=U.headY+Math.sin(t*2.1+U.ph)*0.012;
     for(const tn of U.tent){ if(U.arms.includes(tn)) continue; tn.rotation.x=Math.sin(tn.userData.a)*0.35+Math.sin(t*2.2+tn.userData.a*3)*0.12; } }
+  /* A pack model can animate its own geometry after the shared stride. Zero amount restores its rest pose. */
   function walk(F, ph, amt){ const U=F.userData, s=Math.sin(ph)*amt; if(U.legs[0]){ U.legs[0].rotation.x=s*0.7; U.legs[1].rotation.x=-s*0.7; for(const l of U.legs) if(l.userData.foot) l.userData.foot.rotation.x=-l.rotation.x; } if(U.arms[0]){ U.arms[0].rotation.x=-s*0.5; U.arms[1].rotation.x=s*0.5; }
-    U.rig.position.y=Math.abs(Math.sin(ph))*0.07*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; }
-  function rest(F){ const U=F.userData; U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
+    U.rig.position.y=Math.abs(Math.sin(ph))*0.07*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; if(U.gait) U.gait(ph,amt); }
+  function rest(F){ const U=F.userData; if(U.gait) walk(F,0,0); U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
   function arms(F, l, r){ const A=F.userData.arms; if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
@@ -6344,7 +6766,7 @@ Game.boot();
             <div><h2 id="name"></h2><p class="seed" id="seed"></p><p id="trait"></p></div>
             <fieldset><legend>Expression</legend><div class="row" id="moods"></div></fieldset>
             <fieldset><legend>Pose</legend><div class="row" id="poses"></div></fieldset>
-            <div class="row"><button id="next">Next seed</button><button id="spin" aria-pressed="true">Rotate</button></div>
+            <div class="row"><button id="next">Next seed</button><button id="spin" aria-pressed="true">Rotate</button><button id="outline" aria-pressed="false">Silhouette</button></div>
             <fieldset><legend>Standing measurements</legend><dl class="measure"></dl></fieldset>
           </div>
         </div>
@@ -6357,7 +6779,9 @@ Game.boot();
   const seeds = [26, 9, 25];
   let seedIndex = 0, key, figure, prop, renderer, scene, camera, ruler;
   let selectedCard, scrollTop = 0, frame, lastTime, elapsed, angle;
-  let expression, walking, waving, seated, holding, rotating;
+  let expression, walking, waving, seated, holding, rotating, silhouette;
+  const normalMaterials = new Map();
+  const paper = new THREE.MeshBasicMaterial({color:0xeaf2df, side:THREE.DoubleSide, toneMapped:false});
   let queue = [], portraitFrame;
   const bodyGeometries = new Set(), bodyMaterials = new Set();
 
@@ -6459,7 +6883,7 @@ Game.boot();
     scene.remove(figure);
     for (const g of bodyGeometries) g.dispose();
     for (const m of bodyMaterials) m.dispose();
-    bodyGeometries.clear(); bodyMaterials.clear();
+    bodyGeometries.clear(); bodyMaterials.clear(); normalMaterials.clear();
     figure = null; prop = null;
   }
   function loadFigure() {
@@ -6474,6 +6898,8 @@ Game.boot();
       if (!copies.has(o.material)) copies.set(o.material,o.material.clone());
       o.material = copies.get(o.material);
       bodyMaterials.add(o.material);
+      normalMaterials.set(o,o.material);
+      if (silhouette) o.material=paper;
     });
     scene.add(figure);
     const bounds = new THREE.Box3(), point = new THREE.Vector3();
@@ -6505,7 +6931,7 @@ Game.boot();
   }
   function openFigure(k, card) {
     scrollTop=page.scrollTop; selectedCard=card; key=k; seedIndex=0;
-    expression='neutral'; walking=waving=seated=holding=false; rotating=true;
+    expression='neutral'; walking=waving=seated=holding=silhouette=false; rotating=true;
     cancelAnimationFrame(portraitFrame);
     catalog.hidden=true; get('#viewer').hidden=false; get('#back').hidden=false;
     page.scrollTop=0; get('#back').focus();
@@ -6535,6 +6961,7 @@ Game.boot();
     const poses=[walking,waving,seated,holding];
     [...get('#poses').children].forEach((b,i)=>b.setAttribute('aria-pressed',poses[i]));
     get('#spin').setAttribute('aria-pressed',rotating);
+    get('#outline').setAttribute('aria-pressed',silhouette);
   }
   for (const m of ['neutral','happy','sad','shock','worried']) {
     const b=button(get('#moods'),m[0].toUpperCase()+m.slice(1),()=>{expression=m; Folk.mood(figure,m); updateControls();});
@@ -6544,6 +6971,11 @@ Game.boot();
   button(get('#poses'),'Wave',()=>{waving=!waving; updateControls();});
   button(get('#poses'),'Sit',()=>{seated=!seated; walking=false; updateControls();});
   button(get('#poses'),'Hold prop',()=>{holding=!holding; prop.visible=holding; updateControls();});
+  get('#outline').onclick=()=>{
+    silhouette=!silhouette;
+    for (const [mesh,material] of normalMaterials) mesh.material=silhouette ? paper : material;
+    updateControls();
+  };
   get('#next').onclick=()=>{seedIndex++; loadFigure();};
   get('#spin').onclick=()=>{rotating=!rotating; updateControls();};
 
@@ -6560,7 +6992,7 @@ Game.boot();
       scene.traverse(o=>{if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose();});
       ruler.dispose(); renderer.dispose(); renderer.forceContextLoss();
     }
-    host.close(); host.remove();
+    paper.dispose(); host.close(); host.remove();
   }
   get('#back').onclick=back;
   get('#close').onclick=close;

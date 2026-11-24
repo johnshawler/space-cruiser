@@ -48,11 +48,21 @@ SPECIES_EXTRA.rimebud = {
     crystal(rig,body,0,.60,0,.33,.395,0);
     oval(head,light,0,0,0,.29,.25,.24);
     const frost=T.phys('#d9faff',{roughness:.30});
+    const fan=new THREE.Group(); head.add(fan);
     for(const side of [-1,1]){
-      crystal(head,body,side*.238,.195,-.04,.095,.25,-side*.54);
-      crystal(head,frost,side*.10,.31,-.07,.075,.215,-side*.23);
+      crystal(fan,body,side*.295,.14,-.04,.098,.262,-side*1.03);
+      crystal(fan,frost,side*.20,.30,-.07,.093,.273,-side*.46);
     }
-    crystal(head,body,0,.34,-.06,.106,.28,0);
+    crystal(fan,body,0,.39,-.06,.131,.35,0);
+    const shoulders=T.cyl(.049,.049,0.654,light,0,0.76,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const step=Math.sin(phase)*amount;
+      const settle=step*Math.abs(step);
+      fan.rotation.z=.085*settle;
+      rig.position.y=.042*Math.abs(settle);
+      rig.rotation.z=.105*settle;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.147,0.015,0.193,0.124,null,T.iris);

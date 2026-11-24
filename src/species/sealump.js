@@ -42,39 +42,64 @@ SPECIES_EXTRA.sealump = {
       const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
       parent.add(new THREE.Mesh(geometry,material));
     }
-    head.position.y=1.07;
+    head.position.y=1.053;
     const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
     const signal=T.glow('#ffd2a7',1.65);
     const phosphor=T.glow(T.iris,2.2);
-    rig.add(T.rbox(.44,.104,.342,.036,dark,0,.085,0));
-    rig.add(T.rbox(.47,.055,.35,.02,body,0,.162,0));
-    const coil=[];
-    for(let i=0;i<=48;i++){
-      const angle=i*Math.PI/6;
-      coil.push([.12*Math.cos(angle),.194+i*.0073,.12*Math.sin(angle)]);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
     }
-    tube(rig,light,coil,.024);
-    rig.add(T.rbox(.517,.249,.375,.055,body,0,.695,0));
-    rig.add(T.cyl(.081,.099,.17,light,0,.892,0,16));
-    head.add(T.rbox(.484,.327,.321,.056,body));
-    head.add(T.rbox(.42,.27,.032,.014,glass,0,0,.168));
-    head.add(T.cyl(.065,.08,.106,dark,0,.243,0,16));
-    oval(head,light,0,.333,0,.153,.084,.104);
-    oval(head,signal,0,.34,.097,.041,.025,.011);
+    const foot=T.rbox(.54,.105,.39,.034,dark,0,.083,0);
+    rig.add(foot,T.rbox(.506,.061,.355,.021,body,0,.167,0));
+    const spring=new THREE.Group(), carriage=new THREE.Group();
+    spring.position.y=.197;
+    rig.add(spring,carriage);
+    const coil=[];
+    for(let i=0;i<=72;i++){
+      const a=i*Math.PI/9;
+      coil.push([.146*Math.cos(a),.55*i/72,.146*Math.sin(a)]);
+    }
+    tube(spring,light,coil,.029);
+    carriage.add(T.cyl(.19,.168,.065,dark,0,.785,0,24));
+    carriage.add(T.rbox(.488,.09,.326,.03,body,0,.836,0));
+    carriage.add(T.cyl(.083,.089,.11,light,0,.941,0));
+    carriage.add(head);
+    head.add(T.rbox(.578,.265,.302,.04,body));
+    head.add(T.rbox(.475,.22,.036,.013,glass,0,0,.156));
+    turned(head,body,[[.001,0],[.103,0],[.082,.09],[.068,.14],[.119,.19],[.154,.23],[.14,.285],[.076,.318],[.001,.328]],0,.158,0);
+    oval(head,signal,0,.404,.13,.038,.025,.015);
+    U.gait=(phase,amount)=>{
+      // The ink pad stays planted during the wind-up, then clears the floor in flight.
+      const cycle=((phase/(2*Math.PI))%1+1)%1;
+      let compression=0, lift=0;
+      if(cycle<.38) compression=.24*Math.sin(Math.PI*cycle/.38)**2;
+      else if(cycle<.82){
+        const flight=(cycle-.38)/.44;
+        lift=.236*Math.sin(Math.PI*flight);
+      } else compression=.09*Math.sin(Math.PI*(cycle-.82)/.18)**2;
+      rig.rotation.z=0; rig.position.y=lift*amount;
+      spring.scale.y=1-compression*amount/.55;
+      carriage.position.y=-compression*amount;
+      for(const arm of U.arms) arm.position.y=.83+carriage.position.y;
+    };
 
     for(const side of [-1,1]){
       const gaze=new THREE.Group();
-      gaze.position.set(side*0.126,0.017,0.113);
+      gaze.position.set(side*0.14,0.013,0.104);
       head.add(gaze);
       U.looks.push(gaze);
-      const pixel=oval(gaze,phosphor,0,0,.083,0.0568,0.0726,.016);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0516,0.066,.016);
       pixel.userData.sy=pixel.scale.y;
       U.eyes.push(pixel);
       const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
       pixel.add(glint);
-      T.brow(head,U,side*0.126,0.113,0.192,.086,.014,signal,side);
+      T.brow(head,U,side*0.14,0.109,0.183,.086,.014,signal,side);
     }
-    T.mouth(head,U,0,-0.09,0.201,.72,signal);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.338,0.761,.085,0.316,.054,dark,light));
+    T.mouth(head,U,0,-0.07,0.189,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.31,0.83,.085,0.256,.054,dark,light));
   },
 };

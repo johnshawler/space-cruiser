@@ -38,20 +38,29 @@ SPECIES_EXTRA.timbrelk = {
       return mesh;
     }
     head.position.y=0.95;
-    rig.add(T.cyl(.365,.365,.43,body,0,.58,0,32));
+    const drum=new THREE.Group(); drum.position.y=.575; rig.add(drum);
+    drum.rotation.z=-.17;
+    drum.add(T.cyl(.411,.346,.43,body,0,0,0,32));
     const hide=T.phys('#ffda9e');
-    for(const y of [.365,.79]) rig.add(T.cyl(.38,.38,.055,hide,0,y,0,32));
+    for(const [y,r] of [[-.211,.36],[.211,.425]]) drum.add(T.cyl(r,r,.052,hide,0,y,0,32));
     for(let i=0;i<10;i++){
       const a=i*Math.PI/5;
-      const lace=T.cyl(.012,.012,.398,light,Math.sin(a)*.363,.575,Math.cos(a)*.363,8);
+      const lace=T.cyl(.012,.012,.398,light,Math.sin(a)*.38,0,Math.cos(a)*.38,8);
       lace.rotation.z=.17*Math.cos(a)*(i%2?1:-1);
       lace.rotation.x=-.17*Math.sin(a)*(i%2?1:-1);
-      rig.add(lace);
+      drum.add(lace);
     }
     oval(head,body,0,0,0,.325,.27,.255);
     for(const side of [-1,1]){
-      oval(head,light,side*.25,.20,-.08,.085,.085,.085);
+      const stick=T.cyl(.021,.023,.241,dark,side*.255,.24,-.07); stick.rotation.z=-side*.6; head.add(stick);
+      oval(head,light,side*.324,.34,-.07,.075,.081,.076);
     }
+    U.gait=(phase,amount)=>{
+      const beat=Math.sin(phase)*amount;
+      drum.rotation.z=-.17+.13*beat;
+      rig.position.y=.083*Math.abs(beat);
+      U.arms[0].rotation.x=-.92*beat; U.arms[1].rotation.x=.92*beat;
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.162,0.035,0.206,0.13,null,T.iris);
@@ -59,7 +68,7 @@ SPECIES_EXTRA.timbrelk = {
     }
     T.mouth(head,U,0,-0.11,0.25,.86);
     T.blush(head,0.241,-0.07,0.19,.061);
-    U.arms=[-1,1].map(side=>T.limb(rig,side*0.404,0.81,.085,0.32,.054,body,light));
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.414,0.737,.085,0.3,.054,body,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.18,0.28,0,0.22,.07,dark,null,light));
   },
 };

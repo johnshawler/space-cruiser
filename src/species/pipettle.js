@@ -43,18 +43,32 @@ SPECIES_EXTRA.pipettle = {
       parent.add(new THREE.Mesh(geometry,material));
     }
     head.position.y=0.99;
-    oval(rig,body,0,.57,0,.334,.332,.295);
-    tube(rig,light,[[.22,.69,-.075],[.37,.79,-.085],[.51,.71,-.09],[.51,.55,-.09],[.29,.48,-.07]],.049);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    turned(rig,body,[[.001,0],[.232,0],[.292,.046],[.356,.172],[.358,.294],[.315,.402],[.227,.482],[.182,.53],[.001,.53]],0,.285,0);
+    tube(rig,light,[[.20,.724,-.059],[.381,.855,-.06],[.525,.79,-.06],[.54,.601,-.06],[.315,.512,-.04]],.049);
     const nozzle=new THREE.Group();
     nozzle.position.set(-.309,.71,0);
-    nozzle.rotation.z=.82;
+    nozzle.rotation.z=.63;
     rig.add(nozzle);
-    nozzle.add(T.cyl(.094,.082,.29,body,0,.09,0,20));
-    nozzle.add(T.cyl(.107,.093,.045,light,0,.249,0,20));
-    nozzle.add(T.cyl(.072,.072,.006,dark,0,.274,0,20));
+    nozzle.add(T.cyl(.101,.072,.372,body,0,.125,0,20));
+    nozzle.add(T.cyl(.107,.093,.045,light,0,.329,0,20));
+    nozzle.add(T.cyl(.072,.072,.006,dark,0,.354,0,20));
     oval(head,light,0,0,0,.27,.225,.224);
-    oval(head,body,0,.204,-.01,.22,.061,.181);
+    const lid=oval(head,body,0,.204,-.01,.225,.065,.187);
     oval(head,dark,0,.275,-.01,.059,.06,.058);
+    U.gait=(phase,amount)=>{
+      const pour=Math.sin(phase)*amount;
+      rig.rotation.z=.125*pour;
+      nozzle.rotation.z=.63+.10*pour;
+      lid.rotation.z=-.14*pour;
+      rig.position.y=.037*Math.abs(pour);
+    };
 
     for(const side of [-1,1]){
       T.eye(head,U,side*0.147,0.023,0.184,0.122,null,T.iris);

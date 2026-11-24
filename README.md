@@ -104,7 +104,7 @@ python3 -m http.server 8765
 
 ## Species pack
 
-Open `?gallery` to compare three portraits per species and inspect the animated models at full scale. The 21 additions live in `src/species/<key>.js`. Use `SPECIES_EXTRA_KEYS` to enumerate them or `Folk.make(key, seed, 1)` to preview one. Regular encounters still use the original nine.
+Open `?gallery` to compare three portraits per species and inspect the animated models at full scale. Select **Walk** and **Silhouette** to compare movement and outlines. The 21 additions live in `src/species/<key>.js`. Use `SPECIES_EXTRA_KEYS` to enumerate them or `Folk.make(key, seed, 1)` to preview one. Regular encounters still use the original nine.
 
 | Key | Species | Family | Appearance and personality |
 | --- | --- | --- | --- |
