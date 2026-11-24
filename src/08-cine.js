@@ -137,6 +137,13 @@ const Cine = {
   /* keep the sun's shadow box around whatever the camera is looking at */
   sunAt(v){ const s=this.surf; if(!s||!s.sun) return; s.sun.target.position.copy(v); s.sun.position.copy(v).addScaledVector(s.sunDir,320); },
   /* the part of the screen not covered by the port panel */
+  /* the shopkeeper's speech bubble rides above their head, kept clear of the panel and the top of the screen */
+  placeBubble(V){ const b=$('bubble'); if(!b) return; if(G.mode!=='port') $('shelf-tip').hidden=true;
+    const show=G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
+    if(!show){ if(!b.hidden) b.hidden=true; return; } const p=new V3(); V.keeper.userData.head.getWorldPosition(p); p.y+=1.0; const v=p.project(this.cam);
+    if(v.z>1||v.x<-1.2||v.x>1.2||v.y<-1.2||v.y>1.4){ b.hidden=true; return; } b.hidden=false;
+    const W=World.w, H=World.h, pr=$('port').getBoundingClientRect(), bw=b.offsetWidth, bh=b.offsetHeight, side=pr.height<H*0.9?0:pr.right;
+    let x=(v.x+1)/2*W, y=(1-v.y)/2*H; x=clamp(x,side+bw*0.22+12,W-bw*0.78-12); y=clamp(y,bh+30,(pr.height<H*0.9?pr.top:H)-10); b.style.left=x+'px'; b.style.top=y+'px'; },
   region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const r=el.getBoundingClientRect();
     if(r.width<W*0.92) return {w:Math.max(1,W-r.width),h:H,ox:-r.width/2,oy:0}; return {w:W,h:Math.max(1,H-r.height),ox:0,oy:r.height/2}; },
   update(dt, time){
@@ -174,7 +181,7 @@ const Cine = {
         if(this.camInit||!this.camP){ this.camInit=false; this.camP=tg.pos.clone(); this.camL=tg.look.clone(); this.camKey=key; this.fadeCol.setRGB(0,0,0); this.fade=1; }
         const x=this.xf; if(x){ x.t+=dt; if(x.t>=0.3&&!x.cut){ x.cut=true; this.camP.copy(tg.pos); this.camL.copy(tg.look); this.camKey=x.key; } }
         if(!x||x.cut){ const k=1-Math.exp(-dt*6); this.camP.lerp(tg.pos,k); this.camL.lerp(tg.look,k); }
-        cam.up.set(0,1,0); cam.position.copy(this.camP); cam.lookAt(this.camL); this.sunAt(this.camL);
+        cam.up.set(0,1,0); cam.position.copy(this.camP); cam.lookAt(this.camL); this.sunAt(this.camL); cam.updateMatrixWorld(); this.placeBubble(V);
         // frame the set in the part of the screen the port panel leaves open
         fov=2*Math.atan(Math.tan(tg.fov*Math.PI/360)*World.h/reg.h)*180/Math.PI; this.fovFixed=true; cam.setViewOffset(World.w,World.h,reg.ox,reg.oy,World.w,World.h);
       } else { this.orbit+=dt*0.05; const a=this.orbit, R=88; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*R,8+2*Math.sin(time*0.2),Math.sin(a)*R); cam.lookAt(0,m.userData.gearH+2,0); fov=42; } if(this.xf){ const x=this.xf; this.fade=x.cut?Math.max(0,1-(x.t-0.3)/0.35):Math.max(this.fade,x.t/0.3); if(x.cut&&x.t>0.65) this.xf=null; } else this.fade=Math.max(0,this.fade-dt*1.5); this.surf.dustI=Math.max(0,this.surf.dustI-dt*0.3); if(this.preview){ this.preview.rotation.y+=dt*0.25; Models.animate(this.preview,0,time); }

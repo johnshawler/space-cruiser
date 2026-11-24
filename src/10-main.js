@@ -180,6 +180,14 @@ const Game = {
         case 'KeyN': G.sys.music=G.sys.music>0.02?0:0.45; Sfx.setMusicVol(G.sys.music); break; }
     });
     window.addEventListener('keyup',e=>{ G.keys[e.code]=false; Walk.stale.delete(e.code); });
+    // in port, the goods shelf answers the mouse: hover for what it is, click to open its contract
+    { const gl=$('gl'), tip=$('shelf-tip'); let down=null; const nd=e=>{ const r=gl.getBoundingClientRect(); return new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); };
+      const show=(j,e)=>{ if(!j){ if(!tip.hidden) tip.hidden=true; gl.style.cursor=''; Venues.hoverShelf(null); return; } Venues.hoverShelf(j); gl.style.cursor='pointer'; tip.hidden=false;
+        tip.innerHTML=`<b>${j.kind==='contra'?j.qty+'× something unmentionable':j.qty+'× '+esc(j.good)}</b>${fmtCr(j.pay)} · to ${esc(PLANETS[j.to].name)}<br><i>${TouchUI.on?'Tap':'Click'} to see the job</i>`; tip.style.left=e.clientX+'px'; tip.style.top=e.clientY+'px'; };
+      gl.addEventListener('pointermove',e=>{ if(G.mode!=='port'||e.pointerType==='touch') return; show(Venues.pickShelf(nd(e)),e); });
+      gl.addEventListener('pointerleave',()=>show(null));
+      gl.addEventListener('pointerdown',e=>{ if(G.mode==='port') down={x:e.clientX,y:e.clientY}; });
+      gl.addEventListener('pointerup',e=>{ if(G.mode!=='port'||!down) return; const far=Math.hypot(e.clientX-down.x,e.clientY-down.y)>10; down=null; if(far) return; const j=Venues.pickShelf(nd(e)); if(j){ show(null); UI.focusJob(j); } }); }
     window.addEventListener('blur',()=>{ G.keys={}; });
     $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
       if(due.length&&!Dlg.open){ Dlg.show({icon:'📦',who:`${UI.P.port} · cargo depot`,text:`You still have ${due.length} deliver${due.length===1?'y':'ies'} for here. Leave without handing ${due.length===1?'it':'them'} over?`,

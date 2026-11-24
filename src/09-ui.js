@@ -30,11 +30,21 @@ const UI = {
     Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); setTimeout(()=>Sfx.cash(),420); Venues.react('cash'); this.paidFx(sum); UI.toast(`Delivered ${due.length} · +${fmtCr(sum)}`,'good'); Cockpit.drawManifest(); Game.save(); this.render(); },
   /* the money floats up out of the panel */
   paidFx(n){ const f=el('div','paidfx','+'+fmtCr(n)); $('port').appendChild(f); setTimeout(()=>f.remove(),1900); },
-  stats(){ const d=SHIPS[G.shipId]; let used=0; G.cargo.forEach(c=>used+=c.qty); $('port-stats').innerHTML=`<span>Credits <b>${fmtCr(G.credits)}</b></span><span>Hold <b>${used}/${holdCap()}</b></span><span>Fuel <b>${Math.round(G.fuel/d.fuel*100)}%</b></span><span>Hull <b>${Math.round(G.hull)}%</b></span><span>Rep <b>${Rep.label()} ${G.rep>0?'+':''}${G.rep}</b></span><span>Ship <button class="shiplink" id="ship-specs" title="Show this ship's specs">${esc(d.name)}</button></span><button class="btn mini" id="hold-open">View hold · I</button>`; $('hold-open').onclick=()=>Hold.toggle(true); $('ship-specs').onclick=()=>Specs.show();
-    $('port-foot').textContent=G.cargo.length?`${G.cargo.length} delivery${G.cargo.length>1?' contracts':' contract'} aboard`:'Hold empty. Take a job before you launch.'; },
+  stats(){ $('port-stats').innerHTML='';
+    $('port-foot').innerHTML=`<b class="cr">${fmtCr(G.credits)}</b>${G.cargo.length?`${G.cargo.length} contract${G.cargo.length>1?'s':''} aboard`:'Hold empty'}`; },
+  /* a strip of just the facts that matter here, with buttons where they help */
+  facts(items, btns){ const f=el('div','facts'); f.innerHTML=items.map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join(''); (btns||[]).forEach(([t,fn])=>{ const b=el('button','btn mini',t); b.onclick=fn; f.appendChild(b); }); return f; },
+  shipLink(){ const b=el('button','shiplink',esc(SHIPS[G.shipId].name)); b.title="Show this ship's specs"; b.onclick=()=>Specs.show(); return b; },
   /* the shopkeeper's hello at the top of each place */
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp]; const box=el('div','venue'); box.appendChild(el('h3','',esc(d.name)));
-    box.appendChild(this.quote(d.sp,seed,`${Venues.keeperName(P,d)} · ${d.title}`,line||d.hi[(G.stats.deliveries+seed)%d.hi.length])); box.appendChild(el('div','quirk',esc(S.name)+'. '+esc(d.quirk))); return box; },
+    this.bubble={who:`${Venues.keeperName(P,d)} · ${d.title}`,say:line||d.hi[(G.stats.deliveries+seed)%d.hi.length],quirk:`${S.name}. ${d.quirk}`}; this.showBubble(); return box; },
+  showBubble(){ const b=$('bubble'), q=this.bubble; if(!b||!q) return; b.querySelector('.who').textContent=q.who; b.querySelector('.say').textContent=q.say; b.querySelector('.qk').textContent=q.quirk; },
+  /* compact rows: each card shows its name, the key facts and its button; the story and details open when you tap the row */
+  compact(){ for(const c of $('port-body').querySelectorAll('.card')){ if(c.querySelector('.mid p')) c.classList.add('has-more');
+      c.onclick=e=>{ if(e.target.closest('button,a,input,select')) return; if(!c.classList.contains('has-more')) return; c.classList.toggle('open'); if(Sfx.ok()) Sfx.click(); const j=G.jobs[+c.dataset.job]; if(j&&c.classList.contains('open')) Venues.hopShelf(j); }; } },
+  /* clicked on the shelf: open that contract in the list, scroll to it and flash it */
+  focusJob(j){ if(this.tab!=='depot'){ this.tab='depot'; Cine.setPreview(null); this.render(); } const i=G.jobs.indexOf(j); const c=$('port-body').querySelector(`.card[data-job="${i}"]`); if(!c) return;
+    c.classList.add('open'); c.scrollIntoView({block:'center',behavior:'smooth'}); c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash'); Venues.hopShelf(j); if(Sfx.ok()) Sfx.click(); },
   card(body, ic, title, desc, meta, price, label, dis, fn){ const c=el('div','card'); c.appendChild(typeof ic==='string'?this.icon(ic):ic); c.appendChild(el('div','mid',`<h3>${title}</h3><p>${desc}</p>${meta?'<div class="meta">'+meta+'</div>':''}`));
     const r=el('div','right'); r.appendChild(el('div','pay',price)); const b=el('button','btn',label); b.disabled=dis; b.onclick=()=>{ fn(); Game.save(); this.render(); }; r.appendChild(b); c.appendChild(r); body.appendChild(c); return c; },
   /* which of the other kinds of place this port lacks, and where to find them */
@@ -63,9 +73,10 @@ const UI = {
       const need=Math.ceil(d.fuel-G.fuel), cost=need*3;
       this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. Every depot sells fuel. Warp drinks it, cruising sips it.`,'3 cr per unit',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=3?'Buy what I can':'Beg',need<=0,()=>{
         if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=3){ const u=Math.floor(G.credits/3); G.fuel+=u; G.credits-=u*3; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
-      body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}. The stock droid fetches your crate when you accept. Hand it over at the destination's cargo depot to get paid.`));
+      { const f=this.facts([['Hold',`${used} of ${holdCap()} units used`],['Reputation',`${Rep.label()} ${G.rep>0?'+':''}${G.rep} · pay ×${Rep.payMul().toFixed(2)}`]],[['View hold · I',()=>Hold.toggle(true)]]); f.insertBefore(el('span','','Ship '),f.firstChild); f.firstChild.appendChild(this.shipLink()); body.appendChild(f); }
+      body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}, also on the shelf behind the counter: click a model to find its job. The stock droid fetches your crate when you accept. Hand it over at the destination's cargo depot to get paid.`));
       if(!G.jobs.length) body.appendChild(el('div','note','The board is empty. Fly somewhere else and come back.'));
-      G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
+      G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.dataset.job=String(G.jobs.indexOf(j)); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
         let h3, meta;
         if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · rides in your passenger cabin · needs a free seat`; }
         else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>`; meta=`To <i>${esc(T.name)}</i> · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrols en route`; }
@@ -83,6 +94,7 @@ const UI = {
     } else if(this.tab==='yard'){
       body.appendChild(this.keeper(v));
       const val=Specs.value();
+      { const f=this.facts([['Trade-in value',fmtCr(val)],['Hull',`${Math.round(G.hull)}%`]]); f.insertBefore(el('span','','Your ship '),f.firstChild); f.firstChild.appendChild(this.shipLink()); body.appendChild(f); }
       body.appendChild(el('div','note',`${esc(v.name)} sells ${v.ships.length===SHIPS.length?'every model':v.ships.length===1?'one model':v.ships.length+' models'}. Your ship is worth <b>${fmtCr(val)}</b> here: half what it cost new, less any hull damage. You get a brand new ship with a full tank and a clean hull; cargo, passengers and fittings move across for free. Preview parks a ship on the showroom pad. Click a name for its specs.`));
       // selling: you walk out with a free Rustbucket, because nobody gets stranded
       { const can=G.shipId!==0&&Specs.fits(0); this.card(body,'🏷',`Sell your ${esc(d.name)}`,G.shipId===0?'Nobody will buy a Rustbucket. Three people have tried. One of them is still apologising.':can?`They give you ${fmtCr(val)} and the keys to a free Rustbucket Mk I, so you can still get home. The Rustbucket is not offended. It is used to this.`:`The Rustbucket you would leave in has room for ${SHIPS[0].hold+(G.up.hidden?1:0)} units and ${SEATS[0]} passengers. Deliver some of what is aboard first.`,'',G.shipId===0?'—':fmtCr(val),'Sell',!can,()=>{ const name=d.name; G.credits+=val; Specs.change(0,P); cash(); UI.toast(`Sold the ${name} for ${fmtCr(val)}. The Rustbucket rattles in a way that sounds pleased.`,'good'); }); }
@@ -133,6 +145,7 @@ const UI = {
         pr.appendChild(pb); pc.appendChild(pr); body.appendChild(pc); });
       if(!(G.paxJobs||[]).length) body.appendChild(el('div','note','Nobody needs a ride right now. Someone always does eventually.'));
     }
+    this.compact(); Venues.syncShelf(G.jobs);
   },
   icon(ch){ const cv=makeCanvas(128,128), x=cv.getContext('2d'); x.fillStyle='#0b1620'; x.fillRect(0,0,128,128); x.fillStyle='#ffb454'; x.font='72px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(ch,64,70); return cv; },
 };

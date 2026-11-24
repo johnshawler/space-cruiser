@@ -203,13 +203,13 @@ const Venues = (() => {
     const skirt=new THREE.Mesh(new THREE.PlaneGeometry(4.4,0.5),new THREE.MeshStandardMaterial({map:stripeTex(pal[3],'#f4efe4'),roughness:0.8})); skirt.position.set(0,0.75,0.41); R.add(skirt);
     
     const L=new THREE.PointLight(C('#ffe2b8'),1.1,18,1.6); L.position.set(0,2.9,2.2); R.add(L);
-    for(let i=0;i<3;i++){ const c=bx(0.6,0.6,0.6,M(['#b07a3a','#9c6a30','#c48a48'][i],0.8,0.02),-5.6+i*0.15,0.3+i*0.6,1.2+(i%2)*0.1); c.rotation.y=i*0.3; R.add(c); }
+    if(V.k!=='depot') for(let i=0;i<3;i++){ const c=bx(0.6,0.6,0.6,M(['#b07a3a','#9c6a30','#c48a48'][i],0.8,0.02),-5.6+i*0.15,0.3+i*0.6,1.2+(i%2)*0.1); c.rotation.y=i*0.3; R.add(c); }
   }
 
   /* back-of-set scenery and props for each kind; returns the props its gag needs */
   const SETS = {
     depot(V,pal){ const R=V.root; for(const sx of [-1,1]){ R.add(cyl(0.12,0.12,4.6,M('#6a6f76',0.5,0.6),sx*5.8,2.3,-6.6,8)); R.add(cyl(0.12,0.12,4.6,M('#6a6f76',0.5,0.6),sx*5.8,2.3,-1.6,8)); }
-      for(const [x,z,n] of [[-5,-5.6,3],[6.8,-5.2,2],[-4.6,-6.4,2]]) for(let i=0;i<n;i++) R.add(bx(0.7,0.7,0.7,M(['#a8743f','#8c5f2f','#bb8547'][i%3],0.8,0.02),x+(i%2)*0.1,0.35+i*0.7,z));
+      for(const [x,z,n] of [[6.8,-5.2,2]]) for(let i=0;i<n;i++) R.add(bx(0.7,0.7,0.7,M(['#a8743f','#8c5f2f','#bb8547'][i%3],0.8,0.02),x+(i%2)*0.1,0.35+i*0.7,z));
       return {crates:[0,1,2,3].map(i=>{ const c=new THREE.Group(); c.add(bx(0.62,0.62,0.62,M(['#b07a3a','#c98d47','#9c6a30','#d39b55'][i],0.8,0.02))); c.add(bx(0.64,0.1,0.64,M('#e8d9a8',0.7,0))); V.root.add(c); return c; })}; },
     yard(V,pal){ const R=V.root, steel=M(pal[3],0.45,0.6); for(const sx of [-1,1]){ R.add(bx(0.4,7,0.4,steel,sx*4.8,3.5,-4.6)); R.add(bx(0.9,0.2,0.9,M('#333',0.6,0.4),sx*4.8,0.1,-4.6)); }
       R.add(bx(10,0.45,0.5,steel,0,7.1,-4.6)); const tro=new THREE.Group(); tro.add(bx(0.8,0.4,0.8,M('#2a2f36',0.5,0.5))); tro.position.set(-3.6,6.7,-4.6); R.add(tro);
@@ -311,7 +311,7 @@ const Venues = (() => {
      the shipyard is a hall big enough to park ships in. Sizes are in metres in the set's own frame: the counter is at
      the origin and faces +z, where the camera stands. The shell does not cast shadows, so daylight still reaches in. */
   const ROOMS = {
-    depot:{z0:-8.2,h:7.5,ox:0.9,wall:'#9a8f7c',trim:'#f2c14e',floor:'#6b5a44',lamp:'#ffe2b8',store:true},
+    depot:{z0:-8.2,h:7.5,ox:-1.3,fw:6.4,wall:'#9a8f7c',trim:'#f2c14e',floor:'#6b5a44',lamp:'#ffe2b8',store:true},
     yard:{x0:-30,x1:100,z0:-64,z1:122,h:44,zoom:1.4,el:0.13,wall:'#8a929c',trim:'#e0b000',floor:'#4b5058',lamp:'#e8f2ff',win:14,sill:5,head:32},
     garage:{h:10,wall:'#6d737b',trim:'#c0392b',floor:'#3e4248',lamp:'#fff0d8'},
     livery:{h:9,wall:'#e9e4dc',trim:'#5c7cfa',floor:'#c9c4be',lamp:'#ffffff',splat:true},
@@ -413,6 +413,23 @@ const Venues = (() => {
       [['Everything must go',2],['Nearly new',38],['No refunds',74]].forEach(([t,x],i)=>{ const b=new THREE.Mesh(new THREE.PlaneGeometry(26,6.1),new THREE.MeshStandardMaterial({map:signTex(t,['#8a1f2c','#1f4f8a','#2c6e3a'][i],'#fff4d6'),roughness:0.8,side:THREE.DoubleSide})); b.position.set(x,24,-34); R.add(b);
         for(const sx of [-1,1]) R.add(cyl(0.05,0.05,H-27,dark,x+sx*12,(H+27)/2,-34,5)); }); },
   };
+
+  /* ---------- the goods shelf: a cartoon model of everything on the contract board, which you can click ---------- */
+  const SHELF={x:-4.45,z:-0.9,w:4.2,rows:[1.0,2.15,3.3],cols:4};
+  function makeShelf(V){ const R=V.root, g=new THREE.Group(); g.position.set(SHELF.x,0,SHELF.z); R.add(g); const wood=M('#8a5a34',0.7,0.05), dark=M('#4a3020',0.8,0.05), W=SHELF.w;
+    g.add(bx(W,4.4,0.12,M('#5a3a22',0.85,0.03),0,2.2,-0.4)); for(const sx of [-1,1]) g.add(bx(0.14,4.4,0.9,dark,sx*(W/2+0.07),2.2,0));
+    for(const y of [0.12].concat(SHELF.rows)) g.add(bx(W,0.09,0.9,wood,0,y-0.05,0)); g.add(bx(W+0.3,0.16,1.0,dark,0,4.45,0));
+    const sg=new THREE.Mesh(new THREE.PlaneGeometry(3.4,0.62),new THREE.MeshStandardMaterial({map:signTex("Today's goods",'#10161c','#f2c14e'),emissive:C('#ffffff'),emissiveIntensity:0.3,roughness:0.6})); sg.material.emissiveMap=sg.material.map; sg.position.set(0,4.95,0.02); g.add(sg);
+    const lamp=new THREE.PointLight(C('#ffe2b8'),0.6,7,1.6); lamp.position.set(0,3.6,1.4); g.add(lamp);
+    V.shelf={g,items:[],hover:null,pick:null}; }
+  /* keep the shelf in step with the board: one model per contract, in board order */
+  function syncShelf(jobs){ const V=api.list.find(v=>v.shelf); if(!V) return; const S=V.shelf, want=jobs.filter(j=>j.kind!=='escort').slice(0,SHELF.rows.length*SHELF.cols);
+    for(const it of S.items.slice()) if(!want.includes(it.job)){ S.g.remove(it.o); S.items.splice(S.items.indexOf(it),1); }
+    want.forEach((j,i)=>{ let it=S.items.find(q=>q.job===j); if(!it){ const o=GoodsArt.build(j.good,j.kind==='contra'); o.scale.setScalar(1.45); o.traverse(q=>{ if(q.isMesh) q.userData.shelfJob=j; }); S.g.add(o); it={o,job:j,ph:Math.random()*6,hop:0}; S.items.push(it); }
+      const r=Math.floor(i/SHELF.cols), c=i%SHELF.cols, step=SHELF.w/SHELF.cols; it.o.position.set(-SHELF.w/2+step*(c+0.5),SHELF.rows[2-r]+0.0,0.05); it.base=it.o.position.y; }); }
+  function stepShelf(V, dt, t){ const S=V.shelf; if(!S) return; for(const it of S.items){ const on=S.hover===it.job; it.hop=Math.max(0,it.hop-dt*2.2);
+      it.o.rotation.y=Math.sin(t*0.6+it.ph)*0.35+(on?Math.sin(t*3)*0.25:0); const sc=1.45*(on?1.18:1); it.o.scale.lerp(new V3(sc,sc,sc),1-Math.exp(-dt*10));
+      it.o.position.y=it.base+Math.sin(it.hop*Math.PI)*0.35*(it.hop>0?1:0)+(on?0.04+Math.sin(t*4)*0.03:0); } }
 
   /* ---------- the stock droid: fetches each crate you sign for from the stock room and puts it on the counter ---------- */
   function crateTex(name){ const key='vc:'+name; if(_texCache[key]) return _texCache[key]; const cv=makeCanvas(256,256), x=cv.getContext('2d'); x.fillStyle='#b9823f'; x.fillRect(0,0,256,256);
@@ -593,7 +610,7 @@ const Venues = (() => {
         if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(4,8,600,12),padMat); py.position.set(0,-303,-6); root.add(py); }
         DISTRICT[d.k](root,pal,rr,V); lampPosts(root); room(V,d.k,pal,cloud,rr);
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
-        shell(V,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot') V.droid=makeDroid(V);
+        shell(V,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
         V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,-0.85); root.add(V.keeper);
         const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
@@ -609,10 +626,16 @@ const Venues = (() => {
     cam(V, aspect, preview){ const f=44, th=Math.tan(f*Math.PI/360), S=V.room;
       if(preview&&V.show){ const d=clamp(Math.max(24/th,40/(th*aspect)),50,150), look=V.show.clone().setY(6), dir=new V3(-0.42,0.2,0.88).normalize();
         return {pos:V.root.localToWorld(look.clone().addScaledVector(dir,d)), look:V.root.localToWorld(look.clone()), fov:f}; }
-      const d=clamp(Math.max(3.3/th,3.75/(th*aspect)),8,18)*(S&&S.zoom||1), el=S?Math.min(S.el||0.32,Math.asin(clamp((S.h-3.0)/d,0,1))):0.32;
+      const d=clamp(Math.max(3.3/th,(S&&S.fw||3.75)/(th*aspect)),8,18)*(S&&S.zoom||1), el=S?Math.min(S.el||0.32,Math.asin(clamp((S.h-3.0)/d,0,1))):0.32;
       const ox=S&&S.ox||0, look=new V3(ox,2.1,-2.6), pos=new V3(ox,look.y+Math.sin(el)*d,look.z+Math.cos(el)*d); return {pos:V.root.localToWorld(pos), look:V.root.localToWorld(look), fov:f}; },
     /* where a previewed ship parks, in world space */
     showroom(){ const V=this.list.find(v=>v.show); return V?{V,pos:V.root.localToWorld(V.show.clone()),ry:V.root.rotation.y+2.3}:null; },
+    syncShelf, 
+    /* which contract's model is under the pointer (normalised device coordinates), if any */
+    pickShelf(nd){ const V=this.active; if(!V||!V.shelf||G.mode!=='port'||this.moving) return null; const ray=this.ray||(this.ray=new THREE.Raycaster()); ray.setFromCamera(nd,Cine.cam);
+      const hit=ray.intersectObjects(V.shelf.items.map(i=>i.o),true)[0]; return hit?hit.object.userData.shelfJob:null; },
+    hoverShelf(j){ const V=this.list.find(v=>v.shelf); if(V) V.shelf.hover=j; },
+    hopShelf(j){ const V=this.list.find(v=>v.shelf); const it=V&&V.shelf.items.find(i=>i.job===j); if(it) it.hop=1; },
     /* ask the depot's droid to bring a crate of this out to the counter */
     fetch(name){ const V=this.list.find(v=>v.droid); if(!V) return; const q=V.droid.q; q.push(name); if(q.length>4) q.shift(); },
     near(x,z,r){ return this.list.some(v=>Math.hypot(v.root.position.x-x,v.root.position.z-z)<r); },
@@ -620,7 +643,7 @@ const Venues = (() => {
       const V=this.current(); if(V!==this.active){ this.prev=this.active; this.active=V; }
       for(const v of this.list) v.root.visible=v===V||(this.moving&&v===this.prev); if(!V) return;
       V.t+=dt; if(V.t>V.gag.dur) this.restart(V,0);
-      V.gag.update(V,V.t,dt); stepFx(V,dt); for(const F of [V.A,V.B,V.keeper]) Folk.ground(F,V.root.position.y); stepDroid(V,dt,t); if(V.spin) for(const o of V.spin) o.rotation.y+=dt*0.8;
+      V.gag.update(V,V.t,dt); stepFx(V,dt); for(const F of [V.A,V.B,V.keeper]) Folk.ground(F,V.root.position.y); stepDroid(V,dt,t); stepShelf(V,dt,t); if(V.spin) for(const o of V.spin) o.rotation.y+=dt*0.8;
       for(const F of [V.A,V.B,V.keeper]) Folk.blink(F,t);
       // shopkeeper: breathes, glances at the crew, reacts to how it goes
       const K=V.keeper, U=K.userData; K.position.y=(1+Math.sin(t*1.8))*0.01; U.head.rotation.y=Math.sin(t*0.4)*0.25+(V.t>V.gag.dur*0.4&&V.t<V.gag.dur*0.6?0.5*Math.sign(Math.sin(V.seed)):0)*0.6;
