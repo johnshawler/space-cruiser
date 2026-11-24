@@ -14,7 +14,6 @@ const UI = {
      the shelf, and the launch sign hangs in the corner. ---------- */
   showPort(P, arrival){
     this.P=P; this.arrival=arrival; this.told=null; this.tab='depot'; this.ticket=null; this.hushed=null; $('port').hidden=false; $('keys').hidden=true;
-    $('port-name').textContent=P.name; $('port-sub').textContent=P.port+' · '+P.desc;
     this.render();
     if(arrival&&arrival.fee) setTimeout(()=>UI.toast(`Tow fee −${fmtCr(arrival.fee)}`,'warn'),900);
     if(!this.shelfHint){ this.shelfHint=true; setTimeout(()=>{ if(G.mode==='port'&&this.tab==='depot'&&G.jobs.length) UI.toast('Jobs are on the shelf. Tap a model to see its job.'); },2600); }
