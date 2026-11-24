@@ -344,7 +344,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Independent freight · nine worlds · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.21</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.22</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -2884,7 +2884,8 @@ const Loading = (() => {
       const rest=new V3(stack.x+1.7,0,stack.z+(k?1.4:-1.6)); F.position.copy(rest); F.rotation.y=-Math.PI/2;
       return {F,k,rest,st:'wait',wait:k?1.7:0.9,path:null,crate:null,act:null,actT:0,ph:0,onRamp:false}; });
 
-    const r=Math.random(), out=api.force||(r<0.38?'ok':r<0.69?'tumble':'topple');
+    // 70% it all goes in cleanly, 20% the stack topples (a crate cracks), 10% the last crate bursts off the ramp
+    const r=Math.random(), out=api.force||(r<0.7?'ok':r<0.9?'topple':'tumble');
     S={P,D,a,ca,sa,root,door,hinge,model,ramp,foot,stack,crates,crew,n,out,inCount:0,lost:0,toppled:false,losses:[],lossDone:false,cracked:false,phys:[],parts:[],bits:[],fired:{},closeT:-1,t:0,finished:false,sub:''};
     const u=goods.reduce((s,g)=>s+g.qty,0);
     S.sub=goods.length===1?`${goods[0].qty}× ${goods[0].good}`:`${goods.length} contracts · ${u} units`;

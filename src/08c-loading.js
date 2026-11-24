@@ -53,7 +53,8 @@ const Loading = (() => {
       const rest=new V3(stack.x+1.7,0,stack.z+(k?1.4:-1.6)); F.position.copy(rest); F.rotation.y=-Math.PI/2;
       return {F,k,rest,st:'wait',wait:k?1.7:0.9,path:null,crate:null,act:null,actT:0,ph:0,onRamp:false}; });
 
-    const r=Math.random(), out=api.force||(r<0.38?'ok':r<0.69?'tumble':'topple');
+    // 70% it all goes in cleanly, 20% the stack topples (a crate cracks), 10% the last crate bursts off the ramp
+    const r=Math.random(), out=api.force||(r<0.7?'ok':r<0.9?'topple':'tumble');
     S={P,D,a,ca,sa,root,door,hinge,model,ramp,foot,stack,crates,crew,n,out,inCount:0,lost:0,toppled:false,losses:[],lossDone:false,cracked:false,phys:[],parts:[],bits:[],fired:{},closeT:-1,t:0,finished:false,sub:''};
     const u=goods.reduce((s,g)=>s+g.qty,0);
     S.sub=goods.length===1?`${goods[0].qty}× ${goods[0].good}`:`${goods.length} contracts · ${u} units`;
