@@ -47,7 +47,7 @@
     </style>
     <div class="page">
       <header><h1>Species gallery</h1><div class="row"><button id="back" hidden>All species</button><button id="close">Close gallery</button></div></header>
-      <main><div id="catalog"></div>
+      <main><div id="catalog"><nav class="row" id="collections" aria-label="Species collections"></nav><div id="groups"></div></div>
         <div id="viewer" class="viewer" hidden>
           <div class="stage" aria-label="Rotating full-scale model and one-metre marker"></div>
           <div class="controls">
@@ -94,7 +94,7 @@
     const grid = document.createElement('div');
     grid.className = 'grid';
     section.append(heading, grid);
-    catalog.append(section);
+    get('#groups').append(section);
     for (const k of keys) {
       const card = button(grid, '', () => openFigure(k, card));
       card.className = 'card';
@@ -234,7 +234,10 @@
     figure.rotation.y=angle;
     Folk.walk(figure,elapsed*5.5,walking ? 1 : 0);
     for (const arm of figure.userData.arms) arm.rotation.z=0;
-    if (waving) Folk.arms(figure,[.3,2.6],[.3,2.6]);
+    if (waving) {
+      if (SPECIES[key].cast) Folk.arms(figure,null,[.45+.14*Math.sin(elapsed*5),2.38+.29*Math.sin(elapsed*7)]);
+      else Folk.arms(figure,[.3,2.6],[.3,2.6]);
+    }
     figure.position.y=seated ? .47 : 0;
     if (seated) for (const leg of figure.userData.legs) {
       leg.rotation.x=-1.45;
@@ -287,7 +290,24 @@
   host.addEventListener('cancel',e=>{e.preventDefault(); if(key) back(); else close();});
   // The game has window-level flight controls, including Space and the arrow keys.
   for (const type of ['keydown','keyup','keypress']) host.addEventListener(type,e=>e.stopPropagation());
-  addSection('Original crew',SPECIES_KEYS);
-  addSection('Species pack',SPECIES_EXTRA_KEYS);
-  portraitFrame=requestAnimationFrame(paintPortraits);
+  const cast = SPECIES_EXTRA_KEYS.filter(k=>SPECIES[k].cast);
+  const collections = {
+    crew: ['Original crew', [['Original crew', SPECIES_KEYS]]],
+    pack: ['Species pack', [['Species pack', SPECIES_EXTRA_KEYS.filter(k=>!SPECIES[k].cast)]]],
+    cast: ['Animated cast', [['Aliens', cast.filter(k=>SPECIES[k].family==='alien')], ['Robots', cast.filter(k=>SPECIES[k].family==='robot')]]]
+  };
+  function showCollection(id) {
+    cancelAnimationFrame(portraitFrame);
+    queue=[];
+    get('#groups').replaceChildren();
+    for(const b of get('#collections').children)b.setAttribute('aria-pressed',String(b.dataset.group===id));
+    for(const [title,keys] of collections[id][1])addSection(title,keys);
+    portraitFrame=requestAnimationFrame(paintPortraits);
+  }
+  for(const [id,[label]] of Object.entries(collections)){
+    const b=button(get('#collections'),label,()=>showCollection(id));
+    b.dataset.group=id;
+  }
+  const initial=new URLSearchParams(location.search).get('gallery');
+  showCollection(Object.prototype.hasOwnProperty.call(collections,initial)?initial:'crew');
 })();
