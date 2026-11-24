@@ -40,3 +40,7 @@ The generator verifies the mesh count of each saved scene by reopening its Blend
 ## Keep clear of the game's economy
 
 Residents and landmarks are scenery and camera targets only. Jobs, risk, fuel, deep-space events and docking key on the `station` flag in `PLANETS` and on distance from the sun, never on these modules. Don't add the research stations to `homeworlds`, and keep `PLANETS` in its order: saves store planet indices.
+
+## The animated cast plays every alien
+
+The 50 designs are animated species in `src/species/<id>.js` (marked `cast:true`). `CAST_FOR` in `src/01-data.js` maps each of the 30 earlier species keys to the design that now plays it, by replacing `SPECIES[oldKey]` with the design's entry. Keep using the old keys in data (planets, venues, customs, lost property, saves): they resolve to the new models, names, voices and lines. The 20 designs not in `CAST_FOR` are added to `ALIEN_POOL`. Residents are built with `Folk.make(base, seed)` in `src/08f-residents.js`.

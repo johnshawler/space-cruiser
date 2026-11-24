@@ -1,0 +1,65 @@
+/* Vela · A violet fan mantle floats above curling ribbons and an inscribed tablet. */
+SPECIES_EXTRA.vela = {
+  name: 'Vela',
+  kind: 'vela',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'dots',
+  col: '#53568b',
+  hue: 237,
+  sat: 25,
+  lit: 44,
+  syl: ['vel', 'ah', 'sai', 'oku', 'uum', 'eri', 'ith', 'nu'],
+  voice: {
+    wave: 'sine',
+    base: 337,
+    range: 0.36,
+    rate: 6.5,
+    glide: 0.37,
+    vib: 4,
+    vibAmt: 7,
+    fx: 'chorus',
+    amp: 0.39,
+  },
+  trait: 'Vela leaves a finger-width gap in a greeting so the other speaker can finish the circle.',
+  chat: [
+    'An unfinished circle leaves room for a visitor.',
+    'That ink blot actually means Tuesday.',
+    'My tablet dried halfway through a vowel.',
+    'Someone signed the tide register underwater. Ambitious.',
+    'Two loops together mean please pass the towel.',
+  ],
+  greet: ['Leave a gap and I shall answer.', 'I have fresh ink for this conversation.'],
+  cargo: ['{good}. The manifest is drying.', 'A crate of commas. Handle with pauses.'],
+  joke: ['I mistranslated an octagon. It went round in circles.'],
+  nice: ['That deserves a particularly neat loop.'],
+  bye: ['I leave the last stroke to you.'],
+  honk: ['A very emphatic full stop.'],
+  dock: ['At {port}, sign inside the unfinished circle.', 'Welcome to {port}. Wet ink on the rail.'],
+  rumor: 'Scribes on {planet} have circled the higher freight rate twice.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#53568b',
+      height: 1.63,
+      hover: true,
+      headGroup: 'Fan mantle',
+      arm: [0.19, 1.53, 0.1, 0.77, 0.103],
+      hand: 'fin',
+      omit: /^Tapered ribbon arm [56]$/,
+      mouth: [0.18, 1.73, 0.298, 0.49],
+      lip: [0.93, 0.7, 1],
+      joints: [1, 2, 3, 4].map((i) => [
+        'ribbon' + i,
+        [0, 1.54, 0],
+        new RegExp('^Tapered ribbon arm ' + i + '$'),
+      ]),
+      tent: ['ribbon1', 'ribbon2', 'ribbon3', 'ribbon4'],
+      props: [{ parts: /^Inscribed tablet$/, side: 'L', grip: [0.33, 1.52, 0.5], scale: 0.65 }],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.038, 0.038);
+        for (let i = 1; i <= 4; i++) n['ribbon' + i].rotation.z = Math.sin(p + i * 0.68) * 0.16 * a;
+      },
+    });
+  },
+};

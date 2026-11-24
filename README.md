@@ -145,3 +145,78 @@ Open `?gallery` to compare three portraits per species and inspect the animated 
 ## Model galleries and port residents
 
 The nine ports host 500 named residents and 20 landmark facilities. They stand around the ports as scenery: the residents on the promenades in front of the shops, the facilities nearby. Each of the four research stations has five residents posted there as staff, and an annex of a planetside landmark: Meridian Array at Hush, Lumen Vault at Rimeholm, Heliograph Observatory at Calibration Spire and Kestrel Spindle at Far Wink. All the characters and facilities are original designs. The [model placement guide](CLAUDE.md) maps the Three.js sources, downloadable GLBs, editable Blender scenes and game hooks. Browse the [character gallery](docs/character-models/index.html) or the [outpost and research station gallery](docs/outposts/index.html).
+
+## Animated cast
+
+The animated cast now plays every alien in the game: shopkeepers, crews, crowds, passengers, pilots and callers. Each of the 30 earlier species is played by one cast design, and the other 20 designs join the crowds:
+
+| Was | Now | Was | Now | Was | Now |
+|---|---|---|---|---|---|
+| Beepul | Lichen | Bobbinor | Shuttle | Pluvindle | Plume |
+| Grondar | Rusk | Bractillo | Nim | Rilloon | Obo |
+| Zk'tharri | Kipp | Cuspiro | Silt | Rimebud | Sova |
+| Blorpax | Neru | Gaugekin | Parallax | Sealump | Cairn |
+| Qeeble | Pavo | Hushcone | Relay | Tarestep | Tally |
+| Sporrin | Myrr | Linticker | Tempo | Tessettle | Sura |
+| Vrell | Vela | Loamlet | Aril | Timbrelk | Chime |
+| Ooloo | Fenn | Nacrelle | Nacre | Velveteel | Sarra |
+| Momwump | Marlo | Parasolum | Yarro | Wickindle | Caelo |
+| | | Pipettle | Plover | Whorloo | Kepp |
+| | | | | Winkmast | Wick |
+
+The species keys stay the same underneath (`CAST_FOR` in `src/01-data.js`), so homeworlds, customs, saves and shop staffing are unchanged. The 500 named residents are built from the same animated designs, tinted with their own accent colours.
+
+Open `?gallery` and choose **Animated cast** to inspect the 50 articulated designs. Each species uses its existing resident ID, carries the `cast: true` flag and can be built with `Folk.make(id, seed, scale)`. The shared rigging code lives at the top of `src/species/aril.js`.
+
+| Design | Appearance and movement |
+| --- | --- |
+| Orris | A leafy-eared botanist in a rust vest carries a tray of seedlings. A broad webbed waddle keeps the tray level. |
+| Vela | A violet fan mantle floats above curling ribbons and an inscribed tablet. A siphon pulse lifts the mantle while the four free ribbons trail. |
+| Obo | A cricket in a linen dinner jacket carries a bell-ended reed instrument. Long heel-led steps keep time while the instrument hand stays quiet. |
+| Silt | A red sand burrower wears a saddle roll behind its ring of pale mouth plates. Four digging feet take short diagonal steps under the listening fork. |
+| Mica | A plated, copper-beaked surveyor wears a travel cape and carries a sextant. Long measured bootsteps leave the sighting hand steady. |
+| Nim | A blue seed courier wears a straw hat and grips a dandelion parasol. Quick skips let the parasol hand ride through the crosswind. |
+| Neru | A teal tidal cartographer has branching pink gills and a paddle tail. Four webbed limbs paddle in diagonals and the tail steers. |
+| Caelo | A velvet moth lantern keeper has comb antennae and four eyespotted wings. Paired wings fold around the lantern on each short stride. |
+| Rusk | A low kiln inspector carries overlapping fired plates down an armored back. A deliberate four-foot plod swings the tail opposite each step. |
+| Plover | A blue long-legged wader carries a chart bag below its curved sounding bill. High steps clear the reeds and the bill dips on each measured pace. |
+| Fenn | A russet pressure bladder suspends a weather basket between small fins. Side fins scull as the hanging basket lags behind the lift. |
+| Koro | A broad geode carver has an open amethyst seam across the chest. Short broad steps transfer the stone weight from boot to boot. |
+| Myrr | A mushroom kitchen steward wears a green apron under a cream-gilled cap. A short heel-toe shuffle lets the cap settle over the spoon. |
+| Sarra | A jade, hooded glassblower balances on a coil beside a glowing gather. The belly coil reaches and draws the body forward in a low slither. |
+| Ilex | A moss-backed ranger carries small samples in branching antlers. A quiet diagonal trot keeps the antler samples level. |
+| Kepp | A pale trail keeper carries a spiral shell over a broad muscular foot. The foot extends, grips and draws the shell after it. |
+| Yarro | A teal thermal scout spreads ochre sails under a narrow head crest. One sail catches the rising air a beat before the other. |
+| Nacre | A rose reef acoustician stands on six soft feet in front of a ribbed shell fan. Six shell feet plant in sequence in a rippling crawl. |
+| Tacca | A long-eared tunnel listener wears a brass-grilled seismic receiver. A double-beat hop settles the ears at different times. |
+| Sova | An owl-like archivist tucks a folio beneath round facial disks. Small quiet steps keep the folio tucked and the head scanning. |
+| Pavo | A turquoise herald carries a crowned head in front of an eyespotted feather fan. A high ceremonial march turns the fan slightly after each footfall. |
+| Kipp | A six-footed bridge inspector wears studded wing cases. Alternating tripods test and bear weight on successive beats. |
+| Marlo | A tusked ice harbormaster wears a wool scarf over a heavy coat. A low, wide shuffle transfers weight without jolting the ice. |
+| Aril | A green canopy gardener walks on forked roots below curled seed leaves. Each stilt plants its toes before the other root lifts. |
+| Sura | A golden current reader has a curled anchor tail and coral-like crest. Dorsal fins steer a hovering glide while the tail trims the pitch. |
+| Tally | A brass weighing drum balances on one wheel below a shallow scale pan. The drive wheel turns as the two kickstands tuck back. |
+| Lichen | A porcelain mask and pale joint caps frame a moss-green conservatory keeper. Long ceramic steps let the fern on one shoulder settle softly. |
+| Parallax | An ivory C-gauge suspends a calibration cube opposite a blue camera barrel. A level hover turns around the cube as it slowly rotates. |
+| Hush | A blue boiler-bodied listener carries a brass clockwork bird on one gauntlet. Slow cushioned bootsteps keep the bird hand steady. |
+| Rivet | A copper saucer welder has patinated seams, striped fins and a sample patch. Opposing stabilizers bank the hovering hull into each correction. |
+| Spool | An art-deco plum switchboard rolls beneath a curved receiver head. Caster rows roll together as the receiver checks the next socket. |
+| Lyre | A sea-green soundboard carries seven strings between curved resonator horns. A light syncopated step sets the strings and plucking wrist moving. |
+| Iris | A bellows camera stands on a three-point brass and steel tripod. Three struts lift and plant in sequence while the lens stays aimed. |
+| Crimp | A twin-wheeled cable splicer carries a working vice under its raised optic. The axle rolls while the sliding jaw tests its clearance. |
+| Relay | A green receiver cabinet balances an open brass dish above its speaker grille. Short marching steps leave the dish free to scan across the signal. |
+| Kiln | A russet furnace tender rolls on four wheels beneath a lipped chimney. Paired axles turn and the furnace rocks gently on its suspension. |
+| Wick | A slate beacon carries a guarded amber lantern and pointed canopy. Quick paired steps carry a slow sweeping lantern beam. |
+| Fathom | A bronze bathysphere wears a pressure seam, twin skids and a periscope. The ballast skids alternate in a deliberate seabed shuffle. |
+| Dolly | A plum parcel cart balances strapped packages in front of its brass push bar. Four little wheels turn while the top parcel takes up the slack. |
+| Orlo | Nested brass and blue gimbals hang above a compact gyro base. The base rocks on its rim while two gimbals counter-rotate. |
+| Chime | A brass bell housing stands on metal feet and carries a felt mallet. A measured rocking march brings the mallet in on alternate beats. |
+| Shuttle | A silver weaving shuttle carries a red bobbin inside its open well. Alternating banks send the hovering shuttle across the moving thread. |
+| Cairn | A stack of rounded counterweights rides two runners under a survey pin. The runners advance alternately and the upper weight corrects the twist. |
+| Pinion | A copper aerial gearbox has ivory wings and twin propellers. Counter-rotating propellers drive a banked crosswind hover. |
+| Tempo | A russet metronome rolls below a numbered scale and sliding pendulum weight. The axle rolls under a pendulum that marks every beat. |
+| Glint | A blue mirror yoke carries a six-sided reflector over three landing struts. The rear strut catches each step while the mirror tracks its beam. |
+| Purl | A rose yarn drum carries two knitting needles under a small optic. Short paired steps set the needle hand to a double stitch. |
+| Latch | A green lock body carries a silver U-shackle above brass-hub wheels. The axle turns as the shackle tests its travel twice. |
+| Plume | A blue sampler hovers below a crown of staggered intake tubes. Two jet pods vector in opposite directions to trim the climb. |
+| Prong | A yellow cargo tug has upright mast rails and two narrow lifting tines. Four wheels turn while the fork carriage takes up its slack. |

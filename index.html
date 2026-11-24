@@ -375,7 +375,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.32</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.33</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -462,6 +462,638 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
 <script>
 const SPECIES_EXTRA={};
+// Shared by the fifty cast builders. The animation joints point into the existing
+// sculpture; only the posed limbs and facial controls need new geometry.
+// Bake once per design. Seeds share geometry, never pivots, expressions or paint.
+const CastRig = (() => {
+  const templates = new Map(),
+    palette = new Map();
+  const mechLink =
+    /^(Upper link|Shoulder bearing|Elbow bearing|Forearm piston|Forearm sleeve|Wrist bearing|Jaw|Sole)$/;
+  const oldFace =
+    /^(Eye|Dark oval eye|Catchlight|Smiling mouth|Mouth opening|Pursed lower lip|Mouth slit|Lip crease|Snout seam|Brow armor|Amber eye|Operator lamp|Vertical face lamp|Eye lamp|Eye glint|Optical glass|Blue lens|Aquamarine lens)$/;
+
+  function group(parent, name, xyz) {
+    const g = new THREE.Group();
+    g.name = name;
+    g.position.fromArray(xyz);
+    parent.add(g);
+    return g;
+  }
+  function paint(color) {
+    if (!palette.has(color)) {
+      const m = new THREE.MeshStandardMaterial({ color: color === 'accent' ? 0xffffff : color });
+      m.name = color;
+      palette.set(color, m);
+    }
+    return palette.get(color);
+  }
+  function ellipsoid(parent, name, color, xyz, radii) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), paint(color));
+    m.name = name;
+    m.position.fromArray(xyz);
+    m.scale.fromArray(radii);
+    parent.add(m);
+    return m;
+  }
+  function rod(parent, name, color, start, end, lower, upper) {
+    const v = new THREE.Vector3().fromArray(start),
+      w = new THREE.Vector3().fromArray(end);
+    const delta = w.sub(v),
+      m = new THREE.Mesh(new THREE.CylinderGeometry(upper, lower, delta.length(), 10), paint(color));
+    m.name = name;
+    m.position.copy(v).addScaledVector(delta, 0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.normalize());
+    parent.add(m);
+  }
+  function arm(parent, side, length, radius, style, handColor) {
+    const joint = style === 'tool',
+      wing = style === 'wing',
+      fin = style === 'fin';
+    const elbow = [side * radius * 0.38, -length * 0.51, radius * 0.25],
+      hand = [0, -length, 0];
+    if (wing || fin) {
+      const vane = ellipsoid(
+        parent,
+        'Folded forelimb',
+        'accent',
+        [0, -length * 0.48, 0],
+        [radius * 1.1, length * 0.56, radius * (wing ? 1.65 : 0.82)],
+      );
+      vane.rotation.x = wing ? 0.19 : -0.13;
+      for (let j = 0; j < 3; j++)
+        ellipsoid(
+          parent,
+          'Trailing digits',
+          handColor,
+          [side * radius * 0.12, -length * (0.71 + j * 0.08), radius * (j - 1) * 0.62],
+          [radius * 0.52, length * 0.16, radius * 0.4],
+        );
+    } else {
+      rod(parent, 'Upper arm', 'accent', [0, 0, 0], elbow, radius * 1.05, radius * 0.81);
+      ellipsoid(parent, 'Elbow', joint ? '#b49566' : 'accent', elbow, [
+        radius * 0.86,
+        radius * 0.86,
+        radius * 0.86,
+      ]);
+      rod(parent, 'Forearm', joint ? '#63747a' : 'accent', elbow, hand, radius * 0.81, radius * 0.62);
+    }
+    ellipsoid(parent, 'Gripping palm', handColor, hand, [radius * 0.99, radius * 0.78, radius * 0.75]);
+    for (const i of [-1, 1]) {
+      const a = [i * 0.57 * radius, -length, 0.16 * radius],
+        b = [i * 0.66 * radius, -length - radius * 0.85, radius * 0.54];
+      rod(parent, 'Finger', handColor, a, b, radius * 0.28, radius * 0.18);
+      ellipsoid(parent, 'Fingertip', handColor, b, [radius * 0.19, radius * 0.23, radius * 0.21]);
+    }
+  }
+  function include(pattern, names) {
+    return pattern && names.some((n) => pattern.test(n));
+  }
+
+  // Copy source coordinates into an axis-aligned joint's local space. Indexed
+  // triangles, original vertex colours and transformed normals all survive batching.
+  const simplified = new WeakMap();
+  function gameGeometry(original) {
+    if (simplified.has(original)) return simplified.get(original);
+    const p = original.parameters;
+    let result = original;
+    if (p && original.type.startsWith('Torus') && (p.tubularSegments > 24 || p.radialSegments > 7))
+      result = new THREE.TorusGeometry(
+        p.radius,
+        p.tube,
+        Math.min(7, p.radialSegments),
+        Math.min(24, p.tubularSegments),
+        p.arc,
+      );
+    else if (p && original.type.startsWith('Cylinder') && p.radialSegments > 20)
+      result = new THREE.CylinderGeometry(
+        p.radiusTop,
+        p.radiusBottom,
+        p.height,
+        20,
+        p.heightSegments,
+        p.openEnded,
+        p.thetaStart,
+        p.thetaLength,
+      );
+    simplified.set(original, result);
+    return result;
+  }
+  function batch(meshes, joint, scale, accentColor, linear = false) {
+    const out = new Map(),
+      pt = new THREE.Vector3(),
+      norm = new THREE.Vector3(),
+      mat = new THREE.Matrix4();
+    const toJoint = new THREE.Matrix4()
+      .makeScale(...scale)
+      .multiply(new THREE.Matrix4().makeTranslation(...joint.map((v) => -v)));
+    for (const mesh of meshes) {
+      const source = mesh.material,
+        accent = source.name === 'accent' || source.name.split('/')[0] === accentColor;
+      if (!out.has(accent)) out.set(accent, { pos: [], normal: [], color: [], indices: [] });
+      const dst = out.get(accent),
+        g = gameGeometry(mesh.geometry),
+        a = g.attributes.position,
+        n = g.attributes.normal,
+        tint = g.attributes.color;
+      const base = accent ? new THREE.Color(0xffffff) : source.color.clone();
+      if (!accent && !linear) base.convertSRGBToLinear();
+      mat.multiplyMatrices(toJoint, mesh.matrixWorld);
+      const normalMatrix = new THREE.Matrix3().getNormalMatrix(mat),
+        offset = dst.pos.length / 3;
+      for (let i = 0; i < a.count; i++) {
+        pt.fromBufferAttribute(a, i).applyMatrix4(mat);
+        dst.pos.push(pt.x, pt.y, pt.z);
+        norm.fromBufferAttribute(n, i).applyMatrix3(normalMatrix).normalize();
+        dst.normal.push(norm.x, norm.y, norm.z);
+        dst.color.push(
+          base.r * (tint ? tint.getX(i) : 1),
+          base.g * (tint ? tint.getY(i) : 1),
+          base.b * (tint ? tint.getZ(i) : 1),
+        );
+      }
+      for (let i = 0; i < (g.index ? g.index.count : a.count); i++)
+        dst.indices.push(offset + (g.index ? g.index.getX(i) : i));
+    }
+    return [...out].map(([accent, d]) => {
+      const g = new THREE.BufferGeometry();
+      for (const [name, data] of [
+        ['position', d.pos],
+        ['normal', d.normal],
+        ['color', d.color],
+      ])
+        g.setAttribute(name, new THREE.Float32BufferAttribute(data, 3));
+      g.setIndex(d.indices);
+      g.computeBoundingSphere();
+      return { geometry: g, accent };
+    });
+  }
+
+  function prepare(id, c, robot) {
+    if (templates.has(id)) return templates.get(id);
+    const master = ResidentModels.buildCharacter(id).children[0];
+    master.position.set(0, 0, 0);
+    const sourceHead = master.children.find((o) => o.name === (c.headGroup || 'Head') && o.isGroup);
+    if (sourceHead) sourceHead.rotation.set(0, 0, 0);
+    master.updateMatrixWorld(true);
+    const pivots = new Map(),
+      chunks = new Map(),
+      working = new THREE.Group(),
+      eyes = [];
+    function addJoint(key, position, parent = 'rig') {
+      pivots.set(key, { position, parent });
+      chunks.set(key, []);
+    }
+    const headPos = c.head || sourceHead.position.toArray(),
+      [shoulderX, shoulderY, shoulderZ, length, radius] = c.arm;
+    addJoint('rig', [0, 0, 0]);
+    addJoint('head', headPos);
+    function generated(key, fn) {
+      const g = group(working, key, pivots.get(key).position);
+      fn(g);
+      g.updateWorldMatrix(true, true);
+      g.traverse((m) => {
+        if (m.isMesh) chunks.get(key).push(m);
+      });
+    }
+    for (const [i, side] of [-1, 1].entries()) {
+      // A rounded socket bridges the torso and the shoulder through the whole wave.
+      generated('rig', (g) => {
+        const socket = [side * shoulderX, shoulderY, shoulderZ];
+        rod(
+          g,
+          'Shoulder link',
+          c.socketColor || 'accent',
+          [side * shoulderX * 0.52, shoulderY, shoulderZ],
+          socket,
+          radius * 0.91,
+          radius * 0.76,
+        );
+        ellipsoid(g, 'Shoulder socket', c.socketColor || 'accent', socket, [
+          radius * 1.08,
+          radius * 1.1,
+          radius * 1.08,
+        ]);
+      });
+      const suffix = i ? 'R' : 'L';
+      addJoint('arm' + suffix, [side * shoulderX, shoulderY, shoulderZ]);
+      generated('arm' + suffix, (g) =>
+        arm(
+          g,
+          side,
+          length,
+          radius,
+          c.hand || (robot ? 'tool' : 'palm'),
+          c.handColor || (robot ? '#b6a584' : 'accent'),
+        ),
+      );
+      if (c.leg) {
+        const [x, y, z, r, footLength] = c.leg;
+        const ankle = r * 0.6;
+        addJoint('leg' + suffix, [side * x, y, z]);
+        addJoint('foot' + suffix, [side * x, ankle, z], 'leg' + suffix);
+        if (!c.legParts) {
+          generated('leg' + suffix, (g) => {
+            const knee = [side * r * 0.16, -(y - ankle) * 0.5, r * (robot ? 0.43 : 0.28)];
+            rod(g, 'Thigh', 'accent', [0, 0, 0], knee, r * 1.19, r * 0.83);
+            ellipsoid(g, 'Knee', robot ? '#6e7980' : 'accent', knee, [r * 0.94, r * 0.94, r * 0.94]);
+            rod(g, 'Shin', robot ? '#879197' : 'accent', knee, [0, ankle - y, 0], r * 0.79, r * 0.65);
+          });
+        }
+        if (!c.legParts || !c.footParts)
+          generated('foot' + suffix, (g) =>
+            ellipsoid(
+              g,
+              'Foot',
+              c.footColor || (robot ? '#464b53' : 'accent'),
+              [0, 0, footLength * 0.2],
+              [r * 1.24, ankle, footLength],
+            ),
+          );
+      }
+    }
+    for (const j of c.joints || []) addJoint(j[0], j[1], j[4] || 'rig');
+    const getCenter = (m) => {
+      const b = m.geometry.boundingBox || (m.geometry.computeBoundingBox(), m.geometry.boundingBox);
+      return b.getCenter(new THREE.Vector3()).applyMatrix4(m.matrixWorld);
+    };
+    if (c.faceShell) {
+      const [x, y, z, rx, ry, rz] = c.faceShell;
+      generated('head', (g) =>
+        ellipsoid(
+          g,
+          'Optical housing',
+          c.shellColor || 'accent',
+          [x - headPos[0], y - headPos[1], z - headPos[2]],
+          [rx, ry, rz],
+        ),
+      );
+      generated('rig', (g) =>
+        rod(
+          g,
+          'Swivel neck',
+          robot ? '#a78a62' : 'accent',
+          [headPos[0], headPos[1] - 0.1, headPos[2] - 0.08],
+          headPos,
+          ry * 0.63,
+          ry * 0.52,
+        ),
+      );
+    }
+    if (c.extra) c.extra({ joint: generated, rod, oval: ellipsoid });
+    const acc = c.accent;
+    master.traverse((mesh) => {
+      if (!mesh.isMesh) return;
+      const names = [];
+      for (let o = mesh; o && o !== master; o = o.parent) names.push(o.name);
+      const at = getCenter(mesh),
+        sign = at.x < 0 ? 'L' : 'R',
+        top = names[names.length - 1];
+      if (mesh.name === 'Sclera') {
+        const ball = mesh.getWorldPosition(new THREE.Vector3()),
+          size = mesh.getWorldScale(new THREE.Vector3());
+        eyes.push([ball.x, ball.y, ball.z, size.x]);
+      }
+      if (include(oldFace, names) || include(c.omit, names) || (c.skip && c.skip(at, mesh, names)))
+        return;
+      let key = 'rig';
+      const prop = (c.props || []).find((p) => include(p.parts, names));
+      if (prop) {
+        const hand = pivots.get('arm' + prop.side).position,
+          grip = prop.grip,
+          k = prop.scale || 1;
+        const target = new THREE.Vector3(hand[0], hand[1] - length, hand[2] + radius * 0.4);
+        const transform = new THREE.Matrix4()
+          .compose(
+            target,
+            new THREE.Quaternion().setFromEuler(new THREE.Euler(...(prop.turn || [0, 0, 0]))),
+            new THREE.Vector3(k, k, k),
+          )
+          .multiply(new THREE.Matrix4().makeTranslation(-grip[0], -grip[1], -grip[2]));
+        const copy = new THREE.Mesh(mesh.geometry, mesh.material);
+        copy.matrixWorld.multiplyMatrices(transform, mesh.matrixWorld);
+        chunks.get('arm' + prop.side).push(copy);
+        return;
+      }
+      const moving = (c.joints || []).find(
+        (j) => include(j[2], names) && (!j[3] || j[3](at, mesh, names)),
+      );
+      if (moving) key = moving[0];
+      else if (c.legParts && include(c.legParts, names))
+        key = (include(c.footParts, names) ? 'foot' : 'leg') + sign;
+      else if (top === sourceHead?.name || include(c.headParts, names)) key = 'head';
+      else if (top === 'Arm' || top === 'Leg' || mechLink.test(top)) return;
+      const offset = c.offsets?.find(([pattern]) => include(pattern, names));
+      if (offset) {
+        const translated = new THREE.Mesh(mesh.geometry, mesh.material);
+        translated.matrixWorld.multiplyMatrices(
+          new THREE.Matrix4().makeTranslation(...offset[1]),
+          mesh.matrixWorld,
+        );
+        chunks.get(key).push(translated);
+      } else chunks.get(key).push(mesh);
+      if (moving && /^(Rubber wheel|Drive wheel|Caster)$/.test(mesh.name)) {
+        const [x, y, z] = moving[1],
+          b = new THREE.Box3().setFromObject(mesh),
+          h = b.max.y - at.y;
+        generated(key, (g) => {
+          for (const s of [-1, 1])
+            ellipsoid(
+              g,
+              'Wheel witness mark',
+              '#d8ae71',
+              [(s < 0 ? b.min.x : b.max.x) - x + s * 0.003, at.y - y + h * 0.63, at.z - z],
+              [0.008, h * 0.17, h * 0.064],
+            );
+        });
+      }
+    });
+    // Native dimensions are fitted here, before the pivot rotations are applied.
+    const bounds = new THREE.Box3(),
+      v = new THREE.Vector3();
+    for (const list of chunks.values())
+      for (const m of list) {
+        const a = m.geometry.attributes.position;
+        for (let i = 0; i < a.count; i++)
+          bounds.expandByPoint(v.fromBufferAttribute(a, i).applyMatrix4(m.matrixWorld));
+      }
+    const dim = bounds.getSize(new THREE.Vector3()),
+      sy = c.height / dim.y;
+    const scale = [Math.min(sy, 1.235 / dim.x), sy, Math.min(sy, (c.depth || 0.91) / dim.z)];
+    const center = bounds.getCenter(new THREE.Vector3()),
+      ground = c.hover ? 0.13 : 0;
+    const origin = [center.x, bounds.min.y - ground / sy, center.z];
+    const jointData = [...pivots].map(([key, { position, parent }]) => ({
+      key,
+      parent,
+      position: position.map(
+        (v, i) =>
+          (v -
+            (key === 'rig'
+              ? origin[i]
+              : parent === 'rig'
+                ? origin[i]
+                : pivots.get(parent).position[i])) *
+          scale[i],
+      ),
+      parts: batch(chunks.get(key), key === 'rig' ? origin : position, scale, acc),
+    }));
+    const data = { jointData, scale, headPos, eyes, length: length * sy };
+    templates.set(id, data);
+    return data;
+  }
+
+  // Pack the pupil, iris and corneal highlights together in gaze-local space.
+  // Folk keeps the gaze and lid pivots so the house blink/look controls still work.
+  function packEye(parent, material) {
+    const list = parent.children.filter((m) => m.isMesh);
+    if (list.length < 2) return;
+    for (const m of list) {
+      m.updateMatrix();
+      m.matrixWorld.copy(m.matrix);
+    }
+    const layers = batch(list, [0, 0, 0], [1, 1, 1], null, true);
+    for (const m of list) {
+      parent.remove(m);
+      m.geometry.dispose();
+    }
+    const mesh = new THREE.Mesh(layers[0].geometry, material);
+    parent.add(mesh);
+  }
+
+  function face(T, c, data) {
+    const { head, U } = T,
+      dims = data.scale,
+      origin = data.headPos;
+    const local = (p) => p.map((v, i) => (v - origin[i]) * dims[i]);
+    const f = c.face,
+      raw = f ? f.eyes : data.eyes,
+      robot = T.S.family === 'robot';
+    const signal = robot ? T.glow(c.signal || '#a4eee5', 1.18) : null;
+    const enamel = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.31,
+      metalness: 0.05,
+    });
+    const eyePaint = robot ? T.phys(T.iris) : null;
+    const first = raw[0],
+      avg = raw.reduce((sum, e) => sum + e[0], 0) / raw.length;
+    // Preserve single optics, side-set eyes and the source's asymmetric eye spacing.
+    for (const [x, y, z, rawR] of raw) {
+      const pos = local([x, y, z]),
+        r = Math.min(0.128, Math.max(robot ? 0.04 : 0.054, rawR * Math.min(dims[0], dims[1])));
+      if (!robot) {
+        const socket = T.eye(head, U, ...pos, r, T.body, T.iris);
+        // Match the house eye shape with the cast's lower segment budget.
+        socket.traverse((m) => {
+          if (!m.isMesh) return;
+          const g = m.geometry,
+            o = g.parameters;
+          if (!o || o.radius == null) return;
+          m.geometry = new THREE.SphereGeometry(
+            o.radius,
+            14,
+            8,
+            o.phiStart,
+            o.phiLength,
+            o.thetaStart,
+            o.thetaLength,
+          );
+          g.dispose();
+        });
+        const look = U.looks[U.looks.length - 1];
+        socket.name = 'House eye';
+        for (const glint of socket.children.filter((m) => m.isMesh && m.material === T.catchM))
+          look.add(glint);
+        packEye(look, enamel);
+        continue;
+      }
+      const gaze = group(head, 'Gaze', pos);
+      const blinkGroup = group(gaze, 'Blink', [0, 0, 0]);
+      const lens = T.sph(1, signal, 0, 0, r * 0.28, 14, 10);
+      lens.scale.set(r, r * (robot ? 0.77 : 0.91), r * 0.62);
+      blinkGroup.add(lens);
+      const look = group(blinkGroup, 'Look', [0, 0, 0]);
+      U.looks.push(look);
+      const iris = T.sph(1, eyePaint, 0, 0, r * 0.77, 12, 8);
+      iris.scale.set(r * 0.68, r * 0.7, r * 0.21);
+      look.add(iris);
+      const pupil = T.sph(1, T.browM, 0, 0, r * 0.93, 12, 8);
+      pupil.scale.set(r * 0.35, r * 0.46, r * 0.12);
+      look.add(pupil);
+      const spark = T.sph(r * 0.17, T.catchM, -r * 0.2, r * 0.26, r * 1.03, 8, 6);
+      look.add(spark);
+      packEye(look, enamel);
+      blinkGroup.userData.sy = 1;
+      U.eyes.push(blinkGroup);
+    }
+    for (const side of [-1, 1]) {
+      const e = raw.length === 1 ? first : raw[side < 0 ? 0 : raw.length - 1],
+        p = local([raw.length === 1 ? avg + side * e[3] * 0.53 : e[0], e[1], e[2]]);
+      const r = Math.min(0.128, Math.max(robot ? 0.04 : 0.054, e[3] * Math.min(dims[0], dims[1])));
+      const b = T.sph(1, robot ? signal : T.browM, p[0], p[1] + r * 0.92, p[2] + r * 0.62, 12, 8);
+      b.scale.set(r * (raw.length === 1 ? 0.55 : 0.88), Math.max(0.012, r * 0.21), r * 0.25);
+      head.add(b);
+      U.brows.push({ b, side, y: b.position.y });
+    }
+    const m = f?.mouth ||
+      c.mouth || [
+        avg,
+        first[1] - first[3] * 1.42,
+        Math.max(...raw.map((e) => e[2])) + first[3] * 0.6,
+        first[3] * 6.7,
+      ];
+    const pos = local(m.slice(0, 3)),
+      size = Math.min(1.03, Math.max(0.29, m[3] * dims[0]));
+    const g = T.mouth(head, U, ...pos, size, signal);
+    if (c.lip) g.scale.set(...c.lip);
+  }
+
+  function build(T, c) {
+    const robot = T.S.family === 'robot',
+      d = prepare(T.S.kind, c, robot),
+      nodes = { rig: T.rig, head: T.head };
+    const fixed = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: robot ? 0.48 : 0.69,
+      metalness: robot ? 0.32 : 0.035,
+    });
+    const accent = T.body;
+    accent.name = 'accent';
+    accent.color.copy(C(T.hsl(T.S.lit + (T.rand() - 0.5) * 5)));
+    const seededSize = 0.98 + T.rand() * 0.04;
+    for (const j of d.jointData) {
+      const node = nodes[j.key] || (nodes[j.key] = group(nodes[j.parent], j.key, j.position));
+      if (j.key === 'head') node.position.fromArray(j.position);
+      node.userData.restX = node.position.x;
+      node.userData.restY = node.position.y;
+      node.userData.restZ = node.position.z;
+      for (const part of j.parts) {
+        const m = new THREE.Mesh(part.geometry, part.accent ? accent : fixed);
+        m.name = j.key + ' paint';
+        node.add(m);
+      }
+    }
+    T.U.arms = [nodes.armL, nodes.armR];
+    for (const a of T.U.arms) a.userData.len = d.length;
+    if (nodes.legL) {
+      T.U.legs = [nodes.legL, nodes.legR];
+      nodes.legL.userData.foot = nodes.footL;
+      nodes.legR.userData.foot = nodes.footR;
+    }
+    if (c.tent)
+      for (const [i, k] of c.tent.entries()) {
+        const n = nodes[k],
+          idle = group(n.parent, 'Idle flex', n.position.toArray());
+        idle.add(n);
+        n.position.set(0, 0, 0);
+        idle.userData.a = (i * Math.PI * 2) / c.tent.length;
+        T.U.tent.push(idle);
+      }
+    face(T, c, d);
+    // A small change in ear/eye spacing is visible even between similarly tinted seeds.
+    for (const gaze of T.U.looks) gaze.parent.position.x *= seededSize;
+    const gait = c.gait;
+    T.U.gait = (phase, amount) => gait(nodes, phase, amount);
+  }
+
+  function steps(n, p, a, stride, lift, roll = 0, pitch = 0) {
+    const s = Math.sin(p),
+      k = stride * s * a;
+    n.rig.position.y = Math.abs(s) * lift * a;
+    n.rig.rotation.z = roll * s * a;
+    n.rig.rotation.x = pitch * Math.cos(p * 2) * a;
+    for (const [i, key] of ['L', 'R'].entries()) {
+      const direction = i ? -1 : 1,
+        leg = n['leg' + key],
+        foot = n['foot' + key];
+      const angle = k * direction;
+      leg.rotation.x = angle;
+      foot.rotation.x = -angle;
+      // Cancel the rise of the planted ankle. The returning foot alone clears
+      // the ground, with a longer clearance on a high-stepping design.
+      const naturalRise = foot.position.y * (Math.cos(angle) - 1) - foot.position.z * Math.sin(angle);
+      const clearance = Math.max(0, direction * Math.cos(p)) * (0.023 + lift * 1.4) * a;
+      leg.position.y =
+        leg.userData.restY +
+        clearance -
+        naturalRise -
+        n.rig.position.y -
+        leg.position.x * Math.sin(n.rig.rotation.z);
+      n['arm' + key].rotation.x = -angle * 0.62;
+    }
+  }
+  function glide(n, p, a, lift, bank = 0) {
+    n.rig.position.y = (1 - Math.cos(p)) * lift * a;
+    n.rig.rotation.z = Math.sin(p) * bank * a;
+    n.armL.rotation.x = -Math.sin(p) * 0.11 * a;
+    n.armR.rotation.x = Math.sin(p) * 0.11 * a;
+  }
+  function roll(n, p, a, keys, ratio) {
+    n.rig.position.y = 0;
+    n.rig.rotation.z = 0;
+    for (const key of keys) n[key].rotation.x = p * ratio * a;
+  }
+  return { build, steps, glide, roll };
+})();
+
+/* Aril · A green canopy gardener walks on forked roots below curled seed leaves. */
+SPECIES_EXTRA.aril = {
+  name: 'Aril',
+  kind: 'aril',
+  family: 'alien',
+  skin: 'matte',
+  cast: true,
+  script: 'angular',
+  col: '#72966c',
+  hue: 111,
+  sat: 17,
+  lit: 51,
+  syl: ['ah', 'ril', 'kel', 'sun', 'va', 'li', 'or', 'eth'],
+  voice: {
+    wave: 'triangle',
+    base: 354,
+    range: 0.58,
+    rate: 6.9,
+    glide: 0.08,
+    vib: 5,
+    vibAmt: 8,
+    fx: 'chirp',
+    amp: 0.39,
+  },
+  trait: 'Aril toes the soil with a root before choosing a seedbed.',
+  chat: [
+    'I test a bed with one toe before planting two seeds.',
+    'The canopy allotment has a downstairs neighbour now.',
+    'A seed labelled Up grew sideways out of politeness.',
+    'My pruning list keeps growing at the bottom.',
+    'The new soil has an excellent spring to it.',
+  ],
+  greet: ['Gardener here. Mind the little shoots.', 'Come in through the gap in the leaves.'],
+  cargo: ['{good}, with the seedlings on top.', 'A bag of potting soil and its change of address.'],
+  joke: ['I tried to give the vine directions. It took a cutting.'],
+  nice: ["Thanks. That's worth a fresh leaf."],
+  bye: ['Leave a little room to grow.'],
+  honk: ['The seedpods rattled in agreement.'],
+  dock: ['At {port}, follow the trimmed branches.', 'Welcome to {port}. The ramp is freshly weeded.'],
+  rumor: 'The canopy gardens on {planet} are paying extra for incoming loads.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#72966c',
+      height: 1.47,
+      arm: [0.205, 1.09, 0.02, 0.35, 0.066],
+      leg: [0.13, 0.77, 0, 0.067, 0.14],
+      legParts: /^Root (stilt|foot)$/,
+      footParts: /^Root foot$/,
+      mouth: [0, 1.387, 0.214, 0.5],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.6, 0.028, 0.045);
+        n.footL.rotation.x += 0.18 * Math.max(0, Math.cos(p)) * a;
+        n.footR.rotation.x += 0.18 * Math.max(0, -Math.cos(p)) * a;
+      },
+    });
+  },
+};
 /* Bobbinor: A one-wheeled reel robot winds up the loose ends of other people's errands. */
 SPECIES_EXTRA.bobbinor = {
   name:"Bobbinor", kind:"bobbinor", family:"robot", skin:"metal",
@@ -652,6 +1284,299 @@ SPECIES_EXTRA.bractillo = {
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.14,0.25,0,0.19,.07,dark,null,light));
   },
 };
+/* Caelo · A velvet moth lantern keeper has comb antennae and four eyespotted wings. */
+SPECIES_EXTRA.caelo = {
+  name: 'Caelo',
+  kind: 'caelo',
+  family: 'alien',
+  skin: 'fuzzy',
+  cast: true,
+  script: 'dots',
+  col: '#817393',
+  hue: 266,
+  sat: 13,
+  lit: 51,
+  syl: ['ka', 'eh', 'lo', 'vim', 'ish', 'lum', 'ae', 'shen'],
+  voice: {
+    wave: 'triangle',
+    base: 411,
+    range: 0.36,
+    rate: 7.2,
+    glide: 0.22,
+    vib: 5,
+    vibAmt: 3,
+    fx: 'chirp',
+    amp: 0.39,
+  },
+  trait: 'Caelo shields the lantern with one wing while replacing the wick.',
+  chat: [
+    'The west lamp is sulking. Its wick is too short.',
+    'One wing for the wind and one for the rain.',
+    'Last night a moth mistook me for the staff entrance.',
+    'The lantern oil smells faintly of toasted pear.',
+    'My shadow clocks in before I do.',
+  ],
+  greet: ['You found my light.', 'Come closer. I trimmed the wick for company.'],
+  cargo: ['{good}. Keep the oil tin upright.', 'Two spare wicks and an official pocketful of dark.'],
+  joke: ['I polished the glass so well I tried to walk through it.'],
+  nice: ["That's very bright of you."],
+  bye: ["I'll leave one lamp burning."],
+  honk: ['The flame leaned away from that.'],
+  dock: [
+    'At {port}, the amber lamps mark the ramp.',
+    'Welcome to {port}. Shield the last light as you pass.',
+  ],
+  rumor: 'The night shift on {planet} pays extra for cargo before dawn.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#817393',
+      height: 1.5,
+      arm: [0.23, 0.91, 0.035, 0.38, 0.062],
+      leg: [0.17, 0.46, 0, 0.07, 0.13],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 1.27, 0.237, 0.52],
+      joints: [
+        ['wingL', [-0.12, 0.9, -0.12], /^Moth wing$/, (v) => v.x < 0],
+        ['wingR', [0.12, 0.9, -0.12], /^Moth wing$/, (v) => v.x > 0],
+      ],
+      props: [
+        {
+          parts: /^(Lantern handle|Amber lantern)$/,
+          side: 'L',
+          grip: [0.36, 0.875, 0.23],
+          scale: 1.0,
+          turn: [-0.23, 0, -0.25],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.42, 0.022);
+        n.wingL.rotation.y = 0.36 * (1 - Math.cos(2 * p)) * a;
+        n.wingR.rotation.y = -n.wingL.rotation.y;
+      },
+    });
+  },
+};
+/* Cairn · A stack of rounded counterweights rides two runners under a survey pin. */
+SPECIES_EXTRA.cairn = {
+  name: 'Cairn',
+  kind: 'cairn',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#80938e',
+  hue: 164,
+  sat: 8,
+  lit: 54,
+  syl: ['kair', 'un', 'dat', 'pin', 'ol', 'set', 'rum', 'vi'],
+  voice: {
+    wave: 'triangle',
+    base: 156,
+    range: 0.58,
+    rate: 5.1,
+    glide: 0.22,
+    vib: 4,
+    vibAmt: 3,
+    fx: 'click',
+    amp: 0.39,
+  },
+  trait: 'Cairn waits for the counterweights to settle before logging a reading.',
+  chat: [
+    'The top weight settles last. It likes the final word.',
+    'I logged zero movement and dated it carefully.',
+    'A datum is a promise made by a heavy object.',
+    'The benchmark moved. Someone swept under it.',
+    'My spare weight is marked Do Not Lean Emotionally.',
+  ],
+  greet: ['Survey pin steady. Go ahead.', 'I can talk while the lower weight settles.'],
+  cargo: [
+    '{good}, balanced about the centre mark.',
+    'Three counterweights and a surprisingly light instruction slip.',
+  ],
+  joke: ['I asked for a second opinion. The other weight agreed to within a gram.'],
+  nice: ["Thanks. That's a solid reference."],
+  bye: ['Leave the little brass mark where it is.'],
+  honk: ['The pin moved half a division.'],
+  dock: [
+    'Welcome to {port}. The white cross marks the datum.',
+    'At {port}, measure from the brass stud.',
+  ],
+  rumor: 'Measured against last week, freight pays better on {planet}.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#80938e',
+      height: 1.19,
+      head: [0, 0.94, 0],
+      headParts: /^(Level head|Lens|Top survey pin)$/,
+      arm: [0.24, 0.58, 0.02, 0.26, 0.047],
+      faceShell: [0, 1.062, 0.04, 0.15, 0.095, 0.054],
+      face: {
+        eyes: [
+          [-0.058, 1.08, 0.094, 0.042],
+          [0.058, 1.08, 0.094, 0.042],
+        ],
+        mouth: [0, 1.002, 0.091, 0.38],
+      },
+      joints: [
+        ['upper', [0, 0.62, 0], /^Counterweight 2$/],
+        ['left', [-0.18, 0.085, 0], /^Sled runner$/, (v) => v.x < 0],
+        ['right', [0.18, 0.085, 0], /^Sled runner$/, (v) => v.x > 0],
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.005);
+        n.left.position.z = n.left.userData.restZ + 0.057 * Math.sin(p) * a;
+        n.right.position.z = n.right.userData.restZ - 0.057 * Math.sin(p) * a;
+        n.upper.rotation.y = -0.077 * Math.sin(p) * a;
+      },
+    });
+  },
+};
+/* Chime · A brass bell housing stands on metal feet and carries a felt mallet. */
+SPECIES_EXTRA.chime = {
+  name: 'Chime',
+  kind: 'chime',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#a98451',
+  hue: 35,
+  sat: 35,
+  lit: 49,
+  syl: ['chim', 'bohm', 'en', 'tol', 'din', 've', 'tuh', 'rik'],
+  voice: {
+    wave: 'sawtooth',
+    base: 321,
+    range: 0.47,
+    rate: 6.2,
+    glide: 0.16,
+    vib: 5,
+    vibAmt: 4,
+    fx: 'robot',
+    amp: 0.24,
+  },
+  trait: 'Chime wraps the mallet after the last shift sounds.',
+  chat: [
+    'The last shift ends when the felt stops ringing.',
+    'I wrap the mallet before I wrap the sandwiches.',
+    'A soft strike can travel farther than a loud memo.',
+    'The duty roster has a small rest written into it.',
+    'I rang once for tea. Nobody needed a second reminder.',
+  ],
+  greet: ["Bell keeper. We're between shifts.", 'Come in on the decay.'],
+  cargo: ['{good}, clear of the swinging mallet.', 'A roll of felt and one properly rested clapper.'],
+  joke: ['The bell took a holiday. I covered its shift by humming.'],
+  nice: ['Thank you. A fine clear note.'],
+  bye: ["That's the last chime from me."],
+  honk: ["You've called the unofficial break."],
+  dock: [
+    'Welcome to {port}. Two strikes mean the ramp is clear.',
+    'At {port}, follow the shift bell to dispatch.',
+  ],
+  rumor: 'The shift board on {planet} rings up a bonus for deliveries.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#a98451',
+      height: 1.37,
+      head: [0, 1.16, 0],
+      headParts: /^Optics housing$/,
+      omit: /^Lens$/,
+      arm: [0.25, 0.75, 0.035, 0.28, 0.054],
+      leg: [0.22, 0.35, 0, 0.068, 0.14],
+      signal: '#ffdf9e',
+      face: {
+        eyes: [
+          [-0.065, 1.18, 0.119, 0.045],
+          [0.065, 1.18, 0.119, 0.045],
+        ],
+        mouth: [0, 1.109, 0.116, 0.4],
+      },
+      props: [
+        {
+          parts: /^(Striker shaft|Felt mallet)$/,
+          side: 'L',
+          grip: [0.42, 0.5, 0.15],
+          turn: [0, 0, 0.65],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.39, 0.021, 0.097);
+        n.armL.rotation.x += 0.25 * Math.sin(p * 2) * a;
+      },
+    });
+  },
+};
+/* Crimp · A twin-wheeled cable splicer carries a working vice under its raised optic. */
+SPECIES_EXTRA.crimp = {
+  name: 'Crimp',
+  kind: 'crimp',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#bc765c',
+  hue: 16,
+  sat: 42,
+  lit: 55,
+  syl: ['kri', 'imp', 'tek', 'fer', 'vin', 'nak', 'zul', 'ke'],
+  voice: {
+    wave: 'square',
+    base: 151,
+    range: 0.42,
+    rate: 5.1,
+    glide: 0.08,
+    vib: 2,
+    vibAmt: 8,
+    fx: 'click',
+    amp: 0.24,
+  },
+  trait: 'Crimp closes the vice on scrap wire to test the jaw spacing.',
+  chat: [
+    'I close the vice on scrap before trusting a cable.',
+    'This wire is rated for three bends and a misunderstanding.',
+    'The spare ferrule fits everything except its own drawer.',
+    'I keep the clean cuttings for practice joins.',
+    "My best splice is hard to point out. That's the idea.",
+  ],
+  greet: ['Splicing bench. Is your line intact?', 'Hold the loose end and tell me.'],
+  cargo: ['{good}, cinched with a reusable loop.', 'A box of ferrules sorted by inside diameter.'],
+  joke: ['I joined the ends of my shift. Now it goes round forever.'],
+  nice: ['Thank you. That joint will hold.'],
+  bye: ['Release the jaw before you pull away.'],
+  honk: ['That found the loose end.'],
+  dock: [
+    'At {port}, park beyond the cable drum.',
+    'Welcome to {port}. Untwist the sling before lifting.',
+  ],
+  rumor: 'The cable crews on {planet} are splicing a bonus into the freight pay.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#bc765c',
+      height: 1.25,
+      head: [0, 1.12, -0.13],
+      headParts: /^Optics housing$/,
+      omit: /^Lens$/,
+      arm: [0.35, 0.48, 0.075, 0.27, 0.052],
+      signal: '#99e9df',
+      face: {
+        eyes: [
+          [-0.068, 1.139, 0.006, 0.047],
+          [0.068, 1.139, 0.006, 0.047],
+        ],
+        mouth: [0, 1.064, 0.006, 0.43],
+      },
+      joints: [
+        ['axle', [0, 0.21, 0], /^(Rubber wheel|Wheel hub)$/],
+        ['jaw', [0.252, 0.62, 0], /^(Vice jaw|Jaw liner)$/, (v) => v.x > 0],
+      ],
+      gait(n, p, a) {
+        CastRig.roll(n, p, a, ['axle'], 2.35);
+        n.jaw.position.x = n.jaw.userData.restX + 0.023 * (1 - Math.cos(p)) * a;
+      },
+    });
+  },
+};
 /* Cuspiro: A crescent-headed dune grazer lends the space between its horns to small birds. */
 SPECIES_EXTRA.cuspiro = {
   name:"Cuspiro", kind:"cuspiro", family:"alien", skin:"gloss",
@@ -726,6 +1651,202 @@ SPECIES_EXTRA.cuspiro = {
     T.blush(head,0.236,-0.087,0.19,.061);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.292,0.622,.085,0.284,.054,body,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.27,0,0.21,.07,dark,null,light));
+  },
+};
+/* Dolly · A plum parcel cart balances strapped packages in front of its brass push bar. */
+SPECIES_EXTRA.dolly = {
+  name: 'Dolly',
+  kind: 'dolly',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#9e6d80',
+  hue: 337,
+  sat: 20,
+  lit: 52,
+  syl: ['dol', 'li', 'kar', 'pos', 'kin', 'tag', 'bin', 'oh'],
+  voice: {
+    wave: 'triangle',
+    base: 228,
+    range: 0.36,
+    rate: 5.6,
+    glide: 0.08,
+    vib: 4,
+    vibAmt: 8,
+    fx: 'chorus',
+    amp: 0.39,
+  },
+  trait: 'Dolly balances the fragile parcel where it can see the corners.',
+  chat: [
+    'All four corners are visible. We can leave now.',
+    'The fragile label arrived with a crease. Awkward.',
+    'A parcel marked This Side Up has six strong opinions.',
+    "I've got a small box for keeping spare small boxes.",
+    'The top parcel is just here for the view.',
+  ],
+  greet: ['Parcel desk. How many corners can you see?', "I've made room on the deck for a hello."],
+  cargo: ['{good}, label facing the aisle.', 'A remarkably delicate box of packing advice.'],
+  joke: ['I signed for a signature. The paperwork doubled.'],
+  nice: ["Thanks. I'll stick that beside the good handling sticker."],
+  bye: ['Clear wheels. Rolling out.'],
+  honk: ['All corners still present.'],
+  dock: [
+    'Welcome to {port}. Trolleys turn at the yellow line.',
+    'At {port}, show me the fragile corner first.',
+  ],
+  rumor: 'The parcel office on {planet} is paying extra per delivery.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#9e6d80',
+      height: 1.15,
+      head: [0, 0.71, -0.085],
+      arm: [0.3, 0.41, 0.055, 0.22, 0.043],
+      omit: /^Lens$/,
+      faceShell: [0, 0.778, -0.06, 0.16, 0.104, 0.1],
+      face: {
+        eyes: [
+          [-0.06, 0.807, 0.042, 0.047],
+          [0.06, 0.807, 0.042, 0.047],
+        ],
+        mouth: [0, 0.735, 0.042, 0.43],
+      },
+      joints: [
+        ['front', [0, 0.108, 0.24], /^(Rubber wheel|Wheel hub)$/, (v) => v.z > 0],
+        ['rear', [0, 0.108, -0.24], /^(Rubber wheel|Wheel hub)$/, (v) => v.z < 0],
+        ['parcel', [-0.04, 0.55, 0.02], /^(Upper parcel|Strap)$/],
+      ],
+      gait(n, p, a) {
+        CastRig.roll(n, p, a, ['front', 'rear'], 3.1);
+        n.parcel.rotation.z = 0.039 * Math.sin(p * 2) * a;
+      },
+    });
+  },
+};
+/* Fathom · A bronze bathysphere wears a pressure seam, twin skids and a periscope. */
+SPECIES_EXTRA.fathom = {
+  name: 'Fathom',
+  kind: 'fathom',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#aa8452',
+  hue: 34,
+  sat: 35,
+  lit: 49,
+  syl: ['fath', 'om', 'sum', 'dep', 'kel', 'vo', 'bol', 'ten'],
+  voice: {
+    wave: 'square',
+    base: 143,
+    range: 0.31,
+    rate: 4.6,
+    glide: 0.22,
+    vib: 2,
+    vibAmt: 3,
+    fx: 'robot',
+    amp: 0.24,
+  },
+  trait: 'Fathom checks the pressure seam before every dive.',
+  chat: [
+    'I check the seam before every dive, even in the washbasin.',
+    'The pressure gauge has a favourite depth.',
+    'My periscope saw a perfectly ordinary ceiling today.',
+    'The hull sings before it leaks. I prefer humming.',
+    'The dive log dried into the shape of a wave.',
+  ],
+  greet: ['Diver here. Sound travels well down here.', 'Speak up to the periscope.'],
+  cargo: ['{good}, sealed all the way round.', 'Pressure gaskets packed at room confidence.'],
+  joke: ['I sank a sample invoice. It had hidden depths.'],
+  nice: ['Thanks. That holds water.'],
+  bye: ['Safe pressure on both sides.'],
+  honk: ['That went straight through the ballast.'],
+  dock: [
+    'Welcome to {port}. The dry skid goes nearest the wall.',
+    'At {port}, the dive bell rings only underwater.',
+  ],
+  rumor: 'The divers on {planet} are raising the freight rate from the bottom up.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#aa8452',
+      height: 1.3,
+      depth: 0.84,
+      head: [0, 0.68, 0.01],
+      headParts: /^(Bathysphere|Pressure seam|Lens|Periscope|Scope mirror)$/,
+      arm: [0.36, 0.67, 0, 0.27, 0.064],
+      face: { eyes: [[0, 0.775, 0.379, 0.123]], mouth: [0, 0.626, 0.354, 0.63] },
+      joints: [
+        ['skidL', [-0.19, 0.47, 0], /^(Landing skid|Ballast strut)$/, (v) => v.x < 0],
+        ['skidR', [0.19, 0.47, 0], /^(Landing skid|Ballast strut)$/, (v) => v.x > 0],
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.012, 0.037);
+        n.skidL.rotation.x = 0.24 * Math.sin(p) * a;
+        n.skidR.rotation.x = -n.skidL.rotation.x;
+      },
+    });
+  },
+};
+/* Fenn · A russet pressure bladder suspends a weather basket between small fins. */
+SPECIES_EXTRA.fenn = {
+  name: 'Fenn',
+  kind: 'fenn',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'dots',
+  col: '#cf9b63',
+  hue: 31,
+  sat: 53,
+  lit: 60,
+  syl: ['fen', 'pum', 'wa', 'bar', 'too', 'vuh', 'nim', 'su'],
+  voice: {
+    wave: 'sawtooth',
+    base: 313,
+    range: 0.53,
+    rate: 6.3,
+    glide: 0.16,
+    vib: 3,
+    vibAmt: 4,
+    fx: 'bubble',
+    amp: 0.24,
+  },
+  trait: 'Fenn knows the weather has turned when the little basket lifts.',
+  chat: [
+    'The basket rises just before a squall. I rise with it.',
+    'My barometer predicts a queue at customs.',
+    'I let a little air out to fit under this awning.',
+    'The forecast was right about the existence of weather.',
+    'Someone put an umbrella on the wind vane.',
+  ],
+  greet: ['Pressure steady. Speak freely.', 'Weather desk here. Hold onto your hat.'],
+  cargo: ['{good}. Lash down the light bits.', 'A basket of instruments and the air around them.'],
+  joke: ['I tried to take the pressure off. Floated into the ceiling.'],
+  nice: ["That's lifted my spirits another centimetre."],
+  bye: ['Clear skies and low doorframes.'],
+  honk: ['That registered on three instruments.'],
+  dock: [
+    'At {port}, tie up below the wind sock.',
+    'Welcome to {port}. The forecast includes your ship.',
+  ],
+  rumor: 'The weather office on {planet} predicts unusually high delivery pay.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#cf9b63',
+      height: 1.42,
+      hover: true,
+      arm: [0.41, 0.91, 0, 0.32, 0.075],
+      hand: 'fin',
+      omit: /^Stabilizing fin$/,
+      mouth: [0, 1.322, 0.451, 0.55],
+      joints: [['basket', [0, 0.74, 0.06], /^(Basket cord|Weather instrument basket)$/]],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.046, 0.043);
+        n.basket.rotation.z = -0.15 * Math.sin(p - 0.64) * a;
+        n.armL.rotation.x = 0.34 * Math.sin(p) * a;
+        n.armR.rotation.x = n.armL.rotation.x;
+      },
+    });
   },
 };
 /* Gaugekin: A caliper-headed mechanic measures the gaps left by missing things. */
@@ -818,6 +1939,148 @@ SPECIES_EXTRA.gaugekin = {
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.165,0.3,0,0.24,.07,dark,null,body));
   },
 };
+/* Glint · A blue mirror yoke carries a six-sided reflector over three landing struts. */
+SPECIES_EXTRA.glint = {
+  name: 'Glint',
+  kind: 'glint',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#8299a5',
+  hue: 201,
+  sat: 16,
+  lit: 58,
+  syl: ['glin', 'ti', 'lux', 'sek', 'bea', 'ral', 'ni', 'ga'],
+  voice: {
+    wave: 'square',
+    base: 339,
+    range: 0.42,
+    rate: 6.8,
+    glide: 0.16,
+    vib: 2,
+    vibAmt: 4,
+    fx: 'click',
+    amp: 0.24,
+  },
+  trait: 'Glint finds the edge of a beam with a six-sided mirror.',
+  chat: [
+    "The beam edge is easier to see on somebody else's wall.",
+    'I polished one face and improved six reflections.',
+    'A cloud has requested temporary custody of the sunlight.',
+    'My aiming mark is the least scorched spot.',
+    'I fold the mirror away before anybody serves soup.',
+  ],
+  greet: ['Solar bench here. Shade your eyes.', 'I see your signal on the calibration card.'],
+  cargo: ['{good}, matte side facing the reflector.', 'A mirror cloth with very high standards.'],
+  joke: ['I sent a bright idea to dispatch. They lowered the blinds.'],
+  nice: ['Thanks. That reflects well on the crew.'],
+  bye: ['May the beam just miss your windscreen.'],
+  honk: ['The mirror shook six bright spots loose.'],
+  dock: [
+    'Welcome to {port}. Follow the dull stripe.',
+    'At {port}, the bright square is an instrument, not a parking space.',
+  ],
+  rumor: 'The solar crews on {planet} are offering a bright little freight premium.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#8299a5',
+      height: 1.42,
+      head: [0, 0.93, 0],
+      headParts: /^Mirror head$/,
+      faceShell: [0, 0.955, 0.06, 0.165, 0.115, 0.05],
+      shellColor: '#b5ac82',
+      arm: [0.22, 0.65, 0.035, 0.28, 0.049],
+      leg: [0.12, 0.48, 0, 0.048, 0.093],
+      legParts: /^Landing leg$/,
+      omit: /^Lens$/,
+      face: {
+        eyes: [
+          [-0.068, 0.973, 0.105, 0.053],
+          [0.068, 0.973, 0.105, 0.053],
+        ],
+        mouth: [0, 0.897, 0.11, 0.5],
+      },
+      joints: [['rear', [0, 0.48, -0.08], /^Rear support$/]],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.44, 0.017, 0.032);
+        n.rear.rotation.x = 0.23 * Math.sin(2 * p) * a;
+        n.head.rotation.y = -0.16 * Math.sin(p * 0.5) * a;
+      },
+    });
+  },
+};
+/* Hush · A blue boiler-bodied listener carries a brass clockwork bird on one gauntlet. */
+SPECIES_EXTRA.hush = {
+  name: 'Hush',
+  kind: 'hush',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#7395a6',
+  hue: 200,
+  sat: 22,
+  lit: 55,
+  syl: ['hush', 'dom', 'lum', 'pik', 're', 'ton', 'uv', 'min'],
+  voice: {
+    wave: 'sawtooth',
+    base: 115,
+    range: 0.47,
+    rate: 4.3,
+    glide: 0.08,
+    vib: 5,
+    vibAmt: 8,
+    fx: 'robot',
+    amp: 0.24,
+  },
+  trait: 'Hush cups one ear to hear the smallest tooth on a clockwork bird’s gear.',
+  chat: [
+    "The bird's smallest cog ticks half a beat early.",
+    'A quiet hinge gets my best reference letter.',
+    'I lined the toolbox with felt. Now I can hear the screws think.',
+    'The bird has one song and several mechanical variations.',
+    'The silent shelf squeaks when you point at it.',
+  ],
+  greet: ['Listening desk. Any volume is fine.', 'I heard you before the lamp came on.'],
+  cargo: ['{good}, individually cushioned.', 'A clockwork bird and the key that knows its tune.'],
+  joke: ['My request for a quieter bell went unheard.'],
+  nice: ['Much obliged. The bird has nodded too.'],
+  bye: ["I'll listen for your engines on the way back."],
+  honk: ['The bird just learned a second song.'],
+  dock: [
+    'At {port}, the soft pad is yours.',
+    'Welcome to {port}. The little brass bird handles announcements.',
+  ],
+  rumor: 'The acoustics crew on {planet} quietly raised the freight rate.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#7395a6',
+      height: 1.7,
+      headGroup: 'Listening head',
+      arm: [0.67, 1.5, 0.04, 0.71, 0.125],
+      handColor: '#99b2b7',
+      leg: [0.34, 0.9, 0, 0.145, 0.22],
+      legParts: /^(Thigh|Knee housing|Calf|Riveted boot|Toe cap)$/,
+      footParts: /^(Riveted boot|Toe cap)$/,
+      omit: /^(Open palm|Cupped listening hand|Curled gauntlet finger|Finger|Fingertip)$/,
+      signal: '#f3bc61',
+      face: {
+        eyes: [
+          [-0.176, 1.913, 0.23, 0.071],
+          [0.026, 1.913, 0.23, 0.071],
+        ],
+        mouth: [-0.075, 1.808, 0.234, 0.57],
+      },
+      props: [{ parts: /^Clockwork songbird$/, side: 'L', grip: [-0.23, 1.23, 0.577], scale: 1.12 }],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.38, 0.012, 0.047);
+        n.armL.rotation.x *= 0.08;
+        n.head.rotation.z = -0.09 * Math.sin(p * 0.5) * a;
+      },
+    });
+  },
+};
 /* Hushcone: A horn-eared recording robot makes field recordings of things finishing. */
 SPECIES_EXTRA.hushcone = {
   name:"Hushcone", kind:"hushcone", family:"robot", skin:"metal",
@@ -906,6 +2169,533 @@ SPECIES_EXTRA.hushcone = {
     T.mouth(head,U,0,-0.09,0.185,.72,signal);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.288,0.677,.085,0.275,.054,dark,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.145,0.275,0,0.215,.07,dark,null,body));
+  },
+};
+/* Ilex · A moss-backed ranger carries small samples in branching antlers. */
+SPECIES_EXTRA.ilex = {
+  name: 'Ilex',
+  kind: 'ilex',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'angular',
+  col: '#7d9982',
+  hue: 131,
+  sat: 12,
+  lit: 55,
+  syl: ['il', 'eks', 'lor', 'ven', 'ai', 'lok', 'see', 'tet'],
+  voice: {
+    wave: 'triangle',
+    base: 240,
+    range: 0.42,
+    rate: 5.9,
+    glide: 0.44,
+    vib: 3,
+    vibAmt: 5,
+    fx: 'none',
+    amp: 0.39,
+  },
+  trait: 'Ilex carries the smallest field samples between two antler tines.',
+  chat: [
+    'The lichen in tine two is younger than the label.',
+    'A twig joined my field party without a permit.',
+    'My north antler points to a very good patch of moss.',
+    'We leave one sample where we found it. It writes home.',
+    'The slow-growing plot has finally done something.',
+  ],
+  greet: ['Ranger listening. Keep off the pale patches.', 'Come through the marked clearing.'],
+  cargo: ['{good}, beside the field samples.', 'Four squares of moss with their original directions.'],
+  joke: ['I applied for a growth chart. They sent me a long calendar.'],
+  nice: ['Thank you. The moss appreciates quiet applause.'],
+  bye: ['Stay on the marked stones.'],
+  honk: ['The lichen will need a moment.'],
+  dock: [
+    'Welcome to {port}. Land between the survey flags.',
+    'At {port}, the soft green patch is a protected resident.',
+  ],
+  rumor: 'The rangers on {planet} have added a bonus to incoming freight.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#7d9982',
+      height: 1.73,
+      arm: [0.24, 0.71, 0.19, 0.59, 0.075],
+      leg: [0.24, 0.71, -0.27, 0.078, 0.13],
+      skip: (v, m, n) => n.includes('Leg') && m.parent.position.z > 0,
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 1.297, 0.448, 0.48],
+
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.53, 0.013, 0.022);
+        n.armL.rotation.x = -0.5 * Math.sin(p - 0.32) * a;
+        n.armR.rotation.x = -n.armL.rotation.x;
+        n.head.rotation.x = -0.042 * Math.cos(p * 2) * a;
+      },
+    });
+  },
+};
+/* Iris · A bellows camera stands on a three-point brass and steel tripod. */
+SPECIES_EXTRA.iris = {
+  name: 'Iris',
+  kind: 'iris',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#688694',
+  hue: 199,
+  sat: 17,
+  lit: 49,
+  syl: ['ir', 'is', 'klik', 'pla', 'meh', 'lux', 'fru', 'da'],
+  voice: {
+    wave: 'sawtooth',
+    base: 258,
+    range: 0.36,
+    rate: 5.8,
+    glide: 0.22,
+    vib: 5,
+    vibAmt: 3,
+    fx: 'chorus',
+    amp: 0.24,
+  },
+  trait: 'Iris opens the bellows only after all three feet settle.',
+  chat: [
+    'Two feet steady. The third is considering the subject.',
+    'The portrait was perfect until the chair blinked.',
+    'I save one exposure for things I forgot to remember.',
+    'The plate marked Blank is an excellent picture of fog.',
+    'My lens cap has appeared in several early works.',
+  ],
+  greet: ['Hold that pose while we talk.', 'Camera desk. You may blink between sentences.'],
+  cargo: [
+    '{good}, kept on the dark side of the hold.',
+    'Fresh plates and a box labelled Exposed By Accident.',
+  ],
+  joke: ['I took a long exposure of a queue. Everybody left.'],
+  nice: ["Thank you. That's one for the album."],
+  bye: ["I'll wave after the shutter closes."],
+  honk: ['Lovely expression. Do it again.'],
+  dock: [
+    'Welcome to {port}. The painted cross marks your spot.',
+    'At {port}, leave the darkroom light alone.',
+  ],
+  rumor: 'The plate lab on {planet} offers extra for a well-timed delivery.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#688694',
+      height: 1.37,
+      head: [0, 0.88, 0],
+      headParts: /^(Bellows camera|Bellows fold|Lens|Finder|Cable release)$/,
+      arm: [0.28, 0.9, 0.01, 0.32, 0.051],
+      face: { eyes: [[0, 1.075, 0.403, 0.111]], mouth: [0, 0.968, 0.393, 0.54] },
+      signal: '#a5e6ea',
+      joints: [0, 1, 2].map((i) => {
+        const t = (i * Math.PI * 2) / 3;
+        return [
+          'tripod' + i,
+          [0, 0.66, 0],
+          /^(Camera tripod|Tripod foot)$/,
+          (v) => Math.round((Math.atan2(v.z, v.x) + Math.PI * 2) / ((Math.PI * 2) / 3)) % 3 === i,
+        ];
+      }),
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.016);
+        for (let i = 0; i < 3; i++) {
+          const t = p + (i * 2 * Math.PI) / 3;
+          n['tripod' + i].rotation.x = 0.2 * Math.sin(t) * a;
+          n['tripod' + i].rotation.z = 0.09 * Math.max(0, Math.cos(t)) * a;
+        }
+      },
+    });
+  },
+};
+/* Kepp · A pale trail keeper carries a spiral shell over a broad muscular foot. */
+SPECIES_EXTRA.kepp = {
+  name: 'Kepp',
+  kind: 'kepp',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'curvy',
+  col: '#85a79b',
+  hue: 159,
+  sat: 16,
+  lit: 59,
+  syl: ['kep', 'loh', 'shel', 'nev', 'oo', 'nar', 'pel', 'am'],
+  voice: {
+    wave: 'sine',
+    base: 153,
+    range: 0.47,
+    rate: 4.7,
+    glide: 0.16,
+    vib: 5,
+    vibAmt: 4,
+    fx: 'none',
+    amp: 0.39,
+  },
+  trait: 'Kepp can trace the way home along the spiral on the shell.',
+  chat: [
+    'The third bend on my shell is a useful shortcut.',
+    'I leave route corrections behind me in silver.',
+    'The express lane was slippery when I found it.',
+    'A map folded into a shell always opens the right way.',
+    'Nobody has overtaken my trail. They just follow it.',
+  ],
+  greet: ["You've reached the slow desk.", 'Hello. I set off when I heard you dial.'],
+  cargo: ['{good}, lightly polished underneath.', 'A spool of trail markers. Silver, naturally.'],
+  joke: ['My quickest route takes ages to explain.'],
+  nice: ["Thanks. I'll put that on the scenic loop."],
+  bye: ["I'll leave a line back to the gate."],
+  honk: ['That counts as overtaking.'],
+  dock: ['At {port}, follow the fresh silver line.', 'Welcome to {port}. My map says we both made it.'],
+  rumor: 'The long way to {planet} still earns the higher freight rate.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#85a79b',
+      height: 1.12,
+      arm: [0.18, 0.43, 0.47, 0.25, 0.06],
+      hand: 'fin',
+      mouth: [0, 0.548, 0.737, 0.48],
+      joints: [
+        ['sole', [0, 0.14, 0.47], /^Muscular foot$/],
+        ['shell', [0, 0.32, -0.17], /^(Shell|Shell spiral)$/],
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0);
+        const reach = (1 - Math.cos(p)) * 0.5 * a;
+        n.sole.scale.z = 1 + 0.1 * reach;
+        n.shell.rotation.x = -0.067 * reach;
+        n.head.rotation.x = 0.045 * reach;
+      },
+    });
+  },
+};
+/* Kiln · A russet furnace tender rolls on four wheels beneath a lipped chimney. */
+SPECIES_EXTRA.kiln = {
+  name: 'Kiln',
+  kind: 'kiln',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#b96d49',
+  hue: 19,
+  sat: 44,
+  lit: 51,
+  syl: ['kil', 'in', 'fu', 'gra', 'sin', 'pek', 'um', 'dor'],
+  voice: {
+    wave: 'sine',
+    base: 126,
+    range: 0.53,
+    rate: 4.6,
+    glide: 0.16,
+    vib: 3,
+    vibAmt: 4,
+    fx: 'chorus',
+    amp: 0.39,
+  },
+  trait: 'Kiln watches the glaze change colour through a barred hearth door.',
+  chat: [
+    'The glaze is almost blue. Almost blue takes ages.',
+    'My flue hat is purely practical except on holidays.',
+    'The warm shelf is reserved for mugs with cold handles.',
+    'One firing log contains an actual fire mark.',
+    "Today's sample cooled into a very small roof.",
+  ],
+  greet: ['Watch the hot door while we talk.', "Furnace desk. I've turned down the draught."],
+  cargo: ['{good}, between heatproof spacers.', 'Ceramic test tiles in eleven shades of nearly done.'],
+  joke: ['My first pot was fired twice. It keeps asking for a reference.'],
+  nice: ["Thank you. I'll put your mug on the good shelf."],
+  bye: ['Give the tiles a minute.'],
+  honk: ['The flame leaned left. Excellent bellows.'],
+  dock: ['Welcome to {port}. The hot rack is roped off.', 'At {port}, unload on the cool bricks.'],
+  rumor: 'The potters on {planet} are offering extra pay before the next firing.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#b96d49',
+      height: 1.39,
+      head: [-0.083, 0.85, 0.218],
+      headParts: /^Lens$/,
+      arm: [0.36, 0.68, 0.04, 0.32, 0.062],
+      faceShell: [-0.083, 0.86, 0.24, 0.16, 0.13, 0.074],
+      signal: '#ffc474',
+      face: { eyes: [[-0.083, 0.889, 0.31, 0.074]], mouth: [-0.083, 0.792, 0.302, 0.47] },
+      joints: [
+        ['front', [0, 0.15, 0.12], /^(Rubber wheel|Wheel hub)$/, (v) => v.z > 0],
+        ['rear', [0, 0.15, -0.12], /^(Rubber wheel|Wheel hub)$/, (v) => v.z < 0],
+      ],
+      gait(n, p, a) {
+        CastRig.roll(n, p, a, ['front', 'rear'], 2.7);
+        n.rig.rotation.x = 0.024 * Math.sin(p * 2) * a;
+      },
+    });
+  },
+};
+/* Kipp · A six-footed bridge inspector wears studded wing cases. */
+SPECIES_EXTRA.kipp = {
+  name: 'Kipp',
+  kind: 'kipp',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'curvy',
+  col: '#869557',
+  hue: 75,
+  sat: 26,
+  lit: 46,
+  syl: ['kip', 'kit', 'tek', 'ta', 'bri', 'chep', 'vun', 'iz'],
+  voice: {
+    wave: 'triangle',
+    base: 294,
+    range: 0.47,
+    rate: 5.9,
+    glide: 0.37,
+    vib: 4,
+    vibAmt: 7,
+    fx: 'click',
+    amp: 0.39,
+  },
+  trait: 'Kipp tests a beam with each foot before giving it a clean bill.',
+  chat: [
+    'All six feet have to agree before I clear a bridge.',
+    'The last plank squeaks in a helpful key.',
+    'I put the inspection stamp where nobody can step on it.',
+    'A bridge is a path with an opinion about water.',
+    'The shortest beam passed first.',
+  ],
+  greet: ['Inspector on deck. One foot at a time.', "Come across. I've tested this bit."],
+  cargo: [
+    '{good}. The weight is distributed in sixths.',
+    'Six little load gauges and one very long form.',
+  ],
+  joke: ['The bridge asked for a raise. We put blocks underneath.'],
+  nice: ['Thanks. Unanimous approval from the feet.'],
+  bye: ['Keep to the tested planks.'],
+  honk: ["The railing vibrated. I'll make a note."],
+  dock: [
+    'At {port}, cross on the stamped boards.',
+    "Welcome to {port}. The bridge knows you're coming.",
+  ],
+  rumor: 'Bridge crews on {planet} are paying extra for freight.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#869557',
+      height: 1.16,
+      arm: [0.31, 0.48, 0.41, 0.37, 0.078],
+      leg: [0.31, 0.48, -0.51, 0.084, 0.15],
+      skip: (v, m, n) => n.includes('Leg') && m.parent.position.z > 0.2,
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 0.828, 0.555, 0.55],
+      joints: [-1, 1].flatMap((s) => [
+        [
+          'middle' + (s < 0 ? 'L' : 'R'),
+          [s * 0.31, 0.48, -0.05],
+          /^Leg$/,
+          (v, m, n) => n.includes('Leg') && s * v.x > 0 && Math.abs(m.parent.position.z + 0.05) < 0.2,
+        ],
+      ]),
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.39, 0.008);
+        n.armL.rotation.x = n.legL.rotation.x;
+        n.armR.rotation.x = -n.armL.rotation.x;
+        n.middleR.rotation.x = n.armL.rotation.x;
+        n.middleL.rotation.x = n.armR.rotation.x;
+      },
+    });
+  },
+};
+/* Koro · A broad geode carver has an open amethyst seam across the chest. */
+SPECIES_EXTRA.koro = {
+  name: 'Koro',
+  kind: 'koro',
+  family: 'alien',
+  skin: 'stone',
+  cast: true,
+  script: 'angular',
+  col: '#786867',
+  hue: 4,
+  sat: 8,
+  lit: 44,
+  syl: ['ko', 'rum', 'vek', 'dun', 'ge', 'ka', 'rom', 'ul'],
+  voice: {
+    wave: 'triangle',
+    base: 126,
+    range: 0.58,
+    rate: 4.8,
+    glide: 0.37,
+    vib: 5,
+    vibAmt: 7,
+    fx: 'rumble',
+    amp: 0.39,
+  },
+  trait: 'Koro checks every amethyst offcut for a second geode.',
+  chat: [
+    'Even an offcut might have a little room inside.',
+    'The gem cutter invoices by the interesting crack.',
+    'My favourite geode has another favourite geode in it.',
+    'A polished sample makes a terrible doorstop.',
+    'Today the quarry dust is lilac.',
+  ],
+  greet: ['Come closer. Catch the light in this seam.', 'Stone desk. Speak after the chisel stops.'],
+  cargo: ['{good}, wedged with velvet.', 'One uncut mystery and its smaller relatives.'],
+  joke: ['I ordered an empty geode. The supplier filled it with paperwork.'],
+  nice: ['Many thanks. That has a good facet.'],
+  bye: ['Leave me the chips when you go.'],
+  honk: ["Don't chip the high notes."],
+  dock: ['Welcome to {port}. Follow the purple dust.', 'At {port}, weigh samples before admiring them.'],
+  rumor: 'The cutters on {planet} are offering a freight premium.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#786867',
+      height: 1.62,
+      arm: [0.46, 1.01, 0, 0.42, 0.106],
+      leg: [0.31, 0.54, 0, 0.095, 0.16],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 1.438, 0.24, 0.68],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.31, 0.025, 0.083, 0.024);
+        n.armL.rotation.x *= 0.39;
+        n.armR.rotation.x *= 0.39;
+      },
+    });
+  },
+};
+/* Latch · A green lock body carries a silver U-shackle above brass-hub wheels. */
+SPECIES_EXTRA.latch = {
+  name: 'Latch',
+  kind: 'latch',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#718a77',
+  hue: 134,
+  sat: 10,
+  lit: 49,
+  syl: ['lat', 'cha', 'tur', 'kik', 'seh', 'ward', 'lo', 'fen'],
+  voice: {
+    wave: 'sine',
+    base: 189,
+    range: 0.53,
+    rate: 5.2,
+    glide: 0.22,
+    vib: 3,
+    vibAmt: 3,
+    fx: 'chorus',
+    amp: 0.39,
+  },
+  trait: 'Latch tries the shackle twice before admitting a seal is sound.',
+  chat: [
+    'I try every shackle twice. Once is a rumour.',
+    'The key blank has excellent potential.',
+    'A good seal makes a particular little sigh.',
+    'My locked drawer contains the spare drawer.',
+    'The airlock passed until someone tried it with a sandwich.',
+  ],
+  greet: ['Locksmith here. Are you inside or outside?', 'Wait for the second click.'],
+  cargo: [
+    '{good}, with the spare key in a separate envelope.',
+    "Uncut keys sorted by the locks they haven't met.",
+  ],
+  joke: ['The lock asked for privacy. I turned the key politely.'],
+  nice: ["Thank you. That's clicked into place."],
+  bye: ['Give the handle one last try.'],
+  honk: ['I thought that was the pressure alarm.'],
+  dock: [
+    'Welcome to {port}. Wait for both green seals.',
+    'At {port}, the brass handle opens toward you.',
+  ],
+  rumor: 'The airlock crew on {planet} has unlocked a higher freight rate.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#718a77',
+      height: 1.26,
+      head: [0, 0.55, 0.13],
+      headParts: /^Lens$/,
+      arm: [0.31, 0.61, 0.025, 0.26, 0.054],
+      faceShell: [0, 0.56, 0.155, 0.158, 0.13, 0.071],
+      face: { eyes: [[0, 0.59, 0.225, 0.072]], mouth: [0, 0.489, 0.218, 0.44] },
+      joints: [
+        ['axle', [0, 0.185, 0], /^(Rubber wheel|Wheel hub)$/],
+        ['shackle', [-0.19, 0.68, 0], /^U-shaped shackle$/],
+      ],
+      gait(n, p, a) {
+        CastRig.roll(n, p, a, ['axle'], 2.35);
+        n.shackle.rotation.y = 0.055 * (1 - Math.cos(p * 2)) * a;
+      },
+    });
+  },
+};
+/* Lichen · A porcelain mask and pale joint caps frame a moss-green conservatory keeper. */
+SPECIES_EXTRA.lichen = {
+  name: 'Lichen',
+  kind: 'lichen',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#62816c',
+  hue: 139,
+  sat: 14,
+  lit: 45,
+  syl: ['li', 'ken', 'por', 'sa', 'rin', 'ver', 'elu', 'dah'],
+  voice: {
+    wave: 'triangle',
+    base: 287,
+    range: 0.36,
+    rate: 6.1,
+    glide: 0.37,
+    vib: 4,
+    vibAmt: 7,
+    fx: 'chorus',
+    amp: 0.39,
+  },
+  trait: 'Lichen kneels to tuck a stray frond back into the crack in its shoulder.',
+  chat: [
+    'The fern in my shoulder has requested a larger pot.',
+    'The greenhouse has an excellent view of itself.',
+    'I water the third shelf and my left hinge together.',
+    'A cracked tile makes an excellent nursery.',
+    "Today's seed count includes one enthusiastic stowaway.",
+  ],
+  greet: [
+    'Greenhouse speaking. Please close the door behind your voice.',
+    'One moment while I tuck this frond in.',
+  ],
+  cargo: [
+    '{good}, watered only if the instructions say so.',
+    'Glazed pots. One of them is already occupied.',
+  ],
+  joke: ['I applied for a garden plot. They inspected my shoulder instead.'],
+  nice: ['Thank you. The fern is standing a little taller.'],
+  bye: ['Leave the little door ajar for the bees.'],
+  honk: ['The humidity gauge just jumped.'],
+  dock: [
+    'At {port}, follow the greenhouse glass.',
+    'Welcome to {port}. Kindly leave the stray frond with me.',
+  ],
+  rumor: 'The conservatory on {planet} has set aside extra delivery money.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#62816c',
+      height: 1.68,
+      headGroup: 'Mask',
+      arm: [0.39, 1.6, 0.024, 0.7, 0.083],
+      handColor: '#d9ccb1',
+      leg: [0.21, 1.07, -0.06, 0.102, 0.2],
+      footColor: '#d9ccb1',
+      omit: /^(Ceramic foot|Porcelain palm|Finger|Fingertip)$/,
+      signal: '#efc66b',
+      face: { eyes: [[0.17, 2.106, 0.157, 0.069]], mouth: [0.17, 2.002, 0.15, 0.45] },
+      joints: [['fern', [-0.29, 1.72, 0.008], /^Fern (rachis|pinna)$/]],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.54, 0.017, 0.032);
+        n.fern.rotation.z = -0.13 * Math.sin(p - 0.35) * a;
+        n.head.rotation.x = 0.041 * Math.cos(p) * a;
+      },
+    });
   },
 };
 /* Linticker: A cabinet robot with a bright pendulum grants time off to overworked clocks. */
@@ -1076,6 +2866,343 @@ SPECIES_EXTRA.loamlet = {
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.16,0.28,0,0.22,.07,dark,null,light));
   },
 };
+/* Lyre · A sea-green soundboard carries seven strings between curved resonator horns. */
+SPECIES_EXTRA.lyre = {
+  name: 'Lyre',
+  kind: 'lyre',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#58918b',
+  hue: 174,
+  sat: 24,
+  lit: 46,
+  syl: ['ly', 'rai', 'tin', 'la', 'gen', 'vo', 'reh', 'pim'],
+  voice: {
+    wave: 'sine',
+    base: 362,
+    range: 0.31,
+    rate: 6.6,
+    glide: 0.37,
+    vib: 3,
+    vibAmt: 7,
+    fx: 'robot',
+    amp: 0.39,
+  },
+  trait: 'Lyre listens to the fourth string while adjusting the fifth.',
+  chat: [
+    'The fourth string listens when I tune the fifth.',
+    'The tuning fork went flat. Someone parked on it.',
+    'One harmonic rattles the teaspoons in the next bay.',
+    'I tune before breakfast. Jam changes the pitch.',
+    'The note between doors three and four is mine.',
+  ],
+  greet: ['Give me a pitch and a minute.', 'Soundboard ready. Try a short hello.'],
+  cargo: ['{good}, separated by felt strips.', 'A set of strings arranged from hopeful to taut.'],
+  joke: ['My lowest note got promoted. It went up a third.'],
+  nice: ['Thank you. That rings kindly.'],
+  bye: ['Let the last note finish.'],
+  honk: ['A brave choice of interval.'],
+  dock: ['At {port}, follow the tuned rail.', 'Welcome to {port}. The door chime is still rehearsing.'],
+  rumor: 'The instrument shop on {planet} just raised its delivery fee a fifth.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#58918b',
+      height: 1.39,
+      head: [0, 0.5, 0.075],
+      headParts: /^Lens$/,
+      arm: [0.25, 0.57, 0.03, 0.27, 0.052],
+      leg: [0.22, 0.37, 0, 0.069, 0.13],
+      faceShell: [0, 0.51, 0.108, 0.2, 0.137, 0.087],
+      signal: '#b5f1d3',
+      face: { eyes: [[0, 0.54, 0.193, 0.07]], mouth: [0, 0.44, 0.185, 0.5] },
+      joints: [['strings', [0, 0.55, 0.02], /^Harmonic string$/]],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.53, 0.022, 0.044);
+        n.strings.scale.x = 1 + 0.048 * Math.sin(p * 3) * a;
+        n.armL.rotation.x += 0.16 * Math.sin(p * 2) * a;
+      },
+    });
+  },
+};
+/* Marlo · A tusked ice harbormaster wears a wool scarf over a heavy coat. */
+SPECIES_EXTRA.marlo = {
+  name: 'Marlo',
+  kind: 'marlo',
+  family: 'alien',
+  skin: 'matte',
+  cast: true,
+  script: 'dots',
+  col: '#91a5a4',
+  hue: 177,
+  sat: 10,
+  lit: 61,
+  syl: ['mar', 'loh', 'hum', 'voi', 'nu', 'bal', 'iss', 'ro'],
+  voice: {
+    wave: 'sine',
+    base: 146,
+    range: 0.53,
+    rate: 4.8,
+    glide: 0.22,
+    vib: 3,
+    vibAmt: 3,
+    fx: 'rumble',
+    amp: 0.39,
+  },
+  trait: 'Marlo tests the ice with a tusk before sending out a tug.',
+  chat: [
+    'Clear ice rings. Cloudy ice offers a second opinion.',
+    'The scarf is regulation wool, privately darned.',
+    "Our smallest tug fits inside yesterday's bootprint.",
+    'The harbour thawed early and misplaced pier three.',
+    'I test ice before I test the kettle.',
+  ],
+  greet: ["Ice office. You're clear to speak.", 'Come alongside the warm piling.'],
+  cargo: ['{good}, kept away from the thawing edge.', 'A box of mittens sized for tugboat work.'],
+  joke: ['My frozen timetable has a very firm departure time.'],
+  nice: ["Thanks. That's warmer than the office."],
+  bye: ['Easy on the ice at the bend.'],
+  honk: ['The tugs are awake now.'],
+  dock: [
+    'At {port}, the white flags mark firm ice.',
+    "Welcome to {port}. I'll send a tug with mittens.",
+  ],
+  rumor: 'The ice harbour on {planet} has raised its freight allowance.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#91a5a4',
+      height: 1.59,
+      arm: [0.4, 0.91, 0.025, 0.42, 0.1],
+      leg: [0.28, 0.38, 0, 0.089, 0.15],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 1.262, 0.32, 0.6],
+      lip: [1.12, 0.68, 1],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.28, 0.015, 0.085);
+        n.armL.rotation.z = -0.06 * Math.abs(Math.sin(p)) * a;
+        n.armR.rotation.z = -n.armL.rotation.z;
+      },
+    });
+  },
+};
+/* Mica · A plated, copper-beaked surveyor wears a travel cape and carries a sextant. */
+SPECIES_EXTRA.mica = {
+  name: 'Mica',
+  kind: 'mica',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'dots',
+  col: '#537a7a',
+  hue: 180,
+  sat: 19,
+  lit: 40,
+  syl: ['mi', 'kar', 'sek', 'tir', 'ven', 'qua', 'sha', 'rei'],
+  voice: {
+    wave: 'triangle',
+    base: 250,
+    range: 0.53,
+    rate: 5.8,
+    glide: 0.44,
+    vib: 2,
+    vibAmt: 5,
+    fx: 'click',
+    amp: 0.39,
+  },
+  trait: 'Mica keeps a brass sextant for the days when the ship insists it knows where it is.',
+  chat: [
+    'The nav screen insists the horizon is in my pocket.',
+    'I checked our heading against a chipped brass screw.',
+    'Clouds make poor reference points. They wander off.',
+    'My sextant has never asked for a software update.',
+    'The shortcut on this chart is an old tea stain.',
+  ],
+  greet: ['Hold a bearing for me.', 'There you are, one division to starboard.'],
+  cargo: ['{good}. I plotted the corners myself.', 'A replacement horizon line. Rolled, of course.'],
+  joke: ['I lost my bearings. Luckily the sextant has spares.'],
+  nice: ['A precise compliment. Thank you.'],
+  bye: ['Fair angles and a steady deck.'],
+  honk: ['One short blast puts you just above the horizon.'],
+  dock: ['At {port}, line up on the crooked chimney.', 'Welcome to {port}. My chart agrees for once.'],
+  rumor: "The brass marks on {planet}'s tariff chart point to a bonus.",
+  build(T) {
+    CastRig.build(T, {
+      accent: '#537a7a',
+      height: 1.76,
+      headGroup: 'Armored avian head',
+      arm: [0.42, 2.09, 0.03, 0.7, 0.1],
+      handColor: '#50595b',
+      leg: [0.23, 1.52, 0, 0.12, 0.25],
+      legParts: /^(Leg|Kneecap|Boot|Foot claw)$/,
+      footParts: /^(Boot|Foot claw)$/,
+      omit: /^(Surveyor arm|Glove|Finger|Fingertip)$/,
+      mouth: [0, 2.53, 0.32, 0.6],
+      lip: [1.15, 0.66, 1],
+      props: [
+        {
+          parts: /^Sextant$/,
+          side: 'L',
+          grip: [0.58, 2.31, 0.61],
+          scale: 0.94,
+          turn: [-0.05, 0.6, 0.21],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.55, 0.016, 0.027, 0.018);
+        n.armL.rotation.x *= 0.28;
+      },
+    });
+  },
+};
+/* Myrr · A mushroom kitchen steward wears a green apron under a cream-gilled cap. */
+SPECIES_EXTRA.myrr = {
+  name: 'Myrr',
+  kind: 'myrr',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'curvy',
+  col: '#d8b58e',
+  hue: 32,
+  sat: 49,
+  lit: 70,
+  syl: ['my', 'reh', 'gus', 'vel', 'um', 'pa', 'sep', 'nou'],
+  voice: {
+    wave: 'sine',
+    base: 257,
+    range: 0.31,
+    rate: 5.6,
+    glide: 0.22,
+    vib: 2,
+    vibAmt: 3,
+    fx: 'none',
+    amp: 0.39,
+  },
+  trait: 'Myrr hides the tasting spoon under a broad mushroom cap.',
+  chat: [
+    'One clean spoon for every soup. There are more soups than spoons.',
+    'The broth grew a tiny umbrella overnight.',
+    'A pinch of seasoning is a licensed unit here.',
+    'The lunch queue has asked for seconds in advance.',
+    'I keep the tasting spoon under my cap when it rains.',
+  ],
+  greet: ["Stew's on. Are you calling about portions?", 'Hello. The kettle has the other line.'],
+  cargo: [
+    '{good}, marked clearly as ingredients or furniture.',
+    'Six jars of stock and a ladle on parole.',
+  ],
+  joke: ['The soup was too quiet. I added a little thyme to talk.'],
+  nice: ['Thank you. Have the crunchy bit.'],
+  bye: ['Mind the steam on your way out.'],
+  honk: ['The kettle can manage its own whistle.'],
+  dock: [
+    'Welcome to {port}. Lunch is through the blue door.',
+    'At {port}, return the spoons to the little hatch.',
+  ],
+  rumor: 'Full kitchens on {planet} are paying extra for deliveries.',
+  build(T) {
+    CastRig.build(T, {
+      offsets: [[/^(Bell cap|Cream gill)$/, [0, 0.12, 0]]],
+      accent: '#d8b58e',
+      height: 1.36,
+      arm: [0.23, 0.72, 0.02, 0.31, 0.058],
+      leg: [0.17, 0.37, 0, 0.064, 0.13],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 1.048, 0.18, 0.48],
+      props: [
+        {
+          parts: /^(Tasting spoon|Spoon bowl)$/,
+          side: 'L',
+          grip: [0.27, 0.62, 0.2],
+          scale: 0.92,
+          turn: [0, -1.42, 0],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.46, 0.026, 0.075);
+        n.head.rotation.z = -0.085 * Math.sin(p - 0.25) * a;
+      },
+    });
+  },
+};
+/* Nacre · A rose reef acoustician stands on six soft feet in front of a ribbed shell fan. */
+SPECIES_EXTRA.nacre = {
+  name: 'Nacre',
+  kind: 'nacre',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'angular',
+  col: '#ae817e',
+  hue: 4,
+  sat: 23,
+  lit: 59,
+  syl: ['nak', 'reh', 'lum', 'sho', 'ti', 'lam', 'ah', 'sui'],
+  voice: {
+    wave: 'sawtooth',
+    base: 269,
+    range: 0.58,
+    rate: 6.1,
+    glide: 0.22,
+    vib: 4,
+    vibAmt: 3,
+    fx: 'chorus',
+    amp: 0.24,
+  },
+  trait: 'Nacre presses a shell rib to a wall to hear the tide beyond it.',
+  chat: [
+    'The reef sounds different after the lunch bell.',
+    'I heard a tide through six walls and a biscuit tin.',
+    'Each shell rib is tuned to a different inlet.',
+    'The harbour echo came back with a request.',
+    'A quiet room still has a shoreline somewhere.',
+  ],
+  greet: ['Speak into the wide end of the shell.', 'Reef station. I can hear your wake.'],
+  cargo: [
+    '{good}, packed between sound-deadening towels.',
+    'A collection of tides. The shells are included.',
+  ],
+  joke: ["I held a shell to a shell and now they're corresponding."],
+  nice: ['Thank you. Lovely overtones.'],
+  bye: ['May your wake sound gentle.'],
+  honk: ['I shall file that under sudden tides.'],
+  dock: [
+    'Welcome to {port}. Listen for the hollow pilings.',
+    'At {port}, the round wall carries announcements best.',
+  ],
+  rumor: 'The reef survey on {planet} is paying extra for deliveries.',
+  build(T) {
+    CastRig.build(T, {
+      tent: Array.from({ length: 6 }, (_, i) => 'pod' + i),
+      accent: '#ae817e',
+      height: 1.29,
+      arm: [0.23, 0.68, 0.06, 0.35, 0.069],
+      hand: 'fin',
+      mouth: [0, 0.897, 0.388, 0.47],
+      joints: Array.from({ length: 6 }, (_, i) => {
+        const t = (i * Math.PI) / 3;
+        return [
+          'pod' + i,
+          [Math.cos(t) * 0.17, 0.57, Math.sin(t) * 0.13],
+          /^Shell foot$/,
+          (v) =>
+            Math.round((Math.atan2(v.z / 0.37, v.x / 0.44) + Math.PI * 2) / (Math.PI / 3)) % 6 === i,
+        ];
+      }),
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.011);
+        for (let i = 0; i < 6; i++) {
+          const beat = p + (i * Math.PI) / 3;
+          n['pod' + i].rotation.x = 0.28 * Math.sin(beat) * a;
+          n['pod' + i].rotation.z = 0.12 * Math.cos(beat) * a;
+        }
+      },
+    });
+  },
+};
 /* Nacrelle: A pearl nestled in a fan shell listens for the quietest noise in each port. */
 SPECIES_EXTRA.nacrelle = {
   name:"Nacrelle", kind:"nacrelle", family:"alien", skin:"gloss",
@@ -1157,6 +3284,433 @@ SPECIES_EXTRA.nacrelle = {
     T.mouth(head,U,0,-0.105,0.24,.86);
     T.blush(head,0.219,-0.065,0.184,.061);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.328,0.51,.085,0.241,.054,body,light));
+  },
+};
+/* Neru · A teal tidal cartographer has branching pink gills and a paddle tail. */
+SPECIES_EXTRA.neru = {
+  name: 'Neru',
+  kind: 'neru',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'curvy',
+  col: '#6cabac',
+  hue: 181,
+  sat: 28,
+  lit: 55,
+  syl: ['ne', 'rul', 'wa', 'del', 'shu', 'va', 'kel', 'na'],
+  voice: {
+    wave: 'sine',
+    base: 287,
+    range: 0.31,
+    rate: 5.9,
+    glide: 0.37,
+    vib: 3,
+    vibAmt: 7,
+    fx: 'bubble',
+    amp: 0.39,
+  },
+  trait: 'Neru dips the lowest gill into a current before unfolding the chart.',
+  chat: [
+    'I drew that channel at low tide. It has since moved house.',
+    'My lowest gill votes upstream.',
+    'Fold a wet chart wrong and you discover a new lake.',
+    'The bend by buoy two tastes faintly of lunch.',
+    'The current returned my pencil.',
+  ],
+  greet: ['Current looks friendly. Come alongside.', "One moment. I'm unfolding the coast."],
+  cargo: ['{good}, above the high-water line.', 'Waterproof maps in a thoroughly damp box.'],
+  joke: ['My chart of the dry dock is remarkably short.'],
+  nice: ["Thanks. That's going in the margin."],
+  bye: ['Catch the outgoing current.'],
+  honk: ['I have marked that noise as a buoy.'],
+  dock: ['Welcome to {port}. Follow the blue shallows.', 'At {port}, the dock floats up to meet you.'],
+  rumor: 'Incoming freight earns extra on {planet} before the tide turns.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#6cabac',
+      height: 1.18,
+      arm: [0.22, 0.39, 0.21, 0.28, 0.085],
+      hand: 'fin',
+      leg: [0.22, 0.39, -0.25, 0.075, 0.15],
+      skip: (v, m, n) => n.includes('Leg') && m.parent.position.z > 0,
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 0.82, 0.58, 0.61],
+      joints: [['tail', [0, 0.54, -0.43], /^Paddle tail$/]],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.54, 0.015, 0.045);
+        n.armL.rotation.x = -n.legL.rotation.x;
+        n.armR.rotation.x = -n.armL.rotation.x;
+        n.tail.rotation.y = 0.25 * Math.sin(p) * a;
+      },
+    });
+  },
+};
+/* Nim · A blue seed courier wears a straw hat and grips a dandelion parasol. */
+SPECIES_EXTRA.nim = {
+  name: 'Nim',
+  kind: 'nim',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'angular',
+  col: '#788dce',
+  hue: 225,
+  sat: 47,
+  lit: 64,
+  syl: ['nim', 'pip', 'fa', 'loo', 'sey', 'mer', 'ti', 'da'],
+  voice: {
+    wave: 'sine',
+    base: 454,
+    range: 0.58,
+    rate: 7.8,
+    glide: 0.16,
+    vib: 4,
+    vibAmt: 4,
+    fx: 'bubble',
+    amp: 0.39,
+  },
+  trait:
+    'Nim tips the dandelion parasol into a crosswind and lets it carry the mailbag the last few metres.',
+  chat: [
+    'The wind delivered the letters in reverse order.',
+    "I've sewn a little stamp pocket inside my hat.",
+    'The urgent envelope keeps leaning into the breeze.',
+    'I have a return address for every seed except the adventurous one.',
+    'The bag is shut. The hat is negotiable.',
+  ],
+  greet: ['Post for you, if you can catch it.', 'Step downwind of the mail, please.'],
+  cargo: ['{good}. Signed for by a very small gust.', 'Three postcards and a parasol repair kit.'],
+  joke: ['Express delivery means I had to chase it.'],
+  nice: ["Thanks. I'll save that on the back of a stamp."],
+  bye: ["Tailwind's here. That's my ride."],
+  honk: ['That gust was addressed to me.'],
+  dock: [
+    'Welcome to {port}. Letters go under the brick.',
+    'At {port}, mind the envelopes crossing the pad.',
+  ],
+  rumor: 'The postmaster on {planet} put a bonus stamp on incoming loads.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#788dce',
+      height: 1.57,
+      headGroup: 'Round head',
+      arm: [0.32, 0.89, 0.04, 0.33, 0.075],
+      handColor: '#a5addb',
+      leg: [0.16, 0.39, 0, 0.073, 0.15],
+      omit: /^(Arm|Short leg|Foot|Mitten hand)$/,
+      face: {
+        eyes: [
+          [-0.135, 1.235, 0.302, 0.071],
+          [0.135, 1.235, 0.302, 0.071],
+        ],
+        mouth: [0, 1.12, 0.335, 0.56],
+      },
+      lip: [1.18, 0.7, 1],
+      props: [
+        {
+          parts: /^(Parasol stalk|Seed head|Seed ray|Silken filament)$/,
+          side: 'L',
+          grip: [0.42, 0.98, 0.26],
+          scale: 0.76,
+          turn: [0.1, 0, 0.39],
+        },
+        {
+          parts: /^(Postbag|Envelope flap|Cross-body strap|Rivet)$/,
+          side: 'R',
+          grip: [0.27, 0.65, 0.16],
+          scale: 0.66,
+          turn: [-0.05, 1.24, 0],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.56, 0.04, 0.06);
+        n.armL.rotation.x *= 0.14;
+        n.head.rotation.z = -0.065 * Math.sin(p) * a;
+      },
+    });
+  },
+};
+/* Obo · A cricket in a linen dinner jacket carries a bell-ended reed instrument. */
+SPECIES_EXTRA.obo = {
+  name: 'Obo',
+  kind: 'obo',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'angular',
+  col: '#8a9f4c',
+  hue: 75,
+  sat: 35,
+  lit: 46,
+  syl: ['ob', 'bo', 'zi', 'kri', 'leh', 'tek', 'ru', 'fi'],
+  voice: {
+    wave: 'triangle',
+    base: 379,
+    range: 0.42,
+    rate: 7.1,
+    glide: 0.22,
+    vib: 3,
+    vibAmt: 3,
+    fx: 'none',
+    amp: 0.39,
+  },
+  trait: 'Obo tests a new reed on the last three notes of the closing-time tune.',
+  chat: [
+    'The closing tune has three notes. Nobody leaves on two.',
+    'This reed plays beautifully when the room is empty.',
+    'The floorboards hum a low note under table six.',
+    'I keep the emergency encore in my breast pocket.',
+    'A freight whistle just stole my entrance.',
+  ],
+  greet: ['Is that you on the pickup?', 'Come in after four. I shall count loudly.'],
+  cargo: [
+    '{good}, packed between concert programs.',
+    'Fresh reeds. The old ones have formed a quartet.',
+  ],
+  joke: ['The rest in my solo got an excellent review.'],
+  nice: ["Thanks. I'll write that above the difficult bar."],
+  bye: ["Last three notes, then I'm off."],
+  honk: ['Good pitch. Come back for rehearsal.'],
+  dock: ['At {port}, the ramp squeaks in tune.', 'Welcome to {port}. Tip the piano mover.'],
+  rumor: 'The house band on {planet} says freight gets an encore fee.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#8a9f4c',
+      height: 1.79,
+      arm: [0.37, 1.96, 0.01, 0.66, 0.09],
+      handColor: '#58713e',
+      leg: [0.25, 1.32, 0, 0.11, 0.28],
+      legParts: /^(Cricket thigh|Knee|Shin|Tarsus|Toe claw)$/,
+      footParts: /^(Tarsus|Toe claw)$/,
+      omit: /^(Bent jacket sleeve|Forearm|Player hand|Finger|Fingertip)$/,
+      mouth: [0.015, 2.355, 0.275, 0.63],
+      lip: [1.08, 0.72, 1],
+      props: [
+        {
+          parts: /^(Woodwind body|Key ring|Woodwind bell|Bell interior)$/,
+          side: 'L',
+          grip: [0.57, 2.07, 0.7],
+          scale: 0.83,
+          turn: [0.2, -1.45, -0.06],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.78, 0.043, 0.035);
+        n.head.rotation.z = 0.047 * Math.sin(p * 2) * a;
+      },
+    });
+  },
+};
+/* Orlo · Nested brass and blue gimbals hang above a compact gyro base. */
+SPECIES_EXTRA.orlo = {
+  name: 'Orlo',
+  kind: 'orlo',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#667c9a',
+  hue: 215,
+  sat: 20,
+  lit: 50,
+  syl: ['or', 'lo', 'gym', 'bal', 'tir', 'axi', 'ro', 'nul'],
+  voice: {
+    wave: 'sine',
+    base: 254,
+    range: 0.42,
+    rate: 6.0,
+    glide: 0.44,
+    vib: 3,
+    vibAmt: 5,
+    fx: 'click',
+    amp: 0.39,
+  },
+  trait: 'Orlo holds the inner gimbal still while the platform settles.',
+  chat: [
+    'The platform moved. My inner ring has lodged a protest.',
+    'Level is a local custom.',
+    "I keep yesterday's vertical in the log for comparison.",
+    'My calibration chair has one short leg for training.',
+    'Three rings agreed at once. I checked the power.',
+  ],
+  greet: ["Hold still if that's convenient.", 'Reference frame open. Which way is up today?'],
+  cargo: ['{good}, suspended at the approved angle.', 'A replacement axis. It travels flat.'],
+  joke: ['I took a balanced view. The shelf was crooked.'],
+  nice: ['Thank you. Equilibrium restored.'],
+  bye: ['Keep the shiny axis upright.'],
+  honk: ['The outer ring disagrees with your rhythm.'],
+  dock: [
+    'At {port}, the level stripe is almost level.',
+    'Welcome to {port}. Wait for the platform to settle.',
+  ],
+  rumor: 'My readings confirm a positive freight adjustment on {planet}.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#667c9a',
+      height: 1.37,
+      head: [0, 0.83, 0],
+      headParts: /^(Pendulum core|Lens)$/,
+      arm: [0.205, 0.56, 0.04, 0.29, 0.048],
+      face: { eyes: [[0, 0.852, 0.168, 0.073]], mouth: [0, 0.767, 0.143, 0.44] },
+      joints: [
+        ['outer', [0, 0.83, 0], /^Gimbal$/, (v, m) => m.material.name.startsWith('#667c9a')],
+        ['inner', [0, 0.83, 0], /^Gimbal$/, (v, m) => m.material.name.startsWith('#c4964e')],
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0);
+        n.rig.rotation.z = 0.074 * Math.sin(p) * a;
+        n.outer.rotation.y = 0.38 * Math.sin(p) * a;
+        n.inner.rotation.x = 0.29 * Math.cos(p) * a;
+      },
+    });
+  },
+};
+/* Orris · A leafy-eared botanist in a rust vest carries a tray of seedlings. */
+SPECIES_EXTRA.orris = {
+  name: 'Orris',
+  kind: 'orris',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'curvy',
+  col: '#5f9d8b',
+  hue: 163,
+  sat: 25,
+  lit: 49,
+  syl: ['or', 'ris', 'fen', 'loa', 'thu', 'bea', 'iss', 'pon'],
+  voice: {
+    wave: 'triangle',
+    base: 228,
+    range: 0.31,
+    rate: 5.4,
+    glide: 0.16,
+    vib: 2,
+    vibAmt: 4,
+    fx: 'chirp',
+    amp: 0.39,
+  },
+  trait: 'Orris turns every leaf over before declaring a seedling healthy.',
+  chat: [
+    'A seedling has requested a window seat.',
+    'Turn that leaf over. The underside has opinions.',
+    'My tray passed customs. The soil is still answering questions.',
+    'Three pots sprouted. I only packed two.',
+    'The watering roster includes a day off for the watering can.',
+  ],
+  greet: [
+    'Botany desk. How much sun does your cabin get?',
+    'Come aboard. Wipe your boots on the way out. I need the soil.',
+  ],
+  cargo: [
+    '{good}. Please keep the drainage holes clear.',
+    'Six quiet seedlings and their noisy little labels.',
+  ],
+  joke: ['The vine climbed the career ladder. Now nobody can reach the scissors.'],
+  nice: ['Thank you. I shall tell the compost.'],
+  bye: ['Goodbye. Watch where the roots cross the ramp.'],
+  honk: ['That loosened the pollen.'],
+  dock: [
+    'Welcome to {port}. The fern has stamped your slip.',
+    'At {port}, green shoots have right of way.',
+  ],
+  rumor: 'The nurseries on {planet} are paying extra for a prompt arrival.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#5f9d8b',
+      height: 1.65,
+      headGroup: 'Neck and head',
+      arm: [0.7, 1.51, 0.055, 0.62, 0.13],
+      handColor: '#b9d79f',
+      leg: [0.44, 0.49, 0, 0.16, 0.33],
+      legParts: /^(Haunch|Webbed foot|Toe pad)$/,
+      footParts: /^(Webbed foot|Toe pad)$/,
+      omit: /^(Supporting arm|Inspecting arm|Palm|Finger|Fingertip|Curled forefinger|Thumb)$/,
+      mouth: [0, 2.125, 0.369, 0.87],
+      lip: [1.18, 0.64, 0.88],
+      props: [
+        {
+          parts: /^Seed tray$/,
+          side: 'L',
+          grip: [0.24, 1.12, 0.52],
+          scale: 0.8,
+          turn: [-0.19, 0.15, 0.14],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.38, 0.034, 0.065);
+        n.armL.rotation.x *= 0.18;
+      },
+    });
+  },
+};
+/* Parallax · An ivory C-gauge suspends a calibration cube opposite a blue camera barrel. */
+SPECIES_EXTRA.parallax = {
+  name: 'Parallax',
+  kind: 'parallax',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#e2d7bc',
+  hue: 43,
+  sat: 40,
+  lit: 81,
+  syl: ['par', 'eks', 'nul', 'vek', 'ti', 'kal', 'so', 'lim'],
+  voice: {
+    wave: 'sine',
+    base: 343,
+    range: 0.42,
+    rate: 6.8,
+    glide: 0.22,
+    vib: 3,
+    vibAmt: 3,
+    fx: 'click',
+    amp: 0.39,
+  },
+  trait: 'Parallax checks the calibration cube again if anyone breathes near the gauge.',
+  chat: [
+    'I checked the cube before and after that sneeze.',
+    'Five faces agree. The sixth would like a witness.',
+    'The empty gap measures precisely one empty gap.',
+    'The calibration certificate needs its own calibration.',
+    'I have a spare straight edge for emergencies involving corners.',
+  ],
+  greet: ['Stand where both marks overlap.', 'Survey line open. Breathe toward the ceiling.'],
+  cargo: [
+    '{good}, measured in three directions.',
+    'One reference cube. Please stack nothing on its corners.',
+  ],
+  joke: ['I squared the invoice. Accounts said it was already a rectangle.'],
+  nice: ['Thank you. Within a pleasing tolerance.'],
+  bye: ['Keep your reference point in sight.'],
+  honk: ['Measured the sound. Definitely wide.'],
+  dock: [
+    'At {port}, line your hull up with both marks.',
+    'Welcome to {port}. Please leave the white cube where you found it.',
+  ],
+  rumor: 'The survey bench on {planet} measured a sizeable freight bonus.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#e2d7bc',
+      height: 1.52,
+      hover: true,
+      head: [-0.73, 1.07, 0.11],
+      headParts: /^(Camera barrel|Lens bezel)$/,
+      arm: [0.49, 1.04, 0.145, 0.44, 0.071],
+      faceShell: [-0.73, 1.002, 0.213, 0.154, 0.181, 0.092],
+      shellColor: '#58636b',
+      face: { eyes: [[-0.73, 1.09, 0.301, 0.113]], mouth: [-0.73, 0.941, 0.309, 0.53] },
+      lip: [0.85, 0.72, 1],
+      signal: '#8fdfef',
+      joints: [['cube', [0.615, 1.07, 0], /^Calibration glass$/]],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.022);
+        n.cube.rotation.y = 0.24 * Math.sin(p) * a;
+        n.rig.rotation.y = 0.09 * Math.sin(p * 0.5) * a;
+      },
+    });
   },
 };
 /* Parasolum: A scalloped umbrella glider insures picnics against excessive sunshine. */
@@ -1244,6 +3798,160 @@ SPECIES_EXTRA.parasolum = {
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.13,0.25,0,0.19,.07,dark,null,light));
   },
 };
+/* Pavo · A turquoise herald carries a crowned head in front of an eyespotted feather fan. */
+SPECIES_EXTRA.pavo = {
+  name: 'Pavo',
+  kind: 'pavo',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'angular',
+  col: '#528a89',
+  hue: 179,
+  sat: 25,
+  lit: 43,
+  syl: ['pah', 'voh', 'treh', 'la', 'no', 'fi', 'ru', 'dai'],
+  voice: {
+    wave: 'sine',
+    base: 329,
+    range: 0.42,
+    rate: 6.7,
+    glide: 0.16,
+    vib: 2,
+    vibAmt: 4,
+    fx: 'chirp',
+    amp: 0.39,
+  },
+  trait: 'Pavo opens the feather fan before announcing an arrival.',
+  chat: [
+    'I announced a cart yesterday. It acknowledged with one squeak.',
+    'An arrival gets six feathers. A delivery gets seven.',
+    'The formal pause in my script is nearly a whole page.',
+    'I practise my opening outside the freight lift.',
+    "The court approved a shorter word for welcome. It's longer.",
+  ],
+  greet: [
+    'Stand by for an entirely official hello.',
+    'Your arrival has been noticed in the proper order.',
+  ],
+  cargo: [
+    '{good}, entering by the ceremonial ramp.',
+    'Two velvet ropes and an unusually important hook.',
+  ],
+  joke: ['I announced myself once. Had to hurry round to the entrance.'],
+  nice: ['Your kind remark is duly proclaimed.'],
+  bye: ['Exit fanfare follows separately.'],
+  honk: ['A fine introduction. I shall take it from here.'],
+  dock: [
+    'Welcome to {port}. On behalf of the loading ramp, hello.',
+    'At {port}, ordinary freight may also bow.',
+  ],
+  rumor: 'The court on {planet} has proclaimed a higher delivery fee.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#528a89',
+      height: 1.51,
+      arm: [0.21, 0.91, 0.033, 0.34, 0.065],
+      hand: 'wing',
+      leg: [0.16, 0.51, 0, 0.066, 0.15],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 1.25, 0.39, 0.47],
+      joints: [['fan', [0, 0.53, -0.16], /^(Fan feather|Feather eye|Eye center)$/]],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.65, 0.031, 0.023);
+        n.fan.rotation.y = -0.15 * Math.sin(p) * a;
+        n.fan.rotation.x = 0.052 * Math.cos(p * 2) * a;
+      },
+    });
+  },
+};
+/* Pinion · A copper aerial gearbox has ivory wings and twin propellers. */
+SPECIES_EXTRA.pinion = {
+  name: 'Pinion',
+  kind: 'pinion',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#9a6c56',
+  hue: 19,
+  sat: 28,
+  lit: 47,
+  syl: ['pin', 'yon', 'kit', 'aer', 'va', 'slip', 'zen', 'ro'],
+  voice: {
+    wave: 'sine',
+    base: 370,
+    range: 0.31,
+    rate: 6.6,
+    glide: 0.08,
+    vib: 3,
+    vibAmt: 8,
+    fx: 'robot',
+    amp: 0.39,
+  },
+  trait: 'Pinion checks the wing braces before taking the crosswind lane.',
+  chat: [
+    'I check every brace before I blame the crosswind.',
+    'The windsock tried to follow me back to the hangar.',
+    'One propeller is always working the opposite shift.',
+    'The lane markings look better from underneath.',
+    'I carry a folded forecast for use in level flight.',
+  ],
+  greet: ['Wing inspector here. Which lane are you in?', 'Clear to talk on this heading.'],
+  cargo: [
+    '{good}, lashed below the crosswind stripe.',
+    'Spare braces. The wings stayed attached for collection.',
+  ],
+  joke: ['The air lane has no potholes, just very sudden suggestions.'],
+  nice: ['Thanks. Both wings acknowledge.'],
+  bye: ['Keep the crosswind on the painted side.'],
+  honk: ['You just moved the windsock.'],
+  dock: [
+    'At {port}, approach under the white wing marker.',
+    'Welcome to {port}. The crosswind lane is yours.',
+  ],
+  rumor: 'The air-lane crews on {planet} are paying extra for supplies.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#9a6c56',
+      height: 1.16,
+      hover: true,
+      head: [0, 0.68, 0.17],
+      headParts: /^Lens$/,
+      arm: [0.22, 0.68, 0.045, 0.24, 0.045],
+      faceShell: [0, 0.725, 0.241, 0.153, 0.109, 0.095],
+      face: { eyes: [[0, 0.741, 0.324, 0.07]], mouth: [0, 0.651, 0.319, 0.46] },
+      extra({ joint, rod, oval }) {
+        joint('rig', (g) => {
+          rod(g, 'Survey mast', '#b6a584', [0, 0.78, -0.095], [0, 1.29, -0.095], 0.023, 0.011);
+          oval(g, 'Wind sensor', '#d2aa72', [0, 1.3, -0.095], [0.043, 0.03, 0.031]);
+          for (const s of [-1, 1]) {
+            rod(
+              g,
+              'Undercarriage strut',
+              '#657783',
+              [s * 0.115, 0.53, 0],
+              [s * 0.2, 0.22, 0.025],
+              0.028,
+              0.019,
+            );
+            oval(g, 'Runner', 'accent', [s * 0.2, 0.21, 0.018], [0.034, 0.034, 0.124]);
+          }
+        });
+      },
+      joints: [
+        ['propL', [-0.46, 0.75, 0.22], /^Prop blade$/, (v) => v.x < 0],
+        ['propR', [0.46, 0.75, 0.22], /^Prop blade$/, (v) => v.x > 0],
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.022, 0.087);
+        n.propL.rotation.z = p * 4.7 * a;
+        n.propR.rotation.z = -n.propL.rotation.z;
+      },
+    });
+  },
+};
 /* Pipettle: A kettle-bellied marsh grazer whistles politely when the queue should move. */
 SPECIES_EXTRA.pipettle = {
   name:"Pipettle", kind:"pipettle", family:"alien", skin:"gloss",
@@ -1326,6 +4034,137 @@ SPECIES_EXTRA.pipettle = {
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.24,0,0.18,.07,dark,null,light));
   },
 };
+/* Plover · A blue long-legged wader carries a chart bag below its curved sounding bill. */
+SPECIES_EXTRA.plover = {
+  name: 'Plover',
+  kind: 'plover',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'curvy',
+  col: '#699ba3',
+  hue: 188,
+  sat: 24,
+  lit: 53,
+  syl: ['plo', 'ver', 'shee', 'tak', 'wi', 'sol', 'ai', 'chu'],
+  voice: {
+    wave: 'triangle',
+    base: 337,
+    range: 0.47,
+    rate: 6.3,
+    glide: 0.44,
+    vib: 4,
+    vibAmt: 5,
+    fx: 'chirp',
+    amp: 0.39,
+  },
+  trait: 'Plover marks a sounding with the tip of a very long bill.',
+  chat: [
+    'I measured that puddle. It is technically a harbour.',
+    'The red reeds mark the old channel on Thursdays.',
+    'My bill has a scratch at one metre.',
+    'The marsh archive is mostly waterproof excuses.',
+    "One bootprint and I've got another pond to survey.",
+  ],
+  greet: ['Soundings desk. How deep is your question?', 'Come off the mud and say hello.'],
+  cargo: [
+    '{good}, stowed above the reed line.',
+    'A chart roll and one extremely long measuring string.',
+  ],
+  joke: ['I took a shallow reading. The pond was offended.'],
+  nice: ["Thanks. I'll mark a star beside that."],
+  bye: ["Mind the last step. I haven't measured it."],
+  honk: ['That startled the measuring reeds.'],
+  dock: [
+    'Welcome to {port}. The blue posts are dry.',
+    'At {port}, sound the water beside the third piling.',
+  ],
+  rumor: 'Survey crews on {planet} are offering extra for the next load.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#699ba3',
+      height: 1.78,
+      arm: [0.21, 1.19, 0.035, 0.39, 0.061],
+      hand: 'wing',
+      leg: [0.15, 0.92, 0, 0.06, 0.18],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      omit: /^Folded wing$/,
+      mouth: [0, 1.65, 0.48, 0.46],
+      lip: [1.15, 0.52, 1],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.76, 0.022, 0.024);
+        n.footL.rotation.x += 0.27 * Math.max(0, -Math.cos(p)) * a;
+        n.footR.rotation.x += 0.27 * Math.max(0, Math.cos(p)) * a;
+        n.head.rotation.x = 0.12 * Math.cos(2 * p) * a;
+      },
+    });
+  },
+};
+/* Plume · A blue sampler hovers below a crown of staggered intake tubes. */
+SPECIES_EXTRA.plume = {
+  name: 'Plume',
+  kind: 'plume',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#698e9a',
+  hue: 195,
+  sat: 20,
+  lit: 51,
+  syl: ['plu', 'um', 'veh', 'cir', 'pah', 'gas', 'ni', 'hu'],
+  voice: {
+    wave: 'sawtooth',
+    base: 352,
+    range: 0.58,
+    rate: 6.9,
+    glide: 0.08,
+    vib: 5,
+    vibAmt: 8,
+    fx: 'click',
+    amp: 0.24,
+  },
+  trait: 'Plume uncaps the tallest tube to sample air above the engine wash.',
+  chat: [
+    "The tallest tube is for air that hasn't met an engine.",
+    'Sample four smells like sample three going past a bakery.',
+    'I label the empty vials before filling them with different emptiness.',
+    'The engine wash has opinions about breakfast.',
+    'A still day makes the air queue nicely.',
+  ],
+  greet: ['Sampling desk. Breathe to the left, please.', "I've capped the sensitive tube. Say hello."],
+  cargo: ['{good}, well away from the intake.', 'Five sealed samples of approximately here.'],
+  joke: ['I bottled a breeze. Accounts charged for the draught.'],
+  nice: ['Thank you. Perfectly clear reading.'],
+  bye: ['Safe air ahead.'],
+  honk: ['That put exhaust in the polite tube.'],
+  dock: [
+    'Welcome to {port}. Idle engines beyond the sample rack.',
+    'At {port}, the tallest tube points to dispatch.',
+  ],
+  rumor: 'The atmosphere team on {planet} added a premium to incoming freight.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#698e9a',
+      height: 1.3,
+      hover: true,
+      head: [0, 0.71, 0],
+      headParts: /^(Air sampler|Lens|Sample tube)$/,
+      arm: [0.3, 0.7, 0.055, 0.26, 0.049],
+      face: { eyes: [[0, 0.787, 0.257, 0.08]], mouth: [0, 0.681, 0.255, 0.5] },
+      joints: [
+        ['jetL', [-0.26, 0.72, 0], /^(Jet pod|Exhaust lip)$/, (v) => v.x < 0],
+        ['jetR', [0.26, 0.72, 0], /^(Jet pod|Exhaust lip)$/, (v) => v.x > 0],
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.038, 0.054);
+        n.jetL.rotation.x = (-0.19 + 0.12 * Math.sin(p)) * a;
+        n.jetR.rotation.x = (-0.19 - 0.12 * Math.sin(p)) * a;
+      },
+    });
+  },
+};
 /* Pluvindle: A low raincloud on dangling droplet legs measures weather in teaspoons. */
 SPECIES_EXTRA.pluvindle = {
   name:"Pluvindle", kind:"pluvindle", family:"alien", skin:"fuzzy",
@@ -1401,6 +4240,213 @@ SPECIES_EXTRA.pluvindle = {
     T.mouth(head,U,0,-0.115,0.244,.86);
     T.blush(head,0.237,-0.075,0.181,.061);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.416,0.861,.085,0.233,.054,body,light));
+  },
+};
+/* Prong · A yellow cargo tug has upright mast rails and two narrow lifting tines. */
+SPECIES_EXTRA.prong = {
+  name: 'Prong',
+  kind: 'prong',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#c68c49',
+  hue: 32,
+  sat: 52,
+  lit: 53,
+  syl: ['pro', 'ong', 'lif', 'tek', 'pal', 'skah', 'dra', 'wun'],
+  voice: {
+    wave: 'square',
+    base: 165,
+    range: 0.31,
+    rate: 4.8,
+    glide: 0.44,
+    vib: 2,
+    vibAmt: 5,
+    fx: 'robot',
+    amp: 0.24,
+  },
+  trait: 'Prong slides the tines beneath a crate without disturbing the dust.',
+  chat: [
+    'If the dust moved, I approached too fast.',
+    'I can lift an empty pallet without waking its echo.',
+    'The forks have agreed on a common height.',
+    'A crate marked Featherweight is testing that claim.',
+    'I practise on a stack of unsigned forms.',
+  ],
+  greet: ["Forks down. You're clear to talk.", 'Stevedore here. Which face of the crate is forward?'],
+  cargo: ['{good}, lifted from the stamped side.', 'A pallet of spare pallet corners.'],
+  joke: ['I picked up a shift. It was lighter than the crate.'],
+  nice: ['Thanks. The dust stayed exactly where it was.'],
+  bye: ['Keep your toes behind the stripe.'],
+  honk: ['Both tines heard you.'],
+  dock: [
+    'At {port}, line up with the fork slots.',
+    'Welcome to {port}. The unmoved dust marks your bay.',
+  ],
+  rumor: 'The loading gang on {planet} is paying extra per arriving load.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#c68c49',
+      height: 1.19,
+      head: [0, 0.84, -0.14],
+      headParts: /^Optics housing$/,
+      omit: /^Lens$/,
+      arm: [0.308, 0.48, 0.025, 0.25, 0.045],
+      face: {
+        eyes: [
+          [-0.068, 0.862, -0.014, 0.045],
+          [0.068, 0.862, -0.014, 0.045],
+        ],
+        mouth: [0, 0.79, -0.013, 0.44],
+      },
+      joints: [
+        ['front', [0, 0.14, 0.21], /^(Rubber wheel|Wheel hub)$/, (v) => v.z > 0],
+        ['rear', [0, 0.14, -0.21], /^(Rubber wheel|Wheel hub)$/, (v) => v.z < 0],
+        ['carriage', [0, 0.29, 0.31], /^(Lifting tine|Fork heel|Lift carriage)$/],
+      ],
+      gait(n, p, a) {
+        CastRig.roll(n, p, a, ['front', 'rear'], 2.65);
+        n.carriage.position.y = n.carriage.userData.restY + 0.04 * (1 - Math.cos(p)) * a;
+      },
+    });
+  },
+};
+/* Purl · A rose yarn drum carries two knitting needles under a small optic. */
+SPECIES_EXTRA.purl = {
+  name: 'Purl',
+  kind: 'purl',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#9e7982',
+  hue: 345,
+  sat: 16,
+  lit: 55,
+  syl: ['pur', 'ul', 'rib', 'su', 'hem', 'nit', 'kai', 'vo'],
+  voice: {
+    wave: 'triangle',
+    base: 275,
+    range: 0.47,
+    rate: 5.8,
+    glide: 0.37,
+    vib: 4,
+    vibAmt: 7,
+    fx: 'robot',
+    amp: 0.39,
+  },
+  trait: 'Purl counts the stitches between the pressure seams of a glove.',
+  chat: [
+    'One stitch loose and the glove develops a spare thumb.',
+    'I count the pressure seams before I count the fingers.',
+    'The yarn remembers the last shape it was in.',
+    'I knitted a sample of the inside of a pocket.',
+    'The pattern calls for patience in two colours.',
+  ],
+  greet: ['Just let me finish this row.', 'Suit-liner desk. Which hand are we discussing?'],
+  cargo: ['{good}, cushioned in spare ribbing.', 'A pair of liners. The left one has an address label.'],
+  joke: ['I dropped a stitch. It asked for a lift back up.'],
+  nice: ["Thank you. I'll knit you a warmer cuff."],
+  bye: ['Keep the loose thread tucked in.'],
+  honk: ['I counted that as a stitch.'],
+  dock: [
+    'At {port}, the wool stripe marks the safe rail.',
+    'Welcome to {port}. The returns basket is hand knitted.',
+  ],
+  rumor: 'The suit shop on {planet} has stitched in a freight bonus.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#9e7982',
+      height: 1.23,
+      head: [0, 0.99, 0],
+      headParts: /^Optics housing$/,
+      omit: /^Lens$/,
+      arm: [0.254, 0.68, 0.027, 0.26, 0.053],
+      leg: [0.16, 0.37, 0, 0.066, 0.11],
+      signal: '#ffd5bb',
+      face: {
+        eyes: [
+          [-0.064, 1.01, 0.119, 0.044],
+          [0.064, 1.01, 0.119, 0.044],
+        ],
+        mouth: [0, 0.936, 0.119, 0.44],
+      },
+      props: [
+        {
+          parts: /^Knitting needle$/,
+          side: 'L',
+          grip: [0, 0.9, 0.24],
+          scale: 0.68,
+          turn: [-0.1, 0, 1.0],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.43, 0.019, 0.049);
+        n.armL.rotation.x = 0.2 * Math.sin(p * 2) * a;
+        n.armR.rotation.x = -0.16 * Math.sin(p * 2) * a;
+      },
+    });
+  },
+};
+/* Relay · A green receiver cabinet balances an open brass dish above its speaker grille. */
+SPECIES_EXTRA.relay = {
+  name: 'Relay',
+  kind: 'relay',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#64867b',
+  hue: 161,
+  sat: 15,
+  lit: 46,
+  syl: ['re', 'lay', 'sin', 'vah', 'tek', 'pul', 'win', 'jo'],
+  voice: {
+    wave: 'triangle',
+    base: 313,
+    range: 0.47,
+    rate: 6.1,
+    glide: 0.44,
+    vib: 4,
+    vibAmt: 5,
+    fx: 'robot',
+    amp: 0.39,
+  },
+  trait: 'Relay tilts its dish until a distant carrier resolves into a whistle.',
+  chat: [
+    'A carrier came in whistling. I answered in the same key.',
+    'Static is what the sky sounds like between appointments.',
+    'My dish picked up a recipe from last Tuesday.',
+    'The aerial points better after I stop guessing.',
+    "I've logged a signal that only broadcasts its lunch break.",
+  ],
+  greet: ["You're coming through with a little weather.", 'Receiver tuned. Say your call sign slowly.'],
+  cargo: ["{good}, outside the aerial's blind spot.", 'An empty frequency, carefully boxed.'],
+  joke: ['I tuned in to a silent station. Reception was excellent.'],
+  nice: ['Thanks. Five clear bars.'],
+  bye: ['Keep a channel open.'],
+  honk: ['Loud and admirably local.'],
+  dock: [
+    'Welcome to {port}. Follow the low carrier tone.',
+    'At {port}, the green aerial marks dispatch.',
+  ],
+  rumor: 'The carrier from {planet} is repeating a higher delivery offer.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#64867b',
+      height: 1.42,
+      head: [0, 1.015, 0],
+      headParts: /^Dish gimbal$/,
+      arm: [0.32, 0.85, 0.04, 0.35, 0.052],
+      leg: [0.23, 0.42, 0, 0.076, 0.15],
+      face: { eyes: [[0, 1.16, 0.106, 0.083]], mouth: [0, 1.055, 0.105, 0.54] },
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.45, 0.017, 0.04);
+        n.head.rotation.y = 0.2 * Math.sin(p * 0.51) * a;
+        n.head.rotation.x = -0.08 * Math.cos(p) * a;
+      },
+    });
   },
 };
 /* Rilloon: A bellows-bellied singer takes attendance at every echo. */
@@ -1555,6 +4601,215 @@ SPECIES_EXTRA.rimebud = {
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.155,0.28,0,0.22,.07,dark,null,light));
   },
 };
+/* Rivet · A copper saucer welder has patinated seams, striped fins and a sample patch. */
+SPECIES_EXTRA.rivet = {
+  name: 'Rivet',
+  kind: 'rivet',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#ba744a',
+  hue: 22,
+  sat: 45,
+  lit: 51,
+  syl: ['riv', 'et', 'braz', 'tik', 'sah', 'pat', 'kin', 'zo'],
+  voice: {
+    wave: 'square',
+    base: 287,
+    range: 0.53,
+    rate: 6.1,
+    glide: 0.44,
+    vib: 2,
+    vibAmt: 5,
+    fx: 'chorus',
+    amp: 0.24,
+  },
+  trait: 'Rivet keeps a little scrap of hull plate on hand to test the iron before each repair.',
+  chat: [
+    'I test the iron on scrap, even when the scrap complains.',
+    'A straight seam is a row of very tidy accidents.',
+    'The hull plate in my pocket is nearly all patches.',
+    'I can tell the night shift by the shape of a weld.',
+    'The coffee tin passed a pressure test by mistake.',
+  ],
+  greet: ["Iron cooling. I've got a free minute.", 'Come alongside the striped fin.'],
+  cargo: ['{good}, patched where necessary.', 'Offcuts stamped with their future uses.'],
+  joke: ['I welded the complaint box shut. Complaints are down.'],
+  nice: ["Thank you. That's a solid joint."],
+  bye: ['May your seams hold.'],
+  honk: ['That shook a loose rivet out. Useful.'],
+  dock: [
+    'Welcome to {port}. The orange sparks are mine.',
+    'At {port}, let the fresh seam cool before unloading.',
+  ],
+  rumor: 'Repair crews on {planet} put extra pay on incoming freight.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#ba744a',
+      height: 1.22,
+      hover: true,
+      head: [0, 0.88, 0],
+      headParts:
+        /^(Copper hull|Belt rivet|Hull seam|Porthole|Dorsal rudder|Rudder flash|Soldering snout|Hot iron|Heated contact)$/,
+      arm: [0.48, 0.88, 0.12, 0.34, 0.06],
+      faceShell: [0, 1.1, 0.424, 0.36, 0.154, 0.108],
+      shellColor: '#b5774e',
+      face: {
+        eyes: [
+          [-0.242, 1.1, 0.55, 0.105],
+          [0.242, 1.1, 0.55, 0.105],
+        ],
+        mouth: [-0.238, 1.008, 0.585, 0.54],
+      },
+      signal: '#95e4de',
+      props: [
+        { parts: /^(Work clamp|Patch under repair)$/, side: 'L', grip: [-0.09, 0.61, 0.8], scale: 0.78 },
+      ],
+      joints: [
+        ['finL', [-0.51, 0.97, -0.12], /^Stabilizer$/, (v) => v.x < 0],
+        ['finR', [0.51, 0.97, -0.12], /^Stabilizer$/, (v) => v.x > 0],
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.02, 0.075);
+        n.finL.rotation.x = 0.19 * Math.sin(p) * a;
+        n.finR.rotation.x = -n.finL.rotation.x;
+      },
+    });
+  },
+};
+/* Rusk · A low kiln inspector carries overlapping fired plates down an armored back. */
+SPECIES_EXTRA.rusk = {
+  name: 'Rusk',
+  kind: 'rusk',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'angular',
+  col: '#b77553',
+  hue: 20,
+  sat: 41,
+  lit: 52,
+  syl: ['rus', 'kor', 'tile', 'ba', 'rok', 'du', 'kum', 'ash'],
+  voice: {
+    wave: 'sine',
+    base: 139,
+    range: 0.42,
+    rate: 5.0,
+    glide: 0.08,
+    vib: 2,
+    vibAmt: 8,
+    fx: 'rumble',
+    amp: 0.39,
+  },
+  trait: 'Rusk taps the cooled tiles with a back plate and listens for a crack.',
+  chat: [
+    'A cracked tile rings like a spoon in a sock.',
+    'The kiln reached biscuit temperature. No biscuits appeared.',
+    'My back plates make a useful second opinion.',
+    'I keep the faulty tile that taught me to listen.',
+    'The new glaze is called Almost Dry.',
+  ],
+  greet: ["Tap twice if you're carrying ceramics.", 'Inspector here. Your hull sounds promising.'],
+  cargo: ['{good}, with felt between the layers.', 'A carton of tiles graded by their singing voices.'],
+  joke: ['The floor passed inspection. It was on the level.'],
+  nice: ['That has a nice clear ring. Thanks.'],
+  bye: ['Give the glaze time to cool.'],
+  honk: ['Hairline crack or enthusiastic horn?'],
+  dock: [
+    'Welcome to {port}. Avoid the wet tessellation.',
+    'At {port}, the warm pad is for cooling pots.',
+  ],
+  rumor: 'The kilns on {planet} are paying a premium for incoming loads.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#b77553',
+      height: 1.2,
+      arm: [0.32, 0.54, 0.14, 0.42, 0.098],
+      leg: [0.32, 0.54, -0.32, 0.085, 0.16],
+      skip: (v, m, n) => n.includes('Leg') && m.parent.position.z > 0,
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0.012, 0.82, 0.874, 0.5],
+      joints: [['tail', [0, 0.7, -0.52], /^Armored tail$/]],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.4, 0.008, 0.052);
+        n.armL.rotation.x = -n.legL.rotation.x;
+        n.armR.rotation.x = -n.armL.rotation.x;
+        n.tail.rotation.y = -0.14 * Math.sin(p) * a;
+      },
+    });
+  },
+};
+/* Sarra · A jade, hooded glassblower balances on a coil beside a glowing gather. */
+SPECIES_EXTRA.sarra = {
+  name: 'Sarra',
+  kind: 'sarra',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'dots',
+  col: '#719d89',
+  hue: 153,
+  sat: 18,
+  lit: 53,
+  syl: ['sar', 'ah', 'sii', 'vel', 'gha', 're', 'shoo', 'es'],
+  voice: {
+    wave: 'sine',
+    base: 192,
+    range: 0.36,
+    rate: 5.2,
+    glide: 0.08,
+    vib: 4,
+    vibAmt: 8,
+    fx: 'chorus',
+    amp: 0.39,
+  },
+  trait: 'Sarra steadies the pipe with a coil until the molten bead rounds over.',
+  chat: [
+    'That bead was round until somebody complimented it.',
+    'The pipe needs a steady hand and a very patient coil.',
+    'A bubble in the glass is a window for an ant.',
+    'My apprentice blew a vase with the receipt inside.',
+    'The annealing oven has asked for a quiet hour.',
+  ],
+  greet: ['Let me put this gather down.', 'Glass bench here. Gentle voices, please.'],
+  cargo: [
+    '{good}. Corners padded individually.',
+    'A case of empty bubbles with the glass still around them.',
+  ],
+  joke: ['My first bottle was all neck. Very hard to put down.'],
+  nice: ["Thank you. I'll save you the blue bead."],
+  bye: ["Cool slowly, wherever you're going."],
+  honk: ['There goes a perfectly round bubble.'],
+  dock: ['At {port}, leave the orange rack alone.', 'Welcome to {port}. The cool glass is on the left.'],
+  rumor: 'The glassworks on {planet} pays more for careful freight.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#719d89',
+      height: 1.38,
+      arm: [0.135, 0.92, 0.07, 0.29, 0.063],
+      hand: 'fin',
+      mouth: [0.04, 1.15, 0.321, 0.54],
+      joints: [['coil', [0.01, 0.99, 0.06], /^Coiled body$/]],
+      props: [
+        {
+          parts: /^(Glassblowing pipe|Molten gather)$/,
+          side: 'L',
+          grip: [0.12, 1.1, 0.48],
+          scale: 0.83,
+          turn: [-0.75, -0.28, 0.42],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.006);
+        n.coil.rotation.y = 0.12 * Math.sin(p) * a;
+        n.coil.scale.x = 1 + 0.035 * Math.sin(p) * a;
+        n.rig.rotation.y = -0.065 * Math.sin(p) * a;
+      },
+    });
+  },
+};
 /* Sealump: A spring-footed stamp robot collects impressions of perfectly ordinary floors. */
 SPECIES_EXTRA.sealump = {
   name:"Sealump", kind:"sealump", family:"robot", skin:"metal",
@@ -1658,6 +4913,515 @@ SPECIES_EXTRA.sealump = {
     }
     T.mouth(head,U,0,-0.07,0.189,.72,signal);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.31,0.83,.085,0.256,.054,dark,light));
+  },
+};
+/* Shuttle · A silver weaving shuttle carries a red bobbin inside its open well. */
+SPECIES_EXTRA.shuttle = {
+  name: 'Shuttle',
+  kind: 'shuttle',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#7e8181',
+  hue: 180,
+  sat: 1,
+  lit: 50,
+  syl: ['shu', 'tel', 'wef', 'ru', 'nim', 'pik', 'wa', 'to'],
+  voice: {
+    wave: 'square',
+    base: 297,
+    range: 0.53,
+    rate: 6.2,
+    glide: 0.37,
+    vib: 2,
+    vibAmt: 7,
+    fx: 'chorus',
+    amp: 0.24,
+  },
+  trait: 'Shuttle draws slack thread back into the bobbin before it snags.',
+  chat: [
+    'Slack thread finds the only sharp corner in the room.',
+    'The loom wove my checklist into a sleeve.',
+    'I keep the selvage. It knows where the edge was.',
+    "Today's pattern repeats whenever I look away.",
+    'An untidy bobbin makes very tidy knots.',
+  ],
+  greet: ['Loom desk. Let me draw in this thread.', "You've caught me between passes."],
+  cargo: ["{good}, tied with a proper weaver's knot.", 'A shuttleful of thread and a sample sleeve.'],
+  joke: ['I wove a timetable. Now all my appointments overlap.'],
+  nice: ["Thank you. I'll weave that into the border."],
+  bye: ['Mind the loose end.'],
+  honk: ['That skipped a pick.'],
+  dock: [
+    'At {port}, follow the striped weave on the floor.',
+    'Welcome to {port}. Keep the wrapping twine for me.',
+  ],
+  rumor: 'The looms on {planet} have woven a premium into freight pay.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#7e8181',
+      height: 1.16,
+      hover: true,
+      head: [-0.12, 0.7, 0.11],
+      omit: /^Lens$/,
+      arm: [0.29, 0.58, 0.04, 0.27, 0.043],
+      faceShell: [-0.12, 0.735, 0.186, 0.16, 0.104, 0.084],
+      face: {
+        eyes: [
+          [-0.18, 0.765, 0.262, 0.048],
+          [-0.06, 0.765, 0.262, 0.048],
+        ],
+        mouth: [-0.12, 0.69, 0.266, 0.42],
+      },
+      extra({ joint, rod, oval }) {
+        joint('rig', (g) => {
+          for (const s of [-1, 1]) {
+            rod(g, 'Tension feeler', '#b6a584', [s * 0.39, 0.7, 0], [s * 0.47, 1.01, 0], 0.017, 0.012);
+            oval(g, 'Thread guide', '#ad6677', [s * 0.47, 1.012, 0], [0.031, 0.025, 0.022]);
+          }
+          rod(g, 'Drop spindle', '#b6a584', [0, 0.5, 0], [0, 0.09, 0], 0.027, 0.016);
+          oval(g, 'Spindle whorl', 'accent', [0, 0.19, 0], [0.11, 0.042, 0.088]);
+        });
+      },
+      joints: [['bobbin', [0, 0.79, 0], /^(Spool spindle|Thread wrap)$/]],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.014, 0.055);
+        n.bobbin.rotation.x = p * 2.2 * a;
+        n.rig.rotation.y = 0.12 * Math.sin(p) * a;
+      },
+    });
+  },
+};
+/* Silt · A red sand burrower wears a saddle roll behind its ring of pale mouth plates. */
+SPECIES_EXTRA.silt = {
+  name: 'Silt',
+  kind: 'silt',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'curvy',
+  col: '#a85256',
+  hue: 357,
+  sat: 34,
+  lit: 49,
+  syl: ['sil', 'tor', 'um', 'gak', 'den', 'ruh', 'tap', 'kho'],
+  voice: {
+    wave: 'sawtooth',
+    base: 120,
+    range: 0.47,
+    rate: 4.4,
+    glide: 0.08,
+    vib: 5,
+    vibAmt: 8,
+    fx: 'rumble',
+    amp: 0.24,
+  },
+  trait: 'Silt puts a tuning fork to the sand and waits for the answer through four planted feet.',
+  chat: [
+    "The sand says there's a hollow under bay two.",
+    'Hold still. Your boots are talking over the dune.',
+    'I tuned my fork to a particularly reliable pebble.',
+    "The quiet patch rattles. That's how I found it.",
+    'My bedroll has sand on the inside. Good acoustics.',
+  ],
+  greet: ['One moment while the echo catches up.', 'Listening post here. Speak toward the ground.'],
+  cargo: ['{good}. I sounded every crate.', 'Four sacks of sand labelled by volume. Loudest goes last.'],
+  joke: ['A dune told me a secret. It shifts its story daily.'],
+  nice: ['Thank you. That rings true.'],
+  bye: ['Soft steps until you clear the ridge.'],
+  honk: ['Good resonance. Loose bolt near the rear.'],
+  dock: ['Welcome to {port}. The quiet pad is yours.', 'At {port}, the sand signs for deliveries.'],
+  rumor: 'The dunes on {planet} are humming about a delivery premium.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#a85256',
+      height: 1.23,
+      headGroup: 'Ring mouth',
+      arm: [0.62, 0.94, 0.43, 0.57, 0.13],
+      handColor: '#e1b383',
+      leg: [0.43, 0.86, -0.57, 0.16, 0.25],
+      legParts: /^(Digging leg|Foot pad|Digging claw)$/,
+      footParts: /^(Foot pad|Digging claw)$/,
+      omit: /^(Listening forelimb|Gripping palm|Finger|Fingertip)$/,
+      mouth: [0, 1.012, 1.04, 1.14],
+      lip: [1.0, 1.25, 1],
+      joints: [
+        ['foreL', [-0.42, 0.86, 0.41], /^Digging (leg|claw)$|^Foot pad$/, (v) => v.z > 0 && v.x < 0],
+        ['foreR', [0.42, 0.86, 0.41], /^Digging (leg|claw)$|^Foot pad$/, (v) => v.z > 0 && v.x > 0],
+      ],
+      props: [
+        {
+          parts: /^(Fork handle|Fork bridge|Tuning fork tine)$/,
+          side: 'L',
+          grip: [-0.82, 0.43, 0.82],
+          scale: 0.82,
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.34, 0.012, 0.035);
+        n.foreL.rotation.x = -n.legL.rotation.x;
+        n.foreR.rotation.x = -n.legR.rotation.x;
+      },
+    });
+  },
+};
+/* Sova · An owl-like archivist tucks a folio beneath round facial disks. */
+SPECIES_EXTRA.sova = {
+  name: 'Sova',
+  kind: 'sova',
+  family: 'alien',
+  skin: 'fuzzy',
+  cast: true,
+  script: 'dots',
+  col: '#927c6b',
+  hue: 26,
+  sat: 15,
+  lit: 50,
+  syl: ['soh', 'vah', 'fol', 'hush', 'in', 'reh', 'ya', 'lu'],
+  voice: {
+    wave: 'sine',
+    base: 184,
+    range: 0.36,
+    rate: 5.2,
+    glide: 0.44,
+    vib: 5,
+    vibAmt: 5,
+    fx: 'none',
+    amp: 0.39,
+  },
+  trait: 'Sova marks the last page read with a down feather.',
+  chat: [
+    'Page forty smells faintly of midnight.',
+    'I bookmark with down. It never creases the paper.',
+    'The index to lost books is missing its index.',
+    'Returning a book quietly still counts as returning it.',
+    'A reader left a moon chart in the poetry.',
+  ],
+  greet: ['Night archive. Whisper if convenient.', "I've kept your place at the desk."],
+  cargo: ['{good}. Shelf marks face outward.', 'A box of bookmarks filed by feather weight.'],
+  joke: ['I shelved a book on silence. Nobody complained.'],
+  nice: ["Much appreciated. I'll enter that in pencil."],
+  bye: ["Good night, whichever side of the planet you're on."],
+  honk: ['That belongs in the loud collection.'],
+  dock: [
+    'Welcome to {port}. The returns slot is still open.',
+    'At {port}, the night desk stamps in blue.',
+  ],
+  rumor: 'The night archive on {planet} offers extra for incoming loads.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#927c6b',
+      height: 1.35,
+      arm: [0.26, 0.86, 0, 0.37, 0.095],
+      hand: 'wing',
+      leg: [0.17, 0.36, 0, 0.065, 0.12],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      omit: /^Tucked wing$/,
+      mouth: [0, 1.136, 0.345, 0.55],
+      props: [
+        {
+          parts: /^(Archive folio|Paper edges)$/,
+          side: 'L',
+          grip: [0.115, 0.67, 0.245],
+          scale: 0.88,
+          turn: [0, 0.35, 0.09],
+        },
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.36, 0.014, 0.062);
+        n.head.rotation.y = 0.1 * Math.sin(p * 0.5) * a;
+        n.armL.rotation.x *= 0.25;
+      },
+    });
+  },
+};
+/* Spool · An art-deco plum switchboard rolls beneath a curved receiver head. */
+SPECIES_EXTRA.spool = {
+  name: 'Spool',
+  kind: 'spool',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#844458',
+  hue: 341,
+  sat: 32,
+  lit: 39,
+  syl: ['spu', 'ul', 'klak', 'rin', 'pa', 'nex', 'deb', 'wi'],
+  voice: {
+    wave: 'triangle',
+    base: 231,
+    range: 0.58,
+    rate: 5.8,
+    glide: 0.16,
+    vib: 4,
+    vibAmt: 4,
+    fx: 'click',
+    amp: 0.39,
+  },
+  trait: 'Spool patches through the late call with one hand while the other catches the slack.',
+  chat: [
+    'The late call is still holding. It sounds remarkably patient.',
+    'Socket three answers only when socket four is busy.',
+    'I wound up a conversation that had crossed the corridor.',
+    'One loose loop is reserved for emergencies and gossip.',
+    'The dial tone had a day off. I hummed.',
+  ],
+  greet: ['Exchange here. Which end would you like?', 'I have a clear line and a spare plug.'],
+  cargo: ['{good}. Connect the red label to dispatch.', 'Six leads and two calls awaiting collection.'],
+  joke: ['I crossed my own lines. Had a lovely chat.'],
+  nice: ["Thanks. I'll pass that down the line."],
+  bye: ['Disconnecting gently.'],
+  honk: ['I can put you through to a quieter horn.'],
+  dock: [
+    'Welcome to {port}. Patch in by the yellow lamp.',
+    'At {port}, ring once for a free loading bay.',
+  ],
+  rumor: 'The exchange on {planet} just patched through a higher freight offer.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#844458',
+      height: 1.6,
+      headGroup: 'Receiver head',
+      arm: [0.34, 1.37, 0, 0.49, 0.063],
+      handColor: '#c79650',
+      omit: /^(Plug-hand|Finger|Fingertip)$/,
+      face: {
+        eyes: [
+          [-0.073, 2.001, 0.101, 0.047],
+          [0.073, 2.001, 0.101, 0.047],
+        ],
+        mouth: [0, 1.955, 0.108, 0.44],
+      },
+      signal: '#eec56f',
+      props: [
+        {
+          parts: /^(Braided patch cable|Patch plug)$/,
+          side: 'L',
+          grip: [0.26, 1.2, 0.385],
+          scale: 0.7,
+          turn: [0.06, 1.28, 0],
+        },
+      ],
+      joints: [
+        ['front', [0, 0.113, 0.16], /^Caster$/, (v) => v.z > 0],
+        ['rear', [0, 0.113, -0.16], /^Caster$/, (v) => v.z < 0],
+      ],
+      gait(n, p, a) {
+        CastRig.roll(n, p, a, ['front', 'rear'], 3.0);
+        n.head.rotation.y = 0.11 * Math.sin(p) * a;
+        n.armL.rotation.x *= 0.25;
+      },
+    });
+  },
+};
+/* Sura · A golden current reader has a curled anchor tail and coral-like crest. */
+SPECIES_EXTRA.sura = {
+  name: 'Sura',
+  kind: 'sura',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'curvy',
+  col: '#daa16b',
+  hue: 29,
+  sat: 60,
+  lit: 64,
+  syl: ['soo', 'ra', 'thal', 'ed', 'nu', 'shi', 'lo', 'vin'],
+  voice: {
+    wave: 'sawtooth',
+    base: 305,
+    range: 0.31,
+    rate: 6.0,
+    glide: 0.44,
+    vib: 2,
+    vibAmt: 5,
+    fx: 'bubble',
+    amp: 0.24,
+  },
+  trait: 'Sura anchors a tail curl while reading the eddies around a piling.',
+  chat: [
+    'The eddy by the piling runs late on market days.',
+    'I tie no knots. The tail remembers.',
+    'A smooth current makes my notes unusually straight.',
+    'Someone numbered the ripples. Admirable optimism.',
+    'The red buoy owes me a pencil.',
+  ],
+  greet: ["Current desk. I'm anchored for a minute.", 'Slip into the quiet water and say hello.'],
+  cargo: ['{good}, out of the eddy line.', 'A jar of drift markers. Count them after they settle.'],
+  joke: ['I followed a circular current and met myself at lunch.'],
+  nice: ["Thanks. I'll pencil a star by this reading."],
+  bye: ['Go with the outgoing ripple.'],
+  honk: ["That's put a wrinkle in the water."],
+  dock: ['At {port}, tie up on the downstream side.', 'Welcome to {port}. The eddy has made room.'],
+  rumor: 'The current readers on {planet} report a rising freight premium.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#daa16b',
+      height: 1.52,
+      hover: true,
+      arm: [0.17, 0.94, 0, 0.27, 0.062],
+      hand: 'fin',
+      mouth: [0.025, 1.388, 0.442, 0.4],
+      lip: [0.8, 1.15, 1],
+      omit: /^Snout opening$/,
+      joints: [
+        ['tail', [0, 0.8, 0], /^Anchor tail$/],
+        ['fins', [0, 0.77, -0.16], /^Dorsal ribbon$/],
+      ],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.033, 0.025);
+        n.tail.rotation.x = 0.19 * Math.sin(p) * a;
+        n.fins.rotation.y = 0.25 * Math.sin(p * 2) * a;
+      },
+    });
+  },
+};
+/* Tacca · A long-eared tunnel listener wears a brass-grilled seismic receiver. */
+SPECIES_EXTRA.tacca = {
+  name: 'Tacca',
+  kind: 'tacca',
+  family: 'alien',
+  skin: 'fuzzy',
+  cast: true,
+  script: 'curvy',
+  col: '#ad8c71',
+  hue: 27,
+  sat: 27,
+  lit: 56,
+  syl: ['tak', 'ka', 'tik', 'ven', 'ra', 'tap', 'ul', 'di'],
+  voice: {
+    wave: 'triangle',
+    base: 387,
+    range: 0.31,
+    rate: 6.8,
+    glide: 0.08,
+    vib: 3,
+    vibAmt: 8,
+    fx: 'click',
+    amp: 0.39,
+  },
+  trait: 'Tacca angles one long ear toward the track and keeps the other on the crew.',
+  chat: [
+    'The left ear hears trains. The right hears excuses.',
+    'We found a tunnel by listening to a missing echo.',
+    'My receiver clicked. Someone dropped a biscuit three platforms away.',
+    'The crew asked me to stop listening during lunch.',
+    'A quiet track has an impressive amount to say.',
+  ],
+  greet: ['One ear on you, one on the rail.', 'Receiver open. Stamp once if you can hear me.'],
+  cargo: [
+    '{good}, lashed down against low frequencies.',
+    'Spare grille cloth. The old one learned to hum.',
+  ],
+  joke: ['My ear defenders need their own ear defenders.'],
+  nice: ['Thank you. Perfectly audible.'],
+  bye: ["I'll hear you coming back."],
+  honk: ['Both ears got that one.'],
+  dock: [
+    'At {port}, the hollow platform is closed.',
+    'Welcome to {port}. The track says you arrived early.',
+  ],
+  rumor: 'The tunnel crews on {planet} pay a premium for freight.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#ad8c71',
+      height: 1.48,
+      arm: [0.245, 0.77, 0, 0.34, 0.07],
+      leg: [0.18, 0.39, 0, 0.067, 0.15],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 1.041, 0.263, 0.53],
+      joints: [
+        ['earL', [-0.17, 1.32, 0.017], /^(Resonating ear|Ear lining)$/, (v) => v.x < 0, 'head'],
+        ['earR', [0.17, 1.32, 0.017], /^(Resonating ear|Ear lining)$/, (v) => v.x > 0, 'head'],
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.5, 0.075, 0.03);
+        n.earL.rotation.x = -0.2 * Math.sin(p * 2) * a;
+        n.earR.rotation.x = -0.14 * Math.sin(p * 2 - 0.45) * a;
+      },
+    });
+  },
+};
+/* Tally · A brass weighing drum balances on one wheel below a shallow scale pan. */
+SPECIES_EXTRA.tally = {
+  name: 'Tally',
+  kind: 'tally',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#c39140',
+  hue: 37,
+  sat: 52,
+  lit: 51,
+  syl: ['tal', 'tik', 'wei', 'din', 'bal', 'nok', 'ko', 'tin'],
+  voice: {
+    wave: 'square',
+    base: 211,
+    range: 0.31,
+    rate: 5.2,
+    glide: 0.16,
+    vib: 2,
+    vibAmt: 4,
+    fx: 'robot',
+    amp: 0.24,
+  },
+  trait: 'Tally weighs every bent teaspoon before deciding whether it belongs back in the galley.',
+  chat: [
+    'A bent teaspoon weighs the same after a stern talking-to.',
+    'My pan is zeroed, apart from a little optimism.',
+    'The galley denies owning nineteen left-handed spoons.',
+    'I weigh the dust before I brush it off.',
+    'The needle moved. Someone looked at the sample too heavily.',
+  ],
+  greet: ['Scale desk. Nothing on the pan, please.', "Hello. I've deducted the weight of the greeting."],
+  cargo: [
+    '{good}, less the weight of the string.',
+    'A sack of spoons sorted by how much soup they remember.',
+  ],
+  joke: ['The teaspoon was underweight. It had skipped dessert.'],
+  nice: ["Thanks. I'll give that full weight."],
+  bye: ['Scales clear. Safe travels.'],
+  honk: ['That added half a graduation.'],
+  dock: [
+    'Welcome to {port}. One axle on the scale at a time.',
+    'At {port}, spare cutlery goes in the brass pan.',
+  ],
+  rumor: 'The salvage scales on {planet} are tipping toward higher freight pay.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#c39140',
+      height: 1.55,
+      head: [0, 1.03, 0.391],
+      headParts: /^(Spring scale face|Eye lamp)$/,
+      arm: [0.46, 1.15, 0.02, 0.41, 0.074],
+      omit: /^(Picking jaw|Tally counter)$/,
+      signal: '#a9ecdb',
+      face: {
+        eyes: [
+          [-0.14, 1.13, 0.495, 0.071],
+          [0.14, 1.13, 0.495, 0.071],
+        ],
+        mouth: [0, 0.93, 0.491, 0.66],
+      },
+      props: [
+        { parts: /^Teaspoon (handle|bowl)$/, side: 'L', grip: [-0.394, 1.562, 0.34], scale: 0.88 },
+      ],
+      joints: [
+        ['wheel', [0, 0.37, 0], /^(Drive wheel|Wheel hub)$/],
+        ['standL', [-0.34, 0.78, -0.06], /^Kickstand/, (v) => v.x < 0],
+        ['standR', [0.34, 0.78, -0.06], /^Kickstand/, (v) => v.x > 0],
+      ],
+      gait(n, p, a) {
+        CastRig.roll(n, p, a, ['wheel'], 1.8);
+        n.standL.rotation.x = n.standR.rotation.x = 0.31 * a;
+        n.rig.rotation.x = 0.032 * Math.sin(p) * a;
+      },
+    });
   },
 };
 /* Tarestep: A two-pan hover scale weighs compliments before passing them along. */
@@ -1768,6 +5532,76 @@ SPECIES_EXTRA.tarestep = {
     }
     T.mouth(head,U,0,-0.065,0.241,.72,signal);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.24,0.67,.085,0.248,.054,dark,light));
+  },
+};
+/* Tempo · A russet metronome rolls below a numbered scale and sliding pendulum weight. */
+SPECIES_EXTRA.tempo = {
+  name: 'Tempo',
+  kind: 'tempo',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#996653',
+  hue: 16,
+  sat: 30,
+  lit: 46,
+  syl: ['tem', 'po', 'tik', 'ta', 'lo', 'dro', 'met', 'kai'],
+  voice: {
+    wave: 'sawtooth',
+    base: 279,
+    range: 0.36,
+    rate: 6.0,
+    glide: 0.44,
+    vib: 5,
+    vibAmt: 5,
+    fx: 'chorus',
+    amp: 0.24,
+  },
+  trait: 'Tempo moves the pendulum weight one graduation before every count-in.',
+  chat: [
+    'One graduation faster and the queue starts dancing.',
+    'I count in before I switch myself on.',
+    'The slow setting gives biscuits a respectable interval.',
+    'A pause is part of the timing sheet.',
+    'The scale says brisk. My wheels say after lunch.',
+  ],
+  greet: ['Come in on the next tick.', "Timer speaking. You've got a whole bar."],
+  cargo: ['{good}, stacked in even measures.', 'One sliding weight. No rushing it.'],
+  joke: ['Someone asked for spare time. I gave them a rest.'],
+  nice: ['Thanks. That landed right on the beat.'],
+  bye: ["I'll count you out."],
+  honk: ['A little early. Admirably confident.'],
+  dock: [
+    'Welcome to {port}. Roll in on four.',
+    'At {port}, the ticking by the ramp is perfectly intentional.',
+  ],
+  rumor: 'The freight rate on {planet} went up one graduation.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#996653',
+      height: 1.39,
+      head: [0, 1.12, 0.095],
+      arm: [0.205, 0.58, 0.035, 0.29, 0.049],
+      omit: /^Lens$/,
+      faceShell: [0, 1.19, 0.127, 0.137, 0.115, 0.096],
+      signal: '#ffe6ab',
+      face: {
+        eyes: [
+          [-0.055, 1.222, 0.218, 0.039],
+          [0.055, 1.222, 0.218, 0.039],
+        ],
+        mouth: [0, 1.15, 0.222, 0.4],
+      },
+      joints: [
+        ['axle', [0, 0.13, 0], /^(Rubber wheel|Wheel hub)$/],
+        ['pendulum', [0, 0.39, 0.195], /^(Pendulum|Sliding weight)$/],
+      ],
+      gait(n, p, a) {
+        CastRig.roll(n, p, a, ['axle'], 2.55);
+        n.pendulum.rotation.z = (0.25 + 0.35 * Math.sin(p)) * a;
+      },
+    });
   },
 };
 /* Tessettle: A broad gliding ray with a patchwork back remembers routes as quilt patterns. */
@@ -1954,6 +5788,71 @@ SPECIES_EXTRA.timbrelk = {
     T.blush(head,0.241,-0.07,0.19,.061);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.414,0.737,.085,0.3,.054,body,light));
     U.legs=[-1,1].map(side=>T.limb(rig,side*0.18,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Vela · A violet fan mantle floats above curling ribbons and an inscribed tablet. */
+SPECIES_EXTRA.vela = {
+  name: 'Vela',
+  kind: 'vela',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'dots',
+  col: '#53568b',
+  hue: 237,
+  sat: 25,
+  lit: 44,
+  syl: ['vel', 'ah', 'sai', 'oku', 'uum', 'eri', 'ith', 'nu'],
+  voice: {
+    wave: 'sine',
+    base: 337,
+    range: 0.36,
+    rate: 6.5,
+    glide: 0.37,
+    vib: 4,
+    vibAmt: 7,
+    fx: 'chorus',
+    amp: 0.39,
+  },
+  trait: 'Vela leaves a finger-width gap in a greeting so the other speaker can finish the circle.',
+  chat: [
+    'An unfinished circle leaves room for a visitor.',
+    'That ink blot actually means Tuesday.',
+    'My tablet dried halfway through a vowel.',
+    'Someone signed the tide register underwater. Ambitious.',
+    'Two loops together mean please pass the towel.',
+  ],
+  greet: ['Leave a gap and I shall answer.', 'I have fresh ink for this conversation.'],
+  cargo: ['{good}. The manifest is drying.', 'A crate of commas. Handle with pauses.'],
+  joke: ['I mistranslated an octagon. It went round in circles.'],
+  nice: ['That deserves a particularly neat loop.'],
+  bye: ['I leave the last stroke to you.'],
+  honk: ['A very emphatic full stop.'],
+  dock: ['At {port}, sign inside the unfinished circle.', 'Welcome to {port}. Wet ink on the rail.'],
+  rumor: 'Scribes on {planet} have circled the higher freight rate twice.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#53568b',
+      height: 1.63,
+      hover: true,
+      headGroup: 'Fan mantle',
+      arm: [0.19, 1.53, 0.1, 0.77, 0.103],
+      hand: 'fin',
+      omit: /^Tapered ribbon arm [56]$/,
+      mouth: [0.18, 1.73, 0.298, 0.49],
+      lip: [0.93, 0.7, 1],
+      joints: [1, 2, 3, 4].map((i) => [
+        'ribbon' + i,
+        [0, 1.54, 0],
+        new RegExp('^Tapered ribbon arm ' + i + '$'),
+      ]),
+      tent: ['ribbon1', 'ribbon2', 'ribbon3', 'ribbon4'],
+      props: [{ parts: /^Inscribed tablet$/, side: 'L', grip: [0.33, 1.52, 0.5], scale: 0.65 }],
+      gait(n, p, a) {
+        CastRig.glide(n, p, a, 0.038, 0.038);
+        for (let i = 1; i <= 4; i++) n['ribbon' + i].rotation.z = Math.sin(p + i * 0.68) * 0.16 * a;
+      },
+    });
   },
 };
 /* Velveteel: A long-necked velvet swimmer with ribbon fins takes lost currents home. */
@@ -2158,6 +6057,73 @@ SPECIES_EXTRA.whorloo = {
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.33,0.48,.085,0.23,.054,body,light));
   },
 };
+/* Wick · A slate beacon carries a guarded amber lantern and pointed canopy. */
+SPECIES_EXTRA.wick = {
+  name: 'Wick',
+  kind: 'wick',
+  family: 'robot',
+  skin: 'metal',
+  cast: true,
+  script: 'blocks',
+  col: '#6b7e86',
+  hue: 198,
+  sat: 11,
+  lit: 47,
+  syl: ['wik', 'lam', 'ush', 'voe', 'tin', 'lu', 'har', 'mei'],
+  voice: {
+    wave: 'sawtooth',
+    base: 380,
+    range: 0.58,
+    rate: 7.1,
+    glide: 0.37,
+    vib: 5,
+    vibAmt: 7,
+    fx: 'click',
+    amp: 0.24,
+  },
+  trait: 'Wick trims the lantern as soon as the quay begins to disappear.',
+  chat: [
+    "The fog remembers every boat except the one I'm looking for.",
+    'I trimmed the wick to the regulation cheerful length.',
+    'A bright afternoon is an excellent time to practise being a beacon.',
+    'The quay disappears from the far end first.',
+    'My spare lantern has a tiny OFF sign.',
+  ],
+  greet: ['Follow the warm light to my desk.', 'Fog beacon here. Still visible your side?'],
+  cargo: ['{good}, labelled in big letters for fog.', 'A tin of wicks kept very far from the oil.'],
+  joke: ['I lit the fog. It showed up everywhere.'],
+  nice: ["Thanks. I'll give you one extra blink."],
+  bye: ['Look back for the last flash.'],
+  honk: ['Good. The fog now knows where you are.'],
+  dock: [
+    'At {port}, the amber light marks the quay.',
+    'Welcome to {port}. Mind the gap after the second blink.',
+  ],
+  rumor: 'Fogbound {planet} is paying extra for inbound loads.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#6b7e86',
+      height: 1.43,
+      head: [0, 0.876, 0],
+      headParts: /^(Crystal lantern|Guard rod|Lantern canopy|Beacon finial)$/,
+      arm: [0.19, 0.61, 0.01, 0.25, 0.048],
+      leg: [0.16, 0.32, 0, 0.054, 0.12],
+      omit: /^Lens$/,
+      signal: '#ffdf92',
+      face: {
+        eyes: [
+          [-0.054, 1.078, 0.143, 0.045],
+          [0.054, 1.078, 0.143, 0.045],
+        ],
+        mouth: [0, 0.989, 0.146, 0.43],
+      },
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.49, 0.028, 0.043);
+        n.head.rotation.y = 0.27 * Math.sin(p * 0.58) * a;
+      },
+    });
+  },
+};
 /* Wickindle: A waxy little night gardener carries a steady pearl of light in a curling wick. */
 SPECIES_EXTRA.wickindle = {
   name:"Wickindle", kind:"wickindle", family:"alien", skin:"gloss",
@@ -2332,6 +6298,68 @@ SPECIES_EXTRA.winkmast = {
     }
     T.mouth(head,U,0,-0.077,0.272,.72,signal);
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.318,0.807,.085,0.301,.054,dark,light));
+  },
+};
+/* Yarro · A teal thermal scout spreads ochre sails under a narrow head crest. */
+SPECIES_EXTRA.yarro = {
+  name: 'Yarro',
+  kind: 'yarro',
+  family: 'alien',
+  skin: 'gloss',
+  cast: true,
+  script: 'dots',
+  col: '#488c91',
+  hue: 184,
+  sat: 34,
+  lit: 43,
+  syl: ['yar', 'oh', 'tsi', 'vane', 'ha', 'lu', 'feh', 'wi'],
+  voice: {
+    wave: 'triangle',
+    base: 316,
+    range: 0.53,
+    rate: 6.3,
+    glide: 0.37,
+    vib: 2,
+    vibAmt: 7,
+    fx: 'chirp',
+    amp: 0.39,
+  },
+  trait: 'Yarro opens one sail first to see which way the warm air leans.',
+  chat: [
+    'I test a thermal with the cheap sail first.',
+    'Warm air gathers over the bakery. Entirely coincidental.',
+    'The updraft permit blew away during inspection.',
+    'I mapped a spiral in the sky. Looks like lunch.',
+    'A calm day is excellent for mending seams.',
+  ],
+  greet: ['Thermal scout. Got a little lift for you.', 'Pull alongside on the warm side.'],
+  cargo: ['{good}, tucked out of the slipstream.', 'A roll of sailcloth and three very light buckles.'],
+  joke: ['My report on rising air has gone over well.'],
+  nice: ["Thanks. That's put some lift in the day."],
+  bye: ['Catch the next warm column.'],
+  honk: ['That gust has a remarkable brass section.'],
+  dock: ['At {port}, come in below the pennants.', 'Welcome to {port}. The last updraft carries left.'],
+  rumor: 'The freight bonus on {planet} is rising faster than the thermals.',
+  build(T) {
+    CastRig.build(T, {
+      accent: '#488c91',
+      height: 1.59,
+      arm: [0.25, 1.04, 0.075, 0.34, 0.068],
+      hand: 'fin',
+      leg: [0.2, 0.58, 0, 0.072, 0.14],
+      legParts: /^Leg$/,
+      footParts: /^Foot$/,
+      mouth: [0, 1.409, 0.304, 0.56],
+      joints: [
+        ['sailL', [-0.2, 1.02, -0.045], /^Gliding sail$/, (v) => v.x < 0],
+        ['sailR', [0.2, 1.02, -0.045], /^Gliding sail$/, (v) => v.x > 0],
+      ],
+      gait(n, p, a) {
+        CastRig.steps(n, p, a, 0.64, 0.043, 0.042);
+        n.sailL.rotation.y = 0.29 * (1 - Math.cos(p)) * a;
+        n.sailR.rotation.y = -0.29 * (1 - Math.cos(p + 0.5)) * a;
+      },
+    });
   },
 };
 const ResidentModels = (() => {
@@ -3369,8 +7397,16 @@ Object.assign(SPECIES, SPECIES_EXTRA);
 const SPECIES_EXTRA_KEYS = Object.keys(SPECIES_EXTRA);
 /* everyone you might meet at random: pilots, crowds, crews, regulars, passengers, senders. Homeworlds and named
    shopkeepers stay as set in PLANETS and VENUES; SPECIES_KEYS stays the original nine. */
-/* the animated cast (SPECIES_EXTRA entries marked cast:true) stays out of the random pool until it is swapped in */
-const ALIEN_POOL = SPECIES_KEYS.concat(SPECIES_EXTRA_KEYS.filter(k=>!SPECIES_EXTRA[k].cast));
+/* The animated cast takes over. Each of the 30 earlier species is now played by one of the 50 cast designs (src/species/,
+   cast:true): the species key stays, so homeworlds, customs strictness, lost property, venues and saves all still work,
+   but the model, portrait, name, voice and lines come from the design. The other 20 designs join the crowds as well. */
+const CAST_FOR = {beepul:'lichen', grondar:'rusk', zkthar:'kipp', blorpax:'neru', qeeble:'pavo', sporrin:'myrr', vrell:'vela', ooloo:'fenn', momwump:'marlo',
+  bobbinor:'shuttle', bractillo:'nim', cuspiro:'silt', gaugekin:'parallax', hushcone:'relay', linticker:'tempo', loamlet:'aril', nacrelle:'nacre',
+  parasolum:'yarro', pipettle:'plover', pluvindle:'plume', rilloon:'obo', rimebud:'sova', sealump:'cairn', tarestep:'tally', tessettle:'sura',
+  timbrelk:'chime', velveteel:'sarra', wickindle:'caelo', whorloo:'kepp', winkmast:'wick'};
+for(const k in CAST_FOR) if(SPECIES[k]&&SPECIES_EXTRA[CAST_FOR[k]]) SPECIES[k]=SPECIES_EXTRA[CAST_FOR[k]];
+const CAST_PLAYING = new Set(Object.values(CAST_FOR));
+const ALIEN_POOL = SPECIES_KEYS.concat(SPECIES_EXTRA_KEYS.filter(k=>!SPECIES_EXTRA[k].cast||!CAST_PLAYING.has(k)));
 
 const CHATTER = {
   port:["{port} Control to all inbound: pad three is closed because something is asleep on it.","{port} Control: winds are light, visibility is good, the coffee machine is broken.","{port} Control: whoever parked across two pads, we can all see you.","{port} Control reminds pilots that landing is automatic. Please stop trying to help.","{port} Control: lost property now holds one boot, one small moon, and a mild smell.","Traffic advisory: slow hauler ahead in the {planet} lane. He is doing his best.","{port} Control: the gift shop is open. It has always been open. Please buy something.","{port} Control: inbound freighter, you are cleared. Outbound freighter, you are also cleared. Try not to meet."],
@@ -6639,13 +10675,21 @@ const ResidentDistrict=(()=>{
     const t={geometry:compact,colors:new Float32Array(cols),weights:new Float32Array(weights),height:extent.y*fit};
     templates.set(id,t);return t;
   }
+  /* each resident is an animated individual of their cast design (src/species/<base>.js), seeded by their id, tinted with
+     their own accent colour and scaled to their proportions */
+  const seedOf=id=>{ let h=2166136261; for(let i=0;i<id.length;i++){ h^=id.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
   function materialize(e){
-    if(e.mesh)return;const t=compile(e.person.base),p=e.person,g=new THREE.BufferGeometry(),source=t.geometry;
-    g.setAttribute('position',source.attributes.position);g.setAttribute('normal',source.attributes.normal);g.setIndex(source.index);g.boundingSphere=source.boundingSphere;
-    const values=t.colors.slice(),col=new THREE.Color(),tint=new THREE.Color(p.accent);
-    for(let i=0;i<t.weights.length;i++){const j=i*3;col.fromArray(values,j).lerp(tint,t.weights[i]).convertSRGBToLinear();col.toArray(values,j);}
-    g.setAttribute('color',new THREE.BufferAttribute(values,3));const m=new THREE.Mesh(g,sceneMaterial);
-    m.scale.set(p.width,p.height,1/p.width);m.name=p.name;m.userData.residentId=p.id;m.receiveShadow=true;m.castShadow=true;e.anchor.add(m);e.mesh=m;e.height=t.height*p.height;
+    if(e.mesh)return;const p=e.person;
+    if(!SPECIES_EXTRA[p.base]){ // a design without an animated version keeps its sculpture
+      const t=compile(p.base),g=new THREE.BufferGeometry(),source=t.geometry;
+      g.setAttribute('position',source.attributes.position);g.setAttribute('normal',source.attributes.normal);g.setIndex(source.index);g.boundingSphere=source.boundingSphere;
+      const values=t.colors.slice(),col=new THREE.Color(),tint=new THREE.Color(p.accent);
+      for(let i=0;i<t.weights.length;i++){const j=i*3;col.fromArray(values,j).lerp(tint,t.weights[i]).convertSRGBToLinear();col.toArray(values,j);}
+      g.setAttribute('color',new THREE.BufferAttribute(values,3));const m=new THREE.Mesh(g,sceneMaterial);
+      m.scale.set(p.width,p.height,1/p.width);m.name=p.name;m.userData.residentId=p.id;e.anchor.add(m);e.mesh=m;e.height=t.height*p.height;return; }
+    const F=Folk.make(p.base,seedOf(p.id),1.2);F.scale.set(1.2*p.width,1.2*p.height,1.2/p.width);
+    const tint=new THREE.Color(p.accent);F.traverse(o=>{ if(o.isMesh&&o.material&&o.material.name==='accent'&&!o.material.userData.tinted){ o.material=o.material.clone(); o.material.color.lerp(tint,0.65); o.material.userData.tinted=true; } });
+    F.name=p.name;F.userData.residentId=p.id;e.anchor.add(F);e.mesh=F;e.height=new THREE.Box3().setFromObject(F).getSize(new THREE.Vector3()).y;
   }
   function populate(P,venues){
     entries=[];selected=null;world=P.name;templates.clear();const locals=here(world);
@@ -8686,7 +12730,7 @@ Game.boot();
     </style>
     <div class="page">
       <header><h1>Species gallery</h1><div class="row"><button id="back" hidden>All species</button><button id="close">Close gallery</button></div></header>
-      <main><div id="catalog"></div>
+      <main><div id="catalog"><nav class="row" id="collections" aria-label="Species collections"></nav><div id="groups"></div></div>
         <div id="viewer" class="viewer" hidden>
           <div class="stage" aria-label="Rotating full-scale model and one-metre marker"></div>
           <div class="controls">
@@ -8733,7 +12777,7 @@ Game.boot();
     const grid = document.createElement('div');
     grid.className = 'grid';
     section.append(heading, grid);
-    catalog.append(section);
+    get('#groups').append(section);
     for (const k of keys) {
       const card = button(grid, '', () => openFigure(k, card));
       card.className = 'card';
@@ -8873,7 +12917,10 @@ Game.boot();
     figure.rotation.y=angle;
     Folk.walk(figure,elapsed*5.5,walking ? 1 : 0);
     for (const arm of figure.userData.arms) arm.rotation.z=0;
-    if (waving) Folk.arms(figure,[.3,2.6],[.3,2.6]);
+    if (waving) {
+      if (SPECIES[key].cast) Folk.arms(figure,null,[.45+.14*Math.sin(elapsed*5),2.38+.29*Math.sin(elapsed*7)]);
+      else Folk.arms(figure,[.3,2.6],[.3,2.6]);
+    }
     figure.position.y=seated ? .47 : 0;
     if (seated) for (const leg of figure.userData.legs) {
       leg.rotation.x=-1.45;
@@ -8926,9 +12973,26 @@ Game.boot();
   host.addEventListener('cancel',e=>{e.preventDefault(); if(key) back(); else close();});
   // The game has window-level flight controls, including Space and the arrow keys.
   for (const type of ['keydown','keyup','keypress']) host.addEventListener(type,e=>e.stopPropagation());
-  addSection('Original crew',SPECIES_KEYS);
-  addSection('Species pack',SPECIES_EXTRA_KEYS);
-  portraitFrame=requestAnimationFrame(paintPortraits);
+  const cast = SPECIES_EXTRA_KEYS.filter(k=>SPECIES[k].cast);
+  const collections = {
+    crew: ['Original crew', [['Original crew', SPECIES_KEYS]]],
+    pack: ['Species pack', [['Species pack', SPECIES_EXTRA_KEYS.filter(k=>!SPECIES[k].cast)]]],
+    cast: ['Animated cast', [['Aliens', cast.filter(k=>SPECIES[k].family==='alien')], ['Robots', cast.filter(k=>SPECIES[k].family==='robot')]]]
+  };
+  function showCollection(id) {
+    cancelAnimationFrame(portraitFrame);
+    queue=[];
+    get('#groups').replaceChildren();
+    for(const b of get('#collections').children)b.setAttribute('aria-pressed',String(b.dataset.group===id));
+    for(const [title,keys] of collections[id][1])addSection(title,keys);
+    portraitFrame=requestAnimationFrame(paintPortraits);
+  }
+  for(const [id,[label]] of Object.entries(collections)){
+    const b=button(get('#collections'),label,()=>showCollection(id));
+    b.dataset.group=id;
+  }
+  const initial=new URLSearchParams(location.search).get('gallery');
+  showCollection(Object.prototype.hasOwnProperty.call(collections,initial)?initial:'crew');
 })();
 </script>
 </body></html>

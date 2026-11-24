@@ -116,8 +116,16 @@ Object.assign(SPECIES, SPECIES_EXTRA);
 const SPECIES_EXTRA_KEYS = Object.keys(SPECIES_EXTRA);
 /* everyone you might meet at random: pilots, crowds, crews, regulars, passengers, senders. Homeworlds and named
    shopkeepers stay as set in PLANETS and VENUES; SPECIES_KEYS stays the original nine. */
-/* the animated cast (SPECIES_EXTRA entries marked cast:true) stays out of the random pool until it is swapped in */
-const ALIEN_POOL = SPECIES_KEYS.concat(SPECIES_EXTRA_KEYS.filter(k=>!SPECIES_EXTRA[k].cast));
+/* The animated cast takes over. Each of the 30 earlier species is now played by one of the 50 cast designs (src/species/,
+   cast:true): the species key stays, so homeworlds, customs strictness, lost property, venues and saves all still work,
+   but the model, portrait, name, voice and lines come from the design. The other 20 designs join the crowds as well. */
+const CAST_FOR = {beepul:'lichen', grondar:'rusk', zkthar:'kipp', blorpax:'neru', qeeble:'pavo', sporrin:'myrr', vrell:'vela', ooloo:'fenn', momwump:'marlo',
+  bobbinor:'shuttle', bractillo:'nim', cuspiro:'silt', gaugekin:'parallax', hushcone:'relay', linticker:'tempo', loamlet:'aril', nacrelle:'nacre',
+  parasolum:'yarro', pipettle:'plover', pluvindle:'plume', rilloon:'obo', rimebud:'sova', sealump:'cairn', tarestep:'tally', tessettle:'sura',
+  timbrelk:'chime', velveteel:'sarra', wickindle:'caelo', whorloo:'kepp', winkmast:'wick'};
+for(const k in CAST_FOR) if(SPECIES[k]&&SPECIES_EXTRA[CAST_FOR[k]]) SPECIES[k]=SPECIES_EXTRA[CAST_FOR[k]];
+const CAST_PLAYING = new Set(Object.values(CAST_FOR));
+const ALIEN_POOL = SPECIES_KEYS.concat(SPECIES_EXTRA_KEYS.filter(k=>!SPECIES_EXTRA[k].cast||!CAST_PLAYING.has(k)));
 
 const CHATTER = {
   port:["{port} Control to all inbound: pad three is closed because something is asleep on it.","{port} Control: winds are light, visibility is good, the coffee machine is broken.","{port} Control: whoever parked across two pads, we can all see you.","{port} Control reminds pilots that landing is automatic. Please stop trying to help.","{port} Control: lost property now holds one boot, one small moon, and a mild smell.","Traffic advisory: slow hauler ahead in the {planet} lane. He is doing his best.","{port} Control: the gift shop is open. It has always been open. Please buy something.","{port} Control: inbound freighter, you are cleared. Outbound freighter, you are also cleared. Try not to meet."],

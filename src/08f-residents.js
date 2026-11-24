@@ -33,13 +33,21 @@ const ResidentDistrict=(()=>{
     const t={geometry:compact,colors:new Float32Array(cols),weights:new Float32Array(weights),height:extent.y*fit};
     templates.set(id,t);return t;
   }
+  /* each resident is an animated individual of their cast design (src/species/<base>.js), seeded by their id, tinted with
+     their own accent colour and scaled to their proportions */
+  const seedOf=id=>{ let h=2166136261; for(let i=0;i<id.length;i++){ h^=id.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
   function materialize(e){
-    if(e.mesh)return;const t=compile(e.person.base),p=e.person,g=new THREE.BufferGeometry(),source=t.geometry;
-    g.setAttribute('position',source.attributes.position);g.setAttribute('normal',source.attributes.normal);g.setIndex(source.index);g.boundingSphere=source.boundingSphere;
-    const values=t.colors.slice(),col=new THREE.Color(),tint=new THREE.Color(p.accent);
-    for(let i=0;i<t.weights.length;i++){const j=i*3;col.fromArray(values,j).lerp(tint,t.weights[i]).convertSRGBToLinear();col.toArray(values,j);}
-    g.setAttribute('color',new THREE.BufferAttribute(values,3));const m=new THREE.Mesh(g,sceneMaterial);
-    m.scale.set(p.width,p.height,1/p.width);m.name=p.name;m.userData.residentId=p.id;m.receiveShadow=true;m.castShadow=true;e.anchor.add(m);e.mesh=m;e.height=t.height*p.height;
+    if(e.mesh)return;const p=e.person;
+    if(!SPECIES_EXTRA[p.base]){ // a design without an animated version keeps its sculpture
+      const t=compile(p.base),g=new THREE.BufferGeometry(),source=t.geometry;
+      g.setAttribute('position',source.attributes.position);g.setAttribute('normal',source.attributes.normal);g.setIndex(source.index);g.boundingSphere=source.boundingSphere;
+      const values=t.colors.slice(),col=new THREE.Color(),tint=new THREE.Color(p.accent);
+      for(let i=0;i<t.weights.length;i++){const j=i*3;col.fromArray(values,j).lerp(tint,t.weights[i]).convertSRGBToLinear();col.toArray(values,j);}
+      g.setAttribute('color',new THREE.BufferAttribute(values,3));const m=new THREE.Mesh(g,sceneMaterial);
+      m.scale.set(p.width,p.height,1/p.width);m.name=p.name;m.userData.residentId=p.id;e.anchor.add(m);e.mesh=m;e.height=t.height*p.height;return; }
+    const F=Folk.make(p.base,seedOf(p.id),1.2);F.scale.set(1.2*p.width,1.2*p.height,1.2/p.width);
+    const tint=new THREE.Color(p.accent);F.traverse(o=>{ if(o.isMesh&&o.material&&o.material.name==='accent'&&!o.material.userData.tinted){ o.material=o.material.clone(); o.material.color.lerp(tint,0.65); o.material.userData.tinted=true; } });
+    F.name=p.name;F.userData.residentId=p.id;e.anchor.add(F);e.mesh=F;e.height=new THREE.Box3().setFromObject(F).getSize(new THREE.Vector3()).y;
   }
   function populate(P,venues){
     entries=[];selected=null;world=P.name;templates.clear();const locals=here(world);
