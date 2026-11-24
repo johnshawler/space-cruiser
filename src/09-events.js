@@ -94,7 +94,7 @@ const Dlg = {
   flush(){ const o=this.held; this.held=null; if(o&&!this.open&&G.mode==='flight') this.show(o); },
   show(o){
     if(Walk.on&&!o.onboard){ if(!this.held) this.held=o; return; }
-    Comms.close(true); if(SysMap.open) SysMap.close(); this.open=true; this.opts=o.opts||[{t:'OK'}]; this.timer=o.timeout||0; this.onTimeout=o.onTimeout||null; this.total=this.timer;
+    Comms.close(true); if(SysMap.open) SysMap.close(); this.open=true; this.tone=o.tone||''; this.opts=o.opts||[{t:'OK'}]; this.timer=o.timeout||0; this.onTimeout=o.onTimeout||null; this.total=this.timer;
     const box=$('dlg'); box.hidden=false; this.mini=!!o.mini; box.className=(o.tone||'')+(this.mini?' mini':''); box.onclick=()=>this.expand();
     $('dlg-hint').textContent='';
     const x=$('dlg-face').getContext('2d'); x.clearRect(0,0,192,192); if(o.sp) drawAlien(x,o.sp,o.seed||1,0,0,192); else { x.fillStyle='#1d2a3a'; x.fillRect(0,0,192,192); x.font='120px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(o.icon||'⚠',96,104); }
@@ -108,6 +108,8 @@ const Dlg = {
   expand(){ if(!this.open||!this.mini) return; this.mini=false; $('dlg').classList.remove('mini'); if(Sfx.ok()) Sfx.click(); },
   choose(i){ const op=this.opts[i]; if(!this.open||!op||op.disabled) return; Sfx.click(); this.close(); if(op.fn) op.fn(); },
   close(){ this.open=false; this.mini=false; this.timer=0; $('dlg').hidden=true; },
+  /* Escape on an incoming radio call: hang up, as if you'd let it ring out, and clear it off the cockpit screen */
+  hangUp(){ if(!this.open||this.tone!=='radio') return false; const f=this.onTimeout; this.close(); if(f) f(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,4); if(Sfx.ok()) Sfx.click(); return true; },
   update(dt){ if(!this.open||!this.timer) return; this.timer-=dt; $('dlg-bar').style.width=Math.max(0,this.timer/this.total*100)+'%';
     if(this.timer<=0){ const f=this.onTimeout; this.close(); if(f) f(); } },
 };

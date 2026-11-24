@@ -157,20 +157,24 @@ const Interior = {
       c.fillStyle='#121418'; c.fillRect(0,0,W,Hh); c.strokeStyle=col; c.lineWidth=12; c.strokeRect(10,10,W-20,Hh-20); c.textAlign='center'; c.textBaseline='middle';
       c.fillStyle=col; fitFont(c,title,W-70,Math.round(Hh*(sub?0.42:0.6)),`700 #px ${FONT_DISP}`); c.fillText(title,W/2,sub?Hh*0.38:Hh*0.52);
       if(sub){ c.fillStyle='#e4e8ec'; fitFont(c,sub,W-70,Math.round(Hh*0.22),`600 #px ${FONT_DISP}`); c.fillText(sub,W/2,Hh*0.76); }
-      return plane(w,h,new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)}),x,y,z,ry); };
+      // mounted on a short stand-off, clear of the wall ribs and rails, and kept below the ceiling beams and pipes
+      const top=CEIL-0.12; if(y+h/2>top) y=top-h/2; const nx=Math.sin(ry), nz=Math.cos(ry), off=0.07;
+      const back=bx(w+0.04,h+0.04,0.05,M.dark,x+nx*(off-0.03),y,z+nz*(off-0.03)); back.rotation.y=ry;
+      return plane(w,h,new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)}),x+nx*off,y,z+nz*off,ry); };
     const poster=(title,body,col,w,h,x,y,z,ry)=>{ const W=512, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d');
       c.fillStyle='#ebe5d6'; c.fillRect(0,0,W,Hh); c.fillStyle=col; c.fillRect(0,0,W,Hh*0.22); c.fillStyle='#ffffff'; c.textAlign='center'; c.textBaseline='middle';
       fitFont(c,title,W-40,Math.round(Hh*0.1),`700 #px ${FONT_DISP}`); c.fillText(title,W/2,Hh*0.11);
       c.fillStyle='#202428'; c.font=`600 ${Math.round(Hh*0.058)}px ${FONT_DISP}`; let line='', yy=Hh*0.32; const lh=Hh*0.075;
       for(const wd of body.split(' ')){ const t=line?line+' '+wd:wd; if(c.measureText(t).width>W-56){ c.fillText(line,W/2,yy); yy+=lh; line=wd; } else line=t; } c.fillText(line,W/2,yy);
       c.fillStyle=col; c.fillRect(W*0.3,Hh-26,W*0.4,8);
+      const off=0.06; x+=Math.sin(ry)*off; z+=Math.cos(ry)*off; // proud of the wall ribs
       const fr=bx(w+0.05,h+0.05,0.02,M.frame,x,y,z); fr.rotation.y=ry; const o=plane(w,h,new THREE.MeshStandardMaterial({map:canvasTex(cv),roughness:0.8}),x+Math.sin(ry)*0.012,y,z+Math.cos(ry)*0.012,ry); return o; };
     /* ---- corridor ---- */
     for(const [sx,spans] of [[-1,[[0.75,3.0],[4.2,7.15]]],[1,[[0.75,2.5],[3.7,7.15]]]]) for(const [a,b] of spans){
       const r=cyl(0.024,0.024,b-a-0.2,M.chrome,sx*0.77,0.08,(a+b)/2,12); r.rotation.x=ry90;
       for(const z of [a+0.15,(a+b)/2,b-0.15]) bx(0.1,0.035,0.035,M.chrome,sx*0.81,0.08,z);
       for(let z=a+0.25;z<b-0.1;z+=0.7) bx(0.06,0.012,0.14,M.guide,sx*0.76,FLOOR+0.007,z); }
-    for(const [x,m] of [[-0.6,M.pipe],[0.6,M.cool]]){ const p=cyl(0.04,0.04,6.3,m,x,CEIL-0.16,3.95,10); p.rotation.x=ry90; }
+    for(const [x,m] of [[-0.6,M.pipe],[0.6,M.cool]]){ const p=cyl(0.04,0.04,6.3,m,x,CEIL-0.055,3.95,10); p.rotation.x=ry90; } // tucked up under the ceiling, above the signs
     cyl(0.08,0.08,0.45,M.red,0.74,FLOOR+0.42,6.6,16); cyl(0.03,0.04,0.1,M.dark,0.74,FLOOR+0.7,6.6,10); bx(0.06,0.06,0.2,M.chrome,0.81,FLOOR+0.5,6.6);
     bx(0.06,0.4,0.56,M.red,-0.84,0.5,1.5); sign('EMERGENCY','Break glass. Then panic.',0.5,0.3,-0.805,0.5,1.5,ry90,'#ff6a5a');
     sign('COCKPIT','Pilots only. That means you.',1.3,0.42,0,1.06,0.745,0);
@@ -397,7 +401,8 @@ const Walk = {
 const SPEED_LIMIT=400;
 const Throttle = {
   heat:0, over:0, zone:null, hotTold:false, warned:false,
-  reset(){ this.over=0; this.zone=null; this.warned=false; },
+  reset(){ this.over=0; this.zone=null; this.warned=false; this.dismissed=null; },
+  hideBanner(){ if(!this.zone||this.dismissed===this.zone) return false; this.dismissed=this.zone; $('zone-badge').hidden=true; if(Sfx.ok()) Sfx.click(); return true; },
   jolt(n){ for(const c of G.cargo) if(c.fragile) c.dmg=Math.min(0.7,(c.dmg||0)+n*0.015); },
   update(dt){
     const s=G.ship, thr=s.throttle;
@@ -412,8 +417,9 @@ const Throttle = {
       if(rough>0) for(const c of G.cargo){ if(!c.fragile) continue; const was=c.dmg||0; c.dmg=Math.min(0.7,was+dt*rough); if(Math.floor(was*10)!==Math.floor(c.dmg*10)) UI.toast(`Something fragile is rattling in the hold. ${c.qty}× ${c.good} is ${Math.round((1-c.dmg)*100)}% intact. Ease off below throttle 8.`,'warn'); } }
     // inbound speed limit near ports
     let zone=null; if(!s.warp){ for(const P of PLANETS){ const to=P.pos.clone().sub(s.pos), d=to.length(); if(d<P.landR+6000&&d>P.landR*0.95&&s.speed>1&&to.dot(s.vel)/(d*s.speed)>0.3){ zone=P; break; } } }
-    if(zone!==this.zone){ this.settle(); this.zone=zone; this.over=0; this.warned=false; this.top=0; }
-    const zb=$('zone-badge'); zb.hidden=!zone; if(zone){ const fast=s.speed>SPEED_LIMIT+20; zb.classList.toggle('fast',fast); zb.textContent=`${zone.port} approach · limit ${SPEED_LIMIT} km/s${fast?' · SLOW DOWN':''}`;
+    if(zone!==this.zone){ this.settle(); this.zone=zone; this.over=0; this.warned=false; this.top=0; if(!zone) this.dismissed=null; }
+    // Esc (or a tap on it) hides the banner for the rest of this approach; the speeding warning and fine still apply
+    const zb=$('zone-badge'); zb.hidden=!zone||this.dismissed===zone; if(zone){ const fast=s.speed>SPEED_LIMIT+20; zb.classList.toggle('fast',fast); zb.textContent=`${zone.port} approach · limit ${SPEED_LIMIT} km/s${fast?' · SLOW DOWN':''}`;
       if(fast){ this.over+=dt; this.top=Math.max(this.top||0,s.speed); if(this.over>1.2&&!this.warned){ this.warned=true; Sfx.beep(990); UI.toast(`${zone.port} Control: you are doing ${Math.round(s.speed)} in a ${SPEED_LIMIT} zone. Throttle down or expect a fine.`,'warn'); } } }
   },
   /* the fine lands when you leave the zone or touch down, if you spent more than a moment over the limit */

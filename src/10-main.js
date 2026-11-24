@@ -162,6 +162,7 @@ const Game = {
       if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return; const c=e.code;
       if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(c)) e.preventDefault();
       if(!$('help').hidden){ if(c==='Escape'||c==='Slash'||c==='F1'){ help(false); e.preventDefault(); } return; }
+      if(c==='Escape'&&Dlg.hangUp()){ e.preventDefault(); return; }
       if(Dlg.open&&Dlg.mini&&(c==='Enter'||c==='NumpadEnter')){ Dlg.expand(); e.preventDefault(); return; }
       if(Dlg.open&&!Dlg.mini){ const dm=c.match(/^(?:Digit|Numpad)(\d)$/); if(dm){ const n=+dm[1]; if(n>=1&&n<=Dlg.opts.length) Dlg.choose(n-1); e.preventDefault(); return; } }
       if(c==='F1'||(c==='Slash'&&e.shiftKey)){ if(G.mode!=='title'&&G.mode!=='boot'){ help(true); e.preventDefault(); } return; }
@@ -180,7 +181,7 @@ const Game = {
       const dm=c.match(/^(?:Digit|Numpad)(\d)$/);
       if(dm){ const n=+dm[1]; if(Comms.open&&n>=1&&n<=5) Comms.choose(n-1); else this.setThrottle(n===0?10:n); return; }
       switch(c){ case 'KeyX': this.setThrottle(0); break; case 'KeyZ': this.toggleWarp(); break; case 'KeyT': this.setTarget(G.target+(e.shiftKey?-1:1)); break; case 'KeyP': this.setAutopilot(!G.sys.autopilot); break;
-        case 'KeyH': Comms.hail(); break; case 'KeyG': this.honk(); break; case 'KeyC': Cockpit.zoomOut(); break; case 'Escape': if(Comms.open) Comms.close(); else Cockpit.zoomOut(); break;
+        case 'KeyH': Comms.hail(); break; case 'KeyG': this.honk(); break; case 'KeyC': Cockpit.zoomOut(); break; case 'Escape': if(Comms.open) Comms.close(); else if(!Throttle.hideBanner()) Cockpit.zoomOut(); break;
         case 'KeyN': G.sys.music=G.sys.music>0.02?0:0.45; Sfx.setMusicVol(G.sys.music); break; }
     });
     window.addEventListener('keyup',e=>{ G.keys[e.code]=false; Walk.stale.delete(e.code); });
@@ -195,7 +196,7 @@ const Game = {
         // the alien who was talking: tap them to hear them again
         const K=Venues.pickKeeper(nd(e)); if(K&&UI.hushed===K){ UI.hushed=null; if(Sfx.ok()) Sfx.click(); gl.style.cursor=''; } }); }
     window.addEventListener('blur',()=>{ G.keys={}; });
-    $('bubble').onclick=()=>UI.hush(); $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
+    $('bubble').onclick=()=>UI.hush(); $('zone-badge').onclick=()=>Throttle.hideBanner(); $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
       if(due.length&&!Dlg.open){ Dlg.show({icon:'📦',who:`${UI.P.port} · cargo depot`,text:`You still have ${due.length} deliver${due.length===1?'y':'ies'} for here. Leave without handing ${due.length===1?'it':'them'} over?`,
         opts:[{t:'Hand everything over first',fn:()=>{ UI.deliverAll(UI.P); }},{t:'Launch anyway',sub:'It stays in your hold',fn:()=>Cine.startTakeoff()}]}); return; }
       Cine.startTakeoff(); };
