@@ -47,7 +47,7 @@ Every planet has its own mix of places. Each one sits in its own part of the por
 
 ## Port life
 
-Locals stroll around the landing pad, stop to chat, push carts of crates about, and a marshal waves you in with glowing batons. Other ships land on and take off from the neighbouring pads. When you launch with new cargo, the hatch folds down into a ramp and two dockhands carry it aboard. Sometimes the stack falls over, or the last crate slides back down the ramp and bursts. Sometimes it all goes in without a scratch.
+Locals stroll around the landing pad, stop to chat, push carts of crates about, and a marshal waves you in with glowing batons. Other ships land on and take off from the neighbouring pads. When you launch with new cargo, the hatch folds down into a ramp and two dockhands carry it aboard. Sometimes the stack falls over and a crate cracks open (you lose half that crate's share of the contract), or the last crate slides back down the ramp and bursts (you lose its whole share). Lost units come off the contract and its pay drops to match; a message after takeoff says what went. Skipping the scene doesn't save the cargo. Sometimes it all goes in without a scratch.
 
 ## Your ship
 
@@ -104,7 +104,7 @@ python3 -m http.server 8765
 
 ## Species pack
 
-Open `?gallery` to compare three portraits per species and inspect the animated models at full scale. Select **Walk** and **Silhouette** to compare movement and outlines. The 21 additions live in `src/species/<key>.js`. Use `SPECIES_EXTRA_KEYS` to enumerate them or `Folk.make(key, seed, 1)` to preview one. Regular encounters still use the original nine.
+Open `?gallery` to compare three portraits per species and inspect the animated models at full scale. Select **Walk** and **Silhouette** to compare movement and outlines. The 21 additions live in `src/species/<key>.js`. Use `SPECIES_EXTRA_KEYS` to enumerate them or `Folk.make(key, seed, 1)` to preview one. Regular encounters still use the original nine. Their updated models and individual movement cycles are in `src/08a-original-folk.js`. The gallery, radio portraits, and port characters all use the same builders.
 
 | Key | Species | Family | Appearance and personality |
 | --- | --- | --- | --- |
