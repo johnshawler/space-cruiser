@@ -45,10 +45,10 @@ const UI = {
   say(who, text, quirk){ this.bubble={who,say:text,quirk:quirk||''}; this.showBubble(); },
   /* tap a speech bubble to dismiss it; tap the alien who said it to bring it back */
   hush(){ const V=Venues.active; if(!V) return; this.hushed=V; $('bubble').hidden=true; if(Sfx.ok()) Sfx.click(); },
-  showBubble(){ const b=$('bubble'), q=this.bubble; if(!b||!q) return; b.querySelector('.who').textContent=q.who; b.querySelector('.say').textContent=q.say; b.querySelector('.qk').textContent=q.quirk; },
+  showBubble(){ const b=$('bubble'), q=this.bubble; if(!b||!q) return; b.querySelector('.who').textContent=q.who; b.querySelector('.say').textContent=q.say; },
   /* the signpost beside the counter: one arm per place in this port */
   post(){ const P=this.P, nav=$('port-tabs'); nav.innerHTML=''; const arms=Venues.defs(P).map(d=>[d.k,VENUE_TABS[d.k]]);
-    if(ResidentDistrict.has(P)) arms.push(['residents',P.station?'Staff':'Residents']); if(PortSites.has(P)) arms.push(['stations','Landmarks']);
+    // residents and landmarks are scenery around the port; the signpost only lists places you can do business
     arms.forEach(([k,label],i)=>{ const b=el('button','arm '+(i%2?'r':'l')+(k===this.tab?' on':''),esc(label)); b.dataset.k=k; if(k===this.tab) b.setAttribute('aria-current','true');
       b.onclick=()=>this.go(k); nav.appendChild(b); }); },
   go(k){ if(this.tab===k) return; Sfx.click(); this.tab=k; this.closeTicket(); Cine.setPreview(null); this.render(); },
@@ -122,9 +122,10 @@ const UI = {
         const net=Math.max(0,sh.price-val), mine=i===G.shipId; const pv=el('button','btn','Preview'); pv.onclick=()=>{ Sfx.click(); Cine.setPreview(i); }; const sp=el('button','btn','Specs'); sp.onclick=()=>Specs.show(i);
         const c=this.card(body,cv,esc(sh.name)+(mine?'<span class="tag">YOURS</span>':''),esc(sh.tag),mine?'':`After trade-in`,mine?'—':fmtCr(net),mine?'':Specs.fits(i)?'Buy':'Too small',G.credits<net||!Specs.fits(i),()=>{ G.credits-=net; Specs.change(i,P); cash(); UI.toast('You now own the '+sh.name+'. New ship smell included.','good'); },[pv,sp]); });
     } else if(this.tab==='garage'){
-      this.keeper(v); const hn=Math.ceil(100-G.hull), hc=hn*5;
-      this.card(body,'🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents.':'Not a scratch.'}`,'5 cr a point',hn>0?fmtCr(hc):'Fine',hn<=0?'Fine':G.credits>=hc?'Repair':'Patch what I can',hn<=0||G.credits<5,()=>{ const pts=Math.min(hn,Math.floor(G.credits/5)); G.credits-=pts*5; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); Venues.react('clap'); });
-      this.card(body,'✦','Canopy wash',G.sys.dirt>0.3?'Yours is a disgrace.':'Yours is fine, honestly.','',fmtCr(20),'Wash',G.credits<20||G.sys.dirt<0.05,()=>{ G.credits-=20; G.sys.dirt=0; Sfx.hiss(1.5,0.2); Venues.react('clap'); });
+      const hn=Math.ceil(100-G.hull), hc=hn*5, dirty=G.sys.dirt>=0.05; this.keeper(v,hn<=0&&!dirty?'Not a scratch on her, and the glass is clean. Come back when you hit something.':null);
+      // each tag only shows while there's something to fix
+      if(hn>0) this.card(body,'🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents.':'Not a scratch.'}`,'5 cr a point',hn>0?fmtCr(hc):'Fine',hn<=0?'Fine':G.credits>=hc?'Repair':'Patch what I can',hn<=0||G.credits<5,()=>{ const pts=Math.min(hn,Math.floor(G.credits/5)); G.credits-=pts*5; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); Venues.react('clap'); });
+      if(dirty) this.card(body,'✦','Canopy wash',G.sys.dirt>0.3?'Yours is a disgrace.':'Yours is fine, honestly.','',fmtCr(20),'Wash',G.credits<20||G.sys.dirt<0.05,()=>{ G.credits-=20; G.sys.dirt=0; Sfx.hiss(1.5,0.2); Venues.react('clap'); });
     } else if(this.tab==='livery'){
       this.keeper(v,`${G.paint?'Currently wearing '+G.paint.name+'.':'Factory finish, is it?'} Pick a colour.`);
       const sw=(hull,trim)=>{ const cv=makeCanvas(128,128), x=cv.getContext('2d'); x.fillStyle=hull; x.fillRect(0,0,128,128); x.fillStyle=trim; x.fillRect(0,78,128,22); x.fillRect(0,108,128,8); x.strokeStyle='rgba(0,0,0,.35)'; x.lineWidth=4; x.strokeRect(2,2,124,124); return cv; };

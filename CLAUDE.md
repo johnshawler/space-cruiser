@@ -1,6 +1,6 @@
 # Long Haul model and placement guide
 
-Long Haul lives in this repository, `johnshawler/space-cruiser`. Dock at any port and open **Residents** (called **Staff** at a research station) to meet someone or **Landmarks** to inspect a facility. Both views move the port camera to the selected object's physical location. Each of the nine planetary ports has about 55 residents and two or three facilities. The four far research stations (Listening Post Hush, Cryo Vault Rimeholm, Calibration Spire, Beacon Far Wink) each have five posted residents and one annex landmark.
+Long Haul lives in this repository, `johnshawler/space-cruiser`. Residents and landmark facilities stand around each port as scenery. There are no Residents or Landmarks tabs: they were removed at the player's request, and the signpost lists only the shops. The panel and camera code for meeting a resident or inspecting a facility is still in the modules, unused, if a way in is wanted later. Each of the nine planetary ports has about 55 residents and two or three facilities. The four far research stations (Listening Post Hush, Cryo Vault Rimeholm, Calibration Spire, Beacon Far Wink) each have five posted residents and one annex landmark.
 
 **Original designs only.** Characters, facilities and props must not recreate or reference characters, logos, products or designs from films, games, brands or toys, and the definitions carry no "inspired by" titles. Tally, Nim and Orris were redesigned for this reason.
 
