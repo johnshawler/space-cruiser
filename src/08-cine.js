@@ -180,7 +180,7 @@ const Cine = {
   /* the part of the screen not covered by the port panel */
   /* the shopkeeper's speech bubble rides above their head, kept clear of the panel and the top of the screen */
   placeBubble(V){ const b=$('bubble'); if(!b) return; if(G.mode!=='port') $('shelf-tip').hidden=true;
-    const show=UI.tab!=='residents'&&UI.tab!=='stations'&&G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!UI.ticket&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
+    const show=UI.tab!=='residents'&&UI.tab!=='stations'&&G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!UI.ticket&&UI.hushed!==V&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
     if(!show){ if(!b.hidden) b.hidden=true; return; } const p=new V3(); V.keeper.userData.head.getWorldPosition(p); p.y+=1.0; const v=p.project(this.cam);
     if(v.z>1||v.x<-1.2||v.x>1.2||v.y<-1.2||v.y>1.4){ b.hidden=true; return; } b.hidden=false;
     const W=World.w, H=World.h, bw=b.offsetWidth, bh=b.offsetHeight, top=Math.max($('port-bar').getBoundingClientRect().bottom,$('port-tabs').classList.contains('dock')?$('port-tabs').getBoundingClientRect().bottom:0);

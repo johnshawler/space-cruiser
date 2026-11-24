@@ -13,7 +13,7 @@ const UI = {
      the shop's offers sit along the counter as big price tags, contracts pop up as tickets over their model on
      the shelf, and the launch sign hangs in the corner. ---------- */
   showPort(P, arrival){
-    this.P=P; this.arrival=arrival; this.told=null; this.tab='depot'; this.ticket=null; $('port').hidden=false; $('keys').hidden=true;
+    this.P=P; this.arrival=arrival; this.told=null; this.tab='depot'; this.ticket=null; this.hushed=null; $('port').hidden=false; $('keys').hidden=true;
     $('port-name').textContent=P.name; $('port-sub').textContent=P.port+' · '+P.desc;
     this.render();
     if(arrival&&arrival.fee) setTimeout(()=>UI.toast(`Tow fee −${fmtCr(arrival.fee)}`,'warn'),900);
@@ -43,6 +43,8 @@ const UI = {
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp];
     this.bubble={who:`${Venues.keeperName(P,d)} · ${d.title}`,say:line||d.hi[(G.stats.deliveries+seed)%d.hi.length],quirk:`${S.name}. ${d.quirk}`}; this.showBubble(); },
   say(who, text, quirk){ this.bubble={who,say:text,quirk:quirk||''}; this.showBubble(); },
+  /* tap a speech bubble to dismiss it; tap the alien who said it to bring it back */
+  hush(){ const V=Venues.active; if(!V) return; this.hushed=V; $('bubble').hidden=true; if(Sfx.ok()) Sfx.click(); },
   showBubble(){ const b=$('bubble'), q=this.bubble; if(!b||!q) return; b.querySelector('.who').textContent=q.who; b.querySelector('.say').textContent=q.say; b.querySelector('.qk').textContent=q.quirk; },
   /* the signpost beside the counter: one arm per place in this port */
   post(){ const P=this.P, nav=$('port-tabs'); nav.innerHTML=''; const arms=Venues.defs(P).map(d=>[d.k,VENUE_TABS[d.k]]);

@@ -60,7 +60,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #loading{font-family:var(--mono);color:var(--dim);letter-spacing:.2em;font-size:24px;text-transform:uppercase}
 
 /* Port */
-#bubble{position:absolute;z-index:14;left:0;top:0;max-width:min(460px,42vw);background:#f6f2e6;color:#1d1a14;border-radius:20px;padding:12px 18px 14px;transform:translate(-22%,calc(-100% - 22px));pointer-events:none;border:3px solid #2a2116}
+#bubble{position:absolute;z-index:14;left:0;top:0;max-width:min(460px,42vw);background:#f6f2e6;color:#1d1a14;border-radius:20px;padding:12px 18px 14px;transform:translate(-22%,calc(-100% - 22px));pointer-events:auto;cursor:pointer;border:3px solid #2a2116}
 #bubble::after{content:'';position:absolute;left:22%;bottom:-19px;margin-left:-14px;border:14px solid transparent;border-top:18px solid #2a2116;border-bottom:0}
 #bubble .who{font-family:var(--mono);font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:#6b5a44}#bubble .say{font-size:26px;line-height:1.3;margin-top:2px}#bubble .qk{font-size:17px;font-style:italic;color:#6b5a44;margin-top:6px}
 #shelf-tip{position:absolute;z-index:16;pointer-events:none;background:rgba(6,10,14,.92);border:2px solid var(--amber);color:var(--ink);padding:10px 14px;font-size:22px;line-height:1.3;max-width:360px;transform:translate(16px,16px)}#shelf-tip b{color:var(--amber);display:block}#shelf-tip i{font-style:normal;color:var(--dim);font-size:18px}
@@ -242,7 +242,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port>*{pointer-events:auto}
 #port-bar{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}
 #port-title{flex:0 1 560px;min-width:200px;background:rgba(8,15,23,.84);border:1px solid var(--line);border-left:6px solid var(--amber);padding:10px 18px 12px;pointer-events:none}
-#port h2{font-family:var(--display);font-size:36px;letter-spacing:.12em;text-transform:uppercase;margin:0;line-height:1.05}
+#port h2{font-family:var(--display);font-size:clamp(24px,2.5vw,36px);overflow-wrap:anywhere;letter-spacing:.12em;text-transform:uppercase;margin:0;line-height:1.05}
 #port .sub{font-family:var(--mono);font-size:18px;letter-spacing:.08em;color:var(--amber);text-transform:uppercase;margin-top:6px;line-height:1.3}
 #port-top{pointer-events:auto;margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:12px;background:rgba(8,15,23,.84);border:1px solid var(--line);padding:10px 12px 10px 18px}
 #port-foot{display:flex;flex-direction:column;font-family:var(--mono);font-size:20px;color:var(--dim);letter-spacing:.04em;line-height:1.2}#port-foot .cr{color:var(--cyan);font-weight:400;font-size:30px}
@@ -374,7 +374,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.27</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.28</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -5017,7 +5017,7 @@ const Cine = {
   /* the part of the screen not covered by the port panel */
   /* the shopkeeper's speech bubble rides above their head, kept clear of the panel and the top of the screen */
   placeBubble(V){ const b=$('bubble'); if(!b) return; if(G.mode!=='port') $('shelf-tip').hidden=true;
-    const show=UI.tab!=='residents'&&UI.tab!=='stations'&&G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!UI.ticket&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
+    const show=UI.tab!=='residents'&&UI.tab!=='stations'&&G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!UI.ticket&&UI.hushed!==V&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
     if(!show){ if(!b.hidden) b.hidden=true; return; } const p=new V3(); V.keeper.userData.head.getWorldPosition(p); p.y+=1.0; const v=p.project(this.cam);
     if(v.z>1||v.x<-1.2||v.x>1.2||v.y<-1.2||v.y>1.4){ b.hidden=true; return; } b.hidden=false;
     const W=World.w, H=World.h, bw=b.offsetWidth, bh=b.offsetHeight, top=Math.max($('port-bar').getBoundingClientRect().bottom,$('port-tabs').classList.contains('dock')?$('port-tabs').getBoundingClientRect().bottom:0);
@@ -6153,6 +6153,9 @@ const Venues = (() => {
     /* which contract's model is under the pointer (normalised device coordinates), if any */
     pickShelf(nd){ const V=this.active; if(!V||!V.shelf||G.mode!=='port'||this.moving) return null; const ray=this.ray||(this.ray=new THREE.Raycaster()); ray.setFromCamera(nd,Cine.cam);
       const hit=ray.intersectObjects(V.shelf.items.map(i=>i.o),true)[0]; return hit?hit.object.userData.shelfJob:null; },
+    /* is the shopkeeper of the current shop under the pointer? */
+    pickKeeper(nd){ const V=this.active; if(!V||!V.keeper||G.mode!=='port'||this.moving) return null; const ray=this.ray||(this.ray=new THREE.Raycaster()); ray.setFromCamera(nd,Cine.cam);
+      return ray.intersectObject(V.keeper,true).length?V:null; },
     hoverShelf(j){ const V=this.list.find(v=>v.shelf); if(V) V.shelf.hover=j; },
     hopShelf(j){ const V=this.list.find(v=>v.shelf); const it=V&&V.shelf.items.find(i=>i.job===j); if(it) it.hop=1; },
     /* ask the depot's droid to bring a crate of this out to the counter */
@@ -7742,7 +7745,7 @@ const UI = {
      the shop's offers sit along the counter as big price tags, contracts pop up as tickets over their model on
      the shelf, and the launch sign hangs in the corner. ---------- */
   showPort(P, arrival){
-    this.P=P; this.arrival=arrival; this.told=null; this.tab='depot'; this.ticket=null; $('port').hidden=false; $('keys').hidden=true;
+    this.P=P; this.arrival=arrival; this.told=null; this.tab='depot'; this.ticket=null; this.hushed=null; $('port').hidden=false; $('keys').hidden=true;
     $('port-name').textContent=P.name; $('port-sub').textContent=P.port+' · '+P.desc;
     this.render();
     if(arrival&&arrival.fee) setTimeout(()=>UI.toast(`Tow fee −${fmtCr(arrival.fee)}`,'warn'),900);
@@ -7772,6 +7775,8 @@ const UI = {
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp];
     this.bubble={who:`${Venues.keeperName(P,d)} · ${d.title}`,say:line||d.hi[(G.stats.deliveries+seed)%d.hi.length],quirk:`${S.name}. ${d.quirk}`}; this.showBubble(); },
   say(who, text, quirk){ this.bubble={who,say:text,quirk:quirk||''}; this.showBubble(); },
+  /* tap a speech bubble to dismiss it; tap the alien who said it to bring it back */
+  hush(){ const V=Venues.active; if(!V) return; this.hushed=V; $('bubble').hidden=true; if(Sfx.ok()) Sfx.click(); },
   showBubble(){ const b=$('bubble'), q=this.bubble; if(!b||!q) return; b.querySelector('.who').textContent=q.who; b.querySelector('.say').textContent=q.say; b.querySelector('.qk').textContent=q.quirk; },
   /* the signpost beside the counter: one arm per place in this port */
   post(){ const P=this.P, nav=$('port-tabs'); nav.innerHTML=''; const arms=Venues.defs(P).map(d=>[d.k,VENUE_TABS[d.k]]);
@@ -8560,12 +8565,14 @@ const Game = {
     { const gl=$('gl'), tip=$('shelf-tip'); let down=null; const nd=e=>{ const r=gl.getBoundingClientRect(); return new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); };
       const show=(j,e)=>{ if(!j){ if(!tip.hidden) tip.hidden=true; gl.style.cursor=''; Venues.hoverShelf(null); return; } Venues.hoverShelf(j); gl.style.cursor='pointer'; tip.hidden=false;
         tip.innerHTML=`<b>${j.kind==='contra'?j.qty+'× something unmentionable':j.qty+'× '+esc(j.good)}</b>${fmtCr(j.pay)} · to ${esc(PLANETS[j.to].name)}<br><i>${TouchUI.on?'Tap':'Click'} to see the job</i>`; tip.style.left=e.clientX+'px'; tip.style.top=e.clientY+'px'; };
-      gl.addEventListener('pointermove',e=>{ if(G.mode!=='port'||e.pointerType==='touch') return; show(Venues.pickShelf(nd(e)),e); });
+      gl.addEventListener('pointermove',e=>{ if(G.mode!=='port'||e.pointerType==='touch') return; const j=Venues.pickShelf(nd(e)); show(j,e); if(!j&&UI.hushed&&Venues.pickKeeper(nd(e))===UI.hushed) gl.style.cursor='pointer'; });
       gl.addEventListener('pointerleave',()=>show(null));
       gl.addEventListener('pointerdown',e=>{ if(G.mode==='port') down={x:e.clientX,y:e.clientY}; });
-      gl.addEventListener('pointerup',e=>{ if(G.mode!=='port'||!down) return; const far=Math.hypot(e.clientX-down.x,e.clientY-down.y)>10; down=null; if(far) return; const j=Venues.pickShelf(nd(e)); if(j){ show(null); UI.focusJob(j); } }); }
+      gl.addEventListener('pointerup',e=>{ if(G.mode!=='port'||!down) return; const far=Math.hypot(e.clientX-down.x,e.clientY-down.y)>10; down=null; if(far) return; const j=Venues.pickShelf(nd(e)); if(j){ show(null); UI.focusJob(j); return; }
+        // the alien who was talking: tap them to hear them again
+        const K=Venues.pickKeeper(nd(e)); if(K&&UI.hushed===K){ UI.hushed=null; if(Sfx.ok()) Sfx.click(); gl.style.cursor=''; } }); }
     window.addEventListener('blur',()=>{ G.keys={}; });
-    $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
+    $('bubble').onclick=()=>UI.hush(); $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
       if(due.length&&!Dlg.open){ Dlg.show({icon:'📦',who:`${UI.P.port} · cargo depot`,text:`You still have ${due.length} deliver${due.length===1?'y':'ies'} for here. Leave without handing ${due.length===1?'it':'them'} over?`,
         opts:[{t:'Hand everything over first',fn:()=>{ UI.deliverAll(UI.P); }},{t:'Launch anyway',sub:'It stays in your hold',fn:()=>Cine.startTakeoff()}]}); return; }
       Cine.startTakeoff(); };

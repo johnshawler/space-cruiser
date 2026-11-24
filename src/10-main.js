@@ -188,12 +188,14 @@ const Game = {
     { const gl=$('gl'), tip=$('shelf-tip'); let down=null; const nd=e=>{ const r=gl.getBoundingClientRect(); return new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); };
       const show=(j,e)=>{ if(!j){ if(!tip.hidden) tip.hidden=true; gl.style.cursor=''; Venues.hoverShelf(null); return; } Venues.hoverShelf(j); gl.style.cursor='pointer'; tip.hidden=false;
         tip.innerHTML=`<b>${j.kind==='contra'?j.qty+'× something unmentionable':j.qty+'× '+esc(j.good)}</b>${fmtCr(j.pay)} · to ${esc(PLANETS[j.to].name)}<br><i>${TouchUI.on?'Tap':'Click'} to see the job</i>`; tip.style.left=e.clientX+'px'; tip.style.top=e.clientY+'px'; };
-      gl.addEventListener('pointermove',e=>{ if(G.mode!=='port'||e.pointerType==='touch') return; show(Venues.pickShelf(nd(e)),e); });
+      gl.addEventListener('pointermove',e=>{ if(G.mode!=='port'||e.pointerType==='touch') return; const j=Venues.pickShelf(nd(e)); show(j,e); if(!j&&UI.hushed&&Venues.pickKeeper(nd(e))===UI.hushed) gl.style.cursor='pointer'; });
       gl.addEventListener('pointerleave',()=>show(null));
       gl.addEventListener('pointerdown',e=>{ if(G.mode==='port') down={x:e.clientX,y:e.clientY}; });
-      gl.addEventListener('pointerup',e=>{ if(G.mode!=='port'||!down) return; const far=Math.hypot(e.clientX-down.x,e.clientY-down.y)>10; down=null; if(far) return; const j=Venues.pickShelf(nd(e)); if(j){ show(null); UI.focusJob(j); } }); }
+      gl.addEventListener('pointerup',e=>{ if(G.mode!=='port'||!down) return; const far=Math.hypot(e.clientX-down.x,e.clientY-down.y)>10; down=null; if(far) return; const j=Venues.pickShelf(nd(e)); if(j){ show(null); UI.focusJob(j); return; }
+        // the alien who was talking: tap them to hear them again
+        const K=Venues.pickKeeper(nd(e)); if(K&&UI.hushed===K){ UI.hushed=null; if(Sfx.ok()) Sfx.click(); gl.style.cursor=''; } }); }
     window.addEventListener('blur',()=>{ G.keys={}; });
-    $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
+    $('bubble').onclick=()=>UI.hush(); $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
       if(due.length&&!Dlg.open){ Dlg.show({icon:'📦',who:`${UI.P.port} · cargo depot`,text:`You still have ${due.length} deliver${due.length===1?'y':'ies'} for here. Leave without handing ${due.length===1?'it':'them'} over?`,
         opts:[{t:'Hand everything over first',fn:()=>{ UI.deliverAll(UI.P); }},{t:'Launch anyway',sub:'It stays in your hold',fn:()=>Cine.startTakeoff()}]}); return; }
       Cine.startTakeoff(); };

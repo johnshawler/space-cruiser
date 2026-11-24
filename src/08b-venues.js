@@ -657,6 +657,9 @@ const Venues = (() => {
     /* which contract's model is under the pointer (normalised device coordinates), if any */
     pickShelf(nd){ const V=this.active; if(!V||!V.shelf||G.mode!=='port'||this.moving) return null; const ray=this.ray||(this.ray=new THREE.Raycaster()); ray.setFromCamera(nd,Cine.cam);
       const hit=ray.intersectObjects(V.shelf.items.map(i=>i.o),true)[0]; return hit?hit.object.userData.shelfJob:null; },
+    /* is the shopkeeper of the current shop under the pointer? */
+    pickKeeper(nd){ const V=this.active; if(!V||!V.keeper||G.mode!=='port'||this.moving) return null; const ray=this.ray||(this.ray=new THREE.Raycaster()); ray.setFromCamera(nd,Cine.cam);
+      return ray.intersectObject(V.keeper,true).length?V:null; },
     hoverShelf(j){ const V=this.list.find(v=>v.shelf); if(V) V.shelf.hover=j; },
     hopShelf(j){ const V=this.list.find(v=>v.shelf); const it=V&&V.shelf.items.find(i=>i.job===j); if(it) it.hop=1; },
     /* ask the depot's droid to bring a crate of this out to the counter */
