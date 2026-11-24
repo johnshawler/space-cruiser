@@ -168,7 +168,7 @@ const World = {
 /* ===================== NPC TRAFFIC ===================== */
 const Npc = {
   list:[], timer:0,
-  pilot(){ const sp=pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9); return {sp, seed, name:alienName(sp,seed), ship:shipName(seed), cargo:pick(GOODS)[0]}; },
+  pilot(){ const sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9); return {sp, seed, name:alienName(sp,seed), ship:shipName(seed), cargo:pick(GOODS)[0]}; },
   spawn(kind, pos, vel, extra){
     const pl=this.pilot(), S=SPECIES[pl.sp]; const idx=pl.sp==='ooloo'?5:pl.sp==='zkthar'?6:Math.floor(Math.random()*5);
     const hue=Math.floor(Math.random()*360); const scheme={hull:`hsl(${hue},${Math.round(20+Math.random()*45)}%,${Math.round(35+Math.random()*40)}%)`,trim:`hsl(${(hue+180)%360},25%,${Math.round(18+Math.random()*25)}%)`,glow:S.col,wear:Math.random()*0.8};

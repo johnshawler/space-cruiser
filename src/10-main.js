@@ -29,7 +29,7 @@ const Game = {
     const P=PLANETS[pi], hold=holdCap(), jobs=[], n=5+Math.floor(Math.random()*3);
     for(let i=0;i<n;i++){ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
       const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to;
-      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(SPECIES_KEYS);
+      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
       const fragile=i>0&&Math.random()<0.3;
       jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.35:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile}); }
     jobs.sort((a,b)=>a.qty-b.qty);
@@ -41,7 +41,7 @@ const Game = {
     for(const j of jobs) j.story=j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j);
     G.jobs=jobs;
     // people wanting a ride, offered at cantinas
-    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
       px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,pay:Math.round((140+dist*60)*rnd(0.85,1.25)*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
     for(const j of px){ j.story=Story.pax(j); j.why=j.story.why; }
     G.paxJobs=px;

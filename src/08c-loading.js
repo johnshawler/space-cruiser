@@ -10,7 +10,7 @@ const Loading = (() => {
   const P_=(t,a,b)=>clamp((t-a)/(b-a),0,1), E=x=>x*x*(3-2*x);
   let S=null;
 
-  function crateTex(label, bad){
+  function crateTex(label, bad, fragile){
     const cv=makeCanvas(256,256), x=cv.getContext('2d'); x.fillStyle=bad?'#5d6455':'#b9823f'; x.fillRect(0,0,256,256);
     x.fillStyle='rgba(0,0,0,0.16)'; for(let i=1;i<5;i++) x.fillRect(0,i*51-3,256,6);
     x.strokeStyle=bad?'#2c3028':'#6e4a22'; x.lineWidth=24; x.strokeRect(12,12,232,232);
@@ -20,6 +20,7 @@ const Loading = (() => {
       for(const w of words){ const t=cur?cur+' '+w:w; if(x.measureText(t).width>196&&cur){ lines.push(cur); cur=w; } else cur=t; } lines.push(cur);
       if(lines.length<=3&&lines.every(l=>x.measureText(l).width<=196)) break; }
     lines.forEach((l,i)=>x.fillText(l,128,128+(i-(lines.length-1)/2)*fs*1.05));
+    if(fragile){ x.save(); x.translate(128,128); x.rotate(-0.38); x.strokeStyle='rgba(205,30,30,0.9)'; x.lineWidth=7; x.strokeRect(-104,-30,208,60); x.fillStyle='rgba(205,30,30,0.9)'; x.font=`800 46px ${FONT_DISP}`; x.fillText('FRAGILE',0,3,196); x.restore(); }
     return canvasTex(cv);
   }
   function hazardTex(){ const cv=makeCanvas(256,128), x=cv.getContext('2d'); x.fillStyle='#2b2d31'; x.fillRect(0,0,256,128); x.fillStyle='#f2c14e';
@@ -44,7 +45,7 @@ const Loading = (() => {
     // crates, one stencilled with each contract's goods
     const foot=ramp(L,0), stack=new V3(foot.x+1.9,0,D.z+2.7), n=goods.length===1?2:3, crates=[];
     for(let i=0;i<n;i++){ const g=goods[i%goods.length], bad=!!g.illegal;
-      const o=new THREE.Mesh(new THREE.BoxGeometry(CS,CS,CS),M('#ffffff',0.85,0.02,{map:crateTex(bad?'Definitely not contraband':g.good,bad)})); o.castShadow=true; o.receiveShadow=true;
+      const o=new THREE.Mesh(new THREE.BoxGeometry(CS,CS,CS),M('#ffffff',0.85,0.02,{map:crateTex(bad?'Definitely not contraband':g.good,bad,!!g.fragile)})); o.castShadow=true; o.receiveShadow=true;
       o.position.set(stack.x+(i%2?0.06:-0.05),CS/2+i*CS,stack.z+(i%2?-0.04:0.05)); o.rotation.y=(Math.random()-0.5)*0.25; root.add(o);
       crates.push({o,i,g,taken:false,phys:null,col:pick(['#ff6b6b','#ffd43b','#51cf66','#4dabf7','#cc5de8','#ff922b','#f8f9fa'])}); }
 
@@ -53,8 +54,9 @@ const Loading = (() => {
       const rest=new V3(stack.x+1.7,0,stack.z+(k?1.4:-1.6)); F.position.copy(rest); F.rotation.y=-Math.PI/2;
       return {F,k,rest,st:'wait',wait:k?1.7:0.9,path:null,crate:null,act:null,actT:0,ph:0,onRamp:false}; });
 
-    // 70% it all goes in cleanly, 20% the stack topples (a crate cracks), 10% the last crate bursts off the ramp
-    const r=Math.random(), out=api.force||(r<0.7?'ok':r<0.9?'topple':'tumble');
+    // 70% it all goes in cleanly, 20% the stack topples (a crate cracks), 10% the last crate bursts off the ramp.
+    // With anything fragile in the load: 50% clean, 20% topple, 30% burst.
+    const frag=crates.some(x=>x.g.fragile), r=Math.random(), out=api.force||(frag?(r<0.5?'ok':r<0.7?'topple':'tumble'):(r<0.7?'ok':r<0.9?'topple':'tumble'));
     S={P,D,a,ca,sa,root,door,hinge,model,ramp,foot,stack,crates,crew,n,out,inCount:0,lost:0,toppled:false,losses:[],lossDone:false,cracked:false,phys:[],parts:[],bits:[],fired:{},closeT:-1,t:0,finished:false,sub:''};
     const u=goods.reduce((s,g)=>s+g.qty,0);
     S.sub=goods.length===1?`${goods[0].qty}× ${goods[0].good}`:`${goods.length} contracts · ${u} units`;
@@ -70,8 +72,8 @@ const Loading = (() => {
   function stop(){
     if(!S) return;
     // skipped before the disaster played out: it still happened, you just did not watch
-    if(S.out==='tumble'&&!S.lossDone){ S.lossDone=true; lose((S.crates.find(x=>x.fail)||S.crates[0]).g,1); }
-    if(S.out==='topple'&&!S.cracked){ S.cracked=true; lose(S.crates[S.crates.length-1].g,0.5); }
+    if(S.out==='tumble'&&!S.lossDone){ S.lossDone=true; lose((S.crates.find(x=>x.fail)||S.crates.find(x=>x.g.fragile)||S.crates[0]).g,1); }
+    if(S.out==='topple'&&!S.cracked){ S.cracked=true; lose((S.crates.find(x=>x.g.fragile)||S.crates[S.crates.length-1]).g,0.5); }
     if(S.losses.length){ const L=S.losses.map(l=>l.left>0?`${l.units} ${unitWord(l.units)} of ${l.good} (now pays ${fmtCr(l.pay)})`:`all of the ${l.good}, so that contract is gone`).join('; ');
       setTimeout(()=>UI.toast(`Lost in loading: ${L}. The depot is very sorry, in writing.`,'warn'),4200); } const kill=o=>o.traverse(q=>{ if(q.geometry) q.geometry.dispose(); if(q.material){ (Array.isArray(q.material)?q.material:[q.material]).forEach(m=>{ if(m.map) m.map.dispose(); m.dispose(); }); } });
     for(const c of S.crew) S.root.remove(c.F); // their materials are shared with the shop folk
@@ -102,15 +104,15 @@ const Loading = (() => {
     const left=S.crates.filter(x=>!x.taken&&!x.phys); if(!left.length) return S.crates.some(x=>!x.taken)?'later':false;
     let k;
     if(S.out==='topple'&&!S.toppled&&!S.fired.pickBottom){ S.fired.pickBottom=1; k=left.reduce((a,b)=>a.o.position.y<b.o.position.y?a:b); k.bottom=true; }
-    else k=left.reduce((a,b)=>a.o.position.y>b.o.position.y?a:b);
+    else { const pool=S.out==='tumble'&&left.some(x=>!x.g.fragile)?left.filter(x=>!x.g.fragile):left; k=pool.reduce((a,b)=>a.o.position.y>b.o.position.y?a:b); }
     k.taken=true; if(S.out==='tumble'&&S.crates.every(x=>x.taken)) k.fail=true;
     c.crate=k; const cp=k.o.position, from=c.F.position, dir=new V3(from.x-cp.x,0,from.z-cp.z); if(dir.lengthSq()<0.01) dir.set(1,0,0); dir.normalize();
     c.pickAt=new V3(cp.x,0,cp.z).addScaledVector(dir,0.95); c.leg='pick'; go(c,[c.pickAt]); return true;
   }
 
   function topple(except){
-    S.toppled=true; S.crates.forEach(x=>{ if(x===except||x.taken) return; const h=x.o.position.y;
-      x.phys=toss(x.o,new V3(rnd(0.4,2.4),rnd(0.5,2),rnd(-2.2,2.2)).multiplyScalar(0.6+h*0.35),new V3(rnd(-7,7),rnd(-3,3),rnd(-7,7)),CS/2,p=>{ if(p.hit===1){ if(live()) Sfx.crash(0.45); if(!S.cracked) crack(x); } }); });
+    S.toppled=true; S.fragFall=S.crates.some(x=>x!==except&&!x.taken&&x.g.fragile); S.crates.forEach(x=>{ if(x===except||x.taken) return; const h=x.o.position.y;
+      x.phys=toss(x.o,new V3(rnd(0.4,2.4),rnd(0.5,2),rnd(-2.2,2.2)).multiplyScalar(0.6+h*0.35),new V3(rnd(-7,7),rnd(-3,3),rnd(-7,7)),CS/2,p=>{ if(p.hit===1){ if(live()) Sfx.crash(0.45); if(!S.cracked&&(x.g.fragile||!S.fragFall)) crack(x); } }); });
     if(live()) Sfx.crash(0.7); setTimeout(()=>{ if(S&&live()) void 0; },700);
     S.crew.forEach(o=>{ Folk.mood(o.F,'shock'); if(o!==S.crew.find(q=>q.crate===except)){ o.act='gasp'; o.actT=0; } });
     say('The stack had other ideas.');

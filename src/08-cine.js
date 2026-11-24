@@ -68,7 +68,7 @@ const Cine = {
       else { const r=12+rr()*16; b.add(mk(new THREE.SphereGeometry(r,24,14,0,6.3,0,Math.PI/2),bm('#f2f4f6',0.5,0.1),0,0,0)); const band=mk(new THREE.CylinderGeometry(r*0.985,r*0.985,1.8,32,1,true),warm,0,r*0.2,0); b.add(band); b.add(mk(new THREE.CylinderGeometry(1.2,1.2,r*0.7,8),bm('#8a9098'),r*0.4,r*0.9,0)); }
       return b; };
     Venues.build(scn,P,cloud,padSide,hAt,S.liquid?liq:null);
-    for(let i=0;i<16;i++){ const a=rr()*6.283, d=170+rr()*380, x=Math.cos(a)*d, z=Math.sin(a)*d; let y=hAt(x,z); const b=building(); if(Venues.near(x,z,75)) continue;
+    for(let i=0;i<34;i++){ const a=rr()*6.283, d=170+rr()*520, x=Math.cos(a)*d, z=Math.sin(a)*d; let y=hAt(x,z); const b=building(); if(Venues.near(x,z,75)) continue;
       if(cloud){ y=-10-rr()*60; const pf=mk(new THREE.CylinderGeometry(40,30,8,24),padSide,0,-4,0); b.add(pf); b.add(mk(new THREE.CylinderGeometry(4,8,700,10),padSide,0,-358,0)); } else if(y<liq+2 && S.style!=='bubble') continue; else if(y<liq+2) y=liq-4;
       b.position.set(x,y-2,z); b.rotation.y=rr()*6.28; scn.add(b); }
     // control tower + beacon
@@ -83,7 +83,7 @@ const Cine = {
     const dn=380, dp=new Float32Array(dn*3), dseed=new Float32Array(dn*3); for(let i=0;i<dn;i++){ dseed[i*3]=rr()*6.283; dseed[i*3+1]=rr(); dseed[i*3+2]=rr(); }
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
-    Crowd.build(scn,P,cloud,PADS);
+    Crowd.build(scn,P,cloud,PADS,hAt,S.liquid?liq:null);
     this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
   updateSurface(dt, t, alt){
@@ -111,7 +111,7 @@ const Cine = {
     this.fade=1; this.fadeCol.setRGB(0,0,0); this.ui(true); Sfx.roar(8.5,0.45); Sfx.sting(); World.scenes.list=[{scene:World.space,camera:this.cam}];
   },
   startTakeoff(){
-    G.mode='takeoff'; UI.hidePort(); this.setPreview(null); this.model.visible=true; this.camFrom=null;
+    G.mode='takeoff'; UI.hidePort(); this.setPreview(null); this.model.visible=true; this.camFrom=null; for(const v of Venues.list) v.root.visible=true;
     // cargo taken on at this port gets carried aboard first
     const goods=G.cargo.filter(c=>c.fresh&&c.qty>0&&c.kind!=='escort'); G.cargo.forEach(c=>{ delete c.fresh; });
     if(goods.length&&Loading.start(this.P,this.model,SHIPS[G.shipId].model,goods)){ this.mode='L'; this.t=0; this.ui(true,'Loading cargo',Loading.sub); return; }
@@ -182,12 +182,19 @@ const Cine = {
       Models.animate(m,0,time); const r=Loading.update(dt,t,time); cam.up.set(0,1,0); cam.position.copy(r.pos); cam.lookAt(r.look); fov=40; this.fade=Math.max(0,this.fade-dt*1.5);
       if(r.done){ this.camFrom={pos:r.pos.clone(),look:r.look.clone()}; this.liftoff(); }
     } else if(this.mode==='T'){
-      const rest=m.userData.gearH, y=rest+(t>0.6?Math.pow(t-0.6,2.3)*16:0); m.position.set(0,y,0); m.rotation.x=smooth(1.2,4,t)*0.45; this.setThrust(smooth(0,0.7,t),time); this.surf.dustI=smooth(0,0.6,t)*smooth(90,10,y-rest);
-      this.shake=0.25*smooth(0,0.8,t); const a=this.orbit; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*88,8,Math.sin(a)*88); const look=new V3(0,y*0.85+3,0);
-      // pull back from the loading ramp to the usual launch view
-      if(this.camFrom){ const k=smooth(0,2.2,t); cam.position.lerpVectors(this.camFrom.pos,cam.position.clone(),k); look.lerpVectors(this.camFrom.look,look,k); }
-      cam.lookAt(look); fov=44; Loading.linger(dt,time);
-      this.fadeCol.set(1,1,1); this.fade=smooth(3.1,3.9,t); if(t>=4){ this.setThrust(0,0); this.shake=0; this.ui(false); Loading.stop(); this.camFrom=null; World.space.add(m); m.visible=false; Game.enterFlight(P,true); return; }
+      // Blast off: the ship climbs straight up, the camera rides above it looking down, and the port shrinks away underneath,
+      // pad, crowds, shops, roads, trucks and air traffic and all, until it is a smudge in the haze and the sky goes white.
+      const TT=7.6, rest=m.userData.gearH, y=rest+(t>0.6?Math.pow(t-0.6,2.2)*9:0); m.position.set(0,y,0); m.rotation.set(0,m.rotation.y+dt*0.12*smooth(1,3,t),0);
+      this.setThrust(smooth(0,0.7,t),time); this.surf.dustI=smooth(0,0.6,t)*smooth(90,10,y-rest); this.shake=0.25*smooth(0,0.8,t)*(1-smooth(2.5,4,t))+0.05;
+      // the ground shot: beside the pad, looking up at the ship as it lifts
+      const a=this.orbit; cam.up.set(0,1,0); const g=new V3(Math.cos(a)*70,9,Math.sin(a)*70), gl=new V3(0,Math.min(y,40)*0.85+3,0);
+      if(this.camFrom){ const k=smooth(0,2.0,t); g.lerpVectors(this.camFrom.pos,g.clone(),k); gl.lerpVectors(this.camFrom.look,gl,k); }
+      // the bird's-eye shot: above and a little behind the ship, slowly circling, looking down past it at the port
+      const sp=a+t*0.22, hi=48+(y-rest)*0.05, oh=new V3(m.position.x+Math.cos(sp)*16,y+hi,m.position.z+Math.sin(sp)*16), ol=new V3(m.position.x-Math.cos(sp)*8,y-120,m.position.z-Math.sin(sp)*8);
+      const k=smooth(1.0,3.0,t); cam.position.lerpVectors(g,oh,k); const look=new V3().lerpVectors(gl,ol,k);
+      cam.lookAt(look); fov=lerp(44,58,smooth(1.5,4,t)); Loading.linger(dt,time); this.sunAt(new V3(0,0,0));
+      if(t>1.4&&t<6.2) this.ui(true,'',''); 
+      this.fadeCol.set(1,1,1); this.fade=smooth(TT-1.0,TT-0.15,t); if(t>=TT){ this.setThrust(0,0); this.shake=0; this.ui(false); Loading.stop(); this.camFrom=null; World.space.add(m); m.visible=false; Game.enterFlight(P,true); return; }
     }
     if(this.mode!=='A'&&this.mode!=='B') this.updateSurface(dt,time);
     if(this.shake>0){ cam.position.x+=(Math.random()-0.5)*this.shake; cam.position.y+=(Math.random()-0.5)*this.shake; cam.rotateZ((Math.random()-0.5)*this.shake*0.012); }

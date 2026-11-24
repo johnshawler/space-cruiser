@@ -123,7 +123,7 @@ const Distress = {
     if(Math.random()<0.75) this.call();
   },
   call(){
-    const sp=pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)};
+    const sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)};
     Radio.cur=null; Radio.wait=20;
     Dlg.show({sp,seed,tone:'alert',who:`Mayday · ${c.name} · ${SPECIES[sp].name} · ${c.ship}`,text:pick(MAYDAY),timeout:30,onTimeout:()=>this.ignore(),
       opts:[{t:'Answer the call',sub:'A detour. Costs time and fuel.',fn:()=>this.answer()},{t:'Keep flying',sub:'Somebody else will help. Probably.',fn:()=>this.ignore()}]});

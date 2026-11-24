@@ -107,66 +107,20 @@ const Folk = (() => {
   const phys=(hex,o)=>new THREE.MeshPhysicalMaterial(Object.assign({color:C(hex),roughness:0.42,metalness:0,clearcoat:0.45,clearcoatRoughness:0.35},o||{}));
 
   function make(sp, seed, scale=1){
-    const S=SPECIES[sp], r=mulberry32((seed|0)+11), hue=Math.round(S.hue+(r()-0.5)*26), K=S.kind;
+    const S=SPECIES[sp], r=mulberry32((seed|0)+11), hue=(360+Math.round(S.hue+(r()-0.5)*26))%360, K=S.kind;
     const hsl=(l,sa)=>`hsl(${hue},${sa==null?S.sat:sa}%,${Math.round(Math.min(92,l))}%)`;
-    const body=K==='rock'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.85,flatShading:true}):K==='robot'?phys(hsl(S.lit),{roughness:0.3,metalness:0.55,clearcoat:0.8,clearcoatRoughness:0.15})
-      :K==='fluffy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0}):phys(hsl(S.lit));
-    if(K==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
+    const skin=S.skin||({rock:'stone',robot:'metal',fluffy:'fuzzy',jelly:'jelly'}[K]);
+    const body=skin==='stone'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.85,flatShading:true}):skin==='metal'?phys(hsl(S.lit),{roughness:0.3,metalness:0.55,clearcoat:0.8,clearcoatRoughness:0.15})
+      :skin==='fuzzy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0})
+      :skin==='matte'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.8}):phys(hsl(S.lit));
+    if(skin==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
     const dark=phys(hsl(S.lit*0.55),{clearcoat:0.2}), light=phys(hsl(Math.min(92,S.lit*1.28)),{clearcoat:0.3}), browM=new THREE.MeshStandardMaterial({color:C(hsl(S.lit*0.32,Math.min(60,S.sat))),roughness:0.7});
     const F=new THREE.Group(), lift=new THREE.Group(), rig=new THREE.Group(); F.add(lift); lift.add(rig); const head=new THREE.Group(); rig.add(head);
     const U={rig,lift,low0:0,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
     const iris=IRIS[Math.floor(r()*IRIS.length)];
-    switch(K){
-      case 'blob': { const b=sph(0.62,body,0,0.7,0); b.scale.set(1,1.18,1); rig.add(b); head.position.y=0.75;
-        eye(head,U,-0.21,0.22,0.47,0.17,null,iris); eye(head,U,0.21,0.22,0.47,0.17,null,iris); eye(head,U,0,0.55,0.38,0.12,null,iris);
-        brow(head,U,-0.21,0.43,0.5,0.17,0.028,browM,-1); brow(head,U,0.21,0.43,0.5,0.17,0.028,browM,1); mouth(head,U,0,-0.06,0.6,1.2); blush(head,0.38,0.02,0.52,0.1);
-        U.arms=[limb(rig,-0.58,0.85,0,0.42,0.075,body,body),limb(rig,0.58,0.85,0,0.42,0.075,body,body)]; break; }
-      case 'insect': { const th=sph(0.32,body,0,0.8,0); th.scale.set(0.9,1.15,0.85); rig.add(th); rig.add(sph(0.3,dark,0,1.12,-0.02)); head.position.y=1.44; const h=sph(0.32,body); h.scale.set(1.05,1.05,1); head.add(h);
-        const gl=phys('#141018',{roughness:0.1,clearcoat:1,clearcoatRoughness:0.03});
-        for(const s of [-1,1]){ const e=sph(0.16,gl,s*0.17,0.06,0.2); e.scale.set(1,1.3,0.75); e.userData.sy=1.3; head.add(e); U.eyes.push(e); head.add(sph(0.035,catchM,s*0.13,0.14,0.32,8,6));
-          const a=cyl(0.016,0.016,0.5,dark,s*0.12,0.42,0,8); a.rotation.z=-s*0.5; head.add(a); head.add(sph(0.055,light,s*0.25,0.64,0)); brow(head,U,s*0.17,0.3,0.24,0.14,0.022,browM,s); }
-        mouth(head,U,0,-0.14,0.29,0.9);
-        U.legs=[limb(rig,-0.15,0.46,0,0.44,0.055,dark,null,dark),limb(rig,0.15,0.46,0,0.44,0.055,dark,null,dark)]; U.arms=[limb(rig,-0.3,1.12,0,0.52,0.045,dark,light),limb(rig,0.3,1.12,0,0.52,0.045,dark,light)]; break; }
-      case 'fluffy': { body.sheen=C(hsl(Math.min(90,S.lit+6))); body.color=C(hsl(S.lit-10,S.sat+10)); rig.add(sph(0.6,body,0,0.74,0));
-        // tufts all over except the face
-        for(let i=0,n=0;n<20&&i<200;i++){ const a=r()*6.28, e=r()*2.4+0.3, x=Math.cos(a)*Math.sin(e)*0.56, y=0.74+Math.cos(e)*0.56, z=Math.sin(a)*Math.sin(e)*0.56; if(z>0.18&&Math.abs(x)<0.42&&y>0.45&&y<1.15) continue; rig.add(sph(0.16+r()*0.06,body,x,y,z,14,10)); n++; }
-        head.position.y=0.8; const pink=phys('#ff9ac8'); for(const s of [-1,1]){ head.add(sph(0.18,light,s*0.38,0.5,0)); const ie=sph(0.1,pink,s*0.38,0.5,0.1); ie.scale.z=0.5; head.add(ie); }
-        eye(head,U,-0.2,0.1,0.5,0.17,null,iris); eye(head,U,0.2,0.1,0.5,0.17,null,iris); brow(head,U,-0.2,0.31,0.52,0.15,0.03,browM,-1); brow(head,U,0.2,0.31,0.52,0.15,0.03,browM,1);
-        head.add(sph(0.055,phys('#2a1a22',{clearcoat:1}),0,-0.07,0.6,12,8)); mouth(head,U,0,-0.19,0.56,1); blush(head,0.34,-0.08,0.5,0.1);
-        U.legs=[limb(rig,-0.25,0.24,0,0.2,0.12,body,null,light),limb(rig,0.25,0.24,0,0.2,0.12,body,null,light)]; U.arms=[limb(rig,-0.58,0.82,0,0.36,0.1,body,body),limb(rig,0.58,0.82,0,0.36,0.1,body,body)]; break; }
-      case 'squid': { head.position.y=1.05; const m=sph(0.48,body,0,0.25,0); m.scale.set(1,1.35,1); head.add(m); eye(head,U,-0.18,0.1,0.38,0.16,dark,iris); eye(head,U,0.18,0.1,0.38,0.16,dark,iris);
-        brow(head,U,-0.18,0.3,0.42,0.14,0.024,browM,-1); brow(head,U,0.18,0.3,0.42,0.14,0.024,browM,1); mouth(head,U,0,-0.13,0.44,0.95); blush(head,0.32,-0.04,0.38,0.08);
-        for(let i=0;i<6;i++){ const a=i/6*6.283+0.26, t=limb(rig,Math.cos(a)*0.24,0.82,Math.sin(a)*0.24,0.8,0.07,body,body); t.rotation.set(Math.sin(a)*0.35,0,-Math.cos(a)*0.35); t.userData.a=a; U.tent.push(t); }
-        U.arms=[U.tent[3],U.tent[0]]; break; }
-      case 'rock': { const b=new THREE.Mesh(new THREE.DodecahedronGeometry(0.62,1),body); b.position.y=0.82; b.scale.set(1,1.15,0.9); rig.add(b); head.position.y=0.9;
-        const glow=new THREE.MeshBasicMaterial({color:HDR('#ffb040',3)}); for(const s of [-1,1]){ const e=sph(0.1,glow,s*0.2,0.14,0.5,16,10); e.scale.set(1.3,0.55,0.5); head.add(e); U.eyes.push(e); e.userData.sy=0.55;
-          const bw=new THREE.Mesh(new THREE.DodecahedronGeometry(0.09,0),body); bw.scale.set(1.8,0.6,0.8); bw.position.set(s*0.2,0.3,0.5); head.add(bw); U.brows.push({b:bw,side:s,y:0.3}); }
-        mouth(head,U,0,-0.14,0.53,1.1,new THREE.MeshBasicMaterial({color:HDR('#ff7a20',2)}));
-        U.legs=[limb(rig,-0.26,0.38,0,0.34,0.14,body,null,body),limb(rig,0.26,0.38,0,0.34,0.14,body,null,body)]; U.arms=[limb(rig,-0.64,1.0,0,0.56,0.14,body,body),limb(rig,0.64,1.0,0,0.56,0.14,body,body)]; break; }
-      case 'bird': { const b=sph(0.5,body,0,0.78,0); b.scale.set(1,1.12,1); rig.add(b); const bel=sph(0.38,light,0,0.68,0.22); bel.scale.z=0.8; rig.add(bel); head.position.y=1.0;
-        eye(head,U,-0.18,0.13,0.33,0.17,null,iris); eye(head,U,0.18,0.13,0.33,0.17,null,iris); brow(head,U,-0.18,0.34,0.38,0.14,0.026,browM,-1); brow(head,U,0.18,0.34,0.38,0.14,0.026,browM,1);
-        const bm=phys('#ffb020'), up=new THREE.Mesh(new THREE.ConeGeometry(0.11,0.3,16),bm); up.rotation.x=Math.PI/2; up.position.set(0,-0.03,0.55); up.scale.y=1; head.add(up);
-        const lo=new THREE.Group(); lo.position.set(0,-0.08,0.47); const lc=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.2,14),bm); lc.rotation.x=Math.PI/2; lc.position.z=0.08; lo.add(lc); head.add(lo); U.beak=lo; blush(head,0.3,-0.04,0.36,0.08);
-        for(let i=-1;i<=1;i++){ const c=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.3,10),dark); c.position.set(i*0.1,0.48,-0.05); c.rotation.z=-i*0.35; head.add(c); }
-        const orange=phys('#e0902a'); U.legs=[limb(rig,-0.16,0.32,0,0.32,0.04,orange,null,orange),limb(rig,0.16,0.32,0,0.32,0.04,orange,null,orange)];
-        U.arms=[limb(rig,-0.48,0.95,0,0.46,0.1,dark),limb(rig,0.48,0.95,0,0.46,0.1,dark)]; U.arms.forEach(a=>a.children[0].scale.set(1.5,1,0.45)); break; }
-      case 'jelly': { const d=new THREE.Mesh(new THREE.SphereGeometry(0.58,36,20,0,Math.PI*2,0,Math.PI/2),body); d.position.y=1.0; rig.add(d); const core=sph(0.2,new THREE.MeshBasicMaterial({color:HDR(hsl(S.lit,90),1.3)}),0,1.12,0,16,12); rig.add(core); head.position.y=1.0;
-        eye(head,U,-0.16,0.2,0.46,0.13,null,iris); eye(head,U,0.16,0.2,0.46,0.13,null,iris); brow(head,U,-0.16,0.36,0.47,0.12,0.02,browM,-1); brow(head,U,0.16,0.36,0.47,0.12,0.02,browM,1); mouth(head,U,0,0.05,0.55,0.9);
-        for(let i=0;i<8;i++){ const a=i/8*6.283, t=limb(rig,Math.cos(a)*0.4,1.0,Math.sin(a)*0.4,0.95,0.035,light); t.userData.a=a; U.tent.push(t); } U.arms=[U.tent[4],U.tent[0]]; break; }
-      case 'shroom': { const cream=phys('#efe2c6'); rig.add(cyl(0.29,0.34,0.92,cream,0,0.46,0,28)); const cap=new THREE.Mesh(new THREE.SphereGeometry(0.66,36,16,0,Math.PI*2,0,Math.PI/2),body); cap.scale.y=0.62; cap.position.y=0.9; rig.add(cap);
-        rig.add(cyl(0.66,0.6,0.06,phys(hsl(S.lit*0.8)),0,0.89,0,36));
-        for(let i=0;i<8;i++){ const a=r()*6.28, e=0.3+r()*1.0; const dt=sph(0.07+r()*0.05,light,Math.cos(a)*Math.sin(e)*0.64,0.9+Math.cos(e)*0.64*0.62,Math.sin(a)*Math.sin(e)*0.64,14,10); dt.scale.y=0.5; rig.add(dt); }
-        head.position.y=0.56; eye(head,U,-0.12,0.1,0.26,0.12,cream,iris); eye(head,U,0.12,0.1,0.26,0.12,cream,iris); brow(head,U,-0.12,0.25,0.3,0.1,0.02,browM,-1); brow(head,U,0.12,0.25,0.3,0.1,0.02,browM,1); mouth(head,U,0,-0.1,0.32,0.75); blush(head,0.21,-0.04,0.28,0.06);
-        U.legs=[limb(rig,-0.13,0.12,0,0.1,0.09,cream,null,cream),limb(rig,0.13,0.12,0,0.1,0.09,cream,null,cream)]; U.arms=[limb(rig,-0.34,0.62,0,0.32,0.06,cream,cream),limb(rig,0.34,0.62,0,0.32,0.06,cream,cream)]; break; }
-      default: { rig.add(rbox(0.78,0.82,0.58,0.12,body,0,0.88,0)); rig.add(rbox(0.3,0.16,0.04,0.02,new THREE.MeshBasicMaterial({color:HDR('#5fffd0',1.4)}),0.14,0.76,0.3)); head.position.y=1.82;
-        { const steel=phys('#9aa0a8',{roughness:0.3,metalness:0.8,clearcoat:0.4}); rig.add(cyl(0.22,0.26,0.07,dark,0,1.32,0,24)); rig.add(cyl(0.09,0.11,0.3,steel,0,1.46,0,16)); for(let i=0;i<3;i++) rig.add(cyl(0.12,0.12,0.03,dark,0,1.39+i*0.07,0,16)); rig.add(cyl(0.16,0.12,0.05,dark,0,1.58,0,20)); }
-        head.add(rbox(0.66,0.5,0.52,0.12,body)); const scr=rbox(0.52,0.34,0.04,0.06,phys('#0c1418',{roughness:0.1,clearcoat:1}),0,0,0.27); head.add(scr);
-        const g=new THREE.MeshBasicMaterial({color:HDR('#5fffd0',2.6)}); for(const s of [-1,1]){ const e=sph(0.06,g,s*0.12,0.04,0.3,14,10); e.scale.set(1,1.2,0.3); e.userData.sy=1.2; head.add(e); U.eyes.push(e);
-          const bw=bx(0.1,0.022,0.01,g); bw.position.set(s*0.12,0.13,0.3); head.add(bw); U.brows.push({b:bw,side:s,y:0.13}); }
-        mouth(head,U,0,-0.09,0.3,0.8,g);
-        head.add(cyl(0.015,0.015,0.3,dark,0,0.37,0,8)); head.add(sph(0.05,new THREE.MeshBasicMaterial({color:HDR('#ff4040',3)}),0,0.54,0,12,8));
-        const alu=phys('#b9bdc4',{roughness:0.25,metalness:0.85,clearcoat:0.5}); U.legs=[limb(rig,-0.2,0.48,0,0.46,0.07,alu,null,body),limb(rig,0.2,0.48,0,0.46,0.07,alu,null,body)]; U.arms=[limb(rig,-0.46,1.18,0,0.52,0.06,alu,alu),limb(rig,0.46,1.18,0,0.52,0.06,alu,alu)]; }
-    }
+    const build=S.build||OriginalFolk[sp];
+    build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
+      glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
     U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; }); mood(F,'neutral'); return F;
   }
   /* attach a prop to the end of the right arm */
@@ -193,9 +147,10 @@ const Folk = (() => {
     const n=Math.floor((t+U.ph)/1.7), lx=Math.sin(n*12.9898+U.ph)*0.35, ly=Math.sin(n*78.233+U.ph)*0.18; for(const L of U.looks){ L.rotation.y=lerp(L.rotation.y,lx,0.15); L.rotation.x=lerp(L.rotation.x,ly,0.15); }
     U.head.position.y=U.headY+Math.sin(t*2.1+U.ph)*0.012;
     for(const tn of U.tent){ if(U.arms.includes(tn)) continue; tn.rotation.x=Math.sin(tn.userData.a)*0.35+Math.sin(t*2.2+tn.userData.a*3)*0.12; } }
+  /* A model can animate its own geometry after the shared stride. Zero amount restores its rest pose. */
   function walk(F, ph, amt){ const U=F.userData, s=Math.sin(ph)*amt; if(U.legs[0]){ U.legs[0].rotation.x=s*0.7; U.legs[1].rotation.x=-s*0.7; for(const l of U.legs) if(l.userData.foot) l.userData.foot.rotation.x=-l.rotation.x; } if(U.arms[0]){ U.arms[0].rotation.x=-s*0.5; U.arms[1].rotation.x=s*0.5; }
-    U.rig.position.y=Math.abs(Math.sin(ph))*0.07*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; }
-  function rest(F){ const U=F.userData; U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
+    U.rig.position.y=Math.abs(Math.sin(ph))*0.07*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; if(U.gait) U.gait(ph,amt); }
+  function rest(F){ const U=F.userData; if(U.gait) walk(F,0,0); U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
   function arms(F, l, r){ const A=F.userData.arms; if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
@@ -640,7 +595,7 @@ const Venues = (() => {
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
         shell(V,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot') V.droid=makeDroid(V);
         V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,-0.85); root.add(V.keeper);
-        const others=SPECIES_KEYS.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
+        const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
         this.list.push(V); });
       return this.list;

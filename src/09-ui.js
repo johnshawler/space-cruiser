@@ -118,7 +118,7 @@ const UI = {
     } else {
       body.appendChild(this.keeper(v));
       body.appendChild(el('div','note',`It smells like ${pick(['engine grease and cinnamon','warm batteries','somebody else\'s lunch','rain on hot metal','ozone and toast'])}.`));
-      const r=mulberry32(P.idx*31+G.stats.deliveries); const locals=[P.species, SPECIES_KEYS[Math.floor(r()*SPECIES_KEYS.length)], SPECIES_KEYS[Math.floor(r()*SPECIES_KEYS.length)]];
+      const r=mulberry32(P.idx*31+G.stats.deliveries); const locals=[P.species, ALIEN_POOL[Math.floor(r()*ALIEN_POOL.length)], ALIEN_POOL[Math.floor(r()*ALIEN_POOL.length)]];
       locals.forEach((sp,i)=>{ const seed=P.idx*100+i*17+G.stats.deliveries; const S=SPECIES[sp]; const line=fill(S.chat[Math.floor(r()*S.chat.length)],{planet:PLANETS[Math.floor(r()*PLANETS.length)].name,good:GOODS[Math.floor(r()*GOODS.length)][0]}); body.appendChild(this.quote(sp,seed,alienName(sp,seed)+' · '+S.name,line)); });
       const c=el('div','card'); c.appendChild(this.icon('☕')); c.appendChild(el('div','mid',`<h3>Buy a round</h3><p>Pilots talk when someone else is paying. You might hear where the money is.</p><div class="meta">${G.hot!=null?'Current tip: <i>'+esc(PLANETS[G.hot].name)+'</i> pays +50%':'No tip yet'}</div>`));
       const rr=el('div','right'); rr.appendChild(el('div','pay',fmtCr(30))); const b=el('button','btn','Buy'); b.disabled=G.credits<30;

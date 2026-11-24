@@ -47,7 +47,7 @@ Every planet has its own mix of places. Each one sits in its own part of the por
 
 ## Port life
 
-Locals stroll around the landing pad, stop to chat, push carts of crates about, and a marshal waves you in with glowing batons. Other ships land on and take off from the neighbouring pads. When you launch with new cargo, the hatch folds down into a ramp and two dockhands carry it aboard. Most loads (70%) go in cleanly. Sometimes (20%) the stack falls over and a crate cracks open (you lose half that crate's share of the contract), or, more rarely (10%), the last crate slides back down the ramp and bursts (you lose its whole share). Lost units come off the contract and its pay drops to match; a message after takeoff says what went. Skipping the scene doesn't save the cargo.
+Locals stroll around the landing pad, stop to chat, push carts of crates about, and a marshal waves you in with glowing batons. Other ships land on and take off from the neighbouring pads. When you launch with new cargo, the hatch folds down into a ramp and two dockhands carry it aboard. Most loads (70%) go in cleanly. Sometimes (20%) the stack falls over and a crate cracks open (you lose half that crate's share of the contract), or, more rarely (10%), the last crate slides back down the ramp and bursts (you lose its whole share). Lost units come off the contract and its pay drops to match; a message after takeoff says what went. Fragile cargo gets a red FRAGILE stamp and is far more likely to come to grief: with anything fragile in the load the odds are 50% clean, 20% topple, 30% burst, and the fragile crate is the one that breaks. Skipping the scene doesn't save the cargo. Then you blast off: the camera rides above the ship looking down, and the port shrinks away underneath you, with roads running out to the shops, hover-trucks on them, air-cars circling in lanes, ships on the neighbouring pads and the crowd on the apron, until it all disappears into the haze.
 
 ## Your ship
 
@@ -101,3 +101,31 @@ This bundles `src/` into `index.html`. To run it locally:
 ```bash
 python3 -m http.server 8765
 ```
+
+## Species pack
+
+Open `?gallery` to compare three portraits per species and inspect the animated models at full scale. Select **Walk** and **Silhouette** to compare movement and outlines. The 21 additions live in `src/species/<key>.js`. Use `SPECIES_EXTRA_KEYS` to enumerate them or `Folk.make(key, seed, 1)` to preview one. All 30 species now turn up in random encounters (`ALIEN_POOL`): passing pilots you can hail, radio callers, maydays, port crowds and shop crews, cantina regulars, job senders, passengers and the people your deliveries are for. Each planet's own species and the named shopkeepers stay as they were. The original nine's updated models and individual movement cycles are in `src/08a-original-folk.js`. The gallery, radio portraits, and port characters all use the same builders.
+
+| Key | Species | Family | Appearance and personality |
+| --- | --- | --- | --- |
+| `bractillo` | Bractillo | alien | A walking seed pod with overlapping leaves packs lunches for migrating birds. |
+| `cuspiro` | Cuspiro | alien | A crescent-headed dune grazer lends the space between its horns to small birds. |
+| `loamlet` | Loamlet | alien | A terracotta burrower with chimney ears grows a different garden in each pocket. |
+| `nacrelle` | Nacrelle | alien | A pearl nestled in a fan shell listens for the quietest noise in each port. |
+| `parasolum` | Parasolum | alien | A scalloped umbrella glider insures picnics against excessive sunshine. |
+| `pipettle` | Pipettle | alien | A kettle-bellied marsh grazer whistles politely when the queue should move. |
+| `pluvindle` | Pluvindle | alien | A low raincloud on dangling droplet legs measures weather in teaspoons. |
+| `rilloon` | Rilloon | alien | A bellows-bellied singer takes attendance at every echo. |
+| `rimebud` | Rimebud | alien | A faceted ice bud keeps souvenirs of weather in cold storage. |
+| `tessettle` | Tessettle | alien | A broad gliding ray with a patchwork back remembers routes as quilt patterns. |
+| `timbrelk` | Timbrelk | alien | A drum-bodied walker with padded mallets counts the rests between noises. |
+| `velveteel` | Velveteel | alien | A long-necked velvet swimmer with ribbon fins takes lost currents home. |
+| `whorloo` | Whorloo | alien | A round-footed courier with a great spiral shell rents out the spare room. |
+| `wickindle` | Wickindle | alien | A waxy little night gardener carries a steady pearl of light in a curling wick. |
+| `bobbinor` | Bobbinor | robot | A one-wheeled reel robot winds up the loose ends of other people's errands. |
+| `gaugekin` | Gaugekin | robot | A caliper-headed mechanic measures the gaps left by missing things. |
+| `hushcone` | Hushcone | robot | A horn-eared recording robot makes field recordings of things finishing. |
+| `linticker` | Linticker | robot | A cabinet robot with a bright pendulum grants time off to overworked clocks. |
+| `sealump` | Sealump | robot | A spring-footed stamp robot collects impressions of perfectly ordinary floors. |
+| `tarestep` | Tarestep | robot | A two-pan hover scale weighs compliments before passing them along. |
+| `winkmast` | Winkmast | robot | A little tracked lighthouse keeps a diary of ships that wink back. |

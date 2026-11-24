@@ -233,7 +233,7 @@ const Calls = {
     else if(call.who==='trade'){ c.sp=pick(['qeeble','zkthar','beepul']); c.seed=4242; c.name='Trade Net'; c.whoLine='Trade Net · bulletin'; }
     else if(call.who==='dj'){ c.sp='blorpax'; c.seed=808; c.name='DJ Glorp'; c.whoLine='Radio Glorp · phone-in'; }
     else { const cands=Npc.list.filter(n=>n.dist<40000&&(!call.sp||n.pilot.sp===call.sp)); const pl=cands.length&&Math.random()<0.7?pick(cands).pilot:null;
-      c.sp=call.sp||(pl?pl.sp:pick(SPECIES_KEYS)); c.seed=pl?pl.seed:Math.floor(Math.random()*1e9); c.name=pl?pl.name:alienName(c.sp,c.seed); c.ship=pl?pl.ship:shipName(c.seed); c.whoLine=`${c.name} · ${SPECIES[c.sp].name} · ${c.ship}`; }
+      c.sp=call.sp||(pl?pl.sp:pick(ALIEN_POOL)); c.seed=pl?pl.seed:Math.floor(Math.random()*1e9); c.name=pl?pl.name:alienName(c.sp,c.seed); c.ship=pl?pl.ship:shipName(c.seed); c.whoLine=`${c.name} · ${SPECIES[c.sp].name} · ${c.ship}`; }
     return c; },
   /* place a call; returns false if none fits right now */
   ring(){

@@ -69,7 +69,7 @@ const PAX_TRIPS = [
 const Story = {
   who(sp, seed){ return {sp,seed,name:alienName(sp,seed)}; },
   /* an ordinary crate: someone at this port sends it to someone at the far end */
-  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(SPECIES_KEYS),(j.seed*7+13)%1000000007), pair=STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
+  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(ALIEN_POOL),(j.seed*7+13)%1000000007), pair=STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
     const o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port}; return {pick:fill(pair[0],o),drop:fill(pair[1],o),to}; },
   contra(j){ const T=PLANETS[j.to], to=this.who(pick(['vrell','grondar','qeeble','blorpax']),(j.seed*11+5)%1000000007), pair=pick(STORY_CONTRA), o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port};
     return {pick:fill(pair[0],o),drop:fill(pair[1],o),to:{sp:to.sp,seed:to.seed,name:to.name+' · never here'}}; },

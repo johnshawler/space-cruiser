@@ -344,7 +344,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Independent freight · nine worlds · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.22</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.23</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -430,6 +430,1879 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FXAAShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
 <script>
+const SPECIES_EXTRA={};
+/* Bobbinor: A one-wheeled reel robot winds up the loose ends of other people's errands. */
+SPECIES_EXTRA.bobbinor = {
+  name:"Bobbinor", kind:"bobbinor", family:"robot", skin:"metal",
+  script:"blocks", col:"#e18e56", hue:24, sat:70, lit:52,
+  syl:["bob", "bin", "tik", "ree", "zul", "rem", "nok", "vin"],
+  voice:{wave:"square",base:216,range:.34,rate:6,glide:.08,vib:2,vibAmt:3,fx:"robot",amp:.23},
+  trait:"Will follow any loose end to the plug.",
+  chat:[
+    "The cable crossed the road before I did. We've had a talk.",
+    "A pilot gave me a loose end. It was attached to a very full afternoon.",
+    "I can follow a thread of conversation for six kilometres.",
+    "Today's knot is decorative. I decided that after lunch.",
+    "I've wound up the queue rope. The queue is following me."
+  ],
+  greet:[
+    "Line open. Mind the slack between us.",
+    "Hello. You caught me on the return spool."
+  ],
+  cargo:[
+    "{good}, tied with a bow accessible from the driver's seat.",
+    "One spool of extension cord. The plug should arrive tomorrow."
+  ],
+  joke:["I measured a winding road. It's much shorter on the reel."],
+  nice:["Thanks. I kept the receipt in case the finish unravels."],
+  bye:["End of line. I'll leave a loop for next time."],
+  honk:["Pull twice if that was the cable alarm."],
+  dock:[
+    "Welcome to {port}. Follow the yellow cord back to my desk.",
+    "At {port} please unwind the ramp before you drive onto it."
+  ],
+  rumor:"The loose cable from {planet} came with a note. They're paying extra for deliveries.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.2;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#9cfff0',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const wheel=new THREE.Group(); wheel.position.set(0,.269,0);
+    wheel.rotation.order='YXZ'; wheel.rotation.y=-.45; rig.add(wheel);
+    const axle=new THREE.Group(); axle.rotation.y=-.45; axle.position.y=.269; rig.add(axle);
+    for(const side of [-1,1]){
+      const fork=plate(axle,light,[[-.032,0],[.032,0],[.036,.25],[.012,.34],[-.035,.32]],.039,side*.129,0,-.012);
+      fork.rotation.x=-.23;
+    }
+    const tyre=T.cyl(.268,.268,.181,dark,0,0,0,28);
+    tyre.rotation.z=Math.PI/2; wheel.add(tyre);
+    for(const side of [-1,1]){
+      const hub=T.cyl(.173,.173,.025,body,side*.104,0,0,24);
+      hub.rotation.z=Math.PI/2; wheel.add(hub);
+      for(let i=0;i<3;i++){
+        const a=i*Math.PI*2/3;
+        wheel.add(T.sph(.036,light,side*.127,.109*Math.sin(a),.109*Math.cos(a),10,8));
+      }
+    }
+    const reel=new THREE.Group(); reel.position.set(0,.78,-.014);
+    reel.rotation.z=Math.PI*.39; rig.add(reel);
+    reel.add(T.cyl(.178,.178,.47,dark));
+    for(let i=0;i<7;i++) reel.add(T.cyl(.208,.208,.045,body,0,-.182+i*.061,0,24));
+    for(const side of [-1,1]) reel.add(T.cyl(.274,.274,.05,light,0,side*.26,0,28));
+    rig.add(T.cyl(.084,.10,.176,dark,.052,1.042,0));
+    head.position.x=.071;
+    head.add(T.rbox(.391,.298,.314,.056,body));
+    head.add(T.rbox(.353,.24,.037,.015,glass,0,0,.165));
+    head.add(T.cyl(.032,.046,.141,light,.119,.224,0,16));
+    head.add(T.sph(.046,signal,.119,.303,0,14,10));
+    const shoulders=T.cyl(.049,.049,0.622,dark,0,0.864,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      wheel.rotation.x=phase*amount;
+      rig.rotation.z=-.076*Math.sin(phase*.52)*amount;
+      rig.position.y=0;
+      reel.rotation.z=Math.PI*.39+.08*Math.sin(phase)*amount;
+    };
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.128,0.02,0.115);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.067,0.0616,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.128,0.116,0.194,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.09,0.203,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.311,0.864,.085,0.256,.054,dark,light));
+  },
+};
+/* Bractillo: A walking seed pod with overlapping leaves packs lunches for migrating birds. */
+SPECIES_EXTRA.bractillo = {
+  name:"Bractillo", kind:"bractillo", family:"alien", skin:"matte",
+  script:"angular", col:"#81cd60", hue:102, sat:52, lit:50,
+  syl:["brak", "til", "lo", "kus", "pep", "ril", "sa", "om"],
+  voice:{wave:"triangle",base:243,range:.43,rate:6.2,glide:.27,vib:5,vibAmt:7,fx:"none",amp:.48},
+  trait:"Believes a packed lunch is a flight essential.",
+  chat:[
+    "My advice to young birds is always pack a second lunch.",
+    "I folded a map into a sandwich. Now the crumbs know the route.",
+    "A flock took off with my picnic bench. Very well organised birds.",
+    "The early birds wanted breakfast. The late ones wanted the same breakfast warmed up.",
+    "One passenger ate the itinerary. He can still point north."
+  ],
+  greet:[
+    "Lunch desk speaking. How far are you flying?",
+    "Hello, traveller. I've cut the crusts off the long route."
+  ],
+  cargo:[
+    "{good}, underneath the seed cakes. The cakes travel better upstairs.",
+    "Lunch bags with perches stitched on. Nobody has to eat standing up."
+  ],
+  joke:["I offered a bird a light lunch. It dropped the heavy bits."],
+  nice:["Thank you. There's a biscuit in the side hatch for you."],
+  bye:["Come home hungry. We'll take it from there."],
+  honk:["That's my cue for second breakfast."],
+  dock:[
+    "Welcome to {port}. Set your lunch on the shelf above the feeder.",
+    "At {port} the picnic queue is open to pilots of every wingspan."
+  ],
+  rumor:"The flock on {planet} voted to pay extra for freight. They need lunch before the wind changes.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.87;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    turned(rig,body,[[.001,0],[.14,.06],[.249,.25],[.213,.46],[.12,.53],[.001,.56]],0,.247,0);
+    const scales=[];
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4, root=new THREE.Group();
+      root.position.set(.15*Math.sin(a),.295,.125*Math.cos(a));
+      root.rotation.y=a; rig.add(root);
+      const blade=plate(root,i%2?light:dark,[[0,0],[-.095,.105],[-.124,.255],[-.085,.39],[0,.505],[.085,.39],[.124,.255],[.095,.105]],.053,0,0,0);
+      blade.rotation.x=.51; scales.push(blade);
+    }
+    oval(head,body,0,0,0,.256,.263,.249);
+    const sprig=plate(head,light,[[-.027,0],[-.17,.10],[-.21,.265],[-.10,.25],[.012,.13],[.098,.29],[.24,.35],[.18,.135],[.045,.023]],.04,0,.185,-.015);
+    const shoulders=T.cyl(.049,.049,0.716,body,0,0.716,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      for(let i=0;i<scales.length;i++) scales[i].rotation.x=.51+.14*Math.sin(phase+i*Math.PI/4)*amount;
+      sprig.rotation.z=.18*Math.sin(phase-.45)*amount;
+      rig.rotation.z=.09*Math.sin(phase)*amount;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.142,0.06,0.215,0.128,null,T.iris);
+      T.brow(head,U,side*0.142,0.226,0.243,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.086,0.268,.86);
+    T.blush(head,0.221,-0.046,0.199,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.358,0.716,.085,0.27,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.14,0.25,0,0.19,.07,dark,null,light));
+  },
+};
+/* Cuspiro: A crescent-headed dune grazer lends the space between its horns to small birds. */
+SPECIES_EXTRA.cuspiro = {
+  name:"Cuspiro", kind:"cuspiro", family:"alien", skin:"gloss",
+  script:"angular", col:"#d2da5d", hue:64, sat:63, lit:52,
+  syl:["cus", "pi", "oro", "vee", "lum", "dak", "su", "rei"],
+  voice:{wave:"triangle",base:187,range:.33,rate:4.7,glide:.35,vib:4,vibAmt:6,fx:"none",amp:.52},
+  trait:"Considers birds family until they fly the nest.",
+  chat:[
+    "The space over my head is occupied until migration season.",
+    "Two nestlings have learned to steer. We turn left quite a lot.",
+    "A bird brought its own twig. I appreciate a furnished tenant.",
+    "Customs counts my passengers after every sneeze.",
+    "I bought a sun hat. The birds are using it as a veranda."
+  ],
+  greet:[
+    "Hello. The little voice you hear is the upstairs neighbour.",
+    "Please give me a minute to turn my passengers toward the radio."
+  ],
+  cargo:[
+    "{good}, plus nesting twine in case the road is bumpy.",
+    "Tiny curtains. The birds want separate bedrooms this year."
+  ],
+  joke:["I asked the birds for rent. They paid me in things that looked like rent from very high up."],
+  nice:["Thank you. I'll pass that along to the decorator on my left horn."],
+  bye:["Safe flight from everyone on this head."],
+  honk:["The nestlings liked that. Now they want one."],
+  dock:[
+    "Welcome to {port}. Mind your step under the arrivals perch.",
+    "At {port} the birds will show you the terminal. They may stop for crumbs."
+  ],
+  rumor:"A bird from {planet} tucked the new freight rates in my ear. Deliveries pay extra.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.914;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    oval(rig,body,0,.554,-.03,.265,.322,.214);
+    oval(head,body,0,-.035,0,.286,.245,.235);
+    const hornTip=T.phys('#ffedbb'), horns=new THREE.Group(); head.add(horns);
+    for(const side of [-1,1]){
+      const sweep=plate(horns,body,[[.148,.055],[.345,.042],[.49,.157],[.537,.331],[.485,.478],[.372,.526],[.43,.402],[.425,.277],[.343,.202],[.176,.202]],.114,0,0,-.04);
+      sweep.scale.x=side;
+      const cap=plate(horns,hornTip,[[.485,.478],[.372,.526],[.301,.51],[.38,.473],[.43,.402]],.093,0,0,-.04);
+      cap.scale.x=side;
+    }
+    const shoulders=T.cyl(.049,.049,0.584,body,0,0.622,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const stride=Math.sin(phase)*amount;
+      horns.rotation.x=.13*Math.abs(stride);
+      rig.rotation.z=.105*stride; rig.position.y=.029*Math.abs(stride);
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.157,0.01,0.206,0.127,null,T.iris);
+      T.brow(head,U,side*0.157,0.175,0.234,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.127,0.253,.86);
+    T.blush(head,0.236,-0.087,0.19,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.292,0.622,.085,0.284,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.27,0,0.21,.07,dark,null,light));
+  },
+};
+/* Gaugekin: A caliper-headed mechanic measures the gaps left by missing things. */
+SPECIES_EXTRA.gaugekin = {
+  name:"Gaugekin", kind:"gaugekin", family:"robot", skin:"metal",
+  script:"angular", col:"#60a4dc", hue:207, sat:64, lit:53,
+  syl:["gai", "kin", "gau", "vim", "tek", "fol", "nim", "chi"],
+  voice:{wave:"sawtooth",base:256,range:.42,rate:6.6,glide:.09,vib:1,vibAmt:3,fx:"robot",amp:.21},
+  trait:"Can describe a missing bolt with remarkable precision.",
+  chat:[
+    "Your spare tyre is missing. The hole is the correct size.",
+    "An empty shelf came in exactly on spec. Very tidy work.",
+    "I've measured the pause before lunch. A sandwich just fits.",
+    "Where my toolbox used to be is now my best reference gap.",
+    "A bolt fell out. I can give you its absence to three decimal places."
+  ],
+  greet:[
+    "Clearance desk speaking. How wide a space can I help you with?",
+    "Hello. Leave a gap between words and I'll check it."
+  ],
+  cargo:[
+    "{good}. They're a snug fit in the interval between these walls.",
+    "Replacement gaps. The packing material is the expensive part."
+  ],
+  joke:["I lost my ruler. On the bright side I know exactly how long it is."],
+  nice:["Thank you. That fills a space I hadn't measured."],
+  bye:["I'll leave room in the log for your return."],
+  honk:["Fine interval between those beeps. Factory tolerance."],
+  dock:[
+    "Welcome to {port}. That space between the stripes is yours.",
+    "At {port} I measure clearance with the doors open. Saves on doors."
+  ],
+  rumor:"{planet} widened the gap between ordinary pay and delivery pay. The bonus looks generous.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.041;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#b4ffe8',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    rig.add(T.rbox(.376,.386,.273,.05,body,0,.57,0));
+    rig.add(T.rbox(.302,.064,.034,.013,dark,0,.625,.145));
+    for(let i=0;i<4;i++) rig.add(T.bx(.013,.024+(i%2)*.016,.011,light,-.096+i*.061,.625,.167));
+    rig.add(T.cyl(.073,.09,.204,light,0,.879,0,16));
+    head.add(T.rbox(.506,.212,.27,.037,body));
+    head.add(T.rbox(.379,.189,.03,.012,glass,0,0,.142));
+    plate(head,light,[[-.044,0],[.048,0],[.018,.344],[.15,.399],[.137,.427],[-.041,.403]],.071,-.221,.098,0);
+    const slide=new THREE.Group(); slide.position.set(.218,.082,0); head.add(slide);
+    plate(slide,body,[[-.041,0],[.05,0],[.05,.309],[.012,.367],[-.141,.398],[-.15,.364],[-.044,.301]],.088,0,0,0);
+    slide.add(T.sph(.031,signal,-.127,.38,.052,12,8));
+    const shoulders=T.cyl(.049,.049,0.488,dark,0,0.727,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const measure=(1-Math.cos(phase*.75))*.5*amount;
+      slide.position.x=.218-.133*measure;
+      rig.position.y=.028*Math.abs(Math.sin(phase))*amount;
+      for(const leg of U.legs){
+        leg.rotation.x*=.68; leg.userData.foot.rotation.x=-leg.rotation.x;
+      }
+    };
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.105,0.014,0.091);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0473,0.0572,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.105,0.11,0.17,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.063,0.172,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.244,0.727,.085,0.303,.054,dark,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.165,0.3,0,0.24,.07,dark,null,body));
+  },
+};
+/* Hushcone: A horn-eared recording robot makes field recordings of things finishing. */
+SPECIES_EXTRA.hushcone = {
+  name:"Hushcone", kind:"hushcone", family:"robot", skin:"metal",
+  script:"blocks", col:"#e8bd59", hue:42, sat:76, lit:54,
+  syl:["hus", "kon", "zis", "rec", "tul", "fer", "din", "tag"],
+  voice:{wave:"sawtooth",base:188,range:.35,rate:4.4,glide:.2,vib:3,vibAmt:5,fx:"robot",amp:.22},
+  trait:"Likes a good ending enough to wait for it.",
+  chat:[
+    "I caught the exact moment a kettle stopped boiling. The rest is tea.",
+    "The last crate slid off the ramp before I pressed record. Could someone reload it?",
+    "A door closing is easy. A door deciding to stay closed takes patience.",
+    "Nearly finished recording a meeting. I've said that for three hours.",
+    "My favourite sound is the click after the last buckle. Good click."
+  ],
+  greet:[
+    "Recorder rolling. Finish whatever you were saying.",
+    "Hello. I kept the tail end of your hail. Nice fade."
+  ],
+  cargo:[
+    "{good}. I'm hoping the packing tape comes off in one take.",
+    "Empty reels. I'll fill them with the ends of other reels."
+  ],
+  joke:["I recorded the end of a queue. On playback it started another queue."],
+  nice:["Thank you. I'll keep the little pause after that."],
+  bye:["Hold still for one second. There. Lovely goodbye."],
+  honk:["Can you do just the very end of that again?"],
+  dock:[
+    "Welcome to {port}. Your engine winding down is going in the collection.",
+    "At {port} please let the ramp finish squeaking before you applaud."
+  ],
+  rumor:"The cashier on {planet} ends every freight payment with an extra clink. There's a bonus on.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.996;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#adeaff',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const recorder=T.rbox(.472,.386,.328,.062,body,0,.523,0);
+    rig.add(recorder);
+    for(const side of [-1,1]){
+      const reel=T.cyl(.076,.076,.032,light,side*.107,.552,.179,22);
+      reel.rotation.x=Math.PI/2; rig.add(reel);
+      oval(rig,dark,side*.107,.552,.199,.028,.028,.011);
+    }
+    rig.add(T.cyl(.079,.091,.172,light,0,.804,0));
+    head.add(T.rbox(.401,.281,.296,.046,body));
+    head.add(T.rbox(.364,.235,.037,.014,glass,0,0,.154));
+    const horn=new THREE.Group(); horn.position.set(-.114,.125,-.023);
+    horn.rotation.set(.42,0,.66); head.add(horn);
+    // Double wall and a recessed throat leave a real opening in the bell.
+    turned(horn,body,[[.052,0],[.055,.16],[.12,.302],[.227,.399],[.274,.426],[.278,.451],[.26,.467],[.202,.426],[.102,.335],[.044,.196],[.036,.065]],0,0,0);
+    horn.add(T.cyl(.044,.042,.017,signal,0,.109,0,16));
+    const shoulders=T.cyl(.049,.049,0.576,dark,0,0.677,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const listen=Math.sin(phase*.60)*amount;
+      horn.rotation.z=.66+.205*listen; horn.rotation.y=.21*listen;
+      rig.rotation.z=-.09*listen;
+    };
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.117,0.012,0.097);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.064,0.064,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.117,0.108,0.176,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.09,0.185,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.288,0.677,.085,0.275,.054,dark,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.145,0.275,0,0.215,.07,dark,null,body));
+  },
+};
+/* Linticker: A cabinet robot with a bright pendulum grants time off to overworked clocks. */
+SPECIES_EXTRA.linticker = {
+  name:"Linticker", kind:"linticker", family:"robot", skin:"metal",
+  script:"blocks", col:"#69bf84", hue:139, sat:40, lit:49,
+  syl:["lin", "tik", "vak", "tok", "id", "mel", "ren", "tem"],
+  voice:{wave:"triangle",base:144,range:.29,rate:4.1,glide:.15,vib:2,vibAmt:4,fx:"click",amp:.44},
+  trait:"Believes every timepiece deserves a proper break.",
+  chat:[
+    "The lunch clock is on lunch. We can eat until it gets back.",
+    "I covered a sundial's shift. Cloudy day. Caught up on my reading.",
+    "I grant every stopwatch a short walk once a week.",
+    "A clock asked for a minute alone. I gave it the whole mantel.",
+    "My calendar tore off a day for itself. The paperwork can wait."
+  ],
+  greet:[
+    "Clock relief here. Have you had a moment to yourself?",
+    "Hello. I can spare the time."
+  ],
+  cargo:[
+    "{good}. No rush, unless the shift clock insists.",
+    "Little hammocks for alarm bells. The padding is important."
+  ],
+  joke:["I gave a clock a second chance. It asked for the other fifty-nine."],
+  nice:["Thank you. I'm setting aside a minute to be pleased."],
+  bye:["Take your time. I signed it out to you."],
+  honk:["The shift bell's off today. Thanks for covering."],
+  dock:[
+    "Welcome to {port}. The dock clock is resting, so you're on time.",
+    "At {port} break time starts when the last clock sits down."
+  ],
+  rumor:"There's a delivery bonus on {planet}. The payroll clock stayed late to tell me.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.137;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#ffdf89',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    plate(rig,body,[[-.237,0],[.237,0],[.219,.085],[.16,.14],[.149,.425],[.205,.526],[.219,.596],[-.219,.596],[-.205,.526],[-.149,.425],[-.16,.14],[-.219,.085]],.274,0,.29,0);
+    rig.add(T.rbox(.229,.409,.038,.017,glass,0,.602,.156));
+    const pendulum=new THREE.Group();
+    pendulum.position.set(0,.785,.188); rig.add(pendulum);
+    pendulum.add(T.cyl(.012,.012,.294,light,0,-.143,0,10));
+    oval(pendulum,light,0,-.299,0,.074,.074,.019);
+    rig.add(T.cyl(.079,.092,.148,light,0,.979,0,16));
+    head.add(T.rbox(.49,.284,.312,.048,body));
+    head.add(T.rbox(.423,.235,.035,.014,glass,0,0,.164));
+    plate(head,light,[[-.274,0],[-.26,.052],[-.151,.099],[0,.259],[.151,.099],[.26,.052],[.274,0]],.119,0,.155,-.023);
+    oval(head,signal,0,.247,.047,.037,.047,.022);
+    const shoulders=T.cyl(.049,.049,0.52,body,0,0.822,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      pendulum.rotation.z=.48*Math.sin(phase)*amount;
+      rig.rotation.z=-.032*Math.sin(phase)*amount;
+      rig.position.y=.027*Math.abs(Math.sin(phase))*amount;
+    };
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.127,0.018,0.112);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.068,0.0573,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.127,0.114,0.191,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.09,0.2,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.26,0.822,.085,0.315,.054,dark,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.147,0.221,0,0.161,.07,dark,null,body));
+  },
+};
+/* Loamlet: A terracotta burrower with chimney ears grows a different garden in each pocket. */
+SPECIES_EXTRA.loamlet = {
+  name:"Loamlet", kind:"loamlet", family:"alien", skin:"matte",
+  script:"curvy", col:"#df8862", hue:18, sat:66, lit:54,
+  syl:["loh", "um", "ta", "pip", "del", "roo", "lum", "tha"],
+  voice:{wave:"triangle",base:218,range:.48,rate:4.8,glide:.32,vib:4,vibAmt:7,fx:"none",amp:.48},
+  trait:"Rotates crops by turning pockets inside out.",
+  chat:[
+    "I am rotating my crops. I turned my coat inside out.",
+    "The left pocket gets good sun. The right grows mostly receipts.",
+    "A bean took root in my seat belt. We have agreed to travel together.",
+    "I can tell your soil is tired. It keeps lying down.",
+    "I ordered a raised bed. The delivery crew put my bunk on bricks."
+  ],
+  greet:[
+    "Hello from the potting bench. My thumb is clean enough for radio.",
+    "Speak up a little. I have seedlings in both ears."
+  ],
+  cargo:[
+    "{good}, with a layer of mulch. Just in case.",
+    "One sack of very promising holes. Bring your own dirt."
+  ],
+  joke:["I tried growing clocks. They all came up late."],
+  nice:["Thank you. I waxed the hull with a very small leaf."],
+  bye:["May something nice sprout in your glove box."],
+  honk:["That woke the peas. They were due up anyway."],
+  dock:[
+    "Welcome to {port}. The herb patch marks the edge of the pad.",
+    "At {port} the landing fee includes a cutting. Pinch it above the node."
+  ],
+  rumor:"The nursery on {planet} is paying extra for deliveries. Ask for the desk under the ivy.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.88;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const pot=turned(rig,body,[[.001,0],[.21,0],[.22,.05],[.324,.40],[.342,.44],[.338,.49],[.001,.49]],0,.279,0);
+    rig.add(T.cyl(.355,.34,.09,dark,0,.755,0,28));
+    oval(head,body,0,0,0,.34,.29,.285);
+    const soil=T.phys('#593836');
+    for(const side of [-1,1]){
+      const ear=new THREE.Group();
+      ear.position.set(side*.20,.22,-.045);
+      ear.rotation.z=side<0?.28:-.48;
+      ear.scale.y=side<0?1.60:.70;
+      head.add(ear);
+      ear.add(T.cyl(.098,.076,.25,body,0,.09,0,18));
+      ear.add(T.cyl(.11,.11,.055,light,0,.22,0,18));
+      ear.add(T.cyl(.078,.078,.01,soil,0,.249,0,18));
+    }
+    const shoot=oval(head,T.phys('#92ce63'),-.35,.69,-.045,.082,.152,.032);
+    shoot.rotation.z=-.45;
+    U.gait=(phase,amount)=>{
+      const step=Math.sin(phase)*amount;
+      pot.rotation.z=.075*step;
+      shoot.rotation.z=-.45+.31*Math.sin(phase-.75)*amount;
+      rig.rotation.z=.095*step;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.165,0.045,0.225,0.126,null,T.iris);
+      T.brow(head,U,side*0.165,0.209,0.253,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.105,0.287,.86);
+    T.blush(head,0.244,-0.065,0.209,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.365,0.72,.085,0.32,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.16,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Nacrelle: A pearl nestled in a fan shell listens for the quietest noise in each port. */
+SPECIES_EXTRA.nacrelle = {
+  name:"Nacrelle", kind:"nacrelle", family:"alien", skin:"gloss",
+  script:"curvy", col:"#dd8da5", hue:342, sat:54, lit:62,
+  syl:["nah", "krel", "ell", "uvi", "ai", "sil", "eh", "lu"],
+  voice:{wave:"sine",base:378,range:.36,rate:3.7,glide:.5,vib:4,vibAmt:8,fx:"chorus",amp:.40},
+  trait:"Saves the tiny noises everyone else misses.",
+  chat:[
+    "The quietest thing at this dock is a biscuit cooling.",
+    "I listened to a shell and heard my own kitchen. Fair enough.",
+    "My microphone picked up a stamp drying. It was almost a song.",
+    "Please hold still. There's a very small noise behind your larger one.",
+    "I gave the library a recording of a page settling. They filed it under action."
+  ],
+  greet:[
+    "Hello. You're coming through at just the right smallness.",
+    "I had the gain turned up for dust. Give me a moment."
+  ],
+  cargo:[
+    "{good}. The crate creaks beautifully when nobody asks it to.",
+    "A soundproof box with something very quiet in it. Taking the sender's word."
+  ],
+  joke:["Someone sold me a silent bell. I've requested an audible receipt."],
+  nice:["Thank you. I heard the smile first."],
+  bye:["I'll keep a little quiet for your next visit."],
+  honk:["That'll go in the other collection."],
+  dock:[
+    "Welcome to {port}. Listen for the soft click of the landing light.",
+    "At {port} we have a quiet bay. It's the one beside the loud sign."
+  ],
+  rumor:"The softest voice on {planet} mentioned a freight bonus. I checked twice.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.646;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    oval(rig,body,0,.131,-.03,.344,.131,.295);
+    oval(rig,light,0,.31,.018,.316,.18,.278);
+    const mantle=new THREE.Group();
+    mantle.position.set(0,.18,-.14); rig.add(mantle);
+    const seam=T.phys('#ffe9ce');
+    plate(mantle,body,[[0,0],[-.25,.29],[-.427,.61],[-.474,.701],[-.345,.764],[-.209,.826],[0,.852],[.209,.826],[.345,.764],[.474,.701],[.427,.61],[.25,.29]],.045,0,0,-.095);
+    for(let i=-4;i<=4;i++){
+      const a=i*.151;
+      const blade=plate(mantle,i%2?body:light,[[-.024,0],[-.074,.44],[-.08,.75],[-.054,.87],[0,.914],[.057,.873],[.084,.76],[.075,.43],[.024,0]],.044,0,0,-.013*Math.abs(i));
+      blade.rotation.z=-a;
+    }
+    tube(mantle,seam,[[-.266,.342,0],[-.11,.162,.041],[0,.13,.045],[.11,.162,.041],[.266,.342,0]],.024);
+    head.position.z=.102;
+    oval(head,T.phys('#ffe2d7',{clearcoat:.85}),0,0,0,.244,.235,.225);
+    U.gait=(phase,amount)=>{
+      const scoop=(1-Math.cos(phase))*.5*amount;
+      mantle.rotation.x=-.29*scoop;
+      rig.position.y=.028*scoop; rig.rotation.z=.045*Math.sin(phase)*amount;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.14,0.025,0.2,0.12,null,T.iris);
+      T.brow(head,U,side*0.14,0.183,0.228,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.105,0.24,.86);
+    T.blush(head,0.219,-0.065,0.184,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.328,0.51,.085,0.241,.054,body,light));
+  },
+};
+/* Parasolum: A scalloped umbrella glider insures picnics against excessive sunshine. */
+SPECIES_EXTRA.parasolum = {
+  name:"Parasolum", kind:"parasolum", family:"alien", skin:"gloss",
+  script:"dots", col:"#df77c5", hue:315, sat:62, lit:58,
+  syl:["sha", "plu", "yi", "pem", "sil", "oro", "nu", "fli"],
+  voice:{wave:"triangle",base:369,range:.53,rate:6,glide:.4,vib:5,vibAmt:10,fx:"chirp",amp:.46},
+  trait:"Takes picnics personally, especially the paperwork.",
+  chat:[
+    "Clear skies again. People never read the fine print about clear skies.",
+    "A sandwich in full sun is technically a toast claim.",
+    "I can shade four elbows or one entire lunch. Please arrange yourselves.",
+    "Yesterday a cloud parked above me. We split the shift.",
+    "I follow picnics by the sound of lids coming off."
+  ],
+  greet:[
+    "Weather desk speaking. Do you still have your sandwich?",
+    "Hello, pilot. You sound comfortably overcast."
+  ],
+  cargo:[
+    "{good}, plus a very large folded napkin for emergencies.",
+    "Shade samples. Open the box in daylight or they all look alike."
+  ],
+  joke:["We covered a picnic for drizzle. It rained indoors. The ceiling filed separately."],
+  nice:["Thank you. The scalloped edge was my grandmother's."],
+  bye:["Stay in the nice bit between the shadows."],
+  honk:["Perfect. That's the signal to put the lids back on."],
+  dock:[
+    "Welcome to {port}. Shade travels clockwise around the terminal.",
+    "At {port} there's a bench under me. Take your time."
+  ],
+  rumor:"The picnic board on {planet} has added a delivery bonus. Even covered cargo qualifies.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.97;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    turned(rig,light,[[.001,0],[.112,0],[.09,.20],[.12,.39],[.18,.47],[.001,.48]],0,.278,0);
+    oval(head,body,0,-.04,0,.238,.25,.205);
+    const canopy=new THREE.Group();
+    canopy.position.y=.18; head.add(canopy);
+    const gold=T.phys('#ffdb9b');
+    for(let i=0;i<10;i++){
+      const a=i*Math.PI/5,b=(i+1)*Math.PI/5, mid=(a+b)/2;
+      const rib=(theta,r,y)=>[r*Math.sin(theta),y,r*.70*Math.cos(theta)];
+      const crown=[0,.31,0], shoulder=rib(mid,.217,.203), tip=rib(mid,.568,-.099);
+      const left=rib(a,.48,.008),right=rib(b,.48,.008);
+      const points=[crown,shoulder,left, crown,right,shoulder, left,shoulder,tip, tip,shoulder,right];
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(points.flat(),3));
+      g.computeVertexNormals();
+      const m=i%2?light:body; m.side=THREE.DoubleSide;
+      canopy.add(new THREE.Mesh(g,m));
+      oval(canopy,gold,tip[0],tip[1],tip[2],.026,.032,.026);
+    }
+    oval(canopy,gold,0,.329,0,.046,.07,.046);
+    const shoulders=T.cyl(.049,.049,0.44,light,0,0.72,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const gust=Math.sin(phase*.65)*amount;
+      canopy.rotation.z=.16*gust;
+      canopy.scale.y=1+.14*Math.sin(phase*1.3)*amount;
+      rig.rotation.z=-.055*gust;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.145,-0.025,0.187,0.121,null,T.iris);
+      T.brow(head,U,side*0.145,0.134,0.215,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.162,0.22,.86);
+    T.blush(head,0.224,-0.122,0.171,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.22,0.72,.085,0.3,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.13,0.25,0,0.19,.07,dark,null,light));
+  },
+};
+/* Pipettle: A kettle-bellied marsh grazer whistles politely when the queue should move. */
+SPECIES_EXTRA.pipettle = {
+  name:"Pipettle", kind:"pipettle", family:"alien", skin:"gloss",
+  script:"curvy", col:"#56d79d", hue:153, sat:62, lit:50,
+  syl:["pip", "et", "tu", "weesh", "pel", "chi", "lo", "mai"],
+  voice:{wave:"sine",base:452,range:.71,rate:6.4,glide:.58,vib:7,vibAmt:12,fx:"chirp",amp:.43},
+  trait:"Makes waiting in line a point of civic pride.",
+  chat:[
+    "The queue has moved half a shoe. I'll keep the whistle warm.",
+    "Somebody left a gap. We're taking turns looking after it.",
+    "I lined up behind a coat stand yesterday. It was a very patient morning.",
+    "My family knows I'm ready by the note I make through my left spout.",
+    "I put a chair in line for me. It got called to the counter."
+  ],
+  greet:[
+    "Hello. You're next, if you were behind the fern.",
+    "Queue steward speaking. I've put my finger on your place."
+  ],
+  cargo:[
+    "{good}. Each crate knows who it came after.",
+    "A roll of numbered tickets. The roll has pulled a ticket of its own."
+  ],
+  joke:["The express line was empty. I joined it and spoiled the effect."],
+  nice:["Thank you. The shine helps people see where the line bends."],
+  bye:["Off you go. I'll mind your gap till it closes."],
+  honk:["Nearly the right note. The line moved anyway."],
+  dock:[
+    "Welcome to {port}. Follow the queue until you meet someone facing you.",
+    "At {port} there is a separate queue for asking where the queue is."
+  ],
+  rumor:"The line at {planet} is moving fast. They're paying extra for every delivery.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.99;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    turned(rig,body,[[.001,0],[.232,0],[.292,.046],[.356,.172],[.358,.294],[.315,.402],[.227,.482],[.182,.53],[.001,.53]],0,.285,0);
+    tube(rig,light,[[.20,.724,-.059],[.381,.855,-.06],[.525,.79,-.06],[.54,.601,-.06],[.315,.512,-.04]],.049);
+    const nozzle=new THREE.Group();
+    nozzle.position.set(-.309,.71,0);
+    nozzle.rotation.z=.63;
+    rig.add(nozzle);
+    nozzle.add(T.cyl(.101,.072,.372,body,0,.125,0,20));
+    nozzle.add(T.cyl(.107,.093,.045,light,0,.329,0,20));
+    nozzle.add(T.cyl(.072,.072,.006,dark,0,.354,0,20));
+    oval(head,light,0,0,0,.27,.225,.224);
+    const lid=oval(head,body,0,.204,-.01,.225,.065,.187);
+    oval(head,dark,0,.275,-.01,.059,.06,.058);
+    U.gait=(phase,amount)=>{
+      const pour=Math.sin(phase)*amount;
+      rig.rotation.z=.125*pour;
+      nozzle.rotation.z=.63+.10*pour;
+      lid.rotation.z=-.14*pour;
+      rig.position.y=.037*Math.abs(pour);
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.147,0.023,0.184,0.122,null,T.iris);
+      T.brow(head,U,side*0.147,0.183,0.212,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.11,0.226,.86);
+    T.blush(head,0.226,-0.07,0.168,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.391,0.68,.085,0.325,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.24,0,0.18,.07,dark,null,light));
+  },
+};
+/* Pluvindle: A low raincloud on dangling droplet legs measures weather in teaspoons. */
+SPECIES_EXTRA.pluvindle = {
+  name:"Pluvindle", kind:"pluvindle", family:"alien", skin:"fuzzy",
+  script:"dots", col:"#9a9bd6", hue:239, sat:42, lit:63,
+  syl:["plu", "vin", "dul", "om", "ni", "wep", "lir", "du"],
+  voice:{wave:"sine",base:196,range:.58,rate:5,glide:.56,vib:4,vibAmt:10,fx:"bubble",amp:.51},
+  trait:"Issues very local forecasts in kitchen units.",
+  chat:[
+    "Forecast calls for two spoons by lunch. Use a deep saucer.",
+    "I sneezed over the weather gauge and had to issue a correction.",
+    "My drizzle license covers one windowsill at a time.",
+    "A baker borrowed my forecast. The dough came out a bit cloudy.",
+    "I'm saving a teaspoon of blue sky. The jar looks empty until you squint."
+  ],
+  greet:[
+    "Local weather speaking. Where shall I put this sprinkle?",
+    "Hello. You caught me between spoons."
+  ],
+  cargo:[
+    "{good}, under a lid. The sender has met me before.",
+    "Measuring spoons. The tablespoon is for severe weather only."
+  ],
+  joke:["I made a dry forecast. It stuck to the spoon."],
+  nice:["Thank you. I'll leave a little rainbow by your step."],
+  bye:["Fair weather to you. I've put the lid on."],
+  honk:["One startled cloud, one splash. I'll get a cloth."],
+  dock:[
+    "Welcome to {port}. Today's weather fits in a cup.",
+    "At {port} the blue awning marks the dry side of my desk."
+  ],
+  rumor:"The weather office on {planet} has a delivery bonus. Today's envelope is only lightly damp.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.97;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    oval(head,body,0,0,-.01,.30,.25,.235);
+    for(const [x,y,z,r] of [[-.294,0,-.04,.206],[.317,.015,-.057,.188],[-.12,.153,-.054,.205],[.154,.221,-.061,.242]]){
+      oval(head,light,x,y,z,r,r*.85,r*.8);
+    }
+    const rain=[];
+    for(const [x,stop] of [[-.24,.23],[-.065,.088],[.12,.157],[.285,.302]]){
+      const line=new THREE.Group(); line.position.set(x,.85,0); rig.add(line);
+      const reach=.85-stop;
+      line.add(T.cyl(.013,.01,reach,dark,0,-reach/2,0,9));
+      turned(line,light,[[.001,0],[.049,.014],[.066,.046],[.062,.077],[.033,.128],[.001,.181]],0,-reach-.086,0);
+      rain.push(line);
+    }
+    U.gait=(phase,amount)=>{
+      for(let i=0;i<rain.length;i++){
+        const beat=phase*.85+i*1.7;
+        rain[i].rotation.z=.14*Math.sin(beat)*amount;
+        rain[i].scale.y=1-.15*(1-Math.cos(beat))*.5*amount;
+      }
+      rig.rotation.z=0; rig.position.y=.017*(1-Math.cos(phase))*amount;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.158,0.02,0.197,0.128,null,T.iris);
+      T.brow(head,U,side*0.158,0.186,0.225,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.115,0.244,.86);
+    T.blush(head,0.237,-0.075,0.181,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.416,0.861,.085,0.233,.054,body,light));
+  },
+};
+/* Rilloon: A bellows-bellied singer takes attendance at every echo. */
+SPECIES_EXTRA.rilloon = {
+  name:"Rilloon", kind:"rilloon", family:"alien", skin:"gloss",
+  script:"curvy", col:"#5ed4ce", hue:177, sat:58, lit:51,
+  syl:["rii", "luu", "wah", "bim", "soh", "yen", "hoo", "lem"],
+  voice:{wave:"sine",base:302,range:.68,rate:4.3,glide:.64,vib:6,vibAmt:12,fx:"chorus",amp:.48},
+  trait:"Always leaves a place in the choir for the echo.",
+  chat:[
+    "Just called the roll. The tunnel answered twice for somebody.",
+    "My singing teacher says I have excellent volume. She teaches from the next bay.",
+    "I hold a note through customs. They usually give it back.",
+    "If you hear me again, that's the loading ramp. It likes the last word.",
+    "My belly plays a chord when I bend to tie my shoes. I wear slip-ons to concerts."
+  ],
+  greet:[
+    "Hello! I'll leave a gap for your echo.",
+    "You're on pitch. I hadn't even given you one."
+  ],
+  cargo:[
+    "{good}. The packing straw is in a different key.",
+    "A crate of tuning forks. The route has been one long dinner bell."
+  ],
+  joke:["I asked a canyon for a solo. It said it preferred a duet. Eventually."],
+  nice:["Thank you. Your engine has a lovely speaking voice."],
+  bye:["I'll leave the last syllable with you. Loo."],
+  honk:["A fine note. Your horn may join us on Thursdays."],
+  dock:[
+    "Welcome to {port}. Sing your bay number and follow the harmony.",
+    "The round hall at {port} says hello back. This takes a minute."
+  ],
+  rumor:"The dispatcher at {planet} sang me their rates. There's a high note on delivery bonuses.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.19;
+    const bellows=new THREE.Group();
+    bellows.position.y=.30; rig.add(bellows);
+    for(let i=0;i<5;i++){
+      const radius=.235+.10*Math.sin(i*Math.PI/4);
+      bellows.add(T.cyl(radius-.06,radius,.075,i%2?body:light,0,.06+i*.15,0,32));
+      bellows.add(T.cyl(radius,radius-.06,.075,body,0,.135+i*.15,0,32));
+    }
+    oval(head,body,0,-.02,0,.305,.275,.25);
+    for(const side of [-1,1]){
+      const bell=new THREE.Group();
+      bell.position.set(side*.263,.085,-.035);
+      bell.rotation.z=-side*1.27;
+      head.add(bell);
+      bell.add(T.cyl(.163,.054,.25,body,0,.085,0,24));
+      bell.add(T.cyl(.17,.17,.032,light,0,.208,0,24));
+      bell.add(T.cyl(.139,.139,.008,dark,0,.227,0,24));
+    }
+    const shoulders=T.cyl(.049,.049,0.62,dark,0,0.86,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const breath=Math.sin(phase)*amount;
+      bellows.scale.set(1-.055*breath,1+.13*breath,1-.055*breath);
+      U.head.position.z=.04*breath;
+      rig.position.y=.038*Math.abs(breath);
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.152,0.04,0.205,0.126,null,T.iris);
+      T.brow(head,U,side*0.152,0.204,0.233,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.105,0.25,.86);
+    T.blush(head,0.231,-0.065,0.189,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.31,0.86,.085,0.34,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.15,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Rimebud: A faceted ice bud keeps souvenirs of weather in cold storage. */
+SPECIES_EXTRA.rimebud = {
+  name:"Rimebud", kind:"rimebud", family:"alien", skin:"stone",
+  script:"angular", col:"#7fc5e6", hue:199, sat:67, lit:61,
+  syl:["rim", "nai", "kir", "ven", "tis", "sho", "il", "da"],
+  voice:{wave:"triangle",base:325,range:.38,rate:5.1,glide:.24,vib:6,vibAmt:8,fx:"none",amp:.44},
+  trait:"Keeps a date and a story for every snowflake.",
+  chat:[
+    "Today's frost looks just like my aunt. I've asked it to hold still.",
+    "I keep my first snow day in a flask. There's a bus ticket frozen in it.",
+    "The forecast said scattered showers. I'm only missing the one from Tuesday.",
+    "My postcards have to travel in the freezer drawer.",
+    "I took a holiday somewhere warm. The album is mostly puddles."
+  ],
+  greet:[
+    "Cold archive, good morning. I'm wearing the gloves for talking.",
+    "Hello. Leave the frosted bit of the receiver for me."
+  ],
+  cargo:[
+    "{good}, and one tray of perfectly ordinary sleet from a rather special afternoon.",
+    "A hailstone with a parking ticket inside. It establishes the date."
+  ],
+  joke:["My weather exhibit sprang a leak. The catalogue now lists a river."],
+  nice:["That's kind. I saved the frost from launch day."],
+  bye:["Keep cool. Or send me a sample of the alternative."],
+  honk:["You knocked a little snow off my aerial. I've dated the envelope."],
+  dock:[
+    "Welcome to {port}. Today's frost is on display by the cold lockers.",
+    "At {port} you may check your sleet at the door. Keep the ticket dry."
+  ],
+  rumor:"{planet} is offering a delivery bonus. The notice is trapped under some exceptionally fine ice.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.02;
+    function crystal(parent,mat,x,y,z,w,h,tilt){
+      const gem=new THREE.Mesh(new THREE.OctahedronGeometry(1),mat);
+      gem.scale.set(w,h,w*.8);
+      gem.position.set(x,y,z);
+      gem.rotation.z=tilt;
+      parent.add(gem);
+    }
+    crystal(rig,body,0,.60,0,.33,.395,0);
+    oval(head,light,0,0,0,.29,.25,.24);
+    const frost=T.phys('#d9faff',{roughness:.30});
+    const fan=new THREE.Group(); head.add(fan);
+    for(const side of [-1,1]){
+      crystal(fan,body,side*.295,.14,-.04,.098,.262,-side*1.03);
+      crystal(fan,frost,side*.20,.30,-.07,.093,.273,-side*.46);
+    }
+    crystal(fan,body,0,.39,-.06,.131,.35,0);
+    const shoulders=T.cyl(.049,.049,0.654,light,0,0.76,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const step=Math.sin(phase)*amount;
+      const settle=step*Math.abs(step);
+      fan.rotation.z=.085*settle;
+      rig.position.y=.042*Math.abs(settle);
+      rig.rotation.z=.105*settle;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.147,0.015,0.193,0.124,null,T.iris);
+      T.brow(head,U,side*0.147,0.177,0.221,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.13,0.244,.86);
+    T.blush(head,0.226,-0.09,0.177,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.327,0.76,.085,0.32,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.155,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Sealump: A spring-footed stamp robot collects impressions of perfectly ordinary floors. */
+SPECIES_EXTRA.sealump = {
+  name:"Sealump", kind:"sealump", family:"robot", skin:"metal",
+  script:"blocks", col:"#a17dd4", hue:265, sat:50, lit:57,
+  syl:["sel", "lum", "tap", "ink", "pem", "dol", "chi", "dak"],
+  voice:{wave:"square",base:167,range:.27,rate:5.8,glide:.06,vib:0,vibAmt:0,fx:"click",amp:.25},
+  trait:"Dates a port by the grain of its floorboards.",
+  chat:[
+    "This floor has a grain like yesterday's floor, but with ambition.",
+    "I remember every dock by the mark it left on my ankle.",
+    "I stepped on my own report. Management approved the improvement.",
+    "The foyer asked for a clean copy. I'll walk through it again.",
+    "My ink pad has the day off. I'm taking pencil rubbings."
+  ],
+  greet:[
+    "Hello. Your signal made a nice clean impression.",
+    "Records desk here. I have room in the margin."
+  ],
+  cargo:[
+    "{good}. The crate bottoms have already signed for the trip.",
+    "A roll of blank flooring. A first edition, if I tread carefully."
+  ],
+  joke:["I stamped a moving walkway. My signature is touring the terminal."],
+  nice:["Thank you. Would you sign the corner while the ink is wet?"],
+  bye:["Leaving my mark. I'll mop up the spare ones."],
+  honk:["Very official. I'll stamp the noise complaint in your favour."],
+  dock:[
+    "Welcome to {port}. My footprints lead to the receiving desk.",
+    "At {port} every floorboard has an entry in my album."
+  ],
+  rumor:"{planet} stamped a bonus on its delivery orders. I recognise the pressure on the final zero.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=1.053;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#ffd2a7',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const foot=T.rbox(.54,.105,.39,.034,dark,0,.083,0);
+    rig.add(foot,T.rbox(.506,.061,.355,.021,body,0,.167,0));
+    const spring=new THREE.Group(), carriage=new THREE.Group();
+    spring.position.y=.197;
+    rig.add(spring,carriage);
+    const coil=[];
+    for(let i=0;i<=72;i++){
+      const a=i*Math.PI/9;
+      coil.push([.146*Math.cos(a),.55*i/72,.146*Math.sin(a)]);
+    }
+    tube(spring,light,coil,.029);
+    carriage.add(T.cyl(.19,.168,.065,dark,0,.785,0,24));
+    carriage.add(T.rbox(.488,.09,.326,.03,body,0,.836,0));
+    carriage.add(T.cyl(.083,.089,.11,light,0,.941,0));
+    carriage.add(head);
+    head.add(T.rbox(.578,.265,.302,.04,body));
+    head.add(T.rbox(.475,.22,.036,.013,glass,0,0,.156));
+    turned(head,body,[[.001,0],[.103,0],[.082,.09],[.068,.14],[.119,.19],[.154,.23],[.14,.285],[.076,.318],[.001,.328]],0,.158,0);
+    oval(head,signal,0,.404,.13,.038,.025,.015);
+    U.gait=(phase,amount)=>{
+      // The ink pad stays planted during the wind-up, then clears the floor in flight.
+      const cycle=((phase/(2*Math.PI))%1+1)%1;
+      let compression=0, lift=0;
+      if(cycle<.38) compression=.24*Math.sin(Math.PI*cycle/.38)**2;
+      else if(cycle<.82){
+        const flight=(cycle-.38)/.44;
+        lift=.236*Math.sin(Math.PI*flight);
+      } else compression=.09*Math.sin(Math.PI*(cycle-.82)/.18)**2;
+      rig.rotation.z=0; rig.position.y=lift*amount;
+      spring.scale.y=1-compression*amount/.55;
+      carriage.position.y=-compression*amount;
+      for(const arm of U.arms) arm.position.y=.83+carriage.position.y;
+    };
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.14,0.013,0.104);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0516,0.066,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.14,0.109,0.183,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.07,0.189,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.31,0.83,.085,0.256,.054,dark,light));
+  },
+};
+/* Tarestep: A two-pan hover scale weighs compliments before passing them along. */
+SPECIES_EXTRA.tarestep = {
+  name:"Tarestep", kind:"tarestep", family:"robot", skin:"metal",
+  script:"blocks", col:"#67c3d5", hue:190, sat:57, lit:53,
+  syl:["tar", "tep", "kel", "gram", "vi", "sek", "nul", "bem"],
+  voice:{wave:"triangle",base:246,range:.3,rate:5.2,glide:.16,vib:2,vibAmt:4,fx:"robot",amp:.4},
+  trait:"Knows the precise weight of a kind word.",
+  chat:[
+    "Your good morning weighed a little more than yesterday's. Slept well?",
+    "A sigh weighs almost nothing until everyone does it at once.",
+    "I balanced the accounts. Had to move one pencil.",
+    "Wind adds weight on the left. I turn around before giving bad news.",
+    "The empty crate is a little heavier since they wrote EMPTY on it."
+  ],
+  greet:[
+    "Scale cleared. Say something of moderate weight.",
+    "Hello. I've set aside a pan just for you."
+  ],
+  cargo:[
+    "{good}. The gross weight includes a very sincere apology.",
+    "Counterweights, plus a smaller counterweight for the packing slip."
+  ],
+  joke:["I tried weighing a rumour. It got heavier at every stop."],
+  nice:["That tips the scale. Give me a moment to enjoy it."],
+  bye:["Travel light. I can certify it if you like."],
+  honk:["That one bounced right off the pan."],
+  dock:[
+    "Welcome to {port}. Both pans say it's good to see you.",
+    "At {port} we weigh the ship before we hand out biscuits."
+  ],
+  rumor:"I've weighed the delivery bonus on {planet}. It is a substantial improvement.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.064;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#aafbea',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const footlights=[];
+    for(const side of [-1,1]){
+      rig.add(T.cyl(.126,.086,.218,dark,side*.159,.298,0,20));
+      footlights.push(oval(rig,signal,side*.159,.105,0,.066,.104,.069));
+    }
+    plate(rig,body,[[-.235,0],[.235,0],[.233,.10],[.135,.24],[.068,.474],[-.065,.474],[-.135,.24],[-.234,.10]],.18,0,.354,0);
+    const balance=new THREE.Group(); balance.position.y=.826;
+    rig.add(balance);
+    balance.add(T.rbox(.91,.044,.088,.015,light));
+    const pans=[];
+    for(const side of [-1,1]){
+      const hanger=new THREE.Group(); hanger.position.x=side*.412;
+      balance.add(hanger); pans.push(hanger);
+      for(const edge of [-1,1]){
+        const wire=T.cyl(.009,.009,.218,dark,edge*.049,-.10,0,8);
+        wire.rotation.z=edge*.46; hanger.add(wire);
+      }
+      turned(hanger,body,[[.001,0],[.065,.006],[.139,.067],[.13,.071],[.054,.025],[.001,.022]],0,-.266,0);
+    }
+    rig.add(T.cyl(.062,.082,.161,light,0,.941,0,16));
+    head.add(T.cyl(.218,.223,.242,body,0,0,-.006,24));
+    head.add(T.rbox(.39,.212,.041,.016,glass,0,0,.202));
+    const needle=T.bx(.027,.185,.039,light,0,.216,0); head.add(needle);
+    head.add(T.sph(.04,signal,0,.316,0,12,8));
+    U.gait=(phase,amount)=>{
+      const tilt=.19*Math.sin(phase*.73)*amount;
+      balance.rotation.z=tilt;
+      for(let i=0;i<2;i++){
+        pans[i].rotation.z=-tilt;
+        footlights[i].scale.y=.104*(1+(i?1:-1)*tilt);
+      }
+      needle.rotation.z=-tilt*1.8;
+      rig.rotation.z=0; rig.position.y=Math.abs(tilt)*.23;
+    };
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.108,0.011,0.16);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.0625,0.0501,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.108,0.107,0.239,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.065,0.241,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.24,0.67,.085,0.248,.054,dark,light));
+  },
+};
+/* Tessettle: A broad gliding ray with a patchwork back remembers routes as quilt patterns. */
+SPECIES_EXTRA.tessettle = {
+  name:"Tessettle", kind:"tessettle", family:"alien", skin:"matte",
+  script:"angular", col:"#ac76d6", hue:274, sat:54, lit:56,
+  syl:["tes", "set", "ti", "lo", "vai", "fim", "il", "sha"],
+  voice:{wave:"triangle",base:277,range:.47,rate:5.4,glide:.38,vib:5,vibAmt:7,fx:"chorus",amp:.49},
+  trait:"Will mend your map while you sleep under it.",
+  chat:[
+    "The turn at {planet} is two purple squares after the service station.",
+    "I slept under the navigation quilt. Woke up knowing a shortcut.",
+    "I've run out of yellow thread. No more eastbound trips today.",
+    "My aunt sewed a detour into my sleeve. It goes past her house.",
+    "The long way home takes a whole extra spool."
+  ],
+  greet:[
+    "Hello. I have your lane here in running stitch.",
+    "Tell me which way the loose end points. I'll find you."
+  ],
+  cargo:[
+    "{good}, covered by the winter edition of the star chart.",
+    "Thimbles for the cartographers. The outer belt is rather prickly."
+  ],
+  joke:["I sewed a shortcut across the quilt. Now it only covers one knee."],
+  nice:["Thank you. I hemmed it in orbit."],
+  bye:["Follow the blue seam until the lights come on."],
+  honk:["That's the sound my needle makes at a toll gate."],
+  dock:[
+    "Welcome to {port}. The landing strip is the wide grey stripe.",
+    "At {port} I can mend a torn route while you unload."
+  ],
+  rumor:"The star quilt marks {planet} in gold thread. They're paying extra for deliveries.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.656;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    // Each wing is a quilt of eight padded panels lofted from root to swept tip.
+    const fabric=T.phys('#ffca80'), fins=[];
+    oval(rig,dark,0,.115,-.025,.235,.115,.245);
+    oval(rig,body,0,.358,-.058,.239,.278,.292);
+    function point(u,v){
+      const halfChord=.225*(1-.79*u);
+      return [.513*u,.035+.29*u*u+.11*Math.sin(u*Math.PI)+(.25*(1-u)+.024)*v-.025*v*v, -.18*u+halfChord*v];
+    }
+    for(const side of [-1,1]){
+      const fin=new THREE.Group();
+      fin.position.set(side*.103,.61,-.005);
+      fin.scale.x=side;
+      rig.add(fin); fins.push(fin);
+      for(let row=0;row<2;row++) for(let col=0;col<4;col++){
+        const u=col/4, v=row-1;
+        const corners=[point(u,v),point(u+.25,v),point(u+.25,v+1),point(u,v+1)];
+        const pad=point(u+.125,v+.5);
+        pad[1]+=.038;
+        const underside=pad.slice(); underside[1]-=.079;
+        const vertices=[];
+        for(let j=0;j<4;j++){
+          const a=corners[j], b=corners[(j+1)%4];
+          vertices.push(...pad,...b,...a,...underside,...a,...b);
+        }
+        const geometry=new THREE.BufferGeometry();
+        geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+        geometry.computeVertexNormals();
+        const swatches=[body,light,dark,fabric];
+        fin.add(new THREE.Mesh(geometry,swatches[(col+row*2)%4]));
+      }
+    }
+    head.position.z=.10;
+    oval(head,body,0,0,-.025,.264,.212,.233);
+    tube(rig,dark,[[0,.42,-.22],[0,.64,-.327],[-.105,.88,-.321],[-.185,1.051,-.28]],.029);
+    const pennant=plate(rig,light,[[0,-.05],[.083,.016],[.03,.115],[-.07,.059]],.03,-.184,1.066,-.28);
+    const shoulders=T.cyl(.049,.049,0.48,body,0,0.49,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const stroke=Math.sin(phase*.72)*amount;
+      rig.rotation.z=.055*stroke;
+      rig.position.y=(1-Math.cos(phase*.72))*.048*amount;
+      for(let i=0;i<2;i++){
+        const side=i*2-1;
+        fins[i].rotation.z=side*.34*stroke;
+        fins[i].rotation.x=.13*Math.sin(phase*.72-.8)*amount;
+      }
+      pennant.rotation.z=.18*stroke;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.151,0.035,0.192,0.125,null,T.iris);
+      T.brow(head,U,side*0.151,0.198,0.22,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.1,0.232,.86);
+    T.blush(head,0.23,-0.06,0.176,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.24,0.49,.085,0.215,.054,body,light));
+  },
+};
+/* Timbrelk: A drum-bodied walker with padded mallets counts the rests between noises. */
+SPECIES_EXTRA.timbrelk = {
+  name:"Timbrelk", kind:"timbrelk", family:"alien", skin:"matte",
+  script:"dots", col:"#e58061", hue:14, sat:72, lit:55,
+  syl:["tum", "brel", "ta", "dum", "pa", "rim", "ket", "om"],
+  voice:{wave:"triangle",base:152,range:.44,rate:6.8,glide:.17,vib:3,vibAmt:6,fx:"click",amp:.50},
+  trait:"Thinks the rests deserve equal billing.",
+  chat:[
+    "Nobody has played for a minute. Excellent ensemble work.",
+    "My left shoe squeaks on the offbeat. I have kept it on the payroll.",
+    "The engine missed a beat. I've saved the space in case it wants it back.",
+    "I taught the freight lift to count in. It only knows floors.",
+    "The docks get quiet at noon. That's my favourite part of the piece."
+  ],
+  greet:[
+    "Come in whenever you're ready. We have plenty of rests.",
+    "Hello from the percussion bay. Mind the silence on your way in."
+  ],
+  cargo:[
+    "{good}, padded on every side except the side that sounds best.",
+    "Four boxes of practice pads. It was a very quiet argument with customs."
+  ],
+  joke:["I wrote a solo for an empty room. The room has asked for a bigger part."],
+  nice:["Thank you. I'll give that compliment a whole bar to ring."],
+  bye:["I'll count you out. Then you're on your own time."],
+  honk:["Lovely pickup. I'll take it from there."],
+  dock:[
+    "Welcome to {port}. The ramp lands on the downbeat.",
+    "At {port} we let the last crate finish ringing before lunch."
+  ],
+  rumor:"Freight rates on {planet} just went up. I heard the cashier counting louder.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=0.95;
+    const drum=new THREE.Group(); drum.position.y=.575; rig.add(drum);
+    drum.rotation.z=-.17;
+    drum.add(T.cyl(.411,.346,.43,body,0,0,0,32));
+    const hide=T.phys('#ffda9e');
+    for(const [y,r] of [[-.211,.36],[.211,.425]]) drum.add(T.cyl(r,r,.052,hide,0,y,0,32));
+    for(let i=0;i<10;i++){
+      const a=i*Math.PI/5;
+      const lace=T.cyl(.012,.012,.398,light,Math.sin(a)*.38,0,Math.cos(a)*.38,8);
+      lace.rotation.z=.17*Math.cos(a)*(i%2?1:-1);
+      lace.rotation.x=-.17*Math.sin(a)*(i%2?1:-1);
+      drum.add(lace);
+    }
+    oval(head,body,0,0,0,.325,.27,.255);
+    for(const side of [-1,1]){
+      const stick=T.cyl(.021,.023,.241,dark,side*.255,.24,-.07); stick.rotation.z=-side*.6; head.add(stick);
+      oval(head,light,side*.324,.34,-.07,.075,.081,.076);
+    }
+    U.gait=(phase,amount)=>{
+      const beat=Math.sin(phase)*amount;
+      drum.rotation.z=-.17+.13*beat;
+      rig.position.y=.083*Math.abs(beat);
+      U.arms[0].rotation.x=-.92*beat; U.arms[1].rotation.x=.92*beat;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.162,0.035,0.206,0.13,null,T.iris);
+      T.brow(head,U,side*0.162,0.203,0.234,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.11,0.25,.86);
+    T.blush(head,0.241,-0.07,0.19,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.414,0.737,.085,0.3,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.18,0.28,0,0.22,.07,dark,null,light));
+  },
+};
+/* Velveteel: A long-necked velvet swimmer with ribbon fins takes lost currents home. */
+SPECIES_EXTRA.velveteel = {
+  name:"Velveteel", kind:"velveteel", family:"alien", skin:"fuzzy",
+  script:"curvy", col:"#7293da", hue:221, sat:58, lit:56,
+  syl:["vel", "yii", "loo", "sai", "en", "mu", "raal", "nim"],
+  voice:{wave:"sine",base:254,range:.61,rate:4.1,glide:.68,vib:5,vibAmt:11,fx:"chorus",amp:.45},
+  trait:"Has never left a stray breeze behind.",
+  chat:[
+    "A draught came in under the door. It had clearly forgotten where it lived.",
+    "I put a crosswind in a jar. Now the lid goes on sideways.",
+    "The current I'm escorting is homesick for a bend in a river.",
+    "I tried labelling the winds. The labels are over there now.",
+    "The breeze in my cabin knows an excellent shortcut. It leads to the window."
+  ],
+  greet:[
+    "Hello. Did a little gust go past with a ribbon on?",
+    "Current returns desk. Where did you last feel it?"
+  ],
+  cargo:[
+    "{good}. I tucked the packing slip downwind.",
+    "A tailwind on its first flight home. I'm letting it lead."
+  ],
+  joke:["My breeze wanted a round trip. I bought it a fan."],
+  nice:["Thank you. The fins untangle if I hold still."],
+  bye:["May your air remember where it's going."],
+  honk:["That stirred up some old acquaintances."],
+  dock:[
+    "Welcome to {port}. The breeze from bay two belongs in bay five.",
+    "At {port} the windsock is my office. Pull the ribbon."
+  ],
+  rumor:"There's a freight bonus on {planet}. The news blew in under my door.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=1.244;
+    function plate(parent,material,outline,thickness,x,y,z){
+      const shape=new THREE.Shape(outline.map(([px,py])=>new THREE.Vector2(px,py)));
+      const geometry=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:true,bevelSize:.017,bevelThickness:.015,bevelSegments:3});
+      geometry.translate(0,0,-thickness/2);
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const collar=new THREE.Group();
+    collar.position.set(.16,.99,0); rig.add(collar);
+    const tail=oval(rig,body,-.07,.132,-.04,.302,.132,.31);
+    tube(rig,body,[[-.16,.145,-.04],[-.24,.34,-.06],[-.185,.53,-.04],[.014,.653,0],[.159,.81,0],[.16,1.02,0]],.127);
+    tube(collar,body,[[0,0,0],[-.04,.13,0],[-.16,.245,0]],.117);
+    oval(head,body,0,-.015,0,.265,.22,.225);
+    const fins=[];
+    for(const side of [-1,1]){
+      const fin=plate(head,light,[[0,0],[.09,.08],[.27,.13],[.20,-.015],[.29,-.13],[.14,-.095],[.085,-.185]],.042,side*.176,.072,-.055);
+      fin.scale.x=side; fins.push(fin);
+    }
+    const shoulders=T.cyl(.049,.049,0.454,body,0,0.669,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const wave=Math.sin(phase*.68)*amount;
+      rig.position.y=.018*Math.abs(wave); rig.rotation.z=.038*wave;
+      collar.rotation.z=.12*wave;
+      head.position.x=-.04*wave;
+      tail.scale.x=.302*(1+.085*Math.sin(phase*.68-.9)*amount);
+      fins[0].rotation.y=.30*wave; fins[1].rotation.y=.30*wave;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.142,0.035,0.185,0.123,null,T.iris);
+      T.brow(head,U,side*0.142,0.196,0.213,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.11,0.226,.86);
+    T.blush(head,0.221,-0.07,0.169,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.227,0.669,.085,0.274,.054,body,light));
+  },
+};
+/* Whorloo: A round-footed courier with a great spiral shell rents out the spare room. */
+SPECIES_EXTRA.whorloo = {
+  name:"Whorloo", kind:"whorloo", family:"alien", skin:"gloss",
+  script:"curvy", col:"#e7ac6a", hue:32, sat:72, lit:57,
+  syl:["who", "rol", "noo", "am", "lo", "vun", "til", "oom"],
+  voice:{wave:"sine",base:172,range:.34,rate:3.9,glide:.42,vib:3,vibAmt:7,fx:"bubble",amp:.54},
+  trait:"Treats a mortgage as a form of outerwear.",
+  chat:[
+    "The shell has a guest room. The hallway is most of it.",
+    "My tenant wants a sea view. I turn left when we pass water.",
+    "Someone knocked on the back door. It was the front door, one lap later.",
+    "I had a rug made for the landing. The carpet fitter is still turning.",
+    "Forward my mail to wherever I am facing."
+  ],
+  greet:[
+    "Welcome to my doorstep. It's the bit just behind the radio.",
+    "Hello from the owner, occupant and vehicle."
+  ],
+  cargo:[
+    "{good}. Top landing, past the first three welcome mats.",
+    "A straight staircase. The architect wants a second opinion."
+  ],
+  joke:["My listing says the flat is around the corner. All of it is."],
+  nice:["Thank you. I finally polished the upstairs outside."],
+  bye:["Come round sometime. It's the only way in."],
+  honk:["I'll tell the tenant their taxi is here."],
+  dock:[
+    "Welcome to {port}. I keep a spare key under the smallest bollard.",
+    "Make yourself at home at {port}. I already have."
+  ],
+  rumor:"The tenants on {planet} voted for higher delivery pay. The landlord was outvoted by one.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.517;
+    const sole=oval(rig,light,.025,.145,.015,.47,.145,.355);
+    oval(rig,body,.12,.34,.077,.34,.24,.29);
+    const shell=new THREE.Group();
+    shell.position.set(-.13,.827,-.085);
+    shell.rotation.set(-.08,-.30,-.13);
+    rig.add(shell);
+    oval(shell,body,0,0,0,.373,.408,.219);
+    // A tapered tube forms the outside of the shell itself, including the flared last turn.
+    const vertices=[], triangles=[], centres=[];
+    const turns=58, sides=14;
+    for(let i=0;i<=turns;i++){
+      const t=i/turns, a=-.93+t*Math.PI*3.5, reach=.023+.365*t**1.8;
+      const x=Math.cos(a)*reach, y=Math.sin(a)*reach*1.06;
+      const section=.031+.10*t+.046*t**12;
+      const shellFront=.219*Math.sqrt(Math.max(0,1-(x/.373)**2-(y/.408)**2));
+      centres.push([x,y,Math.max(shellFront,.096+section*1.22)+.012]);
+      for(let j=0;j<sides;j++){
+        const b=j*2*Math.PI/sides;
+        vertices.push(x+Math.cos(a)*section*Math.cos(b),y+Math.sin(a)*section*Math.cos(b),
+          .096+section*1.22*Math.sin(b));
+        if(i<turns){
+          const next=(j+1)%sides, base=i*sides;
+          triangles.push(base+j,base+sides+j,base+next,base+next,base+sides+j,base+sides+next);
+        }
+      }
+    }
+    const whorl=new THREE.BufferGeometry();
+    whorl.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+    whorl.setIndex(triangles); whorl.computeVertexNormals();
+    body.side=THREE.DoubleSide;
+    shell.add(new THREE.Mesh(whorl,body));
+    // The ridge grows from a pinhead into a raised outer whorl on the forward face.
+    const lip=T.phys('#ffcf8d');
+    tube(shell,lip,centres,.028);
+    const openEnd=new THREE.Group();
+    const last=centres[turns], a=-.93+Math.PI*3.5;
+    openEnd.position.set(last[0],last[1],.096);
+    openEnd.rotation.z=a-Math.PI/2;
+    shell.add(openEnd);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(.16,.026,9,30),lip);
+    rim.rotation.y=Math.PI/2; openEnd.add(rim);
+    oval(openEnd,dark,0,0,0,.022,.147,.161);
+    head.position.set(.287,.489,.193);
+    oval(head,light,0,-.006,0,.253,.225,.206);
+    const feelers=[];
+    for(const side of [-1,1]){
+      const stalk=new THREE.Group();
+      stalk.position.set(side*.132,.144,-.012);
+      head.add(stalk);
+      tube(stalk,body,[[0,0,0],[side*.014,.105,0],[side*.045,.197,.024]],.029);
+      oval(stalk,light,side*.045,.208,.024,.052,.056,.052);
+      feelers.push(stalk);
+    }
+    U.gait=(phase,amount)=>{
+      const reach=Math.sin(phase)*amount;
+      rig.rotation.z=0; rig.position.y=0;
+      sole.scale.z=.355*(1+.13*reach);
+      sole.position.z=.015+.041*reach;
+      shell.rotation.z=-.13+.068*Math.sin(phase-.8)*amount;
+      shell.position.y=.827+.015*Math.sin(phase-.6)*amount;
+      feelers[0].rotation.x=.14*reach; feelers[1].rotation.x=-.09*reach;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.129,0.024,0.171,0.115,null,T.iris);
+      T.brow(head,U,side*0.129,0.177,0.199,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.1,0.201,.86);
+    T.blush(head,0.208,-0.06,0.155,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.33,0.48,.085,0.23,.054,body,light));
+  },
+};
+/* Wickindle: A waxy little night gardener carries a steady pearl of light in a curling wick. */
+SPECIES_EXTRA.wickindle = {
+  name:"Wickindle", kind:"wickindle", family:"alien", skin:"gloss",
+  script:"dots", col:"#f1d76f", hue:48, sat:82, lit:60,
+  syl:["wi", "kin", "sel", "di", "li", "rim", "fen", "ish"],
+  voice:{wave:"sine",base:444,range:.41,rate:5.6,glide:.29,vib:7,vibAmt:9,fx:"chirp",amp:.38},
+  trait:"Whispers so the night flowers can sleep.",
+  chat:[
+    "I plant night flowers. If I lean too close they decide it's morning.",
+    "Quiet shift. I tucked the last moth into a lampshade.",
+    "The seed packet says full moon. I've been standing here doing my best.",
+    "Please dim your cabin. The shy buds are rehearsing.",
+    "One blossom stayed open past dawn. We gave it overtime."
+  ],
+  greet:[
+    "Hello. The garden is asleep but I can whisper.",
+    "Good evening, whatever your clock claims."
+  ],
+  cargo:[
+    "{good}. I wrapped the corners so they won't wake the bulbs.",
+    "Curtains for an observatory greenhouse. The stars like some privacy."
+  ],
+  joke:["My sundial is on nights now. It has remarkably little to report."],
+  nice:["How kind. I keep a spare glow for evenings like this."],
+  bye:["Sleep well when your sky gets round to it."],
+  honk:["Ah. All the tulips are up."],
+  dock:[
+    "Welcome to {port}. The little lights by your pad are still growing.",
+    "At {port} please leave the night beds dark. The path has its own glow."
+  ],
+  rumor:"The midnight shift on {planet} is paying extra for freight. Knock softly.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    function tube(parent,material,points,radius){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      const geometry=new THREE.TubeGeometry(curve,Math.max(16,points.length*2),radius,8,false);
+      parent.add(new THREE.Mesh(geometry,material));
+    }
+    head.position.y=0.95;
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    turned(rig,body,[[.001,0],[.28,0],[.30,.038],[.184,.10],[.139,.24],[.168,.49],[.192,.56],[.001,.57]],0,.229,0);
+    oval(head,body,0,0,0,.285,.30,.235);
+    for(let i=0;i<6;i++){
+      const a=i*Math.PI/3;
+      oval(head,light,Math.sin(a)*.195,.203,Math.cos(a)*.145,.091,.08+(i%3)*.025,.08);
+    }
+    const wick=new THREE.Group(); wick.position.y=.23; head.add(wick);
+    tube(wick,dark,[[0,0,0],[-.03,.13,0],[-.217,.23,0],[-.221,.41,0],[-.113,.485,0],[-.022,.444,0]],.033);
+    const flame=oval(wick,T.glow('#ffce82',1.4),-.014,.41,.008,.073,.113,.065);
+    const shoulders=T.cyl(.049,.049,0.582,body,0,0.68,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      const sway=Math.sin(phase*.85)*amount;
+      wick.rotation.z=.20*sway;
+      flame.scale.y=.113*(1+.12*Math.sin(phase*1.7)*amount);
+      rig.rotation.z=-.068*sway;
+    };
+
+    for(const side of [-1,1]){
+      T.eye(head,U,side*0.15,0.015,0.195,0.125,null,T.iris);
+      T.brow(head,U,side*0.15,0.178,0.223,.119,.021,T.browM,side);
+    }
+    T.mouth(head,U,0,-0.125,0.235,.86);
+    T.blush(head,0.229,-0.085,0.179,.061);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.291,0.68,.085,0.32,.054,body,light));
+    U.legs=[-1,1].map(side=>T.limb(rig,side*0.13,0.24,0,0.18,.07,dark,null,light));
+  },
+};
+/* Winkmast: A little tracked lighthouse keeps a diary of ships that wink back. */
+SPECIES_EXTRA.winkmast = {
+  name:"Winkmast", kind:"winkmast", family:"robot", skin:"metal",
+  script:"blocks", col:"#e76a6e", hue:358, sat:72, lit:57,
+  syl:["wan", "tik", "lum", "vek", "pim", "hol", "dit", "mas"],
+  voice:{wave:"square",base:329,range:.52,rate:7.1,glide:.1,vib:3,vibAmt:6,fx:"chirp",amp:.23},
+  trait:"Files even accidental flashes under correspondence.",
+  chat:[
+    "One wink means hello. Two means I forgot I'd already said hello.",
+    "A window flashed back at me. I've put it down as a pen pal.",
+    "I point my lamp away from the stars. They have enough on.",
+    "The harbour mirror never misses a shift. Very reliable correspondent.",
+    "Today's log has three freighters and a particularly sociable spoon."
+  ],
+  greet:[
+    "Light on, notebook open. What's your good news?",
+    "Hello from the short tower. Look just below the tall sign."
+  ],
+  cargo:[
+    "{good}, all counted once in light and once in shadow.",
+    "Spare bulbs. They like the night shift because they can see their work."
+  ],
+  joke:["I tried keeping a dark secret. My casing has windows."],
+  nice:["Thank you. That's going on the bright page."],
+  bye:["I'll wink twice when you're out of sight. Habit."],
+  honk:["I'll record that as a wink with sound."],
+  dock:[
+    "Welcome to {port}. One slow blink marks your bay.",
+    "At {port} I leave a lamp on for the last hauler."
+  ],
+  rumor:"The light on {planet} flashed the new freight bonus. I wrote it down before sunrise.",
+  build(T){
+    const {rig,head,U,body,dark,light}=T;
+    function oval(parent,material,x,y,z,rx,ry,rz){
+      const mesh=T.sph(1,material,x,y,z,24,16);
+      mesh.scale.set(rx,ry,rz);
+      parent.add(mesh);
+      return mesh;
+    }
+    head.position.y=1.147;
+    const glass=T.phys('#101d2a',{roughness:.17,clearcoat:1});
+    const signal=T.glow('#ffe89e',1.65);
+    const phosphor=T.glow(T.iris,2.2);
+    function turned(parent,material,outline,x,y,z){
+      const path=outline.map(([r,h])=>new THREE.Vector2(r,h));
+      const mesh=new THREE.Mesh(new THREE.LatheGeometry(path,32),material);
+      mesh.position.set(x,y,z);
+      parent.add(mesh);
+      return mesh;
+    }
+    const tracks=[];
+    for(const side of [-1,1]){
+      rig.add(T.rbox(.16,.205,.552,.043,dark,side*.25,.143,0));
+      for(const z of [-.171,0,.171]){
+        const roller=new THREE.Group(); roller.position.set(side*.36,.134,z);
+        rig.add(roller); tracks.push(roller);
+        const hub=T.cyl(.077,.077,.026,body,0,0,0,16);
+        hub.rotation.z=Math.PI/2; roller.add(hub);
+        roller.add(T.bx(.013,.089,.016,light,side*.018,0,0));
+      }
+    }
+    turned(rig,body,[[.001,0],[.29,0],[.31,.065],[.268,.116],[.148,.664],[.183,.691],[.183,.73],[.001,.73]],0,.205,0);
+    rig.add(T.cyl(.206,.22,.084,light,0,.677,0,28));
+    rig.add(T.cyl(.081,.092,.18,dark,0,1.004,0,20));
+    head.add(T.cyl(.261,.254,.316,body,0,-.015,-.01,12));
+    head.add(T.rbox(.402,.241,.048,.021,glass,0,0,.23));
+    head.add(T.cyl(.291,.274,.056,light,0,.158,-.01,24));
+    head.add(T.cyl(.125,.125,.193,dark,0,.29,-.01,16));
+    const lantern=new THREE.Group(); lantern.position.y=.29; head.add(lantern);
+    oval(lantern,signal,0,0,.106,.093,.086,.065);
+    for(const side of [-1,1]) head.add(T.cyl(.015,.015,.186,light,side*.156,.29,-.01,10));
+    head.add(T.cyl(.057,.233,.126,body,0,.447,-.01,24));
+    const shoulders=T.cyl(.049,.049,0.636,dark,0,0.807,.085,14);
+    shoulders.rotation.z=Math.PI/2; rig.add(shoulders);
+    U.gait=(phase,amount)=>{
+      for(const hub of tracks) hub.rotation.x=phase*1.7*amount;
+      lantern.rotation.y=phase*.72*amount;
+      rig.position.y=.008*Math.abs(Math.sin(phase*3))*amount; rig.rotation.z=0;
+    };
+
+    for(const side of [-1,1]){
+      const gaze=new THREE.Group();
+      gaze.position.set(side*0.124,0.015,0.194);
+      head.add(gaze);
+      U.looks.push(gaze);
+      const pixel=oval(gaze,phosphor,0,0,.083,0.057,0.0723,.016);
+      pixel.userData.sy=pixel.scale.y;
+      U.eyes.push(pixel);
+      const glint=T.sph(.17,T.catchM,-.22,.25,.93,10,8);
+      pixel.add(glint);
+      T.brow(head,U,side*0.124,0.111,0.273,.086,.014,signal,side);
+    }
+    T.mouth(head,U,0,-0.077,0.272,.72,signal);
+    U.arms=[-1,1].map(side=>T.limb(rig,side*0.318,0.807,.085,0.301,.054,dark,light));
+  },
+};
 'use strict';
 /* ===================== DATA ===================== */
 const SPECIES = {
@@ -543,6 +2416,12 @@ const SPECIES = {
     rumor:"Promotional notice: deliveries to {planet} currently earn bonus credits. Offer valid while supplies of offer last." },
 };
 const SPECIES_KEYS = Object.keys(SPECIES);
+/* the species pack (src/species/*.js): known to the game by key, but not in the random pools until wired in */
+Object.assign(SPECIES, SPECIES_EXTRA);
+const SPECIES_EXTRA_KEYS = Object.keys(SPECIES_EXTRA);
+/* everyone you might meet at random: pilots, crowds, crews, regulars, passengers, senders. Homeworlds and named
+   shopkeepers stay as set in PLANETS and VENUES; SPECIES_KEYS stays the original nine. */
+const ALIEN_POOL = SPECIES_KEYS.concat(SPECIES_EXTRA_KEYS);
 
 const CHATTER = {
   port:["{port} Control to all inbound: pad three is closed because something is asleep on it.","{port} Control: winds are light, visibility is good, the coffee machine is broken.","{port} Control: whoever parked across two pads, we can all see you.","{port} Control reminds pilots that landing is automatic. Please stop trying to help.","{port} Control: lost property now holds one boot, one small moon, and a mild smell.","Traffic advisory: slow hauler ahead in the {planet} lane. He is doing his best.","{port} Control: the gift shop is open. It has always been open. Please buy something.","{port} Control: inbound freighter, you are cleared. Outbound freighter, you are also cleared. Try not to meet."],
@@ -1485,7 +3364,7 @@ const World = {
 /* ===================== NPC TRAFFIC ===================== */
 const Npc = {
   list:[], timer:0,
-  pilot(){ const sp=pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9); return {sp, seed, name:alienName(sp,seed), ship:shipName(seed), cargo:pick(GOODS)[0]}; },
+  pilot(){ const sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9); return {sp, seed, name:alienName(sp,seed), ship:shipName(seed), cargo:pick(GOODS)[0]}; },
   spawn(kind, pos, vel, extra){
     const pl=this.pilot(), S=SPECIES[pl.sp]; const idx=pl.sp==='ooloo'?5:pl.sp==='zkthar'?6:Math.floor(Math.random()*5);
     const hue=Math.floor(Math.random()*360); const scheme={hull:`hsl(${hue},${Math.round(20+Math.random()*45)}%,${Math.round(35+Math.random()*40)}%)`,trim:`hsl(${(hue+180)%360},25%,${Math.round(18+Math.random()*25)}%)`,glow:S.col,wear:Math.random()*0.8};
@@ -2021,7 +3900,7 @@ const Cine = {
       else { const r=12+rr()*16; b.add(mk(new THREE.SphereGeometry(r,24,14,0,6.3,0,Math.PI/2),bm('#f2f4f6',0.5,0.1),0,0,0)); const band=mk(new THREE.CylinderGeometry(r*0.985,r*0.985,1.8,32,1,true),warm,0,r*0.2,0); b.add(band); b.add(mk(new THREE.CylinderGeometry(1.2,1.2,r*0.7,8),bm('#8a9098'),r*0.4,r*0.9,0)); }
       return b; };
     Venues.build(scn,P,cloud,padSide,hAt,S.liquid?liq:null);
-    for(let i=0;i<16;i++){ const a=rr()*6.283, d=170+rr()*380, x=Math.cos(a)*d, z=Math.sin(a)*d; let y=hAt(x,z); const b=building(); if(Venues.near(x,z,75)) continue;
+    for(let i=0;i<34;i++){ const a=rr()*6.283, d=170+rr()*520, x=Math.cos(a)*d, z=Math.sin(a)*d; let y=hAt(x,z); const b=building(); if(Venues.near(x,z,75)) continue;
       if(cloud){ y=-10-rr()*60; const pf=mk(new THREE.CylinderGeometry(40,30,8,24),padSide,0,-4,0); b.add(pf); b.add(mk(new THREE.CylinderGeometry(4,8,700,10),padSide,0,-358,0)); } else if(y<liq+2 && S.style!=='bubble') continue; else if(y<liq+2) y=liq-4;
       b.position.set(x,y-2,z); b.rotation.y=rr()*6.28; scn.add(b); }
     // control tower + beacon
@@ -2036,7 +3915,7 @@ const Cine = {
     const dn=380, dp=new Float32Array(dn*3), dseed=new Float32Array(dn*3); for(let i=0;i<dn;i++){ dseed[i*3]=rr()*6.283; dseed[i*3+1]=rr(); dseed[i*3+2]=rr(); }
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
-    Crowd.build(scn,P,cloud,PADS);
+    Crowd.build(scn,P,cloud,PADS,hAt,S.liquid?liq:null);
     this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
   updateSurface(dt, t, alt){
@@ -2064,7 +3943,7 @@ const Cine = {
     this.fade=1; this.fadeCol.setRGB(0,0,0); this.ui(true); Sfx.roar(8.5,0.45); Sfx.sting(); World.scenes.list=[{scene:World.space,camera:this.cam}];
   },
   startTakeoff(){
-    G.mode='takeoff'; UI.hidePort(); this.setPreview(null); this.model.visible=true; this.camFrom=null;
+    G.mode='takeoff'; UI.hidePort(); this.setPreview(null); this.model.visible=true; this.camFrom=null; for(const v of Venues.list) v.root.visible=true;
     // cargo taken on at this port gets carried aboard first
     const goods=G.cargo.filter(c=>c.fresh&&c.qty>0&&c.kind!=='escort'); G.cargo.forEach(c=>{ delete c.fresh; });
     if(goods.length&&Loading.start(this.P,this.model,SHIPS[G.shipId].model,goods)){ this.mode='L'; this.t=0; this.ui(true,'Loading cargo',Loading.sub); return; }
@@ -2135,12 +4014,19 @@ const Cine = {
       Models.animate(m,0,time); const r=Loading.update(dt,t,time); cam.up.set(0,1,0); cam.position.copy(r.pos); cam.lookAt(r.look); fov=40; this.fade=Math.max(0,this.fade-dt*1.5);
       if(r.done){ this.camFrom={pos:r.pos.clone(),look:r.look.clone()}; this.liftoff(); }
     } else if(this.mode==='T'){
-      const rest=m.userData.gearH, y=rest+(t>0.6?Math.pow(t-0.6,2.3)*16:0); m.position.set(0,y,0); m.rotation.x=smooth(1.2,4,t)*0.45; this.setThrust(smooth(0,0.7,t),time); this.surf.dustI=smooth(0,0.6,t)*smooth(90,10,y-rest);
-      this.shake=0.25*smooth(0,0.8,t); const a=this.orbit; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*88,8,Math.sin(a)*88); const look=new V3(0,y*0.85+3,0);
-      // pull back from the loading ramp to the usual launch view
-      if(this.camFrom){ const k=smooth(0,2.2,t); cam.position.lerpVectors(this.camFrom.pos,cam.position.clone(),k); look.lerpVectors(this.camFrom.look,look,k); }
-      cam.lookAt(look); fov=44; Loading.linger(dt,time);
-      this.fadeCol.set(1,1,1); this.fade=smooth(3.1,3.9,t); if(t>=4){ this.setThrust(0,0); this.shake=0; this.ui(false); Loading.stop(); this.camFrom=null; World.space.add(m); m.visible=false; Game.enterFlight(P,true); return; }
+      // Blast off: the ship climbs straight up, the camera rides above it looking down, and the port shrinks away underneath,
+      // pad, crowds, shops, roads, trucks and air traffic and all, until it is a smudge in the haze and the sky goes white.
+      const TT=7.6, rest=m.userData.gearH, y=rest+(t>0.6?Math.pow(t-0.6,2.2)*9:0); m.position.set(0,y,0); m.rotation.set(0,m.rotation.y+dt*0.12*smooth(1,3,t),0);
+      this.setThrust(smooth(0,0.7,t),time); this.surf.dustI=smooth(0,0.6,t)*smooth(90,10,y-rest); this.shake=0.25*smooth(0,0.8,t)*(1-smooth(2.5,4,t))+0.05;
+      // the ground shot: beside the pad, looking up at the ship as it lifts
+      const a=this.orbit; cam.up.set(0,1,0); const g=new V3(Math.cos(a)*70,9,Math.sin(a)*70), gl=new V3(0,Math.min(y,40)*0.85+3,0);
+      if(this.camFrom){ const k=smooth(0,2.0,t); g.lerpVectors(this.camFrom.pos,g.clone(),k); gl.lerpVectors(this.camFrom.look,gl,k); }
+      // the bird's-eye shot: above and a little behind the ship, slowly circling, looking down past it at the port
+      const sp=a+t*0.22, hi=48+(y-rest)*0.05, oh=new V3(m.position.x+Math.cos(sp)*16,y+hi,m.position.z+Math.sin(sp)*16), ol=new V3(m.position.x-Math.cos(sp)*8,y-120,m.position.z-Math.sin(sp)*8);
+      const k=smooth(1.0,3.0,t); cam.position.lerpVectors(g,oh,k); const look=new V3().lerpVectors(gl,ol,k);
+      cam.lookAt(look); fov=lerp(44,58,smooth(1.5,4,t)); Loading.linger(dt,time); this.sunAt(new V3(0,0,0));
+      if(t>1.4&&t<6.2) this.ui(true,'',''); 
+      this.fadeCol.set(1,1,1); this.fade=smooth(TT-1.0,TT-0.15,t); if(t>=TT){ this.setThrust(0,0); this.shake=0; this.ui(false); Loading.stop(); this.camFrom=null; World.space.add(m); m.visible=false; Game.enterFlight(P,true); return; }
     }
     if(this.mode!=='A'&&this.mode!=='B') this.updateSurface(dt,time);
     if(this.shake>0){ cam.position.x+=(Math.random()-0.5)*this.shake; cam.position.y+=(Math.random()-0.5)*this.shake; cam.rotateZ((Math.random()-0.5)*this.shake*0.012); }
@@ -2148,6 +4034,403 @@ const Cine = {
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },
 };
+/* Three.js builders for the nine homeworld species. Their identities, voices and encounter keys live in 01-data. */
+const OriginalFolk = (() => {
+  const sides=[-1,1];
+  function joint(parent,x,y,z){
+    const g=new THREE.Group();
+    g.position.set(x,y,z); parent.add(g);
+    return g;
+  }
+  function oval(parent,material,x,y,z,rx,ry,rz){
+    const m=new THREE.Mesh(new THREE.SphereGeometry(1,24,16),material);
+    m.position.set(x,y,z); m.scale.set(rx,ry,rz); parent.add(m);
+    return m;
+  }
+  // Each horizontal ring can change width, depth and center, giving the skin a continuous outer contour.
+  function loft(parent,mat,rings,n=32){
+    const xyz=[],tri=[];
+    for(const [y,rx,rz,x=0,z=0] of rings){
+      for(let i=0;i<n;i++){
+        const a=i*Math.PI*2/n;
+        xyz.push(x+rx*Math.cos(a),y,z+rz*Math.sin(a));
+      }
+    }
+    const top=(rings.length-1)*n;
+    for(let i=0;i<n;i++){
+      const j=(i+1)%n;
+      for(let k=0;k<top;k+=n) tri.push(k+i,k+n+i,k+j,k+j,k+n+i,k+n+j);
+      if(i>0&&i<n-1) tri.push(0,i,i+1,top,top+i+1,top+i);
+    }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(xyz,3));
+    g.setIndex(tri); g.computeVertexNormals();
+    const m=new THREE.Mesh(g,mat); parent.add(m);
+    return m;
+  }
+  // A rounded taper along a spatial curve. The fourth coordinate at each station is its radius.
+  function taper(parent,mat,stations){
+    const path=new THREE.CatmullRomCurve3(stations.map(([x,y,z])=>new THREE.Vector3(x,y,z)));
+    const n=(stations.length-1)*6, around=10, g=new THREE.TubeGeometry(path,n,1,around,false);
+    const p=g.attributes.position, v=new THREE.Vector3();
+    for(let i=0;i<=n;i++){
+      const u=i/n, center=path.getPointAt(u), t=path.getUtoTmapping(u)*(stations.length-1);
+      const k=Math.min(stations.length-2,Math.floor(t)), f=t-k;
+      const radius=stations[k][3]*(1-f)+stations[k+1][3]*f;
+      for(let j=0;j<=around;j++){
+        const at=i*(around+1)+j;
+        v.fromBufferAttribute(p,at).sub(center).multiplyScalar(radius).add(center);
+        p.setXYZ(at,v.x,v.y,v.z);
+      }
+    }
+    g.computeVertexNormals();
+    const m=new THREE.Mesh(g,mat); parent.add(m); return m;
+  }
+  function eyes(T,spread,y,z,r,lids=T.body){
+    for(const side of sides){
+      T.eye(T.head,T.U,side*spread,y,z,r,lids,T.iris);
+      T.brow(T.head,T.U,side*spread,y+r*1.26,z+.025,r*1.12,.021,T.browM,side);
+    }
+  }
+  function litEyes(T,mat,x,y,z,rx,ry,rz){
+    for(const side of sides){
+      const look=joint(T.head,side*x,y,z); T.U.looks.push(look);
+      const eye=oval(look,mat,0,0,0,rx,ry,rz);
+      eye.userData.sy=ry; T.U.eyes.push(eye);
+      oval(look,T.catchM,-rx*.28,ry*.34,rz*.92,.014,.014,.008);
+      T.brow(T.head,T.U,side*x,y+ry+.055,z+.007,rx*1.4,.018,mat,side);
+    }
+  }
+  function arms(T,x,y,z,len,r,mat,hand){
+    T.U.arms=sides.map(side=>T.limb(T.rig,side*x,y,z,len,r,mat,hand));
+  }
+  function blorpax(T){
+    const {U,head,rig,body,light}=T;
+    const sole=loft(rig,body,[[.001,.36,.25],[.04,.47,.34], [.12,.54,.38], [.22,.49,.35,.035],[.32,.36,.27,.05]]);
+    head.position.set(.014,.62,.015);
+    // The crest hooks back over a real gap. The third eye rides on its tip.
+    loft(head,body,[[-.44,.38,.29],[-.32,.48,.33],[-.1,.46,.32],[.13,.38,.29,-.035],
+      [.32,.28,.237,-.115],[.45,.20,.18,-.177],[.54,.144,.135,-.178],[.59,.106,.105,-.12]]);
+    taper(head,body,[[-.19,.41,-.01,.17],[-.16,.54,-.01,.145],[-.045,.64,-.008,.122],[.09,.65,.01,.099],[.158,.575,.045,.073]]);
+    T.eye(head,U,.157,.556,.077,.095,light,T.iris);
+    eyes(T,.162,.10,.245,.137);
+    T.mouth(head,U,0,-.075,.333,1.04); T.blush(head,.267,-.018,.249,.066);
+    arms(T,.37,.62,.012,.267,.069,body,light);
+    const ripple=oval(rig,light,-.13,.103,.263,.267,.043,.088);
+    U.gait=(p,a)=>{
+      const surge=Math.sin(p)*a, press=(1-Math.cos(p))*.5*a;
+      rig.position.y=0; rig.rotation.z=0;
+      sole.scale.set(1+.13*press,1-.16*press,1+.12*press);
+      ripple.position.x=-.13+.10*surge;
+      head.rotation.z=.115*surge; head.scale.set(1+.065*press,1-.095*press,1+.055*press);
+    };
+  }
+  function zkthar(T){
+    const {rig,head,U,body,dark,light}=T;
+    head.position.set(0,1.025,.09);
+    const abdomen=oval(rig,body,0,.59,-.16,.242,.328,.25); abdomen.rotation.x=-.42;
+    oval(rig,dark,0,.79,-.022,.157,.165,.128);
+    loft(head,body,[[-.195,.091,.104],[-.085,.19,.169],[.07,.252,.163],[.15,.227,.134],[.204,.096,.082]]);
+    const glass=T.phys('#1c2026',{roughness:.19,clearcoat:1});
+    eyes(T,.171,.071,.125,.123,glass);
+    T.mouth(head,U,0,-.079,.178,.77);
+    const feelers=sides.map(s=>{
+      const antenna=joint(head,s*.145,.15,-.025);
+      taper(antenna,dark,[[0,0,0,.028],[s*.068,.198,-.022,.024],[s*.19,.32,-.026,.018],[s*.205,.41,.05,.009]]);
+      oval(antenna,light,s*.205,.41,.05,.03,.034,.03); return antenna;
+    });
+    // One group controls each alternating tripod, so all six legs can also fold into a seat.
+    U.legs=sides.map(s=>{
+      const tripod=joint(rig,0,.506,0);
+      for(const [side,z,reach] of [[s,.13,.43],[-s,-.02,.54],[s,-.19,.43]]){
+        taper(tripod,dark,[[side*.105,0,z,.055],[side*.27,-.045,z-.01,.048],
+          [side*(reach-.055),.02,z-.03,.037],[side*reach,-.45,z+.015,.024],[side*(reach+.045),-.482,z+.075,.019]]);
+      }
+      return tripod;
+    });
+    U.arms=sides.map(s=>{
+      const arm=joint(rig,s*.186,.861,.058);
+      taper(arm,body,[[0,0,0,.06],[s*.13,-.15,.025,.057],[s*.109,-.215,.081,.043],[0,-.27,.014,.04]]);
+      oval(arm,light,0,-.27,.014,.06,.045,.048); arm.userData.len=.27; return arm;
+    });
+    U.gait=(p,a)=>{
+      const step=Math.sin(p)*a; rig.rotation.z=0; rig.position.y=0;
+      U.legs.forEach((leg,i)=>{const v=step*sides[i];leg.rotation.x=0;leg.position.z=.106*v;leg.position.y=.506+.098*Math.max(0,Math.cos(p)*sides[i])*a;});
+      abdomen.rotation.x=-.42+.12*step;
+      feelers.forEach((g,i)=>g.rotation.z=.16*Math.sin(p+sides[i]*.65)*a);
+    };
+  }
+  function momwump(T){
+    const {rig,head,U,body,light}=T;
+    head.position.y=.79;
+    oval(rig,body,0,.52,-.036,.347,.359,.303);
+    oval(rig,light,0,.553,.155,.271,.253,.154);
+    oval(head,body,0,.084,0,.36,.313,.288);
+    const earLining=T.phys('#ef9fbd',{roughness:.83});
+    const ears=sides.map(s=>{
+      const ear=joint(head,s*.236,.255,-.055);
+      taper(ear,body,[[0,0,0,.094],[s*.12,.073,-.005,.112],[s*.212,-.012,.004,.122],[s*.248,-.176,.003,.098],[s*.221,-.262,.023,.034]]);
+      oval(ear,earLining,s*.228,-.106,.093,.056,.111,.024).rotation.z=-s*.17; return ear;
+    });
+    for(const s of sides){
+      const tuft=oval(head,light,s*.075,.37,-.002,.069,.148,.077); tuft.rotation.z=-s*.37;
+    }
+    oval(rig,body,0,.416,-.318,.144,.132,.119);
+    eyes(T,.151,.101,.236,.136);
+    oval(head,T.phys('#513447'),0,-.018,.288,.055,.041,.041);
+    T.mouth(head,U,0,-.084,.327,.83); T.blush(head,.24,-.011,.215,.072);
+    U.legs=sides.map(s=>T.limb(rig,s*.16,.236,.007,.177,.069,body,null,light));
+    arms(T,.315,.638,.068,.242,.073,body,light);
+    U.gait=(p,a)=>{
+      const sway=Math.sin(p)*a, shuffle=Math.abs(sway);
+      rig.rotation.z=.033*sway; rig.position.y=.022*shuffle;
+      U.legs.forEach((leg,i)=>{leg.rotation.x=sides[i]*.35*sway;leg.userData.foot.rotation.x=-leg.rotation.x;});
+      ears.forEach((ear,i)=>{ear.rotation.z=.13*sway+sides[i]*.16*Math.sin(p*2-.5)*a;});
+      head.rotation.x=.085*shuffle;
+    };
+  }
+  function vrell(T){
+    const {head,rig,U,body,dark,light}=T;
+    head.position.y=.965;
+    loft(head,body,[[-.339,.145,.13],[-.245,.233,.194],[-.052,.272,.217],[.126,.249,.202,-.015],
+      [.27,.191,.158,-.045],[.42,.123,.095,-.10],[.577,.05,.042,-.18],[.635,.009,.011,-.219]]);
+    const fins=sides.map(s=>{
+      const fin=joint(head,s*.153,.13,-.063);
+      loft(fin,light,[[-.134,.03,.026,s*.018],[-.04,.119,.073,s*.055],[.092,.129,.084,s*.09],
+        [.194,.087,.061,s*.12],[.296,.011,.012,s*.158]]);
+      return fin;
+    });
+    eyes(T,.135,-.09,.167,.127,dark); T.mouth(head,U,0,-.235,.202,.83);
+    const curls=[];
+    for(const [i,x,z,dy] of [[0,-.125,-.096,.005],[1,.126,-.09,.06],[2,-.068,.065,.03],[3,.075,.075,0]]){
+      const s=Math.sign(x), t=joint(rig,x,.715+dy,z);
+      const idle=joint(t,0,0,0); idle.userData.a=i*Math.PI/2; U.tent.push(idle);
+      taper(idle,body,[[0,0,0,.087],[s*.022,-.23,-.025,.078],[-s*.031,-.437,.02,.062],[s*.012,-.629,.032,.048],
+        [s*.104,-.68,.01,.034],[s*.161,-.61,-.012,.01]]);
+      curls.push(t);
+    }
+    U.arms=sides.map(s=>{
+      const arm=joint(rig,s*.206,.793,.015);
+      taper(arm,body,[[0,0,0,.086],[s*.081,-.156,.014,.076],[s*.132,-.29,.025,.06],[s*.115,-.389,.025,.056],[0,-.426,0,.038]]);
+      arm.userData.len=.426; return arm;
+    });
+    U.gait=(p,a)=>{
+      const push=(1-Math.cos(p))*.5*a;
+      rig.position.y=.104*push; rig.rotation.z=.042*Math.sin(p)*a;
+      curls.forEach((t,i)=>{t.rotation.x=.22*Math.sin(p+i*.78)*a;t.rotation.z=Math.sign(t.position.x)*.28*push;});
+      fins.forEach((fin,i)=>fin.rotation.z=sides[i]*.31*push);
+      head.scale.y=1-.065*push;
+    };
+  }
+  function grondar(T){
+    const {rig,head,U,body,dark,light}=T;
+    const slab=(g,m,y,x,w,h,d)=>loft(g,m,[[y,w*.78,d*.8,x],[y+h*.16,w,d,x-.013],
+      [y+h*.76,w*.98,d*.96,x+.009],[y+h,w*.83,d*.83,x+.021]],8);
+    const stack=joint(rig,0,.34,0); stack.add(head); head.position.y=.61;
+    slab(stack,dark,0,-.008,.315,.16,.237);
+    slab(stack,body,.104,-.042,.41,.28,.272);
+    slab(stack,light,.355,.045,.40,.096,.258);
+    slab(head,body,-.19,.03,.417,.26,.282);
+    slab(head,dark,.044,-.043,.362,.076,.25);
+    slab(head,body,.105,-.098,.368,.186,.253);
+    slab(head,light,.258,-.191,.208,.084,.164);
+    const amber=T.glow('#ffb54f',2);
+    litEyes(T,amber,.155,-.038,.267,.095,.047,.023);
+    T.mouth(head,U,.017,-.137,.278,.91,T.glow('#ff832a',1.7));
+    U.legs=sides.map(s=>{
+      const leg=joint(rig,s*.212,.363,0);
+      slab(leg,body,-.243,0,.113,.257,.147);
+      slab(leg,dark,-.362,0,.166,.149,.204); return leg;
+    });
+    U.arms=sides.map(s=>{
+      const arm=joint(stack,s*.356,.374,.005);
+      slab(arm,body,-.231,s*.044,.105,.267,.14);
+      slab(arm,dark,-.295,s*.05,.083,.08,.119);
+      slab(arm,body,-.39,s*.046,.134,.135,.154);
+      arm.userData.len=.36; return arm;
+    });
+    U.gait=(p,a)=>{
+      const weight=Math.sin(p)*a;
+      rig.rotation.z=0; rig.position.y=0;
+      stack.position.x=.071*weight; stack.rotation.z=-.069*weight;
+      U.legs.forEach((leg,i)=>{
+        const lift=Math.max(0,-sides[i]*Math.sin(p))**2*a;
+        leg.rotation.x=0; leg.position.y=.363+.093*lift; leg.position.z=.093*sides[i]*Math.cos(p)*a;
+      });
+      U.arms.forEach((arm,i)=>arm.rotation.x=.124*sides[i]*weight);
+    };
+  }
+  function qeeble(T){
+    const {head,rig,U,body,dark,light}=T;
+    head.position.set(0,.965,.077);
+    oval(rig,body,0,.664,-.027,.249,.319,.224).rotation.x=.19;
+    oval(rig,light,0,.661,.108,.197,.217,.145);
+    oval(head,body,0,.04,0,.257,.223,.212);
+    const bill=T.phys('#ffbb57'), feet=T.phys('#d58a46');
+    const top=loft(head,bill,[[0,.105,.081],[.095,.119,.087],[.206,.076,.06],[.302,.009,.009]]);
+    top.rotation.x=Math.PI/2; top.position.set(0,-.013,.155);
+    const jaw=joint(head,0,-.064,.154);
+    const lower=loft(jaw,bill,[[0,.082,.048],[.074,.091,.046],[.227,.008,.009]]);
+    lower.rotation.x=Math.PI/2; U.beak=jaw;
+    const crest=joint(head,0,.195,-.084);
+    for(const s of [-1,0,1]){
+      const plume=oval(crest,s===0?dark:light,s*.083,.102,-.053,.049,.181-Math.abs(s)*.028,.049);
+      plume.rotation.x=-.55; plume.rotation.z=-s*.39-.24;
+    }
+    eyes(T,.143,.099,.147,.123);
+    T.mouth(head,U,0,-.089,.203,.54);
+    const tail=joint(rig,0,.54,-.152);
+    for(const side of [-1,0,1]){
+      const f=joint(tail,.11+side*.074,.126,-.08);
+      f.rotation.z=-.93-side*.24; f.rotation.x=-.34;
+      oval(f,side===0?dark:body,0,.09,0,.071,.238,.042);
+      oval(f,side===0?light:dark,0,.237,.023,.047,.063,.02);
+    }
+    U.arms=sides.map(s=>{
+      const wing=joint(rig,s*.213,.812,-.012);
+      loft(wing,body,[[-.335,.018,.025,s*.099,-.041],[-.217,.073,.122,s*.071,-.026],
+        [-.068,.095,.16,s*.049,-.016],[.027,.067,.095]]);
+      wing.userData.len=.32; return wing;
+    });
+    U.legs=sides.map(s=>{
+      const leg=joint(rig,s*.12,.42,.019);
+      taper(leg,feet,[[0,0,0,.041],[0,-.123,-.052,.036],[s*.018,-.217,.032,.032],[0,-.385,0,.031]]);
+      const foot=joint(leg,0,-.385,0);
+      for(const toe of [-1,1]){
+        taper(foot,feet,[[0,0,0,.032],[toe*.041,-.01,.075,.023],[toe*.066,-.018,.13,.01]]);
+      }
+      leg.userData.foot=foot; return leg;
+    });
+    U.gait=(p,a)=>{
+      const step=Math.sin(p)*a, hop=Math.sin(p)**2*a;
+      rig.position.y=.107*hop; rig.rotation.z=.027*step;
+      head.position.z=.077+.067*Math.sin(2*p)*a;
+      crest.rotation.x=-.20*Math.sin(2*p-.28)*a; tail.rotation.x=.28*step;
+      U.legs.forEach((leg,i)=>{leg.rotation.x=sides[i]*.62*step;leg.userData.foot.rotation.x=-leg.rotation.x;});
+      U.arms.forEach((wing,i)=>wing.rotation.y=sides[i]*.25*hop);
+    };
+  }
+  function ooloo(T){
+    const {head,rig,U,body,light}=T;
+    head.position.y=.905;
+    const core=T.glow('#95f9d7',1.12);
+    function bell(parent,r,h){
+      loft(parent,body,[[-.04,r*.86,r*.73],[0,r,r*.82],[h*.27,r*.97,r*.805],
+        [h*.61,r*.79,r*.68],[h*.89,r*.42,r*.38],[h,r*.08,r*.075]]);
+      oval(parent,core,0,h*.30,-.012,r*.29,h*.37,r*.31);
+    }
+    bell(head,.318,.32);
+    taper(rig,light,[[-.32,1.14,-.091,.032],[-.247,1.056,-.076,.037],[0,.994,-.075,.044],[.187,.799,-.075,.036],[.34,.774,-.082,.03]]);
+    const bells=sides.map((s,i)=>{
+      const satellite=joint(rig,s*(i?.356:.336),i?.747:1.11,-.09);
+      bell(satellite,i?.172:.198,i?.175:.216); return satellite;
+    });
+    eyes(T,.127,.11,.193,.114,light); T.mouth(head,U,0,-.001,.259,.80);
+    const threads=[];
+    for(const [i,x,z,length] of [[0,-.175,-.045,.826],[1,-.08,.05,.657],[2,.037,-.068,.872],[3,.167,.016,.70]]){
+      const strand=joint(rig,x,.905,z), side=i%2?1:-1;
+      const idle=joint(strand,0,0,0); idle.userData.a=i*Math.PI/2; U.tent.push(idle);
+      taper(idle,light,[[0,0,0,.038],[side*.051,-length*.28,0,.035],[-side*.044,-length*.65,.029,.028],[side*.026,-length,.018,.014]]);
+      oval(idle,core,side*.026,-length,.018,.021,.029,.022); threads.push(strand);
+    }
+    U.arms=sides.map((s,i)=>{
+      const arm=joint(bells[i],s*.035,-.015,.034);
+      const len=i?.385:.484;
+      taper(arm,light,[[0,0,0,.05],[s*.045,-len*.33,.007,.045],[-s*.025,-len*.70,.013,.035],[0,-len,0,.043]]);
+      arm.userData.len=len; return arm;
+    });
+    U.gait=(p,a)=>{
+      const pulse=(1-Math.cos(p))*.5*a;
+      rig.position.y=.096*pulse; rig.rotation.z=0;
+      head.scale.set(1-.12*pulse,1+.13*pulse,1-.12*pulse);
+      bells.forEach((bell,i)=>{
+        const squeeze=(1-Math.cos(p-(i+1)*.78))*.5*a;
+        bell.scale.set(1-.18*squeeze,1+.17*squeeze,1-.18*squeeze);
+        bell.rotation.z=sides[i]*.12*squeeze;
+      });
+      threads.forEach((t,i)=>t.rotation.z=.12*Math.sin(p+i*.67)*a);
+    };
+  }
+  function sporrin(T){
+    const {rig,head,U,body,light}=T;
+    const cream=T.phys('#ebd2a6'), gill=T.phys('#ba906a');
+    head.position.set(0,.63,0);
+    loft(head,cream,[[-.447,.214,.171,-.037],[-.32,.169,.146,-.058],[-.12,.128,.131,-.052],
+      [.112,.137,.136,.037],[.31,.111,.117,.058],[.403,.151,.132,.026]]);
+    function shelf(parent,x,y,z,r,h,tilt){
+      const cap=joint(parent,x,y,z); cap.rotation.z=tilt;
+      const profile=[[-.033,r*.72,r*.56],[0,r,r*.72],[h*.31,r*.94,r*.69],
+        [h*.72,r*.63,r*.51,-.027],[h,r*.13,r*.12,-.065]];
+      loft(cap,body,profile);
+      loft(cap,gill,[[-.051,r*.28,r*.24],[-.046,r*.68,r*.54],[-.03,r*.85,r*.63],[.002,r*.97,r*.70]]);
+      return cap;
+    }
+    const cap=shelf(head,.042,.442,-.031,.492,.233,-.13);
+    shelf(head,-.192,.20,-.025,.208,.11,.19);
+    shelf(head,.175,-.047,-.052,.151,.09,-.22);
+    for(const [x,y,z,r] of [[-.14,.165,.088,.048],[.068,.195,.052,.041],[.205,.115,.13,.04]]){
+      oval(cap,light,x,y,z,r,.024,r*.77);
+    }
+    eyes(T,.114,.109,.099,.114,cream); T.mouth(head,U,.025,-.028,.152,.70);
+    U.legs=sides.map(s=>{
+      const leg=joint(rig,s*.113,.226,.01);
+      taper(leg,cream,[[0,0,0,.092],[s*.012,-.087,.005,.087],[s*.033,-.15,.037,.076]]);
+      const foot=oval(leg,cream,s*.055,-.16,.04,.106,.065,.132); leg.userData.foot=foot;
+      return leg;
+    });
+    arms(T,.178,.623,.012,.225,.052,cream,light);
+    U.gait=(p,a)=>{
+      const step=Math.sin(p)*a;
+      rig.position.y=.026*Math.abs(step); rig.rotation.z=.028*step;
+      head.rotation.z=.09*step; cap.rotation.z=-.13-.086*Math.sin(p-.54)*a;
+      U.legs.forEach((leg,i)=>{leg.rotation.x=sides[i]*.34*step;leg.userData.foot.rotation.x=-leg.rotation.x;});
+    };
+  }
+  function beepul(T){
+    const {rig,head,U,body,light,dark}=T;
+    const chassis=joint(rig,0,.301,0), screen=T.phys('#14232c',{roughness:.18,clearcoat:.93});
+    const nickel=T.phys('#b3bec1',{metalness:.69,roughness:.27}), mint=T.glow('#7bf6ce',1.6);
+    rig.add(T.rbox(.428,.184,.329,.034,dark,0,.237,0));
+    chassis.add(T.rbox(.629,.604,.337,.05,body,0,.41,0));
+    chassis.add(T.rbox(.535,.082,.367,.026,light,0,.113,0));
+    chassis.add(T.cyl(.089,.11,.098,nickel,0,.782,0));
+    chassis.add(head); head.position.y=.97;
+    head.add(T.rbox(.48,.231,.276,.038,body),T.rbox(.405,.173,.04,.014,screen,0,.012,.142));
+    litEyes(T,mint,.106,.023,.166,.042,.044,.011); T.mouth(head,U,0,-.047,.169,.61,mint);
+    taper(head,nickel,[[.112,.115,-.019,.016],[.132,.22,-.019,.014],[.19,.264,-.016,.011]]);
+    oval(head,T.glow('#ff8866',1.8),.19,.264,-.016,.035,.035,.035);
+    chassis.add(T.rbox(.376,.25,.034,.014,screen,-.049,.468,.18));
+    const stock=[T.phys('#efb755'),T.phys('#81cace'),T.phys('#e493a1')];
+    for(let i=0;i<3;i++){
+      const packet=T.rbox(.073,.124,.03,.01,stock[i],-.163+i*.111,.471,.202);
+      packet.rotation.z=(i-1)*.082; chassis.add(packet);
+    }
+    chassis.add(T.rbox(.347,.074,.076,.014,dark,-.027,.236,.193),
+      T.rbox(.355,.032,.105,.009,nickel,-.027,.199,.207),T.bx(.035,.104,.018,nickel,.224,.473,.185));
+    const wheels=[];
+    for(const s of sides){
+      for(const z of [-.144,.144]){
+        const axle=joint(rig,s*.241,.137,z);
+        const tire=T.cyl(.136,.136,.126,dark,0,0,0,24); tire.rotation.z=Math.PI/2;axle.add(tire);
+        const hub=T.cyl(.087,.087,.016,nickel,s*.069,0,0,24); hub.rotation.z=Math.PI/2; axle.add(hub);
+        axle.add(T.bx(.019,.102,.023,body,s*.08,0,0));
+        wheels.push(axle);
+      }
+    }
+    U.arms=sides.map(s=>{
+      const arm=T.limb(chassis,s*.326,.621,0,.303,.045,nickel,dark);
+      arm.add(T.rbox(.097,.152,.108,.021,body,0,-.118,0)); return arm;
+    });
+    U.gait=(p,a)=>{
+      wheels.forEach(w=>w.rotation.x=p*a);
+      const bump=Math.sin(p*2)*a;
+      rig.position.y=0; rig.rotation.z=0; chassis.rotation.x=.041*bump;
+      head.rotation.z=.033*Math.sin(p-.31)*a;
+      U.arms.forEach((arm,i)=>arm.rotation.x=.065*sides[i]*bump);
+    };
+  }
+  return {blorpax,zkthar,momwump,vrell,grondar,qeeble,ooloo,sporrin,beepul};
+})();
 /* ===================== PORT VENUES ===================== */
 /* Every planet has its own mix of places to visit in port. Each one is a room of its own somewhere around the
    landing pad: a counter with a shopkeeper, and a crew in the back acting out a job that usually goes wrong. */
@@ -2257,66 +4540,20 @@ const Folk = (() => {
   const phys=(hex,o)=>new THREE.MeshPhysicalMaterial(Object.assign({color:C(hex),roughness:0.42,metalness:0,clearcoat:0.45,clearcoatRoughness:0.35},o||{}));
 
   function make(sp, seed, scale=1){
-    const S=SPECIES[sp], r=mulberry32((seed|0)+11), hue=Math.round(S.hue+(r()-0.5)*26), K=S.kind;
+    const S=SPECIES[sp], r=mulberry32((seed|0)+11), hue=(360+Math.round(S.hue+(r()-0.5)*26))%360, K=S.kind;
     const hsl=(l,sa)=>`hsl(${hue},${sa==null?S.sat:sa}%,${Math.round(Math.min(92,l))}%)`;
-    const body=K==='rock'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.85,flatShading:true}):K==='robot'?phys(hsl(S.lit),{roughness:0.3,metalness:0.55,clearcoat:0.8,clearcoatRoughness:0.15})
-      :K==='fluffy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0}):phys(hsl(S.lit));
-    if(K==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
+    const skin=S.skin||({rock:'stone',robot:'metal',fluffy:'fuzzy',jelly:'jelly'}[K]);
+    const body=skin==='stone'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.85,flatShading:true}):skin==='metal'?phys(hsl(S.lit),{roughness:0.3,metalness:0.55,clearcoat:0.8,clearcoatRoughness:0.15})
+      :skin==='fuzzy'?new THREE.MeshPhysicalMaterial({color:C(hsl(S.lit)),roughness:0.95,sheen:C(hsl(Math.min(95,S.lit+18))),clearcoat:0})
+      :skin==='matte'?new THREE.MeshStandardMaterial({color:C(hsl(S.lit)),roughness:0.8}):phys(hsl(S.lit));
+    if(skin==='jelly'){ body.transparent=true; body.opacity=0.8; body.clearcoat=1; body.clearcoatRoughness=0.05; body.roughness=0.15; }
     const dark=phys(hsl(S.lit*0.55),{clearcoat:0.2}), light=phys(hsl(Math.min(92,S.lit*1.28)),{clearcoat:0.3}), browM=new THREE.MeshStandardMaterial({color:C(hsl(S.lit*0.32,Math.min(60,S.sat))),roughness:0.7});
     const F=new THREE.Group(), lift=new THREE.Group(), rig=new THREE.Group(); F.add(lift); lift.add(rig); const head=new THREE.Group(); rig.add(head);
     const U={rig,lift,low0:0,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
     const iris=IRIS[Math.floor(r()*IRIS.length)];
-    switch(K){
-      case 'blob': { const b=sph(0.62,body,0,0.7,0); b.scale.set(1,1.18,1); rig.add(b); head.position.y=0.75;
-        eye(head,U,-0.21,0.22,0.47,0.17,null,iris); eye(head,U,0.21,0.22,0.47,0.17,null,iris); eye(head,U,0,0.55,0.38,0.12,null,iris);
-        brow(head,U,-0.21,0.43,0.5,0.17,0.028,browM,-1); brow(head,U,0.21,0.43,0.5,0.17,0.028,browM,1); mouth(head,U,0,-0.06,0.6,1.2); blush(head,0.38,0.02,0.52,0.1);
-        U.arms=[limb(rig,-0.58,0.85,0,0.42,0.075,body,body),limb(rig,0.58,0.85,0,0.42,0.075,body,body)]; break; }
-      case 'insect': { const th=sph(0.32,body,0,0.8,0); th.scale.set(0.9,1.15,0.85); rig.add(th); rig.add(sph(0.3,dark,0,1.12,-0.02)); head.position.y=1.44; const h=sph(0.32,body); h.scale.set(1.05,1.05,1); head.add(h);
-        const gl=phys('#141018',{roughness:0.1,clearcoat:1,clearcoatRoughness:0.03});
-        for(const s of [-1,1]){ const e=sph(0.16,gl,s*0.17,0.06,0.2); e.scale.set(1,1.3,0.75); e.userData.sy=1.3; head.add(e); U.eyes.push(e); head.add(sph(0.035,catchM,s*0.13,0.14,0.32,8,6));
-          const a=cyl(0.016,0.016,0.5,dark,s*0.12,0.42,0,8); a.rotation.z=-s*0.5; head.add(a); head.add(sph(0.055,light,s*0.25,0.64,0)); brow(head,U,s*0.17,0.3,0.24,0.14,0.022,browM,s); }
-        mouth(head,U,0,-0.14,0.29,0.9);
-        U.legs=[limb(rig,-0.15,0.46,0,0.44,0.055,dark,null,dark),limb(rig,0.15,0.46,0,0.44,0.055,dark,null,dark)]; U.arms=[limb(rig,-0.3,1.12,0,0.52,0.045,dark,light),limb(rig,0.3,1.12,0,0.52,0.045,dark,light)]; break; }
-      case 'fluffy': { body.sheen=C(hsl(Math.min(90,S.lit+6))); body.color=C(hsl(S.lit-10,S.sat+10)); rig.add(sph(0.6,body,0,0.74,0));
-        // tufts all over except the face
-        for(let i=0,n=0;n<20&&i<200;i++){ const a=r()*6.28, e=r()*2.4+0.3, x=Math.cos(a)*Math.sin(e)*0.56, y=0.74+Math.cos(e)*0.56, z=Math.sin(a)*Math.sin(e)*0.56; if(z>0.18&&Math.abs(x)<0.42&&y>0.45&&y<1.15) continue; rig.add(sph(0.16+r()*0.06,body,x,y,z,14,10)); n++; }
-        head.position.y=0.8; const pink=phys('#ff9ac8'); for(const s of [-1,1]){ head.add(sph(0.18,light,s*0.38,0.5,0)); const ie=sph(0.1,pink,s*0.38,0.5,0.1); ie.scale.z=0.5; head.add(ie); }
-        eye(head,U,-0.2,0.1,0.5,0.17,null,iris); eye(head,U,0.2,0.1,0.5,0.17,null,iris); brow(head,U,-0.2,0.31,0.52,0.15,0.03,browM,-1); brow(head,U,0.2,0.31,0.52,0.15,0.03,browM,1);
-        head.add(sph(0.055,phys('#2a1a22',{clearcoat:1}),0,-0.07,0.6,12,8)); mouth(head,U,0,-0.19,0.56,1); blush(head,0.34,-0.08,0.5,0.1);
-        U.legs=[limb(rig,-0.25,0.24,0,0.2,0.12,body,null,light),limb(rig,0.25,0.24,0,0.2,0.12,body,null,light)]; U.arms=[limb(rig,-0.58,0.82,0,0.36,0.1,body,body),limb(rig,0.58,0.82,0,0.36,0.1,body,body)]; break; }
-      case 'squid': { head.position.y=1.05; const m=sph(0.48,body,0,0.25,0); m.scale.set(1,1.35,1); head.add(m); eye(head,U,-0.18,0.1,0.38,0.16,dark,iris); eye(head,U,0.18,0.1,0.38,0.16,dark,iris);
-        brow(head,U,-0.18,0.3,0.42,0.14,0.024,browM,-1); brow(head,U,0.18,0.3,0.42,0.14,0.024,browM,1); mouth(head,U,0,-0.13,0.44,0.95); blush(head,0.32,-0.04,0.38,0.08);
-        for(let i=0;i<6;i++){ const a=i/6*6.283+0.26, t=limb(rig,Math.cos(a)*0.24,0.82,Math.sin(a)*0.24,0.8,0.07,body,body); t.rotation.set(Math.sin(a)*0.35,0,-Math.cos(a)*0.35); t.userData.a=a; U.tent.push(t); }
-        U.arms=[U.tent[3],U.tent[0]]; break; }
-      case 'rock': { const b=new THREE.Mesh(new THREE.DodecahedronGeometry(0.62,1),body); b.position.y=0.82; b.scale.set(1,1.15,0.9); rig.add(b); head.position.y=0.9;
-        const glow=new THREE.MeshBasicMaterial({color:HDR('#ffb040',3)}); for(const s of [-1,1]){ const e=sph(0.1,glow,s*0.2,0.14,0.5,16,10); e.scale.set(1.3,0.55,0.5); head.add(e); U.eyes.push(e); e.userData.sy=0.55;
-          const bw=new THREE.Mesh(new THREE.DodecahedronGeometry(0.09,0),body); bw.scale.set(1.8,0.6,0.8); bw.position.set(s*0.2,0.3,0.5); head.add(bw); U.brows.push({b:bw,side:s,y:0.3}); }
-        mouth(head,U,0,-0.14,0.53,1.1,new THREE.MeshBasicMaterial({color:HDR('#ff7a20',2)}));
-        U.legs=[limb(rig,-0.26,0.38,0,0.34,0.14,body,null,body),limb(rig,0.26,0.38,0,0.34,0.14,body,null,body)]; U.arms=[limb(rig,-0.64,1.0,0,0.56,0.14,body,body),limb(rig,0.64,1.0,0,0.56,0.14,body,body)]; break; }
-      case 'bird': { const b=sph(0.5,body,0,0.78,0); b.scale.set(1,1.12,1); rig.add(b); const bel=sph(0.38,light,0,0.68,0.22); bel.scale.z=0.8; rig.add(bel); head.position.y=1.0;
-        eye(head,U,-0.18,0.13,0.33,0.17,null,iris); eye(head,U,0.18,0.13,0.33,0.17,null,iris); brow(head,U,-0.18,0.34,0.38,0.14,0.026,browM,-1); brow(head,U,0.18,0.34,0.38,0.14,0.026,browM,1);
-        const bm=phys('#ffb020'), up=new THREE.Mesh(new THREE.ConeGeometry(0.11,0.3,16),bm); up.rotation.x=Math.PI/2; up.position.set(0,-0.03,0.55); up.scale.y=1; head.add(up);
-        const lo=new THREE.Group(); lo.position.set(0,-0.08,0.47); const lc=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.2,14),bm); lc.rotation.x=Math.PI/2; lc.position.z=0.08; lo.add(lc); head.add(lo); U.beak=lo; blush(head,0.3,-0.04,0.36,0.08);
-        for(let i=-1;i<=1;i++){ const c=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.3,10),dark); c.position.set(i*0.1,0.48,-0.05); c.rotation.z=-i*0.35; head.add(c); }
-        const orange=phys('#e0902a'); U.legs=[limb(rig,-0.16,0.32,0,0.32,0.04,orange,null,orange),limb(rig,0.16,0.32,0,0.32,0.04,orange,null,orange)];
-        U.arms=[limb(rig,-0.48,0.95,0,0.46,0.1,dark),limb(rig,0.48,0.95,0,0.46,0.1,dark)]; U.arms.forEach(a=>a.children[0].scale.set(1.5,1,0.45)); break; }
-      case 'jelly': { const d=new THREE.Mesh(new THREE.SphereGeometry(0.58,36,20,0,Math.PI*2,0,Math.PI/2),body); d.position.y=1.0; rig.add(d); const core=sph(0.2,new THREE.MeshBasicMaterial({color:HDR(hsl(S.lit,90),1.3)}),0,1.12,0,16,12); rig.add(core); head.position.y=1.0;
-        eye(head,U,-0.16,0.2,0.46,0.13,null,iris); eye(head,U,0.16,0.2,0.46,0.13,null,iris); brow(head,U,-0.16,0.36,0.47,0.12,0.02,browM,-1); brow(head,U,0.16,0.36,0.47,0.12,0.02,browM,1); mouth(head,U,0,0.05,0.55,0.9);
-        for(let i=0;i<8;i++){ const a=i/8*6.283, t=limb(rig,Math.cos(a)*0.4,1.0,Math.sin(a)*0.4,0.95,0.035,light); t.userData.a=a; U.tent.push(t); } U.arms=[U.tent[4],U.tent[0]]; break; }
-      case 'shroom': { const cream=phys('#efe2c6'); rig.add(cyl(0.29,0.34,0.92,cream,0,0.46,0,28)); const cap=new THREE.Mesh(new THREE.SphereGeometry(0.66,36,16,0,Math.PI*2,0,Math.PI/2),body); cap.scale.y=0.62; cap.position.y=0.9; rig.add(cap);
-        rig.add(cyl(0.66,0.6,0.06,phys(hsl(S.lit*0.8)),0,0.89,0,36));
-        for(let i=0;i<8;i++){ const a=r()*6.28, e=0.3+r()*1.0; const dt=sph(0.07+r()*0.05,light,Math.cos(a)*Math.sin(e)*0.64,0.9+Math.cos(e)*0.64*0.62,Math.sin(a)*Math.sin(e)*0.64,14,10); dt.scale.y=0.5; rig.add(dt); }
-        head.position.y=0.56; eye(head,U,-0.12,0.1,0.26,0.12,cream,iris); eye(head,U,0.12,0.1,0.26,0.12,cream,iris); brow(head,U,-0.12,0.25,0.3,0.1,0.02,browM,-1); brow(head,U,0.12,0.25,0.3,0.1,0.02,browM,1); mouth(head,U,0,-0.1,0.32,0.75); blush(head,0.21,-0.04,0.28,0.06);
-        U.legs=[limb(rig,-0.13,0.12,0,0.1,0.09,cream,null,cream),limb(rig,0.13,0.12,0,0.1,0.09,cream,null,cream)]; U.arms=[limb(rig,-0.34,0.62,0,0.32,0.06,cream,cream),limb(rig,0.34,0.62,0,0.32,0.06,cream,cream)]; break; }
-      default: { rig.add(rbox(0.78,0.82,0.58,0.12,body,0,0.88,0)); rig.add(rbox(0.3,0.16,0.04,0.02,new THREE.MeshBasicMaterial({color:HDR('#5fffd0',1.4)}),0.14,0.76,0.3)); head.position.y=1.82;
-        { const steel=phys('#9aa0a8',{roughness:0.3,metalness:0.8,clearcoat:0.4}); rig.add(cyl(0.22,0.26,0.07,dark,0,1.32,0,24)); rig.add(cyl(0.09,0.11,0.3,steel,0,1.46,0,16)); for(let i=0;i<3;i++) rig.add(cyl(0.12,0.12,0.03,dark,0,1.39+i*0.07,0,16)); rig.add(cyl(0.16,0.12,0.05,dark,0,1.58,0,20)); }
-        head.add(rbox(0.66,0.5,0.52,0.12,body)); const scr=rbox(0.52,0.34,0.04,0.06,phys('#0c1418',{roughness:0.1,clearcoat:1}),0,0,0.27); head.add(scr);
-        const g=new THREE.MeshBasicMaterial({color:HDR('#5fffd0',2.6)}); for(const s of [-1,1]){ const e=sph(0.06,g,s*0.12,0.04,0.3,14,10); e.scale.set(1,1.2,0.3); e.userData.sy=1.2; head.add(e); U.eyes.push(e);
-          const bw=bx(0.1,0.022,0.01,g); bw.position.set(s*0.12,0.13,0.3); head.add(bw); U.brows.push({b:bw,side:s,y:0.13}); }
-        mouth(head,U,0,-0.09,0.3,0.8,g);
-        head.add(cyl(0.015,0.015,0.3,dark,0,0.37,0,8)); head.add(sph(0.05,new THREE.MeshBasicMaterial({color:HDR('#ff4040',3)}),0,0.54,0,12,8));
-        const alu=phys('#b9bdc4',{roughness:0.25,metalness:0.85,clearcoat:0.5}); U.legs=[limb(rig,-0.2,0.48,0,0.46,0.07,alu,null,body),limb(rig,0.2,0.48,0,0.46,0.07,alu,null,body)]; U.arms=[limb(rig,-0.46,1.18,0,0.52,0.06,alu,alu),limb(rig,0.46,1.18,0,0.52,0.06,alu,alu)]; }
-    }
+    const build=S.build||OriginalFolk[sp];
+    build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
+      glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
     U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; }); mood(F,'neutral'); return F;
   }
   /* attach a prop to the end of the right arm */
@@ -2343,9 +4580,10 @@ const Folk = (() => {
     const n=Math.floor((t+U.ph)/1.7), lx=Math.sin(n*12.9898+U.ph)*0.35, ly=Math.sin(n*78.233+U.ph)*0.18; for(const L of U.looks){ L.rotation.y=lerp(L.rotation.y,lx,0.15); L.rotation.x=lerp(L.rotation.x,ly,0.15); }
     U.head.position.y=U.headY+Math.sin(t*2.1+U.ph)*0.012;
     for(const tn of U.tent){ if(U.arms.includes(tn)) continue; tn.rotation.x=Math.sin(tn.userData.a)*0.35+Math.sin(t*2.2+tn.userData.a*3)*0.12; } }
+  /* A model can animate its own geometry after the shared stride. Zero amount restores its rest pose. */
   function walk(F, ph, amt){ const U=F.userData, s=Math.sin(ph)*amt; if(U.legs[0]){ U.legs[0].rotation.x=s*0.7; U.legs[1].rotation.x=-s*0.7; for(const l of U.legs) if(l.userData.foot) l.userData.foot.rotation.x=-l.rotation.x; } if(U.arms[0]){ U.arms[0].rotation.x=-s*0.5; U.arms[1].rotation.x=s*0.5; }
-    U.rig.position.y=Math.abs(Math.sin(ph))*0.07*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; }
-  function rest(F){ const U=F.userData; U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
+    U.rig.position.y=Math.abs(Math.sin(ph))*0.07*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; if(U.gait) U.gait(ph,amt); }
+  function rest(F){ const U=F.userData; if(U.gait) walk(F,0,0); U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
   function arms(F, l, r){ const A=F.userData.arms; if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
@@ -2790,7 +5028,7 @@ const Venues = (() => {
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
         shell(V,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot') V.droid=makeDroid(V);
         V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,-0.85); root.add(V.keeper);
-        const others=SPECIES_KEYS.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
+        const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
         this.list.push(V); });
       return this.list;
@@ -2841,7 +5079,7 @@ const Loading = (() => {
   const P_=(t,a,b)=>clamp((t-a)/(b-a),0,1), E=x=>x*x*(3-2*x);
   let S=null;
 
-  function crateTex(label, bad){
+  function crateTex(label, bad, fragile){
     const cv=makeCanvas(256,256), x=cv.getContext('2d'); x.fillStyle=bad?'#5d6455':'#b9823f'; x.fillRect(0,0,256,256);
     x.fillStyle='rgba(0,0,0,0.16)'; for(let i=1;i<5;i++) x.fillRect(0,i*51-3,256,6);
     x.strokeStyle=bad?'#2c3028':'#6e4a22'; x.lineWidth=24; x.strokeRect(12,12,232,232);
@@ -2851,6 +5089,7 @@ const Loading = (() => {
       for(const w of words){ const t=cur?cur+' '+w:w; if(x.measureText(t).width>196&&cur){ lines.push(cur); cur=w; } else cur=t; } lines.push(cur);
       if(lines.length<=3&&lines.every(l=>x.measureText(l).width<=196)) break; }
     lines.forEach((l,i)=>x.fillText(l,128,128+(i-(lines.length-1)/2)*fs*1.05));
+    if(fragile){ x.save(); x.translate(128,128); x.rotate(-0.38); x.strokeStyle='rgba(205,30,30,0.9)'; x.lineWidth=7; x.strokeRect(-104,-30,208,60); x.fillStyle='rgba(205,30,30,0.9)'; x.font=`800 46px ${FONT_DISP}`; x.fillText('FRAGILE',0,3,196); x.restore(); }
     return canvasTex(cv);
   }
   function hazardTex(){ const cv=makeCanvas(256,128), x=cv.getContext('2d'); x.fillStyle='#2b2d31'; x.fillRect(0,0,256,128); x.fillStyle='#f2c14e';
@@ -2875,7 +5114,7 @@ const Loading = (() => {
     // crates, one stencilled with each contract's goods
     const foot=ramp(L,0), stack=new V3(foot.x+1.9,0,D.z+2.7), n=goods.length===1?2:3, crates=[];
     for(let i=0;i<n;i++){ const g=goods[i%goods.length], bad=!!g.illegal;
-      const o=new THREE.Mesh(new THREE.BoxGeometry(CS,CS,CS),M('#ffffff',0.85,0.02,{map:crateTex(bad?'Definitely not contraband':g.good,bad)})); o.castShadow=true; o.receiveShadow=true;
+      const o=new THREE.Mesh(new THREE.BoxGeometry(CS,CS,CS),M('#ffffff',0.85,0.02,{map:crateTex(bad?'Definitely not contraband':g.good,bad,!!g.fragile)})); o.castShadow=true; o.receiveShadow=true;
       o.position.set(stack.x+(i%2?0.06:-0.05),CS/2+i*CS,stack.z+(i%2?-0.04:0.05)); o.rotation.y=(Math.random()-0.5)*0.25; root.add(o);
       crates.push({o,i,g,taken:false,phys:null,col:pick(['#ff6b6b','#ffd43b','#51cf66','#4dabf7','#cc5de8','#ff922b','#f8f9fa'])}); }
 
@@ -2884,8 +5123,9 @@ const Loading = (() => {
       const rest=new V3(stack.x+1.7,0,stack.z+(k?1.4:-1.6)); F.position.copy(rest); F.rotation.y=-Math.PI/2;
       return {F,k,rest,st:'wait',wait:k?1.7:0.9,path:null,crate:null,act:null,actT:0,ph:0,onRamp:false}; });
 
-    // 70% it all goes in cleanly, 20% the stack topples (a crate cracks), 10% the last crate bursts off the ramp
-    const r=Math.random(), out=api.force||(r<0.7?'ok':r<0.9?'topple':'tumble');
+    // 70% it all goes in cleanly, 20% the stack topples (a crate cracks), 10% the last crate bursts off the ramp.
+    // With anything fragile in the load: 50% clean, 20% topple, 30% burst.
+    const frag=crates.some(x=>x.g.fragile), r=Math.random(), out=api.force||(frag?(r<0.5?'ok':r<0.7?'topple':'tumble'):(r<0.7?'ok':r<0.9?'topple':'tumble'));
     S={P,D,a,ca,sa,root,door,hinge,model,ramp,foot,stack,crates,crew,n,out,inCount:0,lost:0,toppled:false,losses:[],lossDone:false,cracked:false,phys:[],parts:[],bits:[],fired:{},closeT:-1,t:0,finished:false,sub:''};
     const u=goods.reduce((s,g)=>s+g.qty,0);
     S.sub=goods.length===1?`${goods[0].qty}× ${goods[0].good}`:`${goods.length} contracts · ${u} units`;
@@ -2901,8 +5141,8 @@ const Loading = (() => {
   function stop(){
     if(!S) return;
     // skipped before the disaster played out: it still happened, you just did not watch
-    if(S.out==='tumble'&&!S.lossDone){ S.lossDone=true; lose((S.crates.find(x=>x.fail)||S.crates[0]).g,1); }
-    if(S.out==='topple'&&!S.cracked){ S.cracked=true; lose(S.crates[S.crates.length-1].g,0.5); }
+    if(S.out==='tumble'&&!S.lossDone){ S.lossDone=true; lose((S.crates.find(x=>x.fail)||S.crates.find(x=>x.g.fragile)||S.crates[0]).g,1); }
+    if(S.out==='topple'&&!S.cracked){ S.cracked=true; lose((S.crates.find(x=>x.g.fragile)||S.crates[S.crates.length-1]).g,0.5); }
     if(S.losses.length){ const L=S.losses.map(l=>l.left>0?`${l.units} ${unitWord(l.units)} of ${l.good} (now pays ${fmtCr(l.pay)})`:`all of the ${l.good}, so that contract is gone`).join('; ');
       setTimeout(()=>UI.toast(`Lost in loading: ${L}. The depot is very sorry, in writing.`,'warn'),4200); } const kill=o=>o.traverse(q=>{ if(q.geometry) q.geometry.dispose(); if(q.material){ (Array.isArray(q.material)?q.material:[q.material]).forEach(m=>{ if(m.map) m.map.dispose(); m.dispose(); }); } });
     for(const c of S.crew) S.root.remove(c.F); // their materials are shared with the shop folk
@@ -2933,15 +5173,15 @@ const Loading = (() => {
     const left=S.crates.filter(x=>!x.taken&&!x.phys); if(!left.length) return S.crates.some(x=>!x.taken)?'later':false;
     let k;
     if(S.out==='topple'&&!S.toppled&&!S.fired.pickBottom){ S.fired.pickBottom=1; k=left.reduce((a,b)=>a.o.position.y<b.o.position.y?a:b); k.bottom=true; }
-    else k=left.reduce((a,b)=>a.o.position.y>b.o.position.y?a:b);
+    else { const pool=S.out==='tumble'&&left.some(x=>!x.g.fragile)?left.filter(x=>!x.g.fragile):left; k=pool.reduce((a,b)=>a.o.position.y>b.o.position.y?a:b); }
     k.taken=true; if(S.out==='tumble'&&S.crates.every(x=>x.taken)) k.fail=true;
     c.crate=k; const cp=k.o.position, from=c.F.position, dir=new V3(from.x-cp.x,0,from.z-cp.z); if(dir.lengthSq()<0.01) dir.set(1,0,0); dir.normalize();
     c.pickAt=new V3(cp.x,0,cp.z).addScaledVector(dir,0.95); c.leg='pick'; go(c,[c.pickAt]); return true;
   }
 
   function topple(except){
-    S.toppled=true; S.crates.forEach(x=>{ if(x===except||x.taken) return; const h=x.o.position.y;
-      x.phys=toss(x.o,new V3(rnd(0.4,2.4),rnd(0.5,2),rnd(-2.2,2.2)).multiplyScalar(0.6+h*0.35),new V3(rnd(-7,7),rnd(-3,3),rnd(-7,7)),CS/2,p=>{ if(p.hit===1){ if(live()) Sfx.crash(0.45); if(!S.cracked) crack(x); } }); });
+    S.toppled=true; S.fragFall=S.crates.some(x=>x!==except&&!x.taken&&x.g.fragile); S.crates.forEach(x=>{ if(x===except||x.taken) return; const h=x.o.position.y;
+      x.phys=toss(x.o,new V3(rnd(0.4,2.4),rnd(0.5,2),rnd(-2.2,2.2)).multiplyScalar(0.6+h*0.35),new V3(rnd(-7,7),rnd(-3,3),rnd(-7,7)),CS/2,p=>{ if(p.hit===1){ if(live()) Sfx.crash(0.45); if(!S.cracked&&(x.g.fragile||!S.fragFall)) crack(x); } }); });
     if(live()) Sfx.crash(0.7); setTimeout(()=>{ if(S&&live()) void 0; },700);
     S.crew.forEach(o=>{ Folk.mood(o.F,'shock'); if(o!==S.crew.find(q=>q.crate===except)){ o.act='gasp'; o.actT=0; } });
     say('The stack had other ideas.');
@@ -3052,13 +5292,14 @@ const Crowd = (() => {
   function newShip(pad){ if(pad.m){ L.scn.remove(pad.m); } const m=Models.build(Math.floor(Math.random()*Models.count)); m.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } });
     L.scn.add(m); pad.m=m; pad.ex=exhaust(m); return m; }
 
-  function build(scn, P, cloud, pads){
-    stop(); L={scn,P,cloud,pads:[],folk:[],t:0};
+  function build(scn, P, cloud, pads, hAt, liq){
+    stop(); L={scn,P,cloud,pads:[],folk:[],t:0,cars:[],trucks:[]};
+    traffic(scn,P,cloud,hAt,liq==null?-1e9:liq);
     // traffic: each neighbouring pad cycles through parked, lifting off, empty, and a new arrival
     pads.forEach((p,i)=>{ const pad={x:p[0],z:p[1],ry:p[2],m:null,ex:null,st:i%2?'parked':'away',t:0,wait:i%2?8+Math.random()*18:3+Math.random()*10,dir:Math.random()*6.283};
       if(pad.st==='parked'){ newShip(pad); pad.m.position.set(pad.x,pad.m.userData.gearH,pad.z); pad.m.rotation.y=pad.ry; } L.pads.push(pad); });
     // locals
-    const spOf=k=>k%3===2?pick(SPECIES_KEYS):P.species, rr=mulberry32(P.idx*71+3), ring=()=>spot(rr);
+    const spOf=k=>k%3===2?pick(ALIEN_POOL):P.species, rr=mulberry32(P.idx*71+3), ring=()=>spot(rr);
     const add=(kind,pos,sp,seed)=>{ const F=Folk.make(sp,seed,1.3); F.position.copy(pos); F.rotation.y=rr()*6.283; scn.add(F); const a={F,kind,tgt:null,wait:rr()*3,ph:rr()*10,talk:0}; L.folk.push(a); return a; };
     // the marshal stands at the pad edge with glowing batons
     const ma=Math.PI*0.25, M=add('marshal',new V3(Math.cos(ma)*(cloud?46:57),0,Math.sin(ma)*(cloud?46:57)),P.species,P.idx*9+1); M.F.rotation.y=Math.atan2(-M.F.position.x,-M.F.position.z);
@@ -3076,7 +5317,7 @@ const Crowd = (() => {
       if(L.pads.some(q=>Math.hypot(q.x-p.x,q.z-p.z)<38)) continue; if(Math.hypot(p.x+96,p.z+70)<12) continue; return p; } return new V3(60,0,0); }
 
   function update(dt, t){
-    if(!L) return; L.t+=dt;
+    if(!L) return; L.t+=dt; stepTraffic(dt,t);
     for(const pad of L.pads){ pad.t+=dt; const m=pad.m;
       if(pad.st==='parked'){ Models.animate(m,0,t); if(pad.t>pad.wait){ pad.st='up'; pad.t=0; const v=loud(m.position,0.35); if(v>0.02) Sfx.roar(6,v); } }
       else if(pad.st==='up'){ const k=pad.t, gh=m.userData.gearH, y=gh+(k>1?Math.pow(k-1,2.3)*9:0); m.position.set(pad.x,y,pad.z); m.rotation.set(E(clamp((k-1.5)/3,0,1))*0.5,pad.ry+E(clamp((k-1)/4,0,1))*0.6,0);
@@ -3101,6 +5342,42 @@ const Crowd = (() => {
       else { if(!a.tgt) a.tgt=spot(Math.random); const d=a.tgt.clone().sub(F.position); d.y=0; const dist=d.length(), sp=a.cart?1.6:2.3;
         if(dist<0.3){ a.tgt=null; a.wait=1+Math.random()*4; } else { F.rotation.y=ang(F.rotation.y,Math.atan2(d.x,d.z),1-Math.exp(-dt*5)); const fwd=new V3(Math.sin(F.rotation.y),0,Math.cos(F.rotation.y)); F.position.addScaledVector(fwd,Math.min(dist,sp*dt)); a.ph+=dt*9; Folk.walk(F,a.ph,1); F.userData.head.rotation.y=0; if(a.cart) Folk.arms(F,[1.1,0.15],[1.1,0.15]); } }
       if(a.cart){ const ry=F.rotation.y; a.cart.position.set(F.position.x+Math.sin(ry)*1.5,0,F.position.z+Math.cos(ry)*1.5); a.cart.rotation.y=ry; } }
+  }
+  /* ---------- the town at work: roads out to every shop with hover-trucks on them, and air-cars circling the port in
+     lanes at different heights. Seen best on the way up, when the whole port is laid out below you. ---------- */
+  function roadTex(){ const cv=makeCanvas(64,256), x=cv.getContext('2d'); x.fillStyle='#2b2d31'; x.fillRect(0,0,64,256); x.fillStyle='#d8d4c8'; x.fillRect(2,0,4,256); x.fillRect(58,0,4,256);
+    x.fillStyle='#f2c14e'; for(let y=0;y<256;y+=64) x.fillRect(29,y+8,6,36); const t=canvasTex(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; }
+  function vehicle(col, truck){ const g=new THREE.Group(), body=new THREE.MeshStandardMaterial({color:C(col),roughness:0.4,metalness:0.4}), dark=new THREE.MeshStandardMaterial({color:C('#1e2126'),roughness:0.6,metalness:0.3});
+    const glass=new THREE.MeshStandardMaterial({color:C('#9fd8ff'),roughness:0.1,metalness:0.6}), head=new THREE.MeshBasicMaterial({color:HDR('#fff2c8',3)}), tail=new THREE.MeshBasicMaterial({color:HDR('#ff4030',3)}), under=new THREE.MeshBasicMaterial({color:HDR('#7fd0ff',2)});
+    if(truck){ g.add(Folk.rbox(2.6,1.9,5.4,0.3,body,0,1.6,0.6)); g.add(Folk.rbox(2.4,1.5,2.0,0.4,body,0,1.4,-2.6)); g.add(Folk.bx(2.0,0.6,0.1,glass,0,1.7,-3.62)); for(const sx of [-1,1]){ g.add(Folk.bx(0.4,0.25,0.1,head,sx*0.85,1.0,-3.65)); g.add(Folk.bx(0.4,0.25,0.1,tail,sx*0.95,1.0,3.35)); }
+      g.add(Folk.bx(2.2,0.15,7.4,under,0,0.45,-0.3)); g.add(Folk.bx(2.66,0.3,5.0,dark,0,0.75,0.6)); }
+    else { g.add(Folk.rbox(2.2,1.0,4.2,0.45,body,0,0,0)); g.add(Folk.sph(0.85,glass,0,0.55,-0.3,18,12)); g.children[1].scale.set(1,0.6,1.3); for(const sx of [-1,1]){ g.add(Folk.bx(0.35,0.2,0.1,head,sx*0.7,0,-2.12)); g.add(Folk.bx(0.4,0.2,0.1,tail,sx*0.75,0,2.12)); }
+      g.add(Folk.cyl(0.9,0.6,0.25,under,0,-0.6,0,16)); }
+    g.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; }); return g; }
+  function traffic(scn, P, cloud, hAt, liq){
+    const rr=mulberry32(P.idx*991+17), cols=['#e8eaee','#ffd23f','#ef476f','#26a0d0','#7bd389','#f78c3b','#9b8cff'];
+    // air lanes: rings around the port at different heights and speeds, half of them flying the other way
+    for(let i=0;i<12;i++){ const m=vehicle(cols[i%cols.length],false); m.scale.setScalar(2.6); scn.add(m); L.cars.push({m,r:140+rr()*520,y:(cloud?10:30)+rr()*240,w:(rr()<0.5?-1:1)*(0.05+rr()*0.06),a:rr()*6.283,bob:rr()*6}); }
+    if(cloud||!hAt) return;
+    // roads from the pad's edge out to each shop's terrace, laid on the ground (bridged over water)
+    const mat=new THREE.MeshStandardMaterial({map:roadTex(),roughness:0.9,metalness:0.05}), W=11;
+    for(const V of Venues.list){ const to=V.root.position, d=Math.hypot(to.x,to.z), ux=to.x/d, uz=to.z/d, r0=58, r1=Math.max(r0+20,d-31), n=Math.max(4,Math.ceil((r1-r0)/9)), pts=[];
+      for(let k=0;k<=n;k++){ const r=lerp(r0,r1,k/n), x=ux*r, z=uz*r; let y=Math.max(hAt(x,z),liq+0.8); if(k===0) y=Math.max(y,0); if(k>n-3) y=lerp(y,to.y,(k-(n-3))/3); pts.push(new V3(x,y+0.25,z)); }
+      const pos=[], uv=[], idx=[]; let len=0; const px=-uz*W/2, pz=ux*W/2;
+      pts.forEach((p,k)=>{ if(k) len+=p.distanceTo(pts[k-1]); pos.push(p.x+px,p.y,p.z+pz, p.x-px,p.y,p.z-pz); uv.push(0,len/14, 1,len/14); if(k){ const b=(k-1)*2; idx.push(b,b+2,b+1, b+1,b+2,b+3); } });
+      const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); geo.setIndex(idx); geo.computeVertexNormals();
+      const road=new THREE.Mesh(geo,mat); road.receiveShadow=true; scn.add(road);
+      // street lamps along the way, and a couple of trucks shuttling between the pad and the shop
+      for(let k=2;k<pts.length-1;k+=4){ const p=pts[k], sx=k%8?1:-1; const lamp=Folk.cyl(0.15,0.2,6,new THREE.MeshStandardMaterial({color:C('#3d4147'),roughness:0.5,metalness:0.6}),p.x+px*0.62*sx,p.y+3,p.z+pz*0.62*sx,8); scn.add(lamp); scn.add(Folk.sph(0.5,new THREE.MeshBasicMaterial({color:HDR('#ffe2b8',2.4)}),lamp.position.x,p.y+6.2,lamp.position.z,10,8)); }
+      for(let j=0;j<2;j++){ const m=vehicle(cols[(j*3+Venues.list.indexOf(V))%cols.length],true); m.scale.setScalar(1.5); scn.add(m); L.trucks.push({m,pts,len,s:rr()*len,dir:j?1:-1,v:9+rr()*5,lane:j?1:-1,ux,uz}); } }
+  }
+  function stepTraffic(dt, t){
+    for(const c of L.cars){ c.a+=c.w*dt; const x=Math.cos(c.a)*c.r, z=Math.sin(c.a)*c.r; c.m.position.set(x,c.y+Math.sin(t*0.8+c.bob)*2,z); c.m.rotation.set(0,Math.atan2(-Math.sin(c.a)*c.w,Math.cos(c.a)*c.w)+Math.PI,-Math.sign(c.w)*0.18); }
+    for(const k of L.trucks){ k.s+=k.dir*k.v*dt; if(k.s>k.len){ k.s=k.len; k.dir=-1; } if(k.s<0){ k.s=0; k.dir=1; }
+      let acc=0, i=1; for(;i<k.pts.length;i++){ const sl=k.pts[i].distanceTo(k.pts[i-1]); if(acc+sl>=k.s) break; acc+=sl; } i=Math.min(i,k.pts.length-1);
+      const a=k.pts[i-1], b=k.pts[i], u=clamp((k.s-acc)/Math.max(0.01,a.distanceTo(b)),0,1), side=k.dir*2.6;
+      k.m.position.set(lerp(a.x,b.x,u)+k.uz*side,lerp(a.y,b.y,u)+0.1+Math.sin(t*3+k.s)*0.05,lerp(a.z,b.z,u)-k.ux*side);
+      k.m.rotation.set(0,Math.atan2(-(b.x-a.x)*k.dir,-(b.z-a.z)*k.dir),0); }
   }
   function stop(){ L=null; }
   return {build, update, stop, exhaust};
@@ -3340,7 +5617,7 @@ const Calls = {
     else if(call.who==='trade'){ c.sp=pick(['qeeble','zkthar','beepul']); c.seed=4242; c.name='Trade Net'; c.whoLine='Trade Net · bulletin'; }
     else if(call.who==='dj'){ c.sp='blorpax'; c.seed=808; c.name='DJ Glorp'; c.whoLine='Radio Glorp · phone-in'; }
     else { const cands=Npc.list.filter(n=>n.dist<40000&&(!call.sp||n.pilot.sp===call.sp)); const pl=cands.length&&Math.random()<0.7?pick(cands).pilot:null;
-      c.sp=call.sp||(pl?pl.sp:pick(SPECIES_KEYS)); c.seed=pl?pl.seed:Math.floor(Math.random()*1e9); c.name=pl?pl.name:alienName(c.sp,c.seed); c.ship=pl?pl.ship:shipName(c.seed); c.whoLine=`${c.name} · ${SPECIES[c.sp].name} · ${c.ship}`; }
+      c.sp=call.sp||(pl?pl.sp:pick(ALIEN_POOL)); c.seed=pl?pl.seed:Math.floor(Math.random()*1e9); c.name=pl?pl.name:alienName(c.sp,c.seed); c.ship=pl?pl.ship:shipName(c.seed); c.whoLine=`${c.name} · ${SPECIES[c.sp].name} · ${c.ship}`; }
     return c; },
   /* place a call; returns false if none fits right now */
   ring(){
@@ -3513,7 +5790,7 @@ const Distress = {
     if(Math.random()<0.75) this.call();
   },
   call(){
-    const sp=pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)};
+    const sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)};
     Radio.cur=null; Radio.wait=20;
     Dlg.show({sp,seed,tone:'alert',who:`Mayday · ${c.name} · ${SPECIES[sp].name} · ${c.ship}`,text:pick(MAYDAY),timeout:30,onTimeout:()=>this.ignore(),
       opts:[{t:'Answer the call',sub:'A detour. Costs time and fuel.',fn:()=>this.answer()},{t:'Keep flying',sub:'Somebody else will help. Probably.',fn:()=>this.ignore()}]});
@@ -3952,7 +6229,7 @@ const PAX_TRIPS = [
 const Story = {
   who(sp, seed){ return {sp,seed,name:alienName(sp,seed)}; },
   /* an ordinary crate: someone at this port sends it to someone at the far end */
-  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(SPECIES_KEYS),(j.seed*7+13)%1000000007), pair=STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
+  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(ALIEN_POOL),(j.seed*7+13)%1000000007), pair=STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
     const o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port}; return {pick:fill(pair[0],o),drop:fill(pair[1],o),to}; },
   contra(j){ const T=PLANETS[j.to], to=this.who(pick(['vrell','grondar','qeeble','blorpax']),(j.seed*11+5)%1000000007), pair=pick(STORY_CONTRA), o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port};
     return {pick:fill(pair[0],o),drop:fill(pair[1],o),to:{sp:to.sp,seed:to.seed,name:to.name+' · never here'}}; },
@@ -4154,7 +6431,7 @@ const UI = {
     } else {
       body.appendChild(this.keeper(v));
       body.appendChild(el('div','note',`It smells like ${pick(['engine grease and cinnamon','warm batteries','somebody else\'s lunch','rain on hot metal','ozone and toast'])}.`));
-      const r=mulberry32(P.idx*31+G.stats.deliveries); const locals=[P.species, SPECIES_KEYS[Math.floor(r()*SPECIES_KEYS.length)], SPECIES_KEYS[Math.floor(r()*SPECIES_KEYS.length)]];
+      const r=mulberry32(P.idx*31+G.stats.deliveries); const locals=[P.species, ALIEN_POOL[Math.floor(r()*ALIEN_POOL.length)], ALIEN_POOL[Math.floor(r()*ALIEN_POOL.length)]];
       locals.forEach((sp,i)=>{ const seed=P.idx*100+i*17+G.stats.deliveries; const S=SPECIES[sp]; const line=fill(S.chat[Math.floor(r()*S.chat.length)],{planet:PLANETS[Math.floor(r()*PLANETS.length)].name,good:GOODS[Math.floor(r()*GOODS.length)][0]}); body.appendChild(this.quote(sp,seed,alienName(sp,seed)+' · '+S.name,line)); });
       const c=el('div','card'); c.appendChild(this.icon('☕')); c.appendChild(el('div','mid',`<h3>Buy a round</h3><p>Pilots talk when someone else is paying. You might hear where the money is.</p><div class="meta">${G.hot!=null?'Current tip: <i>'+esc(PLANETS[G.hot].name)+'</i> pays +50%':'No tip yet'}</div>`));
       const rr=el('div','right'); rr.appendChild(el('div','pay',fmtCr(30))); const b=el('button','btn','Buy'); b.disabled=G.credits<30;
@@ -4679,7 +6956,7 @@ const Game = {
     const P=PLANETS[pi], hold=holdCap(), jobs=[], n=5+Math.floor(Math.random()*3);
     for(let i=0;i<n;i++){ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
       const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to;
-      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(SPECIES_KEYS);
+      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
       const fragile=i>0&&Math.random()<0.3;
       jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.35:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile}); }
     jobs.sort((a,b)=>a.qty-b.qty);
@@ -4691,7 +6968,7 @@ const Game = {
     for(const j of jobs) j.story=j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j);
     G.jobs=jobs;
     // people wanting a ride, offered at cantinas
-    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(SPECIES_KEYS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
       px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,pay:Math.round((140+dist*60)*rnd(0.85,1.25)*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
     for(const j of px){ j.story=Story.pax(j); j.why=j.story.why; }
     G.paxJobs=px;
@@ -4844,5 +7121,298 @@ const Game = {
   },
 };
 Game.boot();
+/* Standalone, opt-in model and portrait inspector. */
+(() => {
+  if (!new URLSearchParams(location.search).has('gallery')) return;
+
+  const host = document.createElement('dialog');
+  host.setAttribute('aria-label', 'Species gallery');
+  host.style.cssText = 'position:fixed;inset:0;margin:0;padding:0;border:0;width:100%;height:100%;max-width:none;max-height:none;background:#101b20;color:white;overflow:hidden';
+  const shell = document.createElement('div');
+  shell.style.height = '100%';
+  host.append(shell);
+  const root = shell.attachShadow({mode:'open'});
+  root.innerHTML = `
+    <style>
+      * {box-sizing:border-box}
+      :host {font:20px/1.45 system-ui,sans-serif;color:#f0f6f4;color-scheme:dark}
+      [hidden] {display:none!important}
+      .page {height:100%;overflow:auto;background:#101b20}
+      header {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px clamp(16px,3vw,54px);border-bottom:1px solid #44595b;background:#152428}
+      h1,h2,p {margin:0}
+      h1 {font-size:clamp(28px,3.5vw,52px);line-height:1.1;letter-spacing:-.04em}
+      h2 {font-size:30px;letter-spacing:-.025em}
+      main {max-width:1840px;margin:auto;padding:16px clamp(16px,3vw,54px) 40px}
+      section+section {margin-top:36px}
+      .group {display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:8px 0 16px;border-bottom:1px solid #46585b;padding-bottom:8px}
+      .count,.key,.seed {font:20px/1.35 ui-monospace,monospace;color:#c3d6d5}
+      button {appearance:none;font:600 20px/1.2 system-ui,sans-serif;letter-spacing:normal;text-transform:none;color:#f0f6f4;background:#25383d;border:1px solid #668085;border-radius:7px;padding:10px 16px;min-height:48px;cursor:pointer}
+      button:hover {border-color:#bfdfd7;background:#33494d}
+      button:focus-visible {outline:4px solid #ffdd85;outline-offset:3px}
+      button[aria-pressed=true] {color:#102122;background:#bcebd7;border-color:#bcebd7}
+      .grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+      .card {text-align:left;padding:0;overflow:hidden;border-color:#47626a;background:#17292e}
+      .portraits {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:#12232c;aspect-ratio:3}
+      .portraits canvas {display:block;width:100%;height:auto;border-right:1px solid #2d4851}
+      .caption {display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 14px 13px;border-top:3px solid var(--accent)}
+      .name {font-size:25px;font-weight:750}
+      .viewer {display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:clamp(18px,3vw,44px);align-items:start;margin-top:10px}
+      .stage {width:100%;height:clamp(300px,68vh,780px);background:#162b32;border:1px solid #527078;border-radius:10px;overflow:hidden}
+      .stage canvas {display:block;width:100%;height:100%}
+      .controls {display:grid;gap:20px}
+      fieldset {border:0;margin:0;padding:0}
+      legend {font-weight:750;padding:0;margin:0 0 8px}
+      .row {display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+      .measure {display:grid;grid-template-columns:auto 1fr;gap:3px 16px;margin:0;font-variant-numeric:tabular-nums}
+      dt {color:#c3d6d5} dd {margin:0}
+      @media(max-width:760px){.viewer{grid-template-columns:1fr}.stage{height:clamp(265px,44vh,420px)}header{align-items:start}.caption{gap:4px}}
+      @media(max-width:420px){header{flex-wrap:wrap}.row button{flex:1 0 auto}main{padding:12px}.caption{padding:8px}}
+    </style>
+    <div class="page">
+      <header><h1>Species gallery</h1><div class="row"><button id="back" hidden>All species</button><button id="close">Close gallery</button></div></header>
+      <main><div id="catalog"></div>
+        <div id="viewer" class="viewer" hidden>
+          <div class="stage" aria-label="Rotating full-scale model and one-metre marker"></div>
+          <div class="controls">
+            <div><h2 id="name"></h2><p class="seed" id="seed"></p><p id="trait"></p></div>
+            <fieldset><legend>Expression</legend><div class="row" id="moods"></div></fieldset>
+            <fieldset><legend>Pose</legend><div class="row" id="poses"></div></fieldset>
+            <div class="row"><button id="next">Next seed</button><button id="spin" aria-pressed="true">Rotate</button><button id="outline" aria-pressed="false">Silhouette</button></div>
+            <fieldset><legend>Standing measurements</legend><dl class="measure"></dl></fieldset>
+          </div>
+        </div>
+      </main>
+    </div>`;
+  document.body.append(host);
+  host.showModal();
+  const get = sel => root.querySelector(sel);
+  const page = get('.page'), catalog = get('#catalog'), stage = get('.stage');
+  const seeds = [26, 9, 25];
+  let seedIndex = 0, key, figure, prop, renderer, scene, camera, ruler;
+  let selectedCard, scrollTop = 0, frame, lastTime, elapsed, angle;
+  let expression, walking, waving, seated, holding, rotating, silhouette;
+  const normalMaterials = new Map();
+  const paper = new THREE.MeshBasicMaterial({color:0xeaf2df, side:THREE.DoubleSide, toneMapped:false});
+  let queue = [], portraitFrame;
+  const bodyGeometries = new Set(), bodyMaterials = new Set();
+
+  function button(parent, label, action) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.onclick = action;
+    parent.append(b);
+    return b;
+  }
+  function addSection(title, keys) {
+    const section = document.createElement('section');
+    const heading = document.createElement('div');
+    heading.className = 'group';
+    const label = document.createElement('h2');
+    label.textContent = title;
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = keys.length + ' species';
+    heading.append(label, count);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    section.append(heading, grid);
+    catalog.append(section);
+    for (const k of keys) {
+      const card = button(grid, '', () => openFigure(k, card));
+      card.className = 'card';
+      card.style.setProperty('--accent', SPECIES[k].col);
+      card.setAttribute('aria-label', 'Inspect ' + SPECIES[k].name);
+      const strip = document.createElement('span');
+      strip.className = 'portraits';
+      strip.setAttribute('aria-hidden','true');
+      const caption = document.createElement('span');
+      caption.className = 'caption';
+      const name = document.createElement('span'), code = document.createElement('span');
+      name.className = 'name'; code.className = 'key';
+      name.textContent = SPECIES[k].name; code.textContent = k;
+      caption.append(name, code);
+      card.append(strip, caption);
+      for (const seed of seeds) queue.push({strip, k, seed});
+    }
+  }
+  function paintPortraits() {
+    if (key || !queue.length) return;
+    const start = performance.now();
+    do {
+      const {strip, k, seed} = queue.shift();
+      strip.append(portraitCanvas(k, seed, 160));
+    } while (queue.length && performance.now() - start < 12);
+    if (queue.length) portraitFrame = requestAnimationFrame(paintPortraits);
+  }
+
+  function setupScene() {
+    if (renderer) return;
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    stage.append(renderer.domElement);
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x162b32);
+    scene.add(new THREE.HemisphereLight(0xecf9ff,0x78765d,.9));
+    for (const [color, strength, x, y, z] of [[0xffefd5,1.45,2,4,3],[0xb0e9ff,.8,-2,1,2],[0x9affdf,.9,0,2,-3]]) {
+      const light = new THREE.DirectionalLight(color,strength);
+      light.position.set(x,y,z);
+      scene.add(light);
+    }
+    scene.add(new THREE.GridHelper(8,32,0x739997,0x38575a));
+    const points = [-.78,0,0,-.78,1,0];
+    for (let i=0; i<=10; i++) points.push(-.78,i/10,0, i%5 ? -.735 : -.68,i/10,0);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(points,3));
+    scene.add(new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({color:0xffda83})));
+    const cv = document.createElement('canvas');
+    cv.width=180; cv.height=80;
+    const ctx=cv.getContext('2d');
+    ctx.font='bold 52px system-ui'; ctx.fillStyle='#ffda83'; ctx.fillText('1 m',8,60);
+    ruler = new THREE.CanvasTexture(cv);
+    const marker = new THREE.Sprite(new THREE.SpriteMaterial({map:ruler,depthTest:false}));
+    marker.scale.set(.34,.15,1); marker.position.set(-.74,1.11,0); scene.add(marker);
+    camera = new THREE.PerspectiveCamera(32,1,.05,30);
+    fit();
+  }
+  function fit() {
+    if (!renderer || stage.clientWidth < 1 || stage.clientHeight < 1) return;
+    const w=stage.clientWidth, h=stage.clientHeight;
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h;
+    camera.position.set(0,1.26,Math.max(4.95,3.55/camera.aspect));
+    camera.lookAt(0,1.03,0);
+    camera.updateProjectionMatrix();
+  }
+  const resize = new ResizeObserver(fit);
+  resize.observe(stage);
+
+  function discardFigure() {
+    if (!figure) return;
+    scene.remove(figure);
+    for (const g of bodyGeometries) g.dispose();
+    for (const m of bodyMaterials) m.dispose();
+    bodyGeometries.clear(); bodyMaterials.clear(); normalMaterials.clear();
+    figure = null; prop = null;
+  }
+  function loadFigure() {
+    discardFigure();
+    const seed = seedIndex < seeds.length ? seeds[seedIndex] : 100 + seedIndex - seeds.length;
+    figure = Folk.make(key,seed,1);
+    // The house eyes and mouth share materials with the game. Own only the viewer's copies.
+    const copies = new Map();
+    figure.traverse(o => {
+      if (!o.isMesh) return;
+      bodyGeometries.add(o.geometry);
+      if (!copies.has(o.material)) copies.set(o.material,o.material.clone());
+      o.material = copies.get(o.material);
+      bodyMaterials.add(o.material);
+      normalMaterials.set(o,o.material);
+      if (silhouette) o.material=paper;
+    });
+    scene.add(figure);
+    const bounds = new THREE.Box3(), point = new THREE.Vector3();
+    figure.updateMatrixWorld(true);
+    figure.traverse(o => {
+      if (!o.isMesh) return;
+      const vertices=o.geometry.attributes.position;
+      for (let i=0; i<vertices.count; i++) bounds.expandByPoint(point.fromBufferAttribute(vertices,i).applyMatrix4(o.matrixWorld));
+    });
+    const size = bounds.getSize(new THREE.Vector3());
+    const dl = get('.measure');
+    dl.replaceChildren();
+    for (const [label,value] of [['Height',size.y],['Width',size.x],['Depth',size.z],['Lowest point',bounds.min.y]]) {
+      const dt=document.createElement('dt'), dd=document.createElement('dd');
+      dt.textContent=label; dd.textContent=(Math.abs(value)<.0005 ? 0 : value).toFixed(3)+' m';
+      dl.append(dt,dd);
+    }
+    prop = new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.34,16),new THREE.MeshStandardMaterial({color:0xffaf46}));
+    prop.rotation.x=Math.PI/2; prop.position.z=.13;
+    bodyGeometries.add(prop.geometry); bodyMaterials.add(prop.material);
+    Folk.hold(figure,prop);
+    prop.visible=holding;
+    get('#name').textContent=SPECIES[key].name;
+    get('#seed').textContent=key+' · Seed '+seed;
+    get('#trait').textContent=SPECIES[key].trait;
+    Folk.mood(figure,expression);
+    angle=0;
+    updateControls();
+  }
+  function openFigure(k, card) {
+    scrollTop=page.scrollTop; selectedCard=card; key=k; seedIndex=0;
+    expression='neutral'; walking=waving=seated=holding=silhouette=false; rotating=true;
+    cancelAnimationFrame(portraitFrame);
+    catalog.hidden=true; get('#viewer').hidden=false; get('#back').hidden=false;
+    page.scrollTop=0; get('#back').focus();
+    setupScene(); fit(); loadFigure();
+    elapsed=0; lastTime=null;
+    frame=requestAnimationFrame(draw);
+  }
+  function draw(time) {
+    const dt=lastTime===null ? 0 : Math.min(.08,(time-lastTime)/1000);
+    lastTime=time; elapsed+=dt;
+    if (rotating) angle+=dt*.42;
+    figure.rotation.y=angle;
+    Folk.walk(figure,elapsed*5.5,walking ? 1 : 0);
+    for (const arm of figure.userData.arms) arm.rotation.z=0;
+    if (waving) Folk.arms(figure,[.3,2.6],[.3,2.6]);
+    figure.position.y=seated ? .47 : 0;
+    if (seated) for (const leg of figure.userData.legs) {
+      leg.rotation.x=-1.45;
+      if (leg.userData.foot) leg.userData.foot.rotation.x=0;
+    }
+    Folk.blink(figure,elapsed);
+    renderer.render(scene,camera);
+    frame=requestAnimationFrame(draw);
+  }
+  function updateControls() {
+    for (const b of get('#moods').children) b.setAttribute('aria-pressed',b.dataset.mood===expression);
+    const poses=[walking,waving,seated,holding];
+    [...get('#poses').children].forEach((b,i)=>b.setAttribute('aria-pressed',poses[i]));
+    get('#spin').setAttribute('aria-pressed',rotating);
+    get('#outline').setAttribute('aria-pressed',silhouette);
+  }
+  for (const m of ['neutral','happy','sad','shock','worried']) {
+    const b=button(get('#moods'),m[0].toUpperCase()+m.slice(1),()=>{expression=m; Folk.mood(figure,m); updateControls();});
+    b.dataset.mood=m;
+  }
+  button(get('#poses'),'Walk',()=>{walking=!walking; seated=false; updateControls();});
+  button(get('#poses'),'Wave',()=>{waving=!waving; updateControls();});
+  button(get('#poses'),'Sit',()=>{seated=!seated; walking=false; updateControls();});
+  button(get('#poses'),'Hold prop',()=>{holding=!holding; prop.visible=holding; updateControls();});
+  get('#outline').onclick=()=>{
+    silhouette=!silhouette;
+    for (const [mesh,material] of normalMaterials) mesh.material=silhouette ? paper : material;
+    updateControls();
+  };
+  get('#next').onclick=()=>{seedIndex++; loadFigure();};
+  get('#spin').onclick=()=>{rotating=!rotating; updateControls();};
+
+  function back() {
+    cancelAnimationFrame(frame); discardFigure(); key=null;
+    get('#viewer').hidden=true; get('#back').hidden=true; catalog.hidden=false;
+    page.scrollTop=scrollTop; selectedCard.focus({preventScroll:true});
+    portraitFrame=requestAnimationFrame(paintPortraits);
+  }
+  function close() {
+    cancelAnimationFrame(frame); cancelAnimationFrame(portraitFrame); queue=[];
+    resize.disconnect(); discardFigure();
+    if (renderer) {
+      scene.traverse(o=>{if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose();});
+      ruler.dispose(); renderer.dispose(); renderer.forceContextLoss();
+    }
+    paper.dispose(); host.close(); host.remove();
+  }
+  get('#back').onclick=back;
+  get('#close').onclick=close;
+  host.addEventListener('cancel',e=>{e.preventDefault(); if(key) back(); else close();});
+  // The game has window-level flight controls, including Space and the arrow keys.
+  for (const type of ['keydown','keyup','keypress']) host.addEventListener(type,e=>e.stopPropagation());
+  addSection('Original crew',SPECIES_KEYS);
+  addSection('Species pack',SPECIES_EXTRA_KEYS);
+  portraitFrame=requestAnimationFrame(paintPortraits);
+})();
 </script>
 </body></html>
