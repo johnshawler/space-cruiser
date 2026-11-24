@@ -20,9 +20,9 @@ const Cine = {
     Loading.stop();
     if(this.surf){ if(this.model && this.model.parent===this.surf.scene) World.space.add(this.model); if(this.preview){ this.preview=null; }
       this.surf.scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose()); } }); if(this.surf.env) this.surf.env.dispose(); }
-    const S=P.surf, scn=new THREE.Scene(), seed=P.idx*977+5, rr=mulberry32(seed), cloud=!!S.cloudsea, spc=SPECIES[P.species];
+    const S=P.surf, scn=new THREE.Scene(), seed=P.idx*977+5, rr=mulberry32(seed), cloud=!!S.cloudsea, deck=!!S.deck, spc=SPECIES[P.species];
     const sunDir=new V3(Math.cos(P.idx*1.7)*0.75,0.36+0.16*Math.sin(P.idx*2.3),Math.sin(P.idx*1.7)*0.75).normalize();
-    const skyU={cZen:{value:C(S.zen)},cHor:{value:C(S.hor)},uSun:{value:sunDir},cSun:{value:C('#fff0d8')},uStars:{value:P.atm<0.75?1:0.15},uMax:{value:3}};
+    const skyU={cZen:{value:C(S.zen)},cHor:{value:C(S.hor)},uSun:{value:sunDir},cSun:{value:C('#fff0d8')},uStars:{value:deck||P.atm<0.75?1:0.15},uMax:{value:3},uCloud:{value:deck?0:1}};
     const skyMat=new THREE.ShaderMaterial({vertexShader:GLSL.skyVert,fragmentShader:GLSL.groundSkyFrag,uniforms:skyU,side:THREE.BackSide,depthWrite:false});
     const sky=new THREE.Mesh(new THREE.SphereGeometry(26000,48,32),skyMat); scn.add(sky);
     // reflection map: render the sky to a float cube first (a raw shader cannot be fed to PMREM's fromScene directly)
@@ -33,9 +33,10 @@ const Cine = {
     const sun=new THREE.DirectionalLight(C('#fff2dc'),S.lava?1.1:1.9); sun.position.copy(sunDir).multiplyScalar(320); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
     const sc=sun.shadow.camera; sc.left=-150; sc.right=150; sc.top=150; sc.bottom=-150; sc.near=60; sc.far=800; sun.shadow.bias=-0.0005; sun.shadow.normalBias=0.4; sun.shadow.radius=3; scn.add(sun); scn.add(sun.target);
     const liq=S.liquid?-20:-1e9;
-    const hAt=(x,z)=>{ const d=Math.hypot(x,z), n=fbm2(x*0.0011+31,z*0.0011+17,seed,5), rd=1-Math.abs(2*fbm2(x*0.0023+5,z*0.0023+9,seed+3,4)-1);
+    const hAt=deck?(()=>0):(x,z)=>{ const d=Math.hypot(x,z), n=fbm2(x*0.0011+31,z*0.0011+17,seed,5), rd=1-Math.abs(2*fbm2(x*0.0023+5,z*0.0023+9,seed+3,4)-1);
       const h=(n*0.75+rd*0.25-0.5)*S.amp*2.4+smooth(1200,4300,d)*S.amp*1.6*n; return cloud? -560+h*0.55 : h*smooth(150,800,d); };
-    // terrain
+    // terrain (on a station: a metal deck floating in space, with the station's ring arching overhead)
+    if(deck) this.buildDeck(scn,P,S,rr); else {
     const seg=190, size=10000, tg=new THREE.PlaneGeometry(size,size,seg,seg); tg.rotateX(-Math.PI/2); const pa=tg.attributes.position, cols=new Float32Array(pa.count*3), g0=C(S.g[0]), g1=C(S.g[1]), g2=C(S.g[2]), tc=new THREE.Color();
     for(let i=0;i<pa.count;i++){ const x=pa.getX(i), z=pa.getZ(i), h=hAt(x,z); pa.setY(i,h); let t=clamp(0.5+(cloud?(h+560):h)/(S.amp*2.0)+(vnoise(x*0.02,z*0.02,seed)-0.5)*0.3,0,1);
       if(t<0.5) tc.copy(g0).lerp(g1,t*2); else tc.copy(g1).lerp(g2,(t-0.5)*2); cols[i*3]=tc.r; cols[i*3+1]=tc.g; cols[i*3+2]=tc.b; }
@@ -45,6 +46,7 @@ const Cine = {
     const terr=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,map:gt,roughness:cloud?1:0.94,metalness:0})); terr.receiveShadow=true; scn.add(terr);
     if(S.liquid){ const lm=S.lava?new THREE.MeshBasicMaterial({color:HDR(S.liquid,2.6)}):new THREE.MeshStandardMaterial({color:C(S.liquid),roughness:0.06,metalness:0.55,envMapIntensity:1.4});
       const l=new THREE.Mesh(new THREE.PlaneGeometry(26000,26000),lm); l.rotation.x=-Math.PI/2; l.position.y=liq; scn.add(l); if(S.lava){ const ll=new THREE.HemisphereLight(C('#000000'),C(S.liquid),1.1); scn.add(ll); } }
+    }
     // pad
     const pcv=makeCanvas(512,512), px=pcv.getContext('2d'); px.fillStyle='#34363a'; px.fillRect(0,0,512,512); const pr=mulberry32(seed+1);
     for(let i=0;i<5000;i++){ px.fillStyle=`rgba(${pr()<0.5?0:255},${pr()<0.5?0:255},${pr()<0.5?0:255},${pr()*0.06})`; px.fillRect(pr()*512,pr()*512,3,3); }
@@ -65,6 +67,13 @@ const Cine = {
       else if(st==='spire'){ const h=60+rr()*130, r=6+rr()*8; b.add(mk(new THREE.CylinderGeometry(r*0.25,r,h,10),bm(pick([S.g[1],S.g[2],'#e8dcc8']),0.5,0.4),0,h/2,0)); for(let k=1;k<4;k++){ const rg=mk(new THREE.TorusGeometry(r*(1.3-k*0.22),0.8,6,24),win,0,h*k/4.2,0); rg.rotation.x=Math.PI/2; b.add(rg); } b.add(mk(new THREE.SphereGeometry(2,10,8),warm,0,h+1,0)); }
       else if(st==='bubble'){ const n=2+Math.floor(rr()*3); for(let i=0;i<n;i++){ const r=10+rr()*18, x=(rr()-0.5)*30, z=(rr()-0.5)*30; b.add(mk(new THREE.SphereGeometry(r,24,16),bm(spc.col,0.08,0.3,{transparent:true,opacity:0.5,envMapIntensity:2}),x,r*0.6,z)); b.add(mk(new THREE.SphereGeometry(r*0.3,10,8),win,x,r*0.55,z)); } }
       else if(st==='shroom'){ const h=20+rr()*60, r=10+rr()*22; b.add(mk(new THREE.CylinderGeometry(r*0.18,r*0.28,h,10),bm('#e9dcc0',0.8,0),0,h/2,0)); const cap=mk(new THREE.SphereGeometry(r,20,12,0,6.3,0,Math.PI/2),bm(pick(['#b5503a','#c98a3a','#7a5ca0']),0.7,0),0,h-2,0); cap.scale.y=0.6; b.add(cap); for(let i=0;i<7;i++){ const a=rr()*6.28, e=0.3+rr()*0.9; b.add(mk(new THREE.SphereGeometry(r*0.09,8,6),win,Math.cos(a)*Math.sin(e)*r,h-2+Math.cos(e)*r*0.6,Math.sin(a)*Math.sin(e)*r)); } }
+      else if(st==='station'){ const kind=rr(), hull=bm(pick(S.g.concat(['#d8dde2','#e8e2d4'])),0.45,0.6), dk=bm('#2a2e34',0.6,0.5);
+        if(kind<0.35){ const L=24+rr()*34, R=6+rr()*5, c=mk(new THREE.CylinderGeometry(R,R,L,20),hull,0,R+2,0); c.rotation.z=Math.PI/2; b.add(c); for(const s of [-1,1]) b.add(mk(new THREE.SphereGeometry(R,18,12),hull,s*L/2,R+2,0));
+          const wb=mk(new THREE.CylinderGeometry(R*1.02,R*1.02,L*0.8,20,1,true),rr()<0.6?warm:win,0,R+2,0); wb.rotation.z=Math.PI/2; wb.scale.set(1,1,0.18); wb.position.z=R*0.5; b.add(wb); for(const s of [-0.3,0.3]) b.add(mk(new THREE.BoxGeometry(2,R+2,R*1.4),dk,s*L,(R+2)/2,0)); }
+        else if(kind<0.58){ const r=14+rr()*12; b.add(mk(new THREE.CylinderGeometry(r*1.04,r*1.08,2.4,28),dk,0,1.2,0)); b.add(mk(new THREE.SphereGeometry(r,26,14,0,6.3,0,Math.PI/2),bm('#bfe8ff',0.05,0.2,{transparent:true,opacity:0.32,envMapIntensity:2.5}),0,2.4,0));
+          const leaf=bm(pick(['#3f9a4a','#5fb36a','#2f7a3a']),0.7,0); for(let k=0;k<6;k++){ const a=rr()*6.28, d=rr()*r*0.6, h=3+rr()*r*0.5; b.add(mk(new THREE.SphereGeometry(2+rr()*4,10,8),leaf,Math.cos(a)*d,2.4+h,Math.sin(a)*d)); b.add(mk(new THREE.CylinderGeometry(0.5,0.7,h,6),bm('#7a5a3a',0.9,0),Math.cos(a)*d,2.4+h/2,Math.sin(a)*d)); } }
+        else if(kind<0.8){ const h=40+rr()*50; b.add(mk(new THREE.CylinderGeometry(1.2,2.4,h,10),dk,0,h/2,0)); for(let k=1;k<4;k++) b.add(mk(new THREE.BoxGeometry(6-k,0.6,0.6),hull,0,h*k/4,0)); const d=mk(new THREE.SphereGeometry(12,20,10,0,6.3,0,1.0),bm('#e8eef4',0.35,0.3,{side:THREE.DoubleSide}),0,h+6,0); d.rotation.set(Math.PI*0.75,rr()*6,0); b.add(d); b.add(mk(new THREE.SphereGeometry(1.4,10,8),new THREE.MeshBasicMaterial({color:HDR('#ff3020',5)}),0,h+1,0)); }
+        else { for(let k=0;k<3;k++){ const r=5+rr()*4, x=(k-1)*r*2.3; b.add(mk(new THREE.SphereGeometry(r,18,12),bm('#f4f8fa',0.25,0.3),x,r*1.5,0)); b.add(mk(new THREE.CylinderGeometry(r*0.5,r*0.7,r*1.5,12),dk,x,r*0.75,0)); b.add(mk(new THREE.TorusGeometry(r*1.01,0.4,6,24),win,x,r*1.5,0)).rotation.x=Math.PI/2; } } }
       else { const r=12+rr()*16; b.add(mk(new THREE.SphereGeometry(r,24,14,0,6.3,0,Math.PI/2),bm('#f2f4f6',0.5,0.1),0,0,0)); const band=mk(new THREE.CylinderGeometry(r*0.985,r*0.985,1.8,32,1,true),warm,0,r*0.2,0); b.add(band); b.add(mk(new THREE.CylinderGeometry(1.2,1.2,r*0.7,8),bm('#8a9098'),r*0.4,r*0.9,0)); }
       return b; };
     Venues.build(scn,P,cloud,padSide,hAt,S.liquid?liq:null);
@@ -86,6 +95,35 @@ const Cine = {
     Crowd.build(scn,P,cloud,PADS,hAt,S.liquid?liq:null);
     this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
+  /* a research station's docking deck: a big round metal deck with lamps around its rim, open to space. The station's
+     hub and habitat ring loom behind it, and a planet hangs in the sky (they're the system's, seen from very far off). */
+  buildDeck(scn, P, S, rr){
+    const cv=makeCanvas(1024,1024), x=cv.getContext('2d'); x.fillStyle=S.g[1]; x.fillRect(0,0,1024,1024);
+    for(let i=0;i<1400;i++){ x.fillStyle=`rgba(${rr()<0.5?0:255},${rr()<0.5?0:255},${rr()<0.5?0:255},${rr()*0.05})`; x.fillRect(rr()*1024,rr()*1024,6,6); }
+    x.strokeStyle='rgba(0,0,0,.35)'; x.lineWidth=4; for(let k=0;k<=1024;k+=128){ x.beginPath(); x.moveTo(k,0); x.lineTo(k,1024); x.moveTo(0,k); x.lineTo(1024,k); x.stroke(); }
+    x.fillStyle='rgba(255,255,255,.12)'; for(let a=0;a<8;a++) for(let b=0;b<8;b++){ x.beginPath(); x.arc(a*128+10,b*128+10,4,0,7); x.fill(); }
+    const tex=canvasTex(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(14,14);
+    const top=new THREE.MeshStandardMaterial({color:0xffffff,map:tex,roughness:0.55,metalness:0.55,envMapIntensity:1.1}), side=new THREE.MeshStandardMaterial({color:C(S.g[0]),roughness:0.5,metalness:0.6});
+    scn.add(new THREE.HemisphereLight(C('#c8d2e4'),C('#3a3e46'),0.55));   // floodlights: there's no sky to light the deck
+    const R=980, d=new THREE.Mesh(new THREE.CylinderGeometry(R,R*0.86,90,120),[side,top,side]); d.position.y=-45; d.receiveShadow=true; scn.add(d);
+    const glow=new THREE.MeshBasicMaterial({color:HDR(P.light,2.6)});
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(R,2.2,8,160),glow); rim.rotation.x=Math.PI/2; rim.position.y=0.6; scn.add(rim);
+    for(let i=0;i<64;i++){ const a=i/64*Math.PI*2, p=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.8,7,8),side); p.position.set(Math.cos(a)*(R-6),3.5,Math.sin(a)*(R-6)); scn.add(p);
+      const l=new THREE.Mesh(new THREE.SphereGeometry(1.3,8,6),glow); l.position.set(p.position.x,7.4,p.position.z); scn.add(l); }
+    // the hub and the habitat ring, a few kilometres off
+    const far=(hex,ro=0.45,me=0.5)=>new THREE.MeshStandardMaterial({color:C(hex),roughness:ro,metalness:me,envMapIntensity:1.3});
+    const st=new THREE.Group(); st.position.set(0,1300,-4600); st.rotation.y=(rr()-0.5)*0.9; scn.add(st);
+    st.add(new THREE.Mesh(new THREE.SphereGeometry(700,40,24),far(P.pal.a)));
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(3600,170,20,160),far(P.pal.a)); st.add(ring);
+    const band=new THREE.Mesh(new THREE.TorusGeometry(3600,174,6,160),new THREE.MeshBasicMaterial({color:HDR(P.light,1.6),wireframe:true,transparent:true,opacity:0.5})); st.add(band);
+    for(let k=0;k<4;k++){ const a=k*Math.PI/2+Math.PI/4, sp=new THREE.Mesh(new THREE.CylinderGeometry(60,60,2900,12),far(P.pal.c,0.6,0.4)); sp.position.set(Math.cos(a)*2150,Math.sin(a)*2150,0); sp.rotation.z=a-Math.PI/2; st.add(sp); }
+    for(let k=0;k<24;k++){ const a=k/24*Math.PI*2, l=new THREE.Mesh(new THREE.SphereGeometry(55,8,6),new THREE.MeshBasicMaterial({color:HDR(k%4?'#ffffff':'#ff4030',3)})); l.position.set(Math.cos(a)*3600,Math.sin(a)*3600,175); st.add(l); }
+    st.traverse(o=>{ if(o.material) o.material.fog=false; });
+    // a planet in the sky, and its glow
+    const pd=new V3(0.62,0.3,0.72).normalize().applyAxisAngle(new V3(0,1,0),rr()*1.4), pl=new THREE.Mesh(new THREE.SphereGeometry(3800,48,32),new THREE.MeshStandardMaterial({color:C(S.planet),roughness:0.9,metalness:0,fog:false}));
+    pl.position.copy(pd).multiplyScalar(17000); scn.add(pl);
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:HDR(S.planet,0.6),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,fog:false})); halo.scale.setScalar(12500); halo.position.copy(pl.position); scn.add(halo);
+  },
   updateSurface(dt, t, alt){
     const s=this.surf; if(!s) return;
     s.lamps.forEach((l,i)=>{ const on=((i+Math.floor(t*10))%5)===0; l.material.color.setRGB(on?3.2:0.35,on?2.6:0.28,on?1.2:0.12); });
@@ -100,7 +138,7 @@ const Cine = {
   /* ---------- sequences ---------- */
   ui(on, title, sub){ document.body.classList.toggle('cine',on); $('skip').hidden=!on; if(on) $('keys').hidden=true; if(title){ $('cine-h').textContent=title; $('cine-p').textContent=sub; } $('cine-title').classList.toggle('on',!!title); },
   startLanding(P){
-    Walk.exit(true); G.mode='landing'; this.mode='A'; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
+    Walk.exit(true); G.mode='landing'; this.mode='A'; $('deep-badge').hidden=true; Deep.storm=null; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
     if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     this.buildSurface(P); World.space.add(this.model); this.model.visible=true; this.model.position.set(0,0,0); this.model.rotation.set(0,0,0); this.plasma.visible=false; this.setThrust(0,0);
     const s=G.ship, out=this.out=new V3().subVectors(s.pos,P.pos).normalize(); let up=new V3(0,1,0); if(Math.abs(out.y)>0.9) up.set(1,0,0);
@@ -152,8 +190,12 @@ const Cine = {
     if(this.mode==='A'){
       s.pos.copy(this.baseA).addScaledVector(this.hA,-165+72*t); m.quaternion.copy(this.qA); Models.animate(m,0.85,time);
       cam.position.copy(this.camA).sub(s.pos); cam.up.copy(this.up); cam.lookAt(0,0,0); fov=36; this.fade=Math.max(0,1-t/0.7);
+      // a station is small next to a planet: ride behind the ship instead, so the station fills the view ahead of it
+      if(P.station){ const toS=P.pos.clone().sub(s.pos).normalize(); cam.position.copy(this.hA).multiplyScalar(-46).addScaledVector(this.up,11).addScaledVector(this.side,13); cam.lookAt(toS.multiplyScalar(40)); fov=50; }
       World.updateDust(this.hA.clone().multiplyScalar(500),dt,0);
-      if(t>=4.3){ this.mode='B'; this.t=0; this.fade=0; }
+      // a station has no atmosphere to burn through: fade to black and come out of it over the docking deck
+      if(P.station){ this.fadeCol.setRGB(0,0,0); this.fade=Math.max(this.fade,smooth(3.4,4.25,t)); }
+      if(t>=4.3){ if(P.station){ this.mode='C'; this.t=0; this.fade=1; this.surf.scene.add(m); World.scenes.list=[{scene:this.surf.scene,camera:cam}]; this.orbit=0.9; this.td=false; Sfx.hiss(3,0.12); } else { this.mode='B'; this.t=0; this.fade=0; } }
     } else if(this.mode==='B'){
       const alt=P.r*lerp(1.13,1.05,smooth(0,4.2,t)), along=-420+250*t; const lu=this.out.clone().addScaledVector(this.side,along/alt).normalize(); s.pos.copy(P.pos).addScaledVector(lu,alt);
       const tan=this.side.clone().addScaledVector(lu,-this.side.dot(lu)).normalize(), h=tan.clone().addScaledVector(lu,-0.1).normalize(), rgt=new V3().crossVectors(h,lu).normalize();
@@ -168,7 +210,7 @@ const Cine = {
       Models.animate(m,0.04,time); this.setThrust(u<1?0.5+0.5*(1-u):Math.max(0,1-(t-5.8)*2.5)*0.5,time); this.surf.dustI=smooth(80,6,m.position.y-rest)*(u<1?1:Math.max(0,1-(t-5.8)*0.6));
       if(u>=1&&!this.td){ this.td=true; Sfx.thump(1); this.shake=0.7; } this.shake=Math.max(0,this.shake-dt*1.2);
       this.fade=Math.max(0,1-t/1.0); const a=this.orbit+u*0.8, R=128-40*u; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*R,5+11*(1-u),Math.sin(a)*R); cam.lookAt(m.position.x,m.position.y*0.8+3,m.position.z); fov=40;
-      if(t>1.4&&t<7) this.ui(true,P.name,P.port+' · '+SPECIES[P.species].name+' territory'); this.orbit2=a;
+      if(t>1.4&&t<7) this.ui(true,P.name,P.station?`${P.port} · research station · ${RISK[P.risk].name} risk`:P.port+' · '+SPECIES[P.species].name+' territory'); this.orbit2=a;
       if(t>=7.6){ this.dock(P); this.orbit=this.orbit2; }
     } else if(this.mode==='port'){
       Models.animate(m,0,time);

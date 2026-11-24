@@ -1,6 +1,6 @@
 # Long Haul
 
-A first-person space cargo simulator that runs in the browser. Fly from the cockpit, haul oddly named goods between nine planets, chat with alien pilots, and save up for a bigger ship.
+A first-person space cargo simulator that runs in the browser. Fly from the cockpit, haul oddly named goods between nine planets and four remote research stations, chat with alien pilots, and save up for a bigger ship.
 
 Play it at https://johnshawler.com/long-haul or https://space-cruiser.johnshawler.com
 
@@ -37,12 +37,12 @@ On-screen controls appear by themselves: a steering stick on the left, and a thr
 
 Every planet has its own mix of places. Each one sits in its own part of the port, a few hundred metres from the pad and from the others, with its own neighbourhood (warehouses, a hangar and showroom, workshops, paint booths, market stalls, a mine head, a cantina with fairy lights) and its own shopkeeper. The shop panel is a compact list (about a third of the screen): one line per item in large text, and tapping a row opens its story and details. Each shopkeeper speaks in a speech bubble over their head instead. The cargo depot has a goods shelf beside the counter with a cartoon model of every contract on the board (a haunted rubber duck, a cheese wedge with opinions, a screaming cactus, a crate of definitely-nothing); hover over one to see what it is and where it's going, and click it to jump to that job. The models live in `src/08e-goods-art.js`. Moving between shops is a quick fade to black and back. Click your ship's name (in the port header, the paint shop, or on a shipyard card) to see its specs: every ship lists the same categories (cargo hold, passenger seats, cruise speed, warp speed, fuel tank, handling, price new), and yours adds how it is doing now. Every face in the side panel is rendered from that alien's 3D model. Every shop is a real room: walls with windows, a ceiling with beams and lights, and furniture to suit the trade (pallet racks, workbenches and tyre racks, paint shelves, display cases, ore bins and a boulder scale, cantina booths). The cargo depot is a low shed with a stock room at the back. The shipyard is a hangar hall big enough to park ships in, with display ships roped off, sale banners and the showroom pad, where previewed ships park, inside it. Behind the counter a crew tries to do its job: stacking crates, craning an engine into place, test-firing an engine, painting a panel, opening a mystery box, cracking a rock, or juggling mugs. It usually goes wrong. Sometimes it goes right.
 
-- **Cargo depot** (every port): contracts and fuel.
+- **Cargo depot** (every port and station): contracts and fuel.
 - **Shipyard** (Verdanthia, Sloshwell, Amethyne, Jovexa): each sells a different range of ships. Your ship is worth half what it cost new, less any hull damage. A new ship comes with a clean hull, no faults, a clean canopy, cool engines, a full tank and factory paint; cargo, passengers and fittings move across. You can also sell your ship outright and leave in a free Rustbucket Mk I.
-- **Garage** (Verdanthia, Scorchmaw, Toxibloom, Jovexa, Brrrindle): hull repairs and a canopy wash.
+- **Garage** (Verdanthia, Scorchmaw, Toxibloom, Jovexa, Brrrindle and all four stations): hull repairs and a canopy wash.
 - **Paint shop** (Dunemoor, Amethyne, Jovexa): new paint jobs for your ship.
-- **Outfitter** (Scorchmaw, Amethyne, Candara): the mining laser upgrade and the hidden compartment.
-- **Assay office** (Scorchmaw, Sloshwell, Candara, Brrrindle): buys mined ore.
+- **Outfitter** (Scorchmaw, Amethyne, Candara, Calibration Spire): the mining laser upgrade and the hidden compartment.
+- **Assay office** (Scorchmaw, Sloshwell, Candara, Brrrindle, Beacon Far Wink): buys mined ore.
 - **Cantina** (most ports): gossip, and tips on where deliveries pay extra.
 
 ## Port life
@@ -54,6 +54,18 @@ Locals stroll around the landing pad, stop to chat, push carts of crates about, 
 Get up from the pilot's seat (L) and walk around inside: a corridor with handrails and signs over every door, a passenger cabin with cushioned seats under the portholes, a galley with cupboards and a bunk, the cargo hold (its crates match how full it is) and the engine room. Passengers sit in the cabin seats, wave when you come over, and wear how the trip is going on their faces. The ship keeps flying while you walk, on autopilot if it is set. The radio only reaches the pilot's seat: while you walk you hear no chatter and get no calls, and anyone who hails you (a customs cutter, a distress beacon) waits until you sit back down. Your passengers still talk to you. Walking backwards is half speed.
 
 Things break. A coolant leak (fuel use up), a thruster misfire (top speed down), a blown fuse (radio dead), a jammed air scrubber (passengers cross, canopy fogs), a hull crack (hull slowly failing), a snapped cargo strap (cargo loses value faster). Each shows on screen and in the ship itself, at its own fitting with a status screen and light: flashing red and visibly broken (a split, leaking coolant flange; a thruster panel hanging open over a glowing coil; a fuse box with a charred fuse; a scrubber clogged with fluff; a frosting crack; a snapped strap), or steady green and put right (a taped joint, a closed panel, a shut fuse box, a spinning fan with a ribbon in the draught, a riveted patch plate, taut straps). Walk to it and hold F to fix it. It goes slowly while the ship is shaking, above throttle 5 or in warp.
+
+## Research stations and deep space
+
+Four research stations sit far out past the planets, from 1.75 to 3.2 million km from the sun: **Listening Post Hush** (a giant listening dish), **Cryo Vault Rimeholm** (frozen samples of everything), **Calibration Spire** (measures the universe) and **Beacon Far Wink** (the furthest lighthouse). From space each is a hub with a turning ring, solar wings and blinking lights. You dock on an open metal deck with the station's wheel overhead and a planet in the sky. They're crewed by the newer species and have a cargo depot (fuel costs 6 cr a unit out here instead of 3), a garage, and a cantina, outfitter or assay office depending on the station. A fourth asteroid field, **The Back of Beyond**, lies near Far Wink and has the best ore in the system.
+
+Space has three zones, shown in the top-left corner while you fly and as dashed rings on the system map:
+
+- **Patrolled** (inside 1 million km): the planets you know.
+- **Frontier** (1 to 1.45 million km, around Jovexa and Brrrindle): the odd raider.
+- **Deep space** (past 1.45 million km) and **the far dark** (past 2.5 million km): no patrols and no customs, but raiders who demand a toll, meteor storms (keep the throttle at 4 or lower until it passes and you take no damage, and may scoop up Meteor Glass), derelict survey probes worth salvaging (some booby-trapped), riskier maydays with bigger rewards, and much dearer tows. Events come more often in the far dark.
+
+Every route has a risk level, the riskier of its two ends: **Low** (×1 pay), **Medium** (×1.2), **High** (×1.5) or **Extreme** (×1.9). The job board shows it on every contract, along with how much of a full tank the trip takes, and warns when it needs more than one tank. From a planet, the first couple of jobs always stay in safer space. Contraband now pays more the stricter the customs at both ends. The system map opens framed on the planets, with the stations pinned to its edge; scroll out to see deep space.
 
 ## Deliveries
 
@@ -80,7 +92,7 @@ Full throttle is not always the answer:
 - **Cargo hold and scoop.** Press I to see your hold and drop anything in it. Dropped cargo floats where you left it and can be scooped back up (B opens the scoop; slow below 450 km/s). Dropping a client's cargo costs reputation, which you get back if you recover it. Dumping contraband before a customs stop is allowed, if not encouraged.
 
 - **Distress calls.** Maydays come in mid-route. Answering costs time and fuel and might pay off, or it might be a pirate ambush. Ignoring one costs reputation.
-- **Asteroid mining.** Three asteroid fields are on the system map. Hold F on a rock to mine ore and sell it at an assay office (Scorchmaw, Sloshwell, Candara or Brrrindle). Slower than hauling, a little dangerous, and it never depends on a job board.
+- **Asteroid mining.** Four asteroid fields are on the system map, the last of them in the far dark. Hold F on a rock to mine ore and sell it at an assay office (Scorchmaw, Sloshwell, Candara, Brrrindle or Beacon Far Wink). Slower than hauling, a little dangerous, and it never depends on a job board.
 - **Contraband.** High-paying, illegal cargo with a discovery roll at three points: loading, a customs stop on the way, and unloading. Bribes and a hidden compartment change the odds; the compartment also adds one unit of hold space.
 - **Escorts.** Protect a nervous VIP's ship to its destination. Keep close, scare off pirates with the horn, slow down for debris, and talk them down when they panic.
 

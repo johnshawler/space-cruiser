@@ -70,6 +70,27 @@ const VENUES = [
     {k:'assay',name:'Snowball Assay',sp:'momwump',title:'Ore hugger',quirk:'Checks ore by cuddling it. Hard ones are worth more.',hi:['Bring me rocks! I will give them a squeeze and a price.','Ooh, this one is cold and hard. Lovely. Worth a lot.']},
     {k:'bar',name:'The Warm Mitten',sp:'momwump',title:'Cocoa keeper',quirk:'Gives free hot cocoa to anyone who looks cold. Everyone looks cold.',hi:['You look cold. Have a cocoa. You still look cold. Have another.','Sit by the fire. It is a picture of a fire. It still helps.']},
   ],
+  /* the research stations: small, remote, and glad of the company. Fuel costs more out here. */
+  /* 9 Listening Post Hush · The Quiet Ear · Nacrelle */ [
+    {k:'depot',name:'Hush Receiving Bay',sp:'nacrelle',title:'Receiving officer',quirk:'Signs for deliveries in a whisper. The signature is also a whisper.',hi:['Welcome. Please put the crates down quietly. The dish is listening.','You came all this way. The universe has not said anything yet, but we appreciate you.']},
+    {k:'garage',name:'Soft Landing Repairs',sp:'gaugekin',title:'Dent surveyor',quirk:'Measures every dent before fixing it, then misses it a little.',hi:['Your hull has forty-one dents. Forty-two. Do not move.','Deep space is hard on a hull. I have the measurements to prove it.']},
+    {k:'bar',name:'The Indoor Voice',sp:'nacrelle',title:'Bartender',quirk:'Runs the only cantina where clapping is a fineable offence.',hi:['Welcome to The Indoor Voice. Please cheer on the inside.','Drinks are served in padded glasses. The dish complained about the clinking.']},
+  ],
+  /* 10 Cryo Vault Rimeholm · The Freezer Aisle · Rimebud */ [
+    {k:'depot',name:'Cold Storage Intake',sp:'rimebud',title:'Intake curator',quirk:'Labels each crate with its date and a story. Some stories run long.',hi:['Fresh deliveries! Well. Freshly frozen. We freeze everything here.','Your cargo will be filed between a frozen sneeze and the last known pancake.']},
+    {k:'garage',name:'Thaw & Patch',sp:'momwump',title:'Defrost mechanic',quirk:'Thaws frozen engines with a hug and a hairdryer. Mostly the hug.',hi:['Oh, your poor ship is frosty! Come here. Hairdryer first, then cuddles.','Deep space gets into the bolts. I warm them up one at a time.']},
+  ],
+  /* 11 Calibration Spire · Tolerance Station · Gaugekin */ [
+    {k:'depot',name:'Precision Freight',sp:'gaugekin',title:'Tolerance clerk',quirk:'Rejects crates that are a hair too square. Accepts the hair.',hi:['Crate dimensions accepted, to within a sigh. Next.','You are four seconds late. I have measured my disappointment and it is small.']},
+    {k:'garage',name:'Exactly Right Repairs',sp:'gaugekin',title:'Fitter',quirk:'Will only tighten a bolt to the perfect tightness. It takes a while.',hi:['I will return your hull to specification. Your specification is "dented".','Deep space has knocked you out of true. Hold still. Truer. Truer.']},
+    {k:'outfit',name:'Fine Margins Outfitters',sp:'tarestep',title:'Outfitter',quirk:'Weighs every part on a set of very kind scales.',hi:['Parts for the far dark. Each weighed and gently reassured.','This laser is exactly as heavy as it should be. I told it so.'],items:['laser','hidden']},
+  ],
+  /* 12 Beacon Far Wink · The Last Light · Winkmast */ [
+    {k:'depot',name:'Last Light Freight Office',sp:'winkmast',title:'Signal clerk',quirk:'Blinks receipts in morse. You have to write them down.',hi:['A delivery! Out here! I am filing a report on how pleased I am.','Hello, hauler. You are the brightest thing we have seen all week. Apart from us.']},
+    {k:'assay',name:'Far Field Assay',sp:'grondar',title:'Assayer of last resort',quirk:'Moved to the edge of everything to find the rarest rocks. Licks them anyway.',hi:['Rocks from the Back of Beyond? Give. Give now. I will pay well.','Nobody comes this far for ordinary gravel. Show me the shiny ones.']},
+    {k:'garage',name:'End of the Line Garage',sp:'linticker',title:'Mechanic',quirk:'Gives every engine a proper tea break before working on it.',hi:['Your engine has come a long way. It deserves a sit down. Then repairs.','Everything breaks out here. I fix it, then I give it a biscuit.']},
+    {k:'bar',name:'The Final Blink',sp:'winkmast',title:'Lamp-keeper and bartender',quirk:'Dims the lights at closing time. Has never closed.',hi:['Welcome to the last bar before nothing. We have snacks.','Sit by the window. The view is nothing, all the way out. It is lovely.']},
+  ],
 ];
 const VENUE_GAG = {depot:'stack', yard:'crane', garage:'engine', livery:'spray', outfit:'gadget', assay:'rock', bar:'juggle'};
 

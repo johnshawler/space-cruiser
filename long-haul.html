@@ -131,6 +131,12 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .opt small{display:block;color:var(--dim);font-size:20px;margin-top:4px;letter-spacing:.04em}
 .opt:disabled{opacity:.45;cursor:default}
 .tag.bad{border-color:var(--bad);color:var(--bad)}.tag.esc{border-color:var(--cyan);color:var(--cyan)}
+.tag.r2{border-color:#ff9a4a;color:#ff9a4a}.tag.r3{border-color:#ff5a5a;color:#fff;background:#8a1c1c}
+.risk{font-weight:700}.risk.r0{color:#7dffa8}.risk.r1{color:#ffd166}.risk.r2{color:#ff9a4a}.risk.r3{color:#ff6a6a}.warnf{color:#ff6a6a}
+#deep-badge{position:absolute;left:16px;top:16px;z-index:9;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid;padding:6px 16px;pointer-events:none;white-space:nowrap}
+#deep-badge.z1{color:#ffd166;border-color:#ffd166}#deep-badge.z2{color:#ff9a4a;border-color:#ff9a4a}#deep-badge.z3{color:#ff6a6a;border-color:#ff6a6a}
+#deep-badge.storm{color:#fff;background:#a8322a;border-color:#ff7a6a;animation:scoopPulse 1s ease-in-out infinite}
+@media (max-width:900px){ #deep-badge{font-size:16px} }
 .card.shady{border-color:rgba(255,111,97,.45)}
 #help{position:absolute;inset:0;z-index:30;background:rgba(2,4,8,.88);display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #help .box{max-width:1280px;width:100%;max-height:100%;overflow:auto;border:1px solid var(--line);background:var(--glass);padding:24px}
@@ -328,6 +334,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 
   <div id="scoop-badge" hidden>Cargo scoop open</div>
   <div id="zone-badge" hidden></div>
+  <div id="deep-badge" hidden></div>
   <div id="fault-badge" hidden></div>
   <div id="reticle" hidden></div>
   <div id="prompt" hidden></div>
@@ -353,7 +360,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   </section>
 
   <section id="title">
-    <div class="eyebrow">Independent freight · nine worlds · no questions</div>
+    <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
     <div class="byline">By John Shawler &amp; Claude · v0.24</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
@@ -2515,9 +2522,40 @@ const PLANETS = [
     pal:{deep:'#0e3d66',shal:'#3f9fc6',a:'#bfe3f2',b:'#e6f6ff',c:'#9fc9e8',d:'#ffffff',atm:'#9fe0ff',cloud:'#ffffff',emis:'#ffd9a0'},
     sea:0.36, ice:0.42, cloud:0.4, lava:0, city:0.7, atm:0.8,
     surf:{zen:'#3f7fc6',hor:'#e6f6ff',g:['#9fc9e8','#e6f6ff','#ffffff'],amp:380,fog:0.00045,liquid:'#3f9fc6',style:'dome'} },
+  /* remote research stations, far out past the planets in unpatrolled space. They come after the planets so the
+     planets keep their numbers in old saves. You dock on an open deck; the station's ring arches overhead. */
+  { name:'Listening Post Hush', port:'The Quiet Ear', species:'nacrelle', station:true, risk:2, type:'station', r:650, orbit:1750000, ang:1.0, y:42000,
+    desc:'A dish the size of a county, listening for the universe to say something. So far: a hum, and once, a cough.',
+    pal:{a:'#d9e4ee',b:'#7f93a8',c:'#3a4a5e',d:'#ffffff',atm:'#9fc8ff'}, light:'#8fe0ff', dish:true,
+    surf:{zen:'#02040a',hor:'#18223a',g:['#4a525e','#69727e','#9aa3ae'],amp:0,fog:0.00010,liquid:null,style:'station',deck:true,planet:'#7a5ac8'} },
+  { name:'Cryo Vault Rimeholm', port:'The Freezer Aisle', species:'rimebud', station:true, risk:2, type:'station', r:700, orbit:2150000, ang:4.05, y:-38000,
+    desc:'Keeps one frozen sample of everything, including a sample of the station, just in case.',
+    pal:{a:'#e8f6ff',b:'#9fd6f0',c:'#3f7fa8',d:'#ffffff',atm:'#bfeaff'}, light:'#bff4ff', tanks:true,
+    surf:{zen:'#02050c',hor:'#1a2a40',g:['#56626e','#7a8794','#b8c6d2'],amp:0,fog:0.00010,liquid:null,style:'station',deck:true,planet:'#3f9fc6'} },
+  { name:'Calibration Spire', port:'Tolerance Station', species:'gaugekin', station:true, risk:3, type:'station', r:620, orbit:2700000, ang:5.9, y:55000,
+    desc:'Measures the universe to within a whisker. The whisker is also measured, and found wanting.',
+    pal:{a:'#ffe08a',b:'#c9a03a',c:'#5a4a2a',d:'#fff6d8',atm:'#ffd27a'}, light:'#ffd27a', spire:true,
+    surf:{zen:'#030308',hor:'#22202e',g:['#4e4a44','#706a60','#a8a090'],amp:0,fog:0.00008,liquid:null,style:'station',deck:true,planet:'#c96a3a'} },
+  { name:'Beacon Far Wink', port:'The Last Light', species:'winkmast', station:true, risk:3, type:'station', r:600, orbit:3200000, ang:2.45, y:-60000,
+    desc:'The furthest lighthouse in the system. It blinks at nothing, faithfully, and files a report on every blink.',
+    pal:{a:'#ffb0a0',b:'#e05a4a',c:'#5a2a2a',d:'#fff0e8',atm:'#ff9a7a'}, light:'#ff8a6a', beacon:true,
+    surf:{zen:'#040206',hor:'#2a1820',g:['#4c4648','#6e6668','#a89ea0'],amp:0,fog:0.00008,liquid:null,style:'station',deck:true,planet:'#5a8ac8'} },
 ];
 const SUN_R = 22000;
 const LS = 300000;
+
+/* how dangerous a stretch of space is. Inside FRONTIER_R the patrols keep things quiet; past DEEP_R nobody patrols at
+   all, and past EXTREME_R even the pirates are nervous. Riskier routes pay more, and the job board says by how much. */
+const FRONTIER_R = 1000000, DEEP_R = 1450000, EXTREME_R = 2500000;
+const RISK = [
+  {name:'Low', mul:1.0, col:'#7dffa8', note:'Patrolled space.'},
+  {name:'Medium', mul:1.2, col:'#ffd166', note:'The edge of patrolled space. Pirates are rarer than rumours, but not much.'},
+  {name:'High', mul:1.5, col:'#ff9a4a', note:'Unpatrolled deep space: pirates, meteor storms, and a long way from a tow.'},
+  {name:'Extreme', mul:1.9, col:'#ff5a5a', note:'The far dark. Everything in deep space, more often and with worse manners.'},
+];
+const zoneAt = r => r>=EXTREME_R?3:r>=DEEP_R?2:r>=FRONTIER_R?1:0;
+for(const P of PLANETS) if(P.risk==null) P.risk=zoneAt(P.orbit);
+const routeRisk = (A,B) => Math.max(A?A.risk:0, B?B.risk:0);
 /* ===================== UTIL ===================== */
 const V3 = THREE.Vector3, Q4 = THREE.Quaternion;
 const $ = id => document.getElementById(id);
@@ -3021,14 +3059,14 @@ void main(){ float nv=abs(dot(normalize(vN),vV)); float body=pow(nv,1.6); float 
   gl_FragColor=vec4(col,1.0); }`;
 
 GLSL.groundSkyFrag = `
-uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax; varying vec3 vD;
+uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax,uCloud; varying vec3 vD;
 ${GLSL.noise}
 void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
   vec3 col=mix(cHor,cZen,pow(h,0.55));
   col=mix(col,cHor*0.85,(1.0-smoothstep(-0.25,0.0,d.y)));
   float s=max(dot(d,uSun),0.0);
   col*=0.72; col+=cSun*(pow(s,8.0)*0.10+pow(s,64.0)*0.5+pow(s,1400.0)*30.0);
-  float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),5); col=mix(col,mix(cHor,vec3(1.0),0.6)*0.85,smoothstep(0.1,0.6,cl)*smoothstep(0.0,0.25,d.y)*0.55);
+  float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),5); col=mix(col,mix(cHor,vec3(1.0),0.6)*0.85,smoothstep(0.1,0.6,cl)*smoothstep(0.0,0.25,d.y)*0.55*uCloud);
   vec3 q=d*220.0; float st=step(0.992,hash13(floor(q)))*(1.0-smoothstep(0.0,0.35,length(fract(q)-0.5))); col+=vec3(st)*uStars*h;
   col=clamp(col,vec3(0.0),vec3(uMax));
   gl_FragColor=vec4(col,1.0); }`;
@@ -3265,6 +3303,7 @@ const World = {
       P.idx=i; P.pos=new V3(Math.cos(P.ang)*P.orbit,P.y,Math.sin(P.ang)*P.orbit); P.sunDir=P.pos.clone().negate().normalize();
       P.landR=P.r*2+500; P.dropR=P.r*5+2000; P.lockR=P.r*3.5;
       const g=new THREE.Group(); g.position.copy(P.pos); g.rotation.z=0.15+0.25*Math.sin(i*2.1); g.rotation.x=0.1*Math.cos(i*1.3); this.universe.add(g); P.group=g;
+      if(P.station){ P.landR=P.r*2.4+600; P.dropR=P.r*7+3000; this.buildStation(P,g); this.marker(P); return; }
       const pal=P.pal, seed=i*13.37+2.5; let u;
       if(P.type==='gas'){
         u={uSun:{value:P.sunDir},uTime:{value:0},uSeed:{value:seed},uBands:{value:P.bands},uTurb:{value:P.turb},uAtm:{value:P.atm},uOct:{value:4},cA:{value:C(pal.a)},cB:{value:C(pal.b)},cC:{value:C(pal.c)},cD:{value:C(pal.d)},cAtm:{value:C(pal.atm)}};
@@ -3283,10 +3322,35 @@ const World = {
         rm.rotation.x=Math.PI/2-0.32; g.add(rm); g.updateMatrixWorld(true);
         const q=new Q4(); rm.getWorldQuaternion(q); rm.material.uniforms.uSunL.value.copy(P.sunDir).applyQuaternion(q.invert()); P.ringMesh=rm;
       }
-      // HUD marker
-      P.mk={cv:makeCanvas(384,240)}; P.mk.tex=canvasTex(P.mk.cv); P.mk.sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:P.mk.tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
-      P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(P.mk.sprite); P.mk.key='';
+      this.marker(P);
     });
+  },
+  /* HUD marker */
+  marker(P){ P.mk={cv:makeCanvas(384,240)}; P.mk.tex=canvasTex(P.mk.cv); P.mk.sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:P.mk.tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
+    P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(P.mk.sprite); P.mk.key=''; },
+  /* a research station seen from space: a hub, a slowly turning ring on spokes, solar wings, blinking lights, and
+     each one's speciality (a listening dish, frozen-sample tanks, a measuring spire, a lighthouse lamp) */
+  buildStation(P, g){
+    const r=P.r, M=(hex,ro=0.45,me=0.55)=>new THREE.MeshStandardMaterial({color:C(hex),roughness:ro,metalness:me,envMapIntensity:1.2}), mk=(geo,mat,x=0,y=0,z=0)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); g.add(m); return m; };
+    const hull=M(P.pal.a), dark=M(P.pal.c,0.6,0.4), trim=M(P.pal.b), glow=new THREE.MeshBasicMaterial({color:HDR(P.light,3.2)}), solar=M('#1d3566',0.3,0.8);
+    mk(new THREE.SphereGeometry(r*0.26,32,20),hull); mk(new THREE.CylinderGeometry(r*0.12,r*0.12,r*1.5,20),trim);
+    for(const s of [-1,1]){ mk(new THREE.CylinderGeometry(r*0.2,r*0.14,r*0.22,20),dark,0,s*r*0.8,0); mk(new THREE.SphereGeometry(r*0.05,10,8),glow,0,s*r*0.93,0); }
+    // the ring and its spokes turn together; it stands in for the planet mesh, which World.update spins
+    const spin=new THREE.Group(), ring=new THREE.Group(); g.add(spin); spin.add(ring); ring.rotation.x=Math.PI/2; ring.add(new THREE.Mesh(new THREE.TorusGeometry(r*0.85,r*0.085,14,72),hull));
+    const band=new THREE.Mesh(new THREE.TorusGeometry(r*0.85,r*0.088,6,72,Math.PI*2),new THREE.MeshBasicMaterial({color:HDR(P.light,1.4),wireframe:true,transparent:true,opacity:0.35})); ring.add(band);
+    for(let k=0;k<4;k++){ const a=k*Math.PI/2+Math.PI/4, sp=new THREE.Mesh(new THREE.CylinderGeometry(r*0.025,r*0.025,r*0.6,8),dark); sp.position.set(Math.cos(a)*r*0.55,Math.sin(a)*r*0.55,0); sp.rotation.z=a-Math.PI/2; ring.add(sp); }
+    P.blink=[]; for(let k=0;k<12;k++){ const a=k/12*Math.PI*2, l=new THREE.Mesh(new THREE.SphereGeometry(r*0.035,8,6),new THREE.MeshBasicMaterial({color:HDR(k%3?'#ffffff':'#ff4030',3)})); l.position.set(Math.cos(a)*r*0.85,Math.sin(a)*r*0.85,r*0.09); ring.add(l); P.blink.push(l); }
+    // solar wings on a long boom
+    mk(new THREE.CylinderGeometry(r*0.02,r*0.02,r*3.2,8),dark).rotation.z=Math.PI/2;
+    for(const s of [-1,1]) for(const q of [0.95,1.4]){ const w=mk(new THREE.BoxGeometry(r*0.42,r*0.012,r*0.55),solar,s*r*q,0,0); w.rotation.x=0.35; mk(new THREE.BoxGeometry(r*0.43,r*0.014,r*0.02),trim,s*r*q,0,0).rotation.x=0.35; }
+    if(P.dish){ const d=mk(new THREE.SphereGeometry(r*0.7,28,12,0,Math.PI*2,0,0.75),M('#e8eef4',0.35,0.3),0,r*1.55,0); d.material.side=THREE.DoubleSide; d.rotation.x=Math.PI; mk(new THREE.CylinderGeometry(r*0.02,r*0.02,r*0.6,8),dark,0,r*1.2,0); mk(new THREE.SphereGeometry(r*0.06,10,8),glow,0,r*1.35,0); }
+    if(P.tanks) for(let k=0;k<6;k++){ const a=k/6*Math.PI*2; mk(new THREE.SphereGeometry(r*0.13,16,12),M('#f4fbff',0.2,0.2),Math.cos(a)*r*0.3,-r*1.05,Math.sin(a)*r*0.3).scale.set(1,1.6,1); }
+    if(P.spire){ mk(new THREE.ConeGeometry(r*0.1,r*1.8,12),trim,0,r*1.7,0); for(let k=1;k<6;k++){ const t=mk(new THREE.TorusGeometry(r*(0.12-k*0.016),r*0.012,6,24),glow,0,r*(0.85+k*0.28),0); t.rotation.x=Math.PI/2; } }
+    if(P.beacon){ mk(new THREE.CylinderGeometry(r*0.07,r*0.12,r*1.1,14),M('#f4ece8',0.4,0.2),0,r*1.35,0); P.lamp=mk(new THREE.SphereGeometry(r*0.16,18,12),new THREE.MeshBasicMaterial({color:HDR(P.light,6)}),0,r*1.95,0);
+      P.flare=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:HDR(P.light,2.5),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); P.flare.scale.setScalar(r*5); P.flare.position.set(0,r*1.95,0); g.add(P.flare); }
+    // a soft glow so it can be found from a long way off
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:HDR(P.light,0.9),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); halo.scale.setScalar(r*4.5); g.add(halo); P.halo=halo;
+    P.mesh=spin; P.mat={uniforms:{uTime:{value:0},uOct:{value:3}}};
   },
   drawMarker(P, isTarget, dist){
     const key=(isTarget?'T':'')+(isTarget?fmtDist(dist):''); if(P.mk.key===key) return; P.mk.key=key;
@@ -3353,7 +3417,8 @@ const World = {
     let near=null, nd=1e12; const tanH=Math.tan(this.fit(camFov)*Math.PI/360);
     for(const P of PLANETS){
       const d=P.pos.distanceTo(shipPos); P.dist=d; if(d<nd){ nd=d; near=P; }
-      P.mesh.rotation.y+=dt*(P.type==='gas'?0.006:0.0035);
+      P.mesh.rotation.y+=dt*(P.station?0.05:P.type==='gas'?0.006:0.0035);
+      if(P.station){ P.halo.material.opacity=clamp((d/P.r-8)/30,0,1); if(d<P.r*400){ const b=Math.floor(t*1.6); P.blink.forEach((l,k)=>{ l.visible=(b+k)%3===0; }); if(P.lamp){ const k=0.5+0.5*Math.sin(t*2.2); P.lamp.material.color.copy(HDR(P.light,2+k*6)); P.flare.material.opacity=0.35+0.65*k; } } }
       const px=P.r/d/tanH*this.h*0.5; P.px=px; const u=P.mat.uniforms; u.uTime.value=t;
       u.uOct.value=clamp(Math.floor(Math.log2(Math.max(px,1)))-2,3,7); if(u.uBump) u.uBump.value=px>120?P.r*0.22:0;
     }
@@ -3863,9 +3928,9 @@ const Cine = {
     Loading.stop();
     if(this.surf){ if(this.model && this.model.parent===this.surf.scene) World.space.add(this.model); if(this.preview){ this.preview=null; }
       this.surf.scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose()); } }); if(this.surf.env) this.surf.env.dispose(); }
-    const S=P.surf, scn=new THREE.Scene(), seed=P.idx*977+5, rr=mulberry32(seed), cloud=!!S.cloudsea, spc=SPECIES[P.species];
+    const S=P.surf, scn=new THREE.Scene(), seed=P.idx*977+5, rr=mulberry32(seed), cloud=!!S.cloudsea, deck=!!S.deck, spc=SPECIES[P.species];
     const sunDir=new V3(Math.cos(P.idx*1.7)*0.75,0.36+0.16*Math.sin(P.idx*2.3),Math.sin(P.idx*1.7)*0.75).normalize();
-    const skyU={cZen:{value:C(S.zen)},cHor:{value:C(S.hor)},uSun:{value:sunDir},cSun:{value:C('#fff0d8')},uStars:{value:P.atm<0.75?1:0.15},uMax:{value:3}};
+    const skyU={cZen:{value:C(S.zen)},cHor:{value:C(S.hor)},uSun:{value:sunDir},cSun:{value:C('#fff0d8')},uStars:{value:deck||P.atm<0.75?1:0.15},uMax:{value:3},uCloud:{value:deck?0:1}};
     const skyMat=new THREE.ShaderMaterial({vertexShader:GLSL.skyVert,fragmentShader:GLSL.groundSkyFrag,uniforms:skyU,side:THREE.BackSide,depthWrite:false});
     const sky=new THREE.Mesh(new THREE.SphereGeometry(26000,48,32),skyMat); scn.add(sky);
     // reflection map: render the sky to a float cube first (a raw shader cannot be fed to PMREM's fromScene directly)
@@ -3876,9 +3941,10 @@ const Cine = {
     const sun=new THREE.DirectionalLight(C('#fff2dc'),S.lava?1.1:1.9); sun.position.copy(sunDir).multiplyScalar(320); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
     const sc=sun.shadow.camera; sc.left=-150; sc.right=150; sc.top=150; sc.bottom=-150; sc.near=60; sc.far=800; sun.shadow.bias=-0.0005; sun.shadow.normalBias=0.4; sun.shadow.radius=3; scn.add(sun); scn.add(sun.target);
     const liq=S.liquid?-20:-1e9;
-    const hAt=(x,z)=>{ const d=Math.hypot(x,z), n=fbm2(x*0.0011+31,z*0.0011+17,seed,5), rd=1-Math.abs(2*fbm2(x*0.0023+5,z*0.0023+9,seed+3,4)-1);
+    const hAt=deck?(()=>0):(x,z)=>{ const d=Math.hypot(x,z), n=fbm2(x*0.0011+31,z*0.0011+17,seed,5), rd=1-Math.abs(2*fbm2(x*0.0023+5,z*0.0023+9,seed+3,4)-1);
       const h=(n*0.75+rd*0.25-0.5)*S.amp*2.4+smooth(1200,4300,d)*S.amp*1.6*n; return cloud? -560+h*0.55 : h*smooth(150,800,d); };
-    // terrain
+    // terrain (on a station: a metal deck floating in space, with the station's ring arching overhead)
+    if(deck) this.buildDeck(scn,P,S,rr); else {
     const seg=190, size=10000, tg=new THREE.PlaneGeometry(size,size,seg,seg); tg.rotateX(-Math.PI/2); const pa=tg.attributes.position, cols=new Float32Array(pa.count*3), g0=C(S.g[0]), g1=C(S.g[1]), g2=C(S.g[2]), tc=new THREE.Color();
     for(let i=0;i<pa.count;i++){ const x=pa.getX(i), z=pa.getZ(i), h=hAt(x,z); pa.setY(i,h); let t=clamp(0.5+(cloud?(h+560):h)/(S.amp*2.0)+(vnoise(x*0.02,z*0.02,seed)-0.5)*0.3,0,1);
       if(t<0.5) tc.copy(g0).lerp(g1,t*2); else tc.copy(g1).lerp(g2,(t-0.5)*2); cols[i*3]=tc.r; cols[i*3+1]=tc.g; cols[i*3+2]=tc.b; }
@@ -3888,6 +3954,7 @@ const Cine = {
     const terr=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,map:gt,roughness:cloud?1:0.94,metalness:0})); terr.receiveShadow=true; scn.add(terr);
     if(S.liquid){ const lm=S.lava?new THREE.MeshBasicMaterial({color:HDR(S.liquid,2.6)}):new THREE.MeshStandardMaterial({color:C(S.liquid),roughness:0.06,metalness:0.55,envMapIntensity:1.4});
       const l=new THREE.Mesh(new THREE.PlaneGeometry(26000,26000),lm); l.rotation.x=-Math.PI/2; l.position.y=liq; scn.add(l); if(S.lava){ const ll=new THREE.HemisphereLight(C('#000000'),C(S.liquid),1.1); scn.add(ll); } }
+    }
     // pad
     const pcv=makeCanvas(512,512), px=pcv.getContext('2d'); px.fillStyle='#34363a'; px.fillRect(0,0,512,512); const pr=mulberry32(seed+1);
     for(let i=0;i<5000;i++){ px.fillStyle=`rgba(${pr()<0.5?0:255},${pr()<0.5?0:255},${pr()<0.5?0:255},${pr()*0.06})`; px.fillRect(pr()*512,pr()*512,3,3); }
@@ -3908,6 +3975,13 @@ const Cine = {
       else if(st==='spire'){ const h=60+rr()*130, r=6+rr()*8; b.add(mk(new THREE.CylinderGeometry(r*0.25,r,h,10),bm(pick([S.g[1],S.g[2],'#e8dcc8']),0.5,0.4),0,h/2,0)); for(let k=1;k<4;k++){ const rg=mk(new THREE.TorusGeometry(r*(1.3-k*0.22),0.8,6,24),win,0,h*k/4.2,0); rg.rotation.x=Math.PI/2; b.add(rg); } b.add(mk(new THREE.SphereGeometry(2,10,8),warm,0,h+1,0)); }
       else if(st==='bubble'){ const n=2+Math.floor(rr()*3); for(let i=0;i<n;i++){ const r=10+rr()*18, x=(rr()-0.5)*30, z=(rr()-0.5)*30; b.add(mk(new THREE.SphereGeometry(r,24,16),bm(spc.col,0.08,0.3,{transparent:true,opacity:0.5,envMapIntensity:2}),x,r*0.6,z)); b.add(mk(new THREE.SphereGeometry(r*0.3,10,8),win,x,r*0.55,z)); } }
       else if(st==='shroom'){ const h=20+rr()*60, r=10+rr()*22; b.add(mk(new THREE.CylinderGeometry(r*0.18,r*0.28,h,10),bm('#e9dcc0',0.8,0),0,h/2,0)); const cap=mk(new THREE.SphereGeometry(r,20,12,0,6.3,0,Math.PI/2),bm(pick(['#b5503a','#c98a3a','#7a5ca0']),0.7,0),0,h-2,0); cap.scale.y=0.6; b.add(cap); for(let i=0;i<7;i++){ const a=rr()*6.28, e=0.3+rr()*0.9; b.add(mk(new THREE.SphereGeometry(r*0.09,8,6),win,Math.cos(a)*Math.sin(e)*r,h-2+Math.cos(e)*r*0.6,Math.sin(a)*Math.sin(e)*r)); } }
+      else if(st==='station'){ const kind=rr(), hull=bm(pick(S.g.concat(['#d8dde2','#e8e2d4'])),0.45,0.6), dk=bm('#2a2e34',0.6,0.5);
+        if(kind<0.35){ const L=24+rr()*34, R=6+rr()*5, c=mk(new THREE.CylinderGeometry(R,R,L,20),hull,0,R+2,0); c.rotation.z=Math.PI/2; b.add(c); for(const s of [-1,1]) b.add(mk(new THREE.SphereGeometry(R,18,12),hull,s*L/2,R+2,0));
+          const wb=mk(new THREE.CylinderGeometry(R*1.02,R*1.02,L*0.8,20,1,true),rr()<0.6?warm:win,0,R+2,0); wb.rotation.z=Math.PI/2; wb.scale.set(1,1,0.18); wb.position.z=R*0.5; b.add(wb); for(const s of [-0.3,0.3]) b.add(mk(new THREE.BoxGeometry(2,R+2,R*1.4),dk,s*L,(R+2)/2,0)); }
+        else if(kind<0.58){ const r=14+rr()*12; b.add(mk(new THREE.CylinderGeometry(r*1.04,r*1.08,2.4,28),dk,0,1.2,0)); b.add(mk(new THREE.SphereGeometry(r,26,14,0,6.3,0,Math.PI/2),bm('#bfe8ff',0.05,0.2,{transparent:true,opacity:0.32,envMapIntensity:2.5}),0,2.4,0));
+          const leaf=bm(pick(['#3f9a4a','#5fb36a','#2f7a3a']),0.7,0); for(let k=0;k<6;k++){ const a=rr()*6.28, d=rr()*r*0.6, h=3+rr()*r*0.5; b.add(mk(new THREE.SphereGeometry(2+rr()*4,10,8),leaf,Math.cos(a)*d,2.4+h,Math.sin(a)*d)); b.add(mk(new THREE.CylinderGeometry(0.5,0.7,h,6),bm('#7a5a3a',0.9,0),Math.cos(a)*d,2.4+h/2,Math.sin(a)*d)); } }
+        else if(kind<0.8){ const h=40+rr()*50; b.add(mk(new THREE.CylinderGeometry(1.2,2.4,h,10),dk,0,h/2,0)); for(let k=1;k<4;k++) b.add(mk(new THREE.BoxGeometry(6-k,0.6,0.6),hull,0,h*k/4,0)); const d=mk(new THREE.SphereGeometry(12,20,10,0,6.3,0,1.0),bm('#e8eef4',0.35,0.3,{side:THREE.DoubleSide}),0,h+6,0); d.rotation.set(Math.PI*0.75,rr()*6,0); b.add(d); b.add(mk(new THREE.SphereGeometry(1.4,10,8),new THREE.MeshBasicMaterial({color:HDR('#ff3020',5)}),0,h+1,0)); }
+        else { for(let k=0;k<3;k++){ const r=5+rr()*4, x=(k-1)*r*2.3; b.add(mk(new THREE.SphereGeometry(r,18,12),bm('#f4f8fa',0.25,0.3),x,r*1.5,0)); b.add(mk(new THREE.CylinderGeometry(r*0.5,r*0.7,r*1.5,12),dk,x,r*0.75,0)); b.add(mk(new THREE.TorusGeometry(r*1.01,0.4,6,24),win,x,r*1.5,0)).rotation.x=Math.PI/2; } } }
       else { const r=12+rr()*16; b.add(mk(new THREE.SphereGeometry(r,24,14,0,6.3,0,Math.PI/2),bm('#f2f4f6',0.5,0.1),0,0,0)); const band=mk(new THREE.CylinderGeometry(r*0.985,r*0.985,1.8,32,1,true),warm,0,r*0.2,0); b.add(band); b.add(mk(new THREE.CylinderGeometry(1.2,1.2,r*0.7,8),bm('#8a9098'),r*0.4,r*0.9,0)); }
       return b; };
     Venues.build(scn,P,cloud,padSide,hAt,S.liquid?liq:null);
@@ -3929,6 +4003,35 @@ const Cine = {
     Crowd.build(scn,P,cloud,PADS,hAt,S.liquid?liq:null);
     this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
+  /* a research station's docking deck: a big round metal deck with lamps around its rim, open to space. The station's
+     hub and habitat ring loom behind it, and a planet hangs in the sky (they're the system's, seen from very far off). */
+  buildDeck(scn, P, S, rr){
+    const cv=makeCanvas(1024,1024), x=cv.getContext('2d'); x.fillStyle=S.g[1]; x.fillRect(0,0,1024,1024);
+    for(let i=0;i<1400;i++){ x.fillStyle=`rgba(${rr()<0.5?0:255},${rr()<0.5?0:255},${rr()<0.5?0:255},${rr()*0.05})`; x.fillRect(rr()*1024,rr()*1024,6,6); }
+    x.strokeStyle='rgba(0,0,0,.35)'; x.lineWidth=4; for(let k=0;k<=1024;k+=128){ x.beginPath(); x.moveTo(k,0); x.lineTo(k,1024); x.moveTo(0,k); x.lineTo(1024,k); x.stroke(); }
+    x.fillStyle='rgba(255,255,255,.12)'; for(let a=0;a<8;a++) for(let b=0;b<8;b++){ x.beginPath(); x.arc(a*128+10,b*128+10,4,0,7); x.fill(); }
+    const tex=canvasTex(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(14,14);
+    const top=new THREE.MeshStandardMaterial({color:0xffffff,map:tex,roughness:0.55,metalness:0.55,envMapIntensity:1.1}), side=new THREE.MeshStandardMaterial({color:C(S.g[0]),roughness:0.5,metalness:0.6});
+    scn.add(new THREE.HemisphereLight(C('#c8d2e4'),C('#3a3e46'),0.55));   // floodlights: there's no sky to light the deck
+    const R=980, d=new THREE.Mesh(new THREE.CylinderGeometry(R,R*0.86,90,120),[side,top,side]); d.position.y=-45; d.receiveShadow=true; scn.add(d);
+    const glow=new THREE.MeshBasicMaterial({color:HDR(P.light,2.6)});
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(R,2.2,8,160),glow); rim.rotation.x=Math.PI/2; rim.position.y=0.6; scn.add(rim);
+    for(let i=0;i<64;i++){ const a=i/64*Math.PI*2, p=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.8,7,8),side); p.position.set(Math.cos(a)*(R-6),3.5,Math.sin(a)*(R-6)); scn.add(p);
+      const l=new THREE.Mesh(new THREE.SphereGeometry(1.3,8,6),glow); l.position.set(p.position.x,7.4,p.position.z); scn.add(l); }
+    // the hub and the habitat ring, a few kilometres off
+    const far=(hex,ro=0.45,me=0.5)=>new THREE.MeshStandardMaterial({color:C(hex),roughness:ro,metalness:me,envMapIntensity:1.3});
+    const st=new THREE.Group(); st.position.set(0,1300,-4600); st.rotation.y=(rr()-0.5)*0.9; scn.add(st);
+    st.add(new THREE.Mesh(new THREE.SphereGeometry(700,40,24),far(P.pal.a)));
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(3600,170,20,160),far(P.pal.a)); st.add(ring);
+    const band=new THREE.Mesh(new THREE.TorusGeometry(3600,174,6,160),new THREE.MeshBasicMaterial({color:HDR(P.light,1.6),wireframe:true,transparent:true,opacity:0.5})); st.add(band);
+    for(let k=0;k<4;k++){ const a=k*Math.PI/2+Math.PI/4, sp=new THREE.Mesh(new THREE.CylinderGeometry(60,60,2900,12),far(P.pal.c,0.6,0.4)); sp.position.set(Math.cos(a)*2150,Math.sin(a)*2150,0); sp.rotation.z=a-Math.PI/2; st.add(sp); }
+    for(let k=0;k<24;k++){ const a=k/24*Math.PI*2, l=new THREE.Mesh(new THREE.SphereGeometry(55,8,6),new THREE.MeshBasicMaterial({color:HDR(k%4?'#ffffff':'#ff4030',3)})); l.position.set(Math.cos(a)*3600,Math.sin(a)*3600,175); st.add(l); }
+    st.traverse(o=>{ if(o.material) o.material.fog=false; });
+    // a planet in the sky, and its glow
+    const pd=new V3(0.62,0.3,0.72).normalize().applyAxisAngle(new V3(0,1,0),rr()*1.4), pl=new THREE.Mesh(new THREE.SphereGeometry(3800,48,32),new THREE.MeshStandardMaterial({color:C(S.planet),roughness:0.9,metalness:0,fog:false}));
+    pl.position.copy(pd).multiplyScalar(17000); scn.add(pl);
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:HDR(S.planet,0.6),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,fog:false})); halo.scale.setScalar(12500); halo.position.copy(pl.position); scn.add(halo);
+  },
   updateSurface(dt, t, alt){
     const s=this.surf; if(!s) return;
     s.lamps.forEach((l,i)=>{ const on=((i+Math.floor(t*10))%5)===0; l.material.color.setRGB(on?3.2:0.35,on?2.6:0.28,on?1.2:0.12); });
@@ -3943,7 +4046,7 @@ const Cine = {
   /* ---------- sequences ---------- */
   ui(on, title, sub){ document.body.classList.toggle('cine',on); $('skip').hidden=!on; if(on) $('keys').hidden=true; if(title){ $('cine-h').textContent=title; $('cine-p').textContent=sub; } $('cine-title').classList.toggle('on',!!title); },
   startLanding(P){
-    Walk.exit(true); G.mode='landing'; this.mode='A'; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
+    Walk.exit(true); G.mode='landing'; this.mode='A'; $('deep-badge').hidden=true; Deep.storm=null; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
     if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     this.buildSurface(P); World.space.add(this.model); this.model.visible=true; this.model.position.set(0,0,0); this.model.rotation.set(0,0,0); this.plasma.visible=false; this.setThrust(0,0);
     const s=G.ship, out=this.out=new V3().subVectors(s.pos,P.pos).normalize(); let up=new V3(0,1,0); if(Math.abs(out.y)>0.9) up.set(1,0,0);
@@ -3995,8 +4098,12 @@ const Cine = {
     if(this.mode==='A'){
       s.pos.copy(this.baseA).addScaledVector(this.hA,-165+72*t); m.quaternion.copy(this.qA); Models.animate(m,0.85,time);
       cam.position.copy(this.camA).sub(s.pos); cam.up.copy(this.up); cam.lookAt(0,0,0); fov=36; this.fade=Math.max(0,1-t/0.7);
+      // a station is small next to a planet: ride behind the ship instead, so the station fills the view ahead of it
+      if(P.station){ const toS=P.pos.clone().sub(s.pos).normalize(); cam.position.copy(this.hA).multiplyScalar(-46).addScaledVector(this.up,11).addScaledVector(this.side,13); cam.lookAt(toS.multiplyScalar(40)); fov=50; }
       World.updateDust(this.hA.clone().multiplyScalar(500),dt,0);
-      if(t>=4.3){ this.mode='B'; this.t=0; this.fade=0; }
+      // a station has no atmosphere to burn through: fade to black and come out of it over the docking deck
+      if(P.station){ this.fadeCol.setRGB(0,0,0); this.fade=Math.max(this.fade,smooth(3.4,4.25,t)); }
+      if(t>=4.3){ if(P.station){ this.mode='C'; this.t=0; this.fade=1; this.surf.scene.add(m); World.scenes.list=[{scene:this.surf.scene,camera:cam}]; this.orbit=0.9; this.td=false; Sfx.hiss(3,0.12); } else { this.mode='B'; this.t=0; this.fade=0; } }
     } else if(this.mode==='B'){
       const alt=P.r*lerp(1.13,1.05,smooth(0,4.2,t)), along=-420+250*t; const lu=this.out.clone().addScaledVector(this.side,along/alt).normalize(); s.pos.copy(P.pos).addScaledVector(lu,alt);
       const tan=this.side.clone().addScaledVector(lu,-this.side.dot(lu)).normalize(), h=tan.clone().addScaledVector(lu,-0.1).normalize(), rgt=new V3().crossVectors(h,lu).normalize();
@@ -4011,7 +4118,7 @@ const Cine = {
       Models.animate(m,0.04,time); this.setThrust(u<1?0.5+0.5*(1-u):Math.max(0,1-(t-5.8)*2.5)*0.5,time); this.surf.dustI=smooth(80,6,m.position.y-rest)*(u<1?1:Math.max(0,1-(t-5.8)*0.6));
       if(u>=1&&!this.td){ this.td=true; Sfx.thump(1); this.shake=0.7; } this.shake=Math.max(0,this.shake-dt*1.2);
       this.fade=Math.max(0,1-t/1.0); const a=this.orbit+u*0.8, R=128-40*u; cam.up.set(0,1,0); cam.position.set(Math.cos(a)*R,5+11*(1-u),Math.sin(a)*R); cam.lookAt(m.position.x,m.position.y*0.8+3,m.position.z); fov=40;
-      if(t>1.4&&t<7) this.ui(true,P.name,P.port+' · '+SPECIES[P.species].name+' territory'); this.orbit2=a;
+      if(t>1.4&&t<7) this.ui(true,P.name,P.station?`${P.port} · research station · ${RISK[P.risk].name} risk`:P.port+' · '+SPECIES[P.species].name+' territory'); this.orbit2=a;
       if(t>=7.6){ this.dock(P); this.orbit=this.orbit2; }
     } else if(this.mode==='port'){
       Models.animate(m,0,time);
@@ -4520,6 +4627,27 @@ const VENUES = [
     {k:'garage',name:'Warm Wrench Garage',sp:'momwump',title:'Mechanic',quirk:'Knitted a cosy for your engine. It is on fire now. That is fine.',hi:['Let\'s get you warm and fixed! In that order!','I made your engine a jumper. Do not run it hot.']},
     {k:'assay',name:'Snowball Assay',sp:'momwump',title:'Ore hugger',quirk:'Checks ore by cuddling it. Hard ones are worth more.',hi:['Bring me rocks! I will give them a squeeze and a price.','Ooh, this one is cold and hard. Lovely. Worth a lot.']},
     {k:'bar',name:'The Warm Mitten',sp:'momwump',title:'Cocoa keeper',quirk:'Gives free hot cocoa to anyone who looks cold. Everyone looks cold.',hi:['You look cold. Have a cocoa. You still look cold. Have another.','Sit by the fire. It is a picture of a fire. It still helps.']},
+  ],
+  /* the research stations: small, remote, and glad of the company. Fuel costs more out here. */
+  /* 9 Listening Post Hush · The Quiet Ear · Nacrelle */ [
+    {k:'depot',name:'Hush Receiving Bay',sp:'nacrelle',title:'Receiving officer',quirk:'Signs for deliveries in a whisper. The signature is also a whisper.',hi:['Welcome. Please put the crates down quietly. The dish is listening.','You came all this way. The universe has not said anything yet, but we appreciate you.']},
+    {k:'garage',name:'Soft Landing Repairs',sp:'gaugekin',title:'Dent surveyor',quirk:'Measures every dent before fixing it, then misses it a little.',hi:['Your hull has forty-one dents. Forty-two. Do not move.','Deep space is hard on a hull. I have the measurements to prove it.']},
+    {k:'bar',name:'The Indoor Voice',sp:'nacrelle',title:'Bartender',quirk:'Runs the only cantina where clapping is a fineable offence.',hi:['Welcome to The Indoor Voice. Please cheer on the inside.','Drinks are served in padded glasses. The dish complained about the clinking.']},
+  ],
+  /* 10 Cryo Vault Rimeholm · The Freezer Aisle · Rimebud */ [
+    {k:'depot',name:'Cold Storage Intake',sp:'rimebud',title:'Intake curator',quirk:'Labels each crate with its date and a story. Some stories run long.',hi:['Fresh deliveries! Well. Freshly frozen. We freeze everything here.','Your cargo will be filed between a frozen sneeze and the last known pancake.']},
+    {k:'garage',name:'Thaw & Patch',sp:'momwump',title:'Defrost mechanic',quirk:'Thaws frozen engines with a hug and a hairdryer. Mostly the hug.',hi:['Oh, your poor ship is frosty! Come here. Hairdryer first, then cuddles.','Deep space gets into the bolts. I warm them up one at a time.']},
+  ],
+  /* 11 Calibration Spire · Tolerance Station · Gaugekin */ [
+    {k:'depot',name:'Precision Freight',sp:'gaugekin',title:'Tolerance clerk',quirk:'Rejects crates that are a hair too square. Accepts the hair.',hi:['Crate dimensions accepted, to within a sigh. Next.','You are four seconds late. I have measured my disappointment and it is small.']},
+    {k:'garage',name:'Exactly Right Repairs',sp:'gaugekin',title:'Fitter',quirk:'Will only tighten a bolt to the perfect tightness. It takes a while.',hi:['I will return your hull to specification. Your specification is "dented".','Deep space has knocked you out of true. Hold still. Truer. Truer.']},
+    {k:'outfit',name:'Fine Margins Outfitters',sp:'tarestep',title:'Outfitter',quirk:'Weighs every part on a set of very kind scales.',hi:['Parts for the far dark. Each weighed and gently reassured.','This laser is exactly as heavy as it should be. I told it so.'],items:['laser','hidden']},
+  ],
+  /* 12 Beacon Far Wink · The Last Light · Winkmast */ [
+    {k:'depot',name:'Last Light Freight Office',sp:'winkmast',title:'Signal clerk',quirk:'Blinks receipts in morse. You have to write them down.',hi:['A delivery! Out here! I am filing a report on how pleased I am.','Hello, hauler. You are the brightest thing we have seen all week. Apart from us.']},
+    {k:'assay',name:'Far Field Assay',sp:'grondar',title:'Assayer of last resort',quirk:'Moved to the edge of everything to find the rarest rocks. Licks them anyway.',hi:['Rocks from the Back of Beyond? Give. Give now. I will pay well.','Nobody comes this far for ordinary gravel. Show me the shiny ones.']},
+    {k:'garage',name:'End of the Line Garage',sp:'linticker',title:'Mechanic',quirk:'Gives every engine a proper tea break before working on it.',hi:['Your engine has come a long way. It deserves a sit down. Then repairs.','Everything breaks out here. I fix it, then I give it a biscuit.']},
+    {k:'bar',name:'The Final Blink',sp:'winkmast',title:'Lamp-keeper and bartender',quirk:'Dims the lights at closing time. Has never closed.',hi:['Welcome to the last bar before nothing. We have snacks.','Sit by the window. The view is nothing, all the way out. It is lovely.']},
   ],
 ];
 const VENUE_GAG = {depot:'stack', yard:'crane', garage:'engine', livery:'spray', outfit:'gadget', assay:'rock', bar:'juggle'};
@@ -5812,6 +5940,8 @@ const FIELDS = [
   {name:'The Gravel Pit', ore:'Crunchy Iridium', val:46, orbit:505000, ang:0.95, y:-4000, col:'#b08a6e', R:9000, n:110},
   {name:"Grandma's Button Jar", ore:'Antique Moon Buttons', val:38, orbit:735000, ang:3.95, y:9000, col:'#9d8fc2', R:9000, n:110},
   {name:"Sir Reginald's Rubble", ore:'Smug Quartz', val:62, orbit:1025000, ang:2.25, y:-11000, col:'#c27a58', R:10000, n:120},
+  /* out in the far dark, near Beacon Far Wink: the best ore in the system, and the worst neighbourhood */
+  {name:'The Back of Beyond', ore:'Unreasonably Rare Glitterstone', val:135, orbit:3050000, ang:2.2, y:-45000, col:'#7fd6e8', R:10000, n:110},
 ];
 const MAYDAY = [
   "Mayday, mayday! Our drive just coughed and died. We are drifting and the snacks are running low.",
@@ -5835,6 +5965,19 @@ const Hull = {
   hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Math.random()<0.35) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
     UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
   breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
+};
+
+/* ---------- the economy: risk, reward and range ---------- */
+const Econ = {
+  /* a route is as risky as its riskier end; pay scales with it */
+  risk(A, B){ return routeRisk(A,B); },
+  mul(A, B){ return RISK[routeRisk(A,B)].mul; },
+  /* fuel a straight warp hop would burn, in tank units, for the current ship */
+  fuel(A, B){ return A.pos.distanceTo(B.pos)/SHIPS[G.shipId].warp*1.5*1.08+2; },
+  /* a short line for the job board: the risk tier, its pay bonus, and how much of a tank it takes */
+  line(A, B){ const k=routeRisk(A,B), R=RISK[k], f=this.fuel(A,B), tank=SHIPS[G.shipId].fuel, pct=Math.round(f/tank*100);
+    return `<span class="risk r${k}">${R.name} risk${R.mul>1?' · pays ×'+R.mul:''}</span> · ${pct>100?'<b class="warnf">more than a full tank</b>':'about '+pct+'% of a tank'}`; },
+  fuelPrice(P){ return P&&P.station?6:3; },
 };
 
 /* ---------- waypoints: a temporary nav target that outranks the planet destination ---------- */
@@ -5893,7 +6036,7 @@ const Ev = {
   fuelUnits(f){ return Math.max(1,Math.round(f)); },
   update(dt){
     if(this.hold>0){ this.hold-=dt; G.ship.throttle=0; if(G.ship.warp) Game.dropWarp(); }
-    Nav.update(dt); Distress.update(dt); Mining.update(dt); Customs.update(dt); Escort.update(dt); Flotsam.update(dt); Scoop.update(dt); Calls.update(); if(Hold.open&&Math.floor(Game.time*2)!==Math.floor((Game.time-dt)*2)) Hold.render();
+    Nav.update(dt); Deep.update(dt); Distress.update(dt); Mining.update(dt); Customs.update(dt); Escort.update(dt); Flotsam.update(dt); Scoop.update(dt); Calls.update(); if(Hold.open&&Math.floor(Game.time*2)!==Math.floor((Game.time-dt)*2)) Hold.render();
   },
 };
 
@@ -5908,7 +6051,7 @@ const Distress = {
     if(Math.random()<0.75) this.call();
   },
   call(){
-    const sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)};
+    const sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)+0.1*Deep.z, mul:1+0.4*Deep.z, tollMul:1+0.35*Deep.z};
     Radio.cur=null; Radio.wait=20;
     Dlg.show({sp,seed,tone:'alert',who:`Mayday · ${c.name} · ${SPECIES[sp].name} · ${c.ship}`,text:pick(MAYDAY),timeout:30,onTimeout:()=>this.ignore(),
       opts:[{t:'Answer the call',sub:'A detour. Costs time and fuel.',fn:()=>this.answer()},{t:'Keep flying',sub:'Somebody else will help. Probably.',fn:()=>this.ignore()}]});
@@ -5932,7 +6075,7 @@ const Distress = {
   },
   reward(c, f){
     if(G.mode!=='flight'){ this.cur=null; return; } const r=Math.random(); let text;
-    if(r<0.5){ const cr=Math.round(f*rnd(9,14)/5)*5; G.credits+=cr; Sfx.cash(); text=`Engines are humming! Here's ${fmtCr(cr)} for the trouble. You're a star. Not literally. Stars are hot.`; }
+    if(r<0.5){ const cr=Math.round(f*rnd(9,14)*(c.mul||1)/5)*5; G.credits+=cr; Sfx.cash(); text=`Engines are humming! Here's ${fmtCr(cr)} for the trouble. You're a star. Not literally. Stars are hot.`; }
     else if(r<0.8){ let h; do{ h=Math.floor(Math.random()*PLANETS.length); }while(h===G.target&&PLANETS.length>1); G.hot=h; text=`We can't pay much, but here's a secret: ${PLANETS[h].name} is paying a fat bonus on deliveries right now.`; }
     else { const to=Math.floor(Math.random()*PLANETS.length), used=G.cargo.reduce((a,b)=>a+b.qty,0);
       if(used+1<=holdCap()){ G.cargo.push({good:'Thank-You Fruitcake',qty:1,to,pay:Math.round(rnd(220,380)/5)*5,from:-1}); Cockpit.drawManifest(); text=`Please take this fruitcake to ${PLANETS[to].name}. They'll pay you for it. Nobody has ever eaten one.`; }
@@ -5942,10 +6085,10 @@ const Distress = {
   ambush(c){
     Ev.dismiss(c.npc); const fwd=new V3(0,0,-1).applyQuaternion(G.ship.quat);
     c.pirates=[0,1].map(()=>Ev.npc('pirate',G.ship.pos.clone().addScaledVector(fwd,rnd(600,1200)).add(Ev.around(new V3(),rnd(250,600))),{sp:pick(['grondar','zkthar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
-    const toll=Math.round(clamp(G.credits*0.25,120,600)/10)*10, big=G.cargo.filter(x=>x.qty>0&&x.kind!=='escort').sort((a,b)=>b.pay-a.pay)[0];
-    const esc=clamp(0.3+G.shipId*0.09+(Game.massLock()?0:0.15),0.2,0.85);
+    const toll=Math.round(clamp(G.credits*0.25,120,600)*(c.tollMul||1)/10)*10, big=G.cargo.filter(x=>x.qty>0&&x.kind!=='escort').sort((a,b)=>b.pay-a.pay)[0];
+    const esc=clamp(0.3+G.shipId*0.09+(Game.massLock()?0:0.15)-(c.harder||0),0.15,0.85);
     const end=()=>{ c.pirates.forEach(p=>Ev.dismiss(p)); this.cur=null; };
-    Dlg.show({sp:c.pirates[0].pilot.sp,seed:c.pirates[0].pilot.seed,tone:'alert',who:`${c.name} · actually pirates`,text:pick(PIRATE),
+    Dlg.show({sp:c.pirates[0].pilot.sp,seed:c.pirates[0].pilot.seed,tone:'alert',who:c.who||`${c.name} · actually pirates`,text:c.text||pick(PIRATE),
       opts:[{t:'Pay the toll',sub:G.credits>=toll?fmtCr(toll):`All you have: ${fmtCr(G.credits)}`,fn:()=>{ G.credits-=Math.min(G.credits,toll); Sfx.cash(); UI.toast('They take the money and leave, laughing.','warn'); end(); }},
             {t:'Hand over some cargo',sub:big?`${big.qty}× ${big.good}`:'Your hold is empty',disabled:!big,fn:()=>{ G.cargo.splice(G.cargo.indexOf(big),1); Cockpit.drawManifest(); Rep.add(-3,'A client lost their cargo'); end(); }},
             {t:'Punch it!',sub:`${Math.round(esc*100)}% chance to get away`,fn:()=>{ G.ship.throttle=10; if(Math.random()<esc){ Hull.hit(rnd(4,9),'You got away with a few scorch marks'); G.fuel=Math.max(0,G.fuel-6); }
@@ -6059,7 +6202,7 @@ const Customs = {
   },
   /* 2. the journey: a customs cutter pulls you over */
   update(dt){
-    if(!this.armed||this.cur||Dlg.open||Walk.on||!Ev.clearOfPlanets(10)) return;
+    if(!this.armed||this.cur||Dlg.open||Walk.on||!Ev.clearOfPlanets(10)||Deep.z>=2) return;   // customs don't patrol deep space
     if(!this.illegal().length){ this.armed=false; return; }
     this.t-=dt; if(this.t>0) return; this.armed=false; this.stop();
   },
@@ -6140,6 +6283,58 @@ const Escort = {
     const pay=Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5; Rep.add(5,`${c.vip.title} arrived safely`); return {good:`Escort of ${c.vip.title} (${Math.round(c.hp)}%)`,qty:0,pay};
   },
 };
+
+/* ---------- deep space ---------- */
+/* Past the patrols, things go wrong more often: raiders, meteor storms, and the odd derelict worth salvaging.
+   The further out, the more often, and the worse. It's why the research stations pay so well. */
+const RAIDERS = [
+  "Long way from a patrol, aren't you? Shame. Let's talk about what's in your hold.",
+  "Nobody comes out this far without something worth taking. Prove us right.",
+  "Welcome to the far dark. There's a toll. There's always a toll.",
+  "We've been waiting out here for weeks. You are the most exciting thing to happen. Sorry about that.",
+];
+const Deep = {
+  z:0, t:45, storm:null, warned:-1,
+  update(dt){
+    const s=G.ship, z=zoneAt(s.pos.length()), was=this.z; this.z=z;
+    if(z!==was){ if(z>was&&z>=1&&this.warned<z){ this.warned=z; UI.toast(z===1?'Leaving patrolled space. Pirates are rarer than rumours out here. Not much rarer.':z===2?'Deep space. No patrols, no customs, meteor storms, and a long, expensive tow.':'The far dark. Everything in deep space, more often and with worse manners.','warn'); Sfx.deny(); }
+      else if(z<was&&z===0){ this.warned=-1; UI.toast('Back in patrolled space. Somebody waves. It might be a customs officer.','good'); } }
+    this.badge();
+    if(this.storm){ this.stepStorm(dt); return; }
+    if(z<1||Dlg.open||Distress.cur||Customs.cur||Escort.hazard||Walk.on||Game.towing||(Nav.wp&&Nav.wp.kind==='salvage')) return;
+    if(!Ev.clearOfPlanets(12)) return;
+    this.t-=dt*[0,0.3,1,1.5][z]; if(this.t>0) return; this.t=rnd(45,80);
+    const r=Math.random();
+    if(z===1){ if(r<0.6) this.raid(); return; }
+    if(r<0.38) this.raid(); else if(r<0.74) this.meteors(); else this.salvage();
+  },
+  badge(){ const b=$('deep-badge'); if(!b) return; const on=G.mode==='flight'&&G.sys.hud&&this.z>=1; b.hidden=!on; if(!on) return;
+    const st=this.storm, txt=st?`Meteor storm · ${Math.ceil(st.t)} s · keep throttle at 4 or lower`:`${['','Frontier','Deep space','The far dark'][this.z]} · ${RISK[this.z].name} risk`;
+    if(b.textContent!==txt) b.textContent=txt; b.className='z'+this.z+(st?' storm':''); },
+  raid(){ if(G.ship.warp) Game.dropWarp('Interdiction field! Warp disengaged','warn',true);
+    Distress.ambush({name:'Raiders',who:`Raiders · ${this.z>=3?'the far dark':'deep space'}`,text:pick(RAIDERS),tollMul:1+0.4*this.z,harder:this.z>=3?0.12:0.05}); },
+  meteors(){ const s=G.ship; if(s.warp) Game.dropWarp('Meteor storm ahead! Warp disengaged','warn',true);
+    this.storm={t:14,dmg:0,tick:2.5,ore:0}; /* a couple of seconds' grace to slow down */ UI.toast('Meteor storm! Throttle 4 or lower and no warp until it passes. Slow ships catch the glass, not the rocks.','warn'); Sfx.deny(); },
+  stepStorm(dt){ const st=this.storm, s=G.ship; st.t-=dt; st.tick-=dt;
+    if(st.tick<=0){ st.tick=1; const fast=s.throttle>4||s.warp||s.warpF>0.05;
+      if(fast){ const n=Math.round(rnd(1.5,3.2)*(this.z>=3?1.4:1)); st.dmg+=n; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); Game.flash=Math.max(Game.flash,0.35); Sfx.thump(0.45); if(G.hull<=0){ this.storm=null; Hull.breach(); return; } }
+      else if(Math.random()<0.45) st.ore++; }
+    if(st.t>0) return; this.storm=null;
+    if(st.dmg) UI.toast(`The storm passes. It cost you ${st.dmg}% hull. Hull ${Math.round(G.hull)}%`,'warn');
+    else UI.toast('The storm passes without a scratch. Nicely flown.','good');
+    if(st.ore&&!st.dmg){ const q=Math.min(st.ore,holdFree()); if(q>0){ let c=G.cargo.find(x=>x.kind==='ore'&&x.good==='Meteor Glass'); if(!c){ c={kind:'ore',good:'Meteor Glass',qty:0,to:-1,pay:0,val:95,from:-1}; G.cargo.push(c); } c.qty+=q; Cockpit.drawManifest(); setTimeout(()=>UI.toast(`Your scoop caught ${q}× Meteor Glass. Any assay office will buy it.`,'good'),1600); } }
+    if(st.dmg>=4&&Math.random()<0.4) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'shaken loose by the storm'),900); },
+  salvage(){ const z=this.z, sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9);
+    Dlg.show({icon:'📡',tone:'alert',who:'Scanner · unidentified contact',text:'A derelict survey probe is drifting nearby, still blinking. Salvage could be worth a lot out here. It could also be bait.',timeout:25,mini:true,
+      opts:[{t:'Go and look',sub:'A short detour',fn:()=>{ const s=G.ship, fwd=new V3(0,0,-1).applyQuaternion(s.quat), side=new V3(1,0,0).applyQuaternion(s.quat), pos=s.pos.clone().addScaledVector(fwd,rnd(14000,22000)).addScaledVector(side,rnd(-7000,7000));
+          const n=Ev.npc('derelict',pos,{sp,seed,name:'Probe',ship:'Survey probe'}); Npc.label(n,'SURVEY PROBE','derelict · salvage','#ffd166');
+          Nav.set({name:'SURVEY PROBE',sub:'Salvage',kind:'salvage',pos,dropR:9000,arriveR:1200,expire:240,onArrive:()=>this.loot(n,z),onCancel:()=>Ev.dismiss(n)}); UI.toast('Probe marked. Press P for autopilot.','good'); }},
+            {t:'Leave it',sub:'Nothing out here is free'}]}); },
+  loot(n, z){ G.ship.throttle=0; Ev.dismiss(n);
+    if(Math.random()<0.28){ Hull.hit(rnd(9,16)*(z>=3?1.4:1),'It was booby-trapped. Of course it was'); return; }
+    const cr=Math.round(rnd(320,760)*(z>=3?1.6:1)/5)*5; G.credits+=cr; G.stats.earned+=cr; Sfx.cash();
+    UI.toast(`Salvaged the probe's data core and sold it to its owners over the radio for ${fmtCr(cr)}. They seemed surprised to hear from anyone.`,'good'); },
+};
 /* ===================== SYSTEM MAP ===================== */
 /* Top-down chart of the system. M toggles it in flight and in port; click a world to set the destination. */
 const SysMap = {
@@ -6147,17 +6342,30 @@ const SysMap = {
   toggle(){ if(this.open) this.close(); else this.show(); },
   show(){
     if(this.open) return; this.open=true; this.hover=-1; this.f=0; this.listT=0.5;
-    if(!this.maxR){ PLANETS.forEach(P=>{ this.maxR=Math.max(this.maxR,P.orbit); }); this.maxR*=1.05; }
+    if(!this.maxR){ PLANETS.forEach(P=>{ if(!P.station) this.maxR=Math.max(this.maxR,this.rad(P.orbit)); }); this.maxR*=1.06; }
+    // out in deep space (or docked at a station) the chart opens zoomed out far enough to show where you are
+    const far=this.rad(Math.hypot(G.ship.pos.x,G.ship.pos.z)); if(far>this.maxR*0.92){ this.zoom=clamp(this.maxR*0.92/far,this.MINZ,1); this.ox=0; this.oz=0; } else if(this.zoom<1){ this.zoom=1; this.ox=0; this.oz=0; }
     $('map').hidden=false; $('tooltip').hidden=true; if(Sfx.ok()) Sfx.beep(760); this.list(); this.draw(Game.time);
   },
   close(){ if(!this.open) return; this.open=false; $('map').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
   pick(i){ if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:F.R*1.2,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
     if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
+  /* the chart is to scale out to the edge of patrolled space, then squeezed, so the far stations fit without
+     crushing the planets into the middle */
+  KNEE:1300000, SQ:0.3, MINZ:0.5,
+  rad(r){ return r<=this.KNEE?r:this.KNEE+(r-this.KNEE)*this.SQ; },
+  mp(p){ const d=Math.hypot(p.x,p.z); if(d<1) return {x:0,z:0}; const f=this.rad(d)/d; return {x:p.x*f,z:p.z*f}; },
   colors(P){ const p=P.pal; if(P.type==='gas') return [p.a,p.b,p.d]; if(P.lava>0.2) return [p.shal,p.deep,p.a]; if(P.sea>0.4) return [p.shal,p.deep,p.b]; return [p.d||p.a,p.a,p.c]; },
   cargoFor(i){ let n=0; G.cargo.forEach(c=>{ if(c.to===i) n+=c.qty; }); return n; },
   dist(P){ return Math.max(0,P.pos.distanceTo(G.ship.pos)-(P.r||0)); },
   eta(d){ const s=d/SHIPS[G.shipId].warp; return s<90?'≈ '+Math.max(1,Math.round(s))+' s at warp':'≈ '+(s/60).toFixed(1)+' min at warp'; },
 
+  /* a little station: a ring around a hub, with solar wings and a blinking light */
+  stationIcon(x, px, py, rad, P, t){ x.strokeStyle='#04060b'; x.lineWidth=5; x.beginPath(); x.moveTo(px-rad*1.9,py); x.lineTo(px+rad*1.9,py); x.stroke();
+    x.strokeStyle=P.pal.b; x.lineWidth=2; x.beginPath(); x.moveTo(px-rad*1.9,py); x.lineTo(px+rad*1.9,py); x.stroke();
+    x.fillStyle='#2a4a8a'; for(const s of [-1,1]) x.fillRect(px+s*rad*1.25-rad*0.4,py-rad*0.5,rad*0.8,rad);
+    x.strokeStyle=P.pal.a; x.lineWidth=3; x.beginPath(); x.arc(px,py,rad*0.85,0,Math.PI*2); x.stroke(); x.fillStyle=P.pal.a; x.beginPath(); x.arc(px,py,rad*0.35,0,Math.PI*2); x.fill();
+    if((t*1.5)%1<0.5){ x.fillStyle=P.light; x.beginPath(); x.arc(px,py-rad*0.85,2.5,0,Math.PI*2); x.fill(); } x.lineWidth=1; },
   bind(){
     const cv=$('map-cv');
     const at=e=>{ const r=cv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top; let best=-1, bd=1e9; this.pts.forEach(p=>{ const d=Math.hypot(p.x-mx,p.y-my); if(d<Math.max(p.r+12,20)&&d<bd){ bd=d; best=p.i; } }); return best; };
@@ -6168,7 +6376,7 @@ const SysMap = {
     $('map-close').onclick=()=>this.close();
     /* zoom: mouse wheel (toward the pointer), pinch on a touch screen; drag to pan; double-click to reset */
     const zoomAt=(f,mx,my)=>{ const r=cv.getBoundingClientRect(), w=r.width, h=r.height, k0=this.base*this.zoom, wx=this.ox+(mx-w/2)/k0, wz=this.oz+(my-h/2)/k0;
-      this.zoom=clamp(this.zoom*f,1,14); const k1=this.base*this.zoom; this.ox=wx-(mx-w/2)/k1; this.oz=wz-(my-h/2)/k1; if(this.zoom<=1.001){ this.ox=0; this.oz=0; } this.draw(Game.time); };
+      this.zoom=clamp(this.zoom*f,this.MINZ,14); const k1=this.base*this.zoom; this.ox=wx-(mx-w/2)/k1; this.oz=wz-(my-h/2)/k1; if(this.zoom<=1.001){ this.ox=0; this.oz=0; } this.draw(Game.time); };
     cv.addEventListener('wheel',e=>{ if(!this.open) return; e.preventDefault(); const r=cv.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY*(e.deltaMode===1?0.05:0.0016)),e.clientX-r.left,e.clientY-r.top); },{passive:false});
     const ptrs=new Map(); let drag=null, pinch=null;
     cv.addEventListener('pointerdown',e=>{ ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ cv.setPointerCapture(e.pointerId); }catch(_){}
@@ -6194,12 +6402,12 @@ const SysMap = {
     const rows=PLANETS.slice().sort((a,b)=>a.orbit-b.orbit).map(P=>{
       const here=docked&&G.docked===P.idx, n=this.cargoFor(P.idx), col=this.colors(P);
       let tags=''; if(P.idx===G.target&&!Nav.wp) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Paying +50%</em>'; if(here) tags+='<em>Docked</em>';
-      return `<button class="mrow${P.idx===G.target&&!Nav.wp?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
+      return `<button class="mrow${P.idx===G.target&&!Nav.wp?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})${P.station?';border-radius:30%':''}"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${P.station?'research station · <b class="risk r'+P.risk+'">'+RISK[P.risk].name+' risk</b>':esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
     });
     FIELDS.forEach(F=>{ const tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx; rows.push(`<button class="mrow${tg?' tg':''}" data-i="${100+F.idx}"><i style="background:radial-gradient(circle at 35% 35%,#e8dcc8,${F.col} 60%,#3a3040);border-radius:30%"></i><span class="n">${esc(F.name)}</span><span class="d">${fmtDist(Math.max(0,F.pos.distanceTo(G.ship.pos)-F.R))}</span><span class="p">Asteroid field · ${esc(F.ore)}</span>${tg?'<span class="b"><em class="t">Waypoint</em></span>':''}</button>`); });
     $('map-list').innerHTML=rows.join('');
     const nT=G.mode==='flight'?Npc.list.length:0;
-    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+(TouchUI.on?' · Tap a world or field to set your course · pinch to zoom, drag to pan':' · Click a world or field to set your course · scroll to zoom, drag to pan, double-click to reset · M or Esc to close');
+    $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+(TouchUI.on?' · Tap a world or field to set your course · pinch to zoom, drag to pan':' · Click a world or field to set your course · scroll to zoom (out for deep space), drag to pan, double-click to reset · M or Esc to close');
   },
 
   draw(t){
@@ -6212,62 +6420,81 @@ const SysMap = {
 
     // range rings, one per light-second
     x.font=`20px ${FONT_MONO}`; x.textAlign='center';
-    for(let ls=1; ls*LS<=this.maxR; ls++){ const r=ls*LS*k; x.setLineDash([2,6]); x.strokeStyle='rgba(98,226,255,.16)'; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.stroke(); x.setLineDash([]);
+    for(let ls=1; this.rad(ls*LS)<=this.maxR/this.zoom*1.3; ls++){ const r=this.rad(ls*LS)*k; if(ls*LS>this.KNEE&&ls%2) continue; x.setLineDash([2,6]); x.strokeStyle='rgba(98,226,255,.16)'; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.stroke(); x.setLineDash([]);
       x.fillStyle='rgba(134,162,174,.7)'; x.fillText(ls+' LS',cx,cy-r-13); }
     // orbits
-    PLANETS.forEach(P=>{ x.strokeStyle=P.idx===G.target?'rgba(255,180,84,.28)':'rgba(220,237,243,.09)'; x.beginPath(); x.arc(cx,cy,P.orbit*k,0,TAU); x.stroke(); });
+    PLANETS.forEach(P=>{ if(P.station) return; x.strokeStyle=P.idx===G.target?'rgba(255,180,84,.28)':'rgba(220,237,243,.09)'; x.beginPath(); x.arc(cx,cy,this.rad(P.orbit)*k,0,TAU); x.stroke(); });
+    // where the patrols stop: beyond this line is deep space, tinted red, and redder again in the far dark
+    for(const [R,lab,col] of [[DEEP_R,'END OF PATROLLED SPACE','255,140,70'],[EXTREME_R,'THE FAR DARK','255,90,90']]){ const r=this.rad(R)*k; x.strokeStyle=`rgba(${col},.55)`; x.lineWidth=2; x.setLineDash([10,8]); x.beginPath(); x.arc(cx,cy,r,0,TAU); x.stroke(); x.setLineDash([]); x.lineWidth=1;
+      x.fillStyle=`rgba(${col},.05)`; x.beginPath(); x.arc(cx,cy,r+Math.max(w,h)*3,0,TAU); x.arc(cx,cy,r,0,TAU,true); x.fill(); }
     // sun
     const sr=Math.max(9,SUN_R*k*4); let g=x.createRadialGradient(cx,cy,0,cx,cy,sr*3.2); g.addColorStop(0,'rgba(255,246,216,1)'); g.addColorStop(0.22,'rgba(255,214,130,.9)'); g.addColorStop(0.45,'rgba(255,160,60,.28)'); g.addColorStop(1,'rgba(255,140,40,0)');
     x.fillStyle=g; x.beginPath(); x.arc(cx,cy,sr*3.2,0,TAU); x.fill();
 
     // ship position on the chart
-    const sx=cx+s.pos.x*k, sy=cy+s.pos.z*k;
-    const boxes=PLANETS.map(P=>{ const ax=cx+P.pos.x*k, ay=cy+P.pos.z*k; return [ax-13,ay-13,ax+13,ay+13]; }); boxes.push([sx-16,sy-16,sx+16,sy+44]);
+    /* places past the edge of the chart (the stations, the far field) are pinned to its rim with an arrow pointing the way */
+    const at=(p,far)=>{ const m=this.mp(p), X=cx+m.x*k, Y=cy+m.z*k, l=30, r=w-30, tp=44, bt=h-34; if(!far||(X>=l&&X<=r&&Y>=tp&&Y<=bt)) return [X,Y,false];
+      const dx=X-w/2, dy=Y-h/2; let q=1; if(Math.abs(dx)>1e-6) q=Math.min(q,(dx>0?r-w/2:w/2-l)/Math.abs(dx)); if(Math.abs(dy)>1e-6) q=Math.min(q,(dy>0?bt-h/2:h/2-tp)/Math.abs(dy)); return [w/2+dx*q,h/2+dy*q,true]; };
+    const farP=P=>P.station, farF=F=>F.orbit>this.KNEE, arrow=(X,Y)=>{ const a=Math.atan2(Y-h/2,X-w/2); x.save(); x.translate(X,Y); x.rotate(a); x.fillStyle='#ffb454'; x.strokeStyle='#04060b'; x.lineWidth=2; x.beginPath(); x.moveTo(26,0); x.lineTo(15,-8); x.lineTo(15,8); x.closePath(); x.stroke(); x.fill(); x.restore(); };
+    const [sx,sy]=at(s.pos,true);
+    const boxes=PLANETS.map(P=>{ const [ax,ay]=at(P.pos,farP(P)); return [ax-13,ay-13,ax+13,ay+13]; }); boxes.push([sx-16,sy-16,sx+16,sy+44]);
+    /* label placement: the first candidate spot that is on screen and clear; failing that, the one that overlaps least */
+    const place=(cands,lw,hh,dx,dy)=>{ let best=null, bs=1e18; for(const [ax,ay] of cands){ if(ax<6||ax+lw>w-6||ay<34||ay>h-34) continue; let o=0;
+        for(const b of boxes){ const ox=Math.min(ax+lw+8,b[2])-Math.max(ax-8,b[0]), oy=Math.min(ay+hh,b[3])-Math.max(ay-hh,b[1]); if(ox>0&&oy>0) o+=ox*oy; }
+        if(o===0) return [ax,ay]; if(o<bs){ bs=o; best=[ax,ay]; } } return best||[dx,dy]; };
+    // zone names sit on their rings, low on the right, and the world labels steer around them
+    x.font=`20px ${FONT_MONO}`; x.textAlign='center';
+    for(const [R,lab,col,a] of [[DEEP_R,'END OF PATROLLED SPACE','255,150,80',0.78],[EXTREME_R,'THE FAR DARK','255,100,100',0.22]]){ const r=this.rad(R)*k, lx=cx+Math.cos(a)*r, ly=cy+Math.sin(a)*r, tw=x.measureText(lab).width+12;
+      if(lx-tw/2<4||lx+tw/2>w-4||ly<20||ly>h-14) continue; x.fillStyle='rgba(4,6,11,.8)'; x.fillRect(lx-tw/2,ly-13,tw,26); x.fillStyle=`rgba(${col},.95)`; x.fillText(lab,lx,ly+1); boxes.push([lx-tw/2,ly-13,lx+tw/2,ly+13]); }
     // course line to the destination
-    const tx=cx+T.pos.x*k, ty=cy+T.pos.z*k, cl=Math.hypot(tx-sx,ty-sy);
+    const [tx,ty]=at(T.pos,T.station||T.isWp||(T.isField&&T.orbit>this.KNEE)), cl=Math.hypot(tx-sx,ty-sy);
     if(cl>16){ x.strokeStyle='rgba(255,180,84,.75)'; x.setLineDash([7,6]); x.lineDashOffset=-t*18; x.beginPath(); x.moveTo(sx,sy); x.lineTo(tx,ty); x.stroke(); x.setLineDash([]); x.lineDashOffset=0;
       if(cl>90){ const mx=(sx+tx)/2, my=(sy+ty)/2, lab=fmtDist(this.dist(T)); x.font=`22px ${FONT_MONO}`; const tw=x.measureText(lab).width+18; x.fillStyle='rgba(4,6,11,.85)'; x.fillRect(mx-tw/2,my-16,tw,32); boxes.push([mx-tw/2,my-16,mx+tw/2,my+16]); x.fillStyle='#ffb454'; x.textAlign='center'; x.fillText(lab,mx,my+1); } }
 
-    // asteroid fields (drawn first so planet labels steer around them)
+    // asteroid fields: their icons are kept clear here, their labels are drawn after the worlds
     this.pts.length=0;
-    FIELDS.forEach(F=>{ const fx=cx+F.pos.x*k, fy=cy+F.pos.z*k; boxes.push([fx-16,fy-16,fx+16,fy+16]); });
-    FIELDS.forEach(F=>{ const fx=cx+F.pos.x*k, fy=cy+F.pos.z*k, rr=mulberry32(F.idx*31+7), tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx, hv=this.hover===100+F.idx;
-      x.fillStyle=F.col; for(let q=0;q<9;q++){ const a=rr()*TAU, d=rr()*13; x.beginPath(); x.arc(fx+Math.cos(a)*d,fy+Math.sin(a)*d,2+rr()*3,0,TAU); x.fill(); }
-      if(tg||hv){ x.strokeStyle=tg?'#ffb454':'#dcedf3'; x.lineWidth=1.5; x.beginPath(); x.arc(fx,fy,22,0,TAU); x.stroke(); x.lineWidth=1; }
-      const nm=F.name.toUpperCase(), ore=F.ore.toUpperCase(); x.font=`600 22px ${FONT_DISP}`; const nw=x.measureText(nm).width; x.font=`18px ${FONT_MONO}`; const lw=Math.max(nw,x.measureText(ore).width);
-      let lx=fx+26, ly=fy;
-      for(const [ax,ay] of [[fx+26,fy],[fx-26-lw,fy],[fx-lw/2,fy+50],[fx-lw/2,fy-50],[fx+26,fy+52],[fx-26-lw,fy-52]]){ if(ax<6||ax+lw>w-6||ay<34||ay>h-34) continue; if(!boxes.some(b=>ax-8<b[2]&&ax+lw+8>b[0]&&ay-28<b[3]&&ay+28>b[1])){ lx=ax; ly=ay; break; } }
-      boxes.push([lx-6,ly-26,lx+lw+6,ly+26]);
-      x.textAlign='left'; x.fillStyle='rgba(4,6,11,.66)'; x.fillRect(lx-6,ly-26,lw+12,52); x.font=`600 22px ${FONT_DISP}`; x.fillStyle=tg?'#ffb454':'#c9bce8'; x.fillText(nm,lx,ly-10); x.font=`18px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(ore,lx,ly+13);
-      this.pts.push({i:100+F.idx,x:fx,y:fy,r:16}); });
-    // worlds
-    PLANETS.forEach(P=>{
-      const px=cx+P.pos.x*k, py=cy+P.pos.z*k, rad=clamp(3.5+P.r/850,6,13), col=this.colors(P), tg=P.idx===G.target, hv=P.idx===this.hover;
+    FIELDS.forEach(F=>{ const [fx,fy]=at(F.pos,farF(F)); boxes.push([fx-16,fy-16,fx+16,fy+16]); });
+    // worlds (the stations first, so the ones pinned to the rim get their label space before the crowd in the middle)
+    PLANETS.slice().sort((a,b)=>(b.station?1:0)-(a.station?1:0)).forEach(P=>{
+      const [px,py,pinned]=at(P.pos,farP(P)); if(pinned) arrow(px,py); const rad=P.station?9:clamp(3.5+P.r/850,6,13), col=this.colors(P), tg=P.idx===G.target, hv=P.idx===this.hover;
       const ux=(px-cx)/(Math.hypot(px-cx,py-cy)||1), uy=(py-cy)/(Math.hypot(px-cx,py-cy)||1);
       this.pts.push({i:P.idx,x:px,y:py,r:rad});
       if(P.ring){ x.strokeStyle='rgba(240,220,180,.75)'; x.lineWidth=2; x.beginPath(); x.ellipse(px,py,rad*1.9,rad*0.62,-0.4,0,TAU); x.stroke(); x.lineWidth=1; }
-      g=x.createRadialGradient(px-ux*rad*0.45,py-uy*rad*0.45,rad*0.1,px,py,rad); g.addColorStop(0,col[0]); g.addColorStop(0.6,col[1]); g.addColorStop(1,col[2]);
+      if(P.station) this.stationIcon(x,px,py,rad,P,t);
+      else { g=x.createRadialGradient(px-ux*rad*0.45,py-uy*rad*0.45,rad*0.1,px,py,rad); g.addColorStop(0,col[0]); g.addColorStop(0.6,col[1]); g.addColorStop(1,col[2]);
       x.fillStyle=g; x.beginPath(); x.arc(px,py,rad,0,TAU); x.fill();
-      x.strokeStyle=P.pal.atm; x.globalAlpha=0.7; x.beginPath(); x.arc(px,py,rad+1.5,0,TAU); x.stroke(); x.globalAlpha=1;
+      x.strokeStyle=P.pal.atm; x.globalAlpha=0.7; x.beginPath(); x.arc(px,py,rad+1.5,0,TAU); x.stroke(); x.globalAlpha=1; }
       if(P.ring){ x.strokeStyle='rgba(240,220,180,.9)'; x.lineWidth=2; x.beginPath(); x.ellipse(px,py,rad*1.9,rad*0.62,-0.4,0.15,Math.PI-0.15); x.stroke(); x.lineWidth=1; }
       if(hv&&!tg){ x.strokeStyle='rgba(220,237,243,.9)'; x.beginPath(); x.arc(px,py,rad+7,0,TAU); x.stroke(); }
       if(tg){ const rr=rad+8+Math.sin(t*3)*1.2; x.strokeStyle='#ffb454'; x.lineWidth=1.5; x.beginPath(); x.arc(px,py,rr,0,TAU); x.stroke();
         for(let q=0;q<4;q++){ const a=t*0.6+q*Math.PI/2; x.beginPath(); x.moveTo(px+Math.cos(a)*(rr+2),py+Math.sin(a)*(rr+2)); x.lineTo(px+Math.cos(a)*(rr+8),py+Math.sin(a)*(rr+8)); x.stroke(); } x.lineWidth=1; }
       // label: name, port, badges
-      const n=this.cargoFor(P.idx), hot=G.hot===P.idx, name=P.name.toUpperCase(); let badge=''; if(n) badge+='  ▣ '+n; if(hot) badge+='  +50%';
-      x.font=`600 26px ${FONT_DISP}`; const nw=x.measureText(name).width; x.font=`22px ${FONT_MONO}`; const bw=badge?x.measureText(badge).width:0; x.font=`20px ${FONT_MONO}`; const pw=x.measureText(P.port.toUpperCase()).width;
+      const n=this.cargoFor(P.idx), hot=G.hot===P.idx, name=P.name.toUpperCase(), sub=P.station?`STATION · ${RISK[P.risk].name.toUpperCase()} RISK`:P.port.toUpperCase(); let badge=''; if(n) badge+='  ▣ '+n; if(hot) badge+='  +50%';
+      x.font=`600 26px ${FONT_DISP}`; const nw=x.measureText(name).width; x.font=`22px ${FONT_MONO}`; const bw=badge?x.measureText(badge).width:0; x.font=`20px ${FONT_MONO}`; const pw=x.measureText(sub).width;
       const lw=Math.max(nw+bw,pw), off=rad+(tg?20:12); let lx=px+off+lw>w-6?px-off-lw:px+off, ly=py; x.textAlign='left';
       // keep labels off each other: try right, left, below, above
-      for(const [ax,ay] of [[px+off,py],[px-off-lw,py],[px-lw/2,py+off+30],[px-lw/2,py-off-30]]){ if(ax<6||ax+lw>w-6||ay<34||ay>h-34) continue; if(!boxes.some(b=>ax-8<b[2]&&ax+lw+8>b[0]&&ay-30<b[3]&&ay+30>b[1])){ lx=ax; ly=ay; break; } }
+      const cands=[[px+off,py],[px-off-lw,py],[px-lw/2,py+off+30],[px-lw/2,py-off-30],[px+off,py+off+28],[px-off-lw,py-off-28],[px+off,py-off-28],[px-off-lw,py+off+28]];
+      if(pinned){ const ix=w/2-px, iy=h/2-py, il=Math.hypot(ix,iy)||1; for(const d of [70,130,190]) cands.push([px+ix/il*d-lw/2,py+iy/il*d]); }
+      [lx,ly]=place(cands,lw,30,lx,ly);
       boxes.push([lx-6,ly-28,lx+lw+6,ly+28]);
       x.fillStyle='rgba(4,6,11,.66)'; x.fillRect(lx-6,ly-28,lw+12,56);
       x.font=`600 26px ${FONT_DISP}`; x.fillStyle=tg?'#ffb454':hv?'#ffffff':'#dcedf3'; x.fillText(name,lx,ly-11);
       if(badge){ x.font=`22px ${FONT_MONO}`; let bx=lx+nw; if(n){ const s1='  ▣ '+n; x.fillStyle='#7dffa8'; x.fillText(s1,bx,ly-11); bx+=x.measureText(s1).width; } if(hot){ x.fillStyle='#ffb454'; x.fillText('  +50%',bx,ly-11); } }
-      x.font=`20px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(P.port.toUpperCase(),lx,ly+15);
+      x.font=`20px ${FONT_MONO}`; x.fillStyle=P.station?RISK[P.risk].col:'rgba(134,162,174,.95)'; x.fillText(sub,lx,ly+15);
     });
 
+    // asteroid fields: their labels give way to the worlds'
+    FIELDS.forEach(F=>{ const [fx,fy,pf]=at(F.pos,farF(F)); if(pf) arrow(fx,fy); const rr=mulberry32(F.idx*31+7), tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx, hv=this.hover===100+F.idx;
+      x.fillStyle=F.col; for(let q=0;q<9;q++){ const a=rr()*TAU, d=rr()*13; x.beginPath(); x.arc(fx+Math.cos(a)*d,fy+Math.sin(a)*d,2+rr()*3,0,TAU); x.fill(); }
+      if(tg||hv){ x.strokeStyle=tg?'#ffb454':'#dcedf3'; x.lineWidth=1.5; x.beginPath(); x.arc(fx,fy,22,0,TAU); x.stroke(); x.lineWidth=1; }
+      const nm=F.name.toUpperCase(), ore=F.ore.toUpperCase(); x.font=`600 22px ${FONT_DISP}`; const nw=x.measureText(nm).width; x.font=`18px ${FONT_MONO}`; const lw=Math.max(nw,x.measureText(ore).width);
+      let lx=fx+26, ly=fy;
+      [lx,ly]=place([[fx+26,fy],[fx-26-lw,fy],[fx-lw/2,fy+50],[fx-lw/2,fy-50],[fx+26,fy+52],[fx-26-lw,fy-52]],lw,28,lx,ly);
+      boxes.push([lx-6,ly-26,lx+lw+6,ly+26]);
+      x.textAlign='left'; x.fillStyle='rgba(4,6,11,.66)'; x.fillRect(lx-6,ly-26,lw+12,52); x.font=`600 22px ${FONT_DISP}`; x.fillStyle=tg?'#ffb454':'#c9bce8'; x.fillText(nm,lx,ly-10); x.font=`18px ${FONT_MONO}`; x.fillStyle='rgba(134,162,174,.95)'; x.fillText(ore,lx,ly+13);
+      this.pts.push({i:100+F.idx,x:fx,y:fy,r:16}); });
     // distress beacon
-    if(Nav.wp&&Nav.wp.kind==='distress'){ const bx=cx+Nav.wp.pos.x*k, by=cy+Nav.wp.pos.z*k; x.strokeStyle='#ff6f61'; x.lineWidth=2; x.beginPath(); x.moveTo(bx,by-10); x.lineTo(bx+10,by); x.lineTo(bx,by+10); x.lineTo(bx-10,by); x.closePath(); x.stroke(); x.lineWidth=1; }
+    if(Nav.wp&&(Nav.wp.kind==='distress'||Nav.wp.kind==='salvage')){ const [bx,by]=at(Nav.wp.pos,true); x.strokeStyle='#ff6f61'; x.lineWidth=2; x.beginPath(); x.moveTo(bx,by-10); x.lineTo(bx+10,by); x.lineTo(bx,by+10); x.lineTo(bx-10,by); x.closePath(); x.stroke(); x.lineWidth=1; }
     // you
     const pulse=(t*0.9)%1; x.strokeStyle=`rgba(98,226,255,${0.6*(1-pulse)})`; x.beginPath(); x.arc(sx,sy,6+pulse*16,0,TAU); x.stroke();
     if(docked){ x.strokeStyle='#62e2ff'; x.lineWidth=1.5; x.beginPath(); x.arc(sx,sy,4,0,TAU); x.stroke(); x.lineWidth=1; }
@@ -6320,6 +6547,15 @@ const STORY_ANY = [
   ["{from} says {to} will know what it means. {from} does not seem to know what it means.","{to} looks at it, then at you, then at it. \"Ah,\" they say. They do not say anything else."],
   ["{to} has been waiting for this on {planet} for so long that they have started telling people it is a myth.","{to} holds it up for the whole depot to see. \"It exists!\" Nobody else was ever in doubt."],
 ];
+/* deliveries out to the research stations: somebody very far away has been waiting a very long time */
+const STORY_STATION = [
+  ["{to} at {port} ordered this for an experiment. The experiment is to see whether anyone will deliver this far out.","{to} writes \"YES\" in a notebook, underlines it twice, and shakes your hand for slightly too long."],
+  ["{from} is sending this to {to}, who has been at {planet} for three years and has stopped being sure that other people exist.","{to} pokes you gently to check you are real. You are. They seem relieved, and then a bit overwhelmed."],
+  ["{to} asked for this in a message sent eleven months ago. {from} only just found the message behind a radiator.","{to} signs for it and says it is no longer needed, but they will keep it, because nobody ever comes out here."],
+  ["The crew at {port} drew lots to decide what to order this year. {to} won. {from} thinks {to} chose badly.","{to} unwraps it in front of the whole crew, who all applaud. Some of them are also quietly disappointed."],
+  ["{to} is running a very long study at {planet} on how long deliveries take. You are part of the study now.","{to} checks a stopwatch, nods, and writes down a number. They will not tell you whether it was a good number."],
+  ["{from} says this is the only thing keeping morale up at {port}. {from} has not seen the morale at {port}.","{to} hugs the crate. Morale at {port} goes up by a measurable amount. Somebody measures it."],
+];
 const STORY_CONTRA = [
   ["{from} says the crate is full of nothing, and nothing is worth a great deal on {planet}. Do not open it. There is nothing to see.","A figure in a long coat takes the crate, says \"we were never here\", and leaves. You were definitely there."],
   ["{from} needs this on {planet} before anyone official notices it is gone. {from} will not say gone from where.","Someone whistles from behind a stack of barrels. The crate goes in, a bag of credits comes out, and nobody makes eye contact."],
@@ -6347,7 +6583,7 @@ const PAX_TRIPS = [
 const Story = {
   who(sp, seed){ return {sp,seed,name:alienName(sp,seed)}; },
   /* an ordinary crate: someone at this port sends it to someone at the far end */
-  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(ALIEN_POOL),(j.seed*7+13)%1000000007), pair=STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
+  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(ALIEN_POOL),(j.seed*7+13)%1000000007), pair=T.station&&Math.random()<0.55?pick(STORY_STATION):STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
     const o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port}; return {pick:fill(pair[0],o),drop:fill(pair[1],o),to}; },
   contra(j){ const T=PLANETS[j.to], to=this.who(pick(['vrell','grondar','qeeble','blorpax']),(j.seed*11+5)%1000000007), pair=pick(STORY_CONTRA), o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port};
     return {pick:fill(pair[0],o),drop:fill(pair[1],o),to:{sp:to.sp,seed:to.seed,name:to.name+' · never here'}}; },
@@ -6446,7 +6682,7 @@ const UI = {
     const tabs=$('port-tabs'); tabs.innerHTML=''; Venues.defs(P).forEach(d=>{ const b=el('button','',VENUE_TABS[d.k]); b.dataset.k=d.k; b.onclick=()=>{ if(this.tab===d.k) return; Sfx.click(); this.tab=d.k; Cine.setPreview(null); this.render(); }; tabs.appendChild(b); });
     this.render();
   },
-  hidePort(){ $('port').hidden=true; },
+  hidePort(){ $('port').hidden=true; $('bubble').hidden=true; $('shelf-tip').hidden=true; },
   /* what is aboard for this port (contraband goes through the unloading crew instead) */
   due(P){ return P?G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='ore'):[]; },
   payFor(c){ return c.kind==='escort'?Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5:c.pay; },
@@ -6501,17 +6737,17 @@ const UI = {
       if(a){ if(a.paid.length){ const L=el('div','ledger'); a.paid.forEach(c=>{ L.appendChild(el('span','',`${c.qty?c.qty+'× ':''}${esc(c.good)}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); if(a.fee){ L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); }
           L.appendChild(el('span','tot','Delivered and paid')); L.appendChild(el('span','tot',fmtCr(a.total))); body.appendChild(L); }
         else if(a.fee){ const L=el('div','ledger'); L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); body.appendChild(L); } }
-      const need=Math.ceil(d.fuel-G.fuel), cost=need*3;
-      this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. Every depot sells fuel. Warp drinks it, cruising sips it.`,'3 cr per unit',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=3?'Buy what I can':'Beg',need<=0,()=>{
-        if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=3){ const u=Math.floor(G.credits/3); G.fuel+=u; G.credits-=u*3; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
+      const ppu=Econ.fuelPrice(P), need=Math.ceil(d.fuel-G.fuel), cost=need*ppu;
+      this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. Every depot sells fuel. Warp drinks it, cruising sips it.${P.station?' Out here it comes a very long way, and the price knows it.':''}`,`${ppu} cr per unit`,need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=ppu?'Buy what I can':'Beg',need<=0,()=>{
+        if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=ppu){ const u=Math.floor(G.credits/ppu); G.fuel+=u; G.credits-=u*ppu; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
       { const f=this.facts([['Hold',`${used} of ${holdCap()} units used`],['Reputation',`${Rep.label()} ${G.rep>0?'+':''}${G.rep} · pay ×${Rep.payMul().toFixed(2)}`]],[['View hold · I',()=>Hold.toggle(true)]]); f.insertBefore(el('span','','Ship '),f.firstChild); f.firstChild.appendChild(this.shipLink()); body.appendChild(f); }
       body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}, also on the shelf behind the counter: click a model to find its job. The stock droid fetches your crate when you accept. Hand it over at the destination's cargo depot to get paid.`));
       if(!G.jobs.length) body.appendChild(el('div','note','The board is empty. Fly somewhere else and come back.'));
       G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.dataset.job=String(G.jobs.indexOf(j)); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
-        let h3, meta;
-        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · rides in your passenger cabin · needs a free seat`; }
-        else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>`; meta=`To <i>${esc(T.name)}</i> · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrols en route`; }
-        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · full pay if delivered within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying`; }
+        let h3, meta; const rk=Econ.risk(P,T), rtag=rk>=2?`<span class="tag r${rk}">${RISK[rk].name.toUpperCase()} RISK</span>`:'';
+        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.line(P,T)} · rides in your passenger cabin · needs a free seat`; }
+        else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.line(P,T)} · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrol en route, but not in deep space`; }
+        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.line(P,T)} · full pay if delivered within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying`; }
         c.appendChild(el('div','mid',`<h3>${h3}</h3><p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}<div class="meta">${meta}</div>`));
         const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay)));
         const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat; const b=el('button','btn',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
@@ -6570,7 +6806,7 @@ const UI = {
       // passengers looking for a ride
       const seats=Cargo.seats(), taken=Cargo.pax().length; body.appendChild(el('div','note',`Passengers looking for a ride · your cabin has ${seats-taken} of ${seats} seats free. Their fares drop if the trip runs long.`));
       (G.paxJobs||[]).forEach(j=>{ const T=PLANETS[j.to], pc=el('div','card'); pc.appendChild(portraitCanvas(j.sp,j.seed,128));
-        pc.appendChild(el('div','mid',`<h3>${esc(j.good)}<span class="tag">PASSENGER</span></h3><p>${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.</p><div class="meta">To <i>${esc(T.name)}</i> · full fare within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying</div>`));
+        pc.appendChild(el('div','mid',`<h3>${esc(j.good)}<span class="tag">PASSENGER</span></h3><p>${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.</p><div class="meta">To <i>${esc(T.name)}</i> · ${Econ.line(P,T)} · full fare within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying</div>`));
         const pr=el('div','right'); pr.appendChild(el('div','pay',fmtCr(j.pay))); const pb=el('button','btn',taken>=seats?'No seats':'Take them'); pb.disabled=taken>=seats;
         pb.onclick=()=>{ G.cargo.push({kind:'pax',good:j.good,sp:j.sp,seed:j.seed,qty:0,to:j.to,pay:j.pay,from:P.idx,story:j.story}); G.paxJobs.splice(G.paxJobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
         pr.appendChild(pb); pc.appendChild(pr); body.appendChild(pc); });
@@ -7085,22 +7321,25 @@ const Game = {
 
   genJobs(pi){
     const P=PLANETS[pi], hold=holdCap(), jobs=[], n=5+Math.floor(Math.random()*3);
-    for(let i=0;i<n;i++){ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
-      const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to;
-      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
+    // from a planet, the first two jobs stay in safe-ish space so there's always something a new hauler can take
+    const dest=(i)=>{ let to, k=0; do{ to=Math.floor(Math.random()*PLANETS.length); }while((to===pi||(!P.station&&i<2&&PLANETS[to].risk>1))&&++k<60); return to; };
+    for(let i=0;i<n;i++){ let to=dest(i); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
+      const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
+      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
       const fragile=i>0&&Math.random()<0.3;
-      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.35:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile}); }
+      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk}); }
     jobs.sort((a,b)=>a.qty-b.qty);
     const away=()=>{ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); return to; };
-    if(Math.random()<0.6){ const to=away(), g=pick(CONTRABAND), qty=Math.max(1,Math.round(hold*rnd(0.15,0.4))), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
-      jobs.push({kind:'contra',good:g[0],note:g[1],qty,to,pay:Math.round(qty*(50+dist*36)*2.9*rnd(0.9,1.25)/5)*5,sp:pick(['vrell','grondar','qeeble','blorpax']),seed:Math.floor(Math.random()*1e9)}); }
+    // contraband pays for the chance of being caught: the stricter the docks at both ends, the more it's worth
+    if(Math.random()<0.6){ const to=away(), g=pick(CONTRABAND), qty=Math.max(1,Math.round(hold*rnd(0.15,0.4))), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, catchK=2.1+2.6*(Customs.risk(P)+Customs.risk(PLANETS[to]));
+      jobs.push({kind:'contra',good:g[0],note:g[1],qty,to,risk:Econ.risk(P,PLANETS[to]),pay:Math.round(qty*(50+dist*36)*catchK*Econ.mul(P,PLANETS[to])*rnd(0.9,1.2)/5)*5,sp:pick(['vrell','grondar','qeeble','blorpax']),seed:Math.floor(Math.random()*1e9)}); }
     if(!G.cargo.some(c=>c.kind==='escort')&&Math.random()<0.6){ const to=away(), v=pick(VIPS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
-      jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,pay:Math.round((320+dist*190)*rnd(0.9,1.2)*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
+      jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((320+dist*190)*rnd(0.9,1.2)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
     for(const j of jobs) j.story=j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j);
     G.jobs=jobs;
     // people wanting a ride, offered at cantinas
     const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
-      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,pay:Math.round((140+dist*60)*rnd(0.85,1.25)*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
+      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((140+dist*60)*rnd(0.85,1.25)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
     for(const j of px){ j.story=Story.pax(j); j.why=j.story.why; }
     G.paxJobs=px;
   },
@@ -7110,7 +7349,7 @@ const Game = {
     // deliveries are handed over by hand at the cargo depot now; nothing is paid automatically
     const paid=[], total=0, due=UI.due(P);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
-    const fee=Math.min(this.towFee,G.credits); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; if(Hold.open) Hold.render(); G.credits-=fee; if(G.hot===P.idx) G.hot=null;
+    const fee=Math.min(this.towFee,G.credits); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; $('deep-badge').hidden=true; Deep.storm=null; if(Hold.open) Hold.render(); G.credits-=fee; if(G.hot===P.idx) G.hot=null;
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(due.length) setTimeout(()=>UI.toast(`${due.length} deliver${due.length===1?'y':'ies'} for ${P.port}. Hand ${due.length===1?'it':'them'} over at the cargo depot.`,'good'),1200); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
@@ -7127,7 +7366,8 @@ const Game = {
   },
   tow(msg, fee){
     if(this.towing) return; this.towing=true; UI.toast(msg||'Out of fuel. A Grondar tow-barge has been called. It is not in a hurry.','warn');
-    setTimeout(()=>{ this.towing=false; if(G.mode!=='flight') return; const P=World.nearest||PLANETS[0]; this.towFee=fee||150; const out=G.ship.pos.clone().sub(P.pos).normalize(); G.ship.pos.copy(P.pos).addScaledVector(out,P.landR*1.2); G.ship.departed=-1; Cine.startLanding(P); },3500);
+    const far=[1,1.6,2.6,3.6][Deep.z]; if(far>1) setTimeout(()=>UI.toast(`Deep-space tow. The barge charges by the light-second, and it is a long way out.`,'warn'),1800);
+    setTimeout(()=>{ this.towing=false; if(G.mode!=='flight') return; const P=World.nearest||PLANETS[0]; this.towFee=Math.round((fee||150)*far/10)*10; const out=G.ship.pos.clone().sub(P.pos).normalize(); G.ship.pos.copy(P.pos).addScaledVector(out,P.landR*1.2); G.ship.departed=-1; Cine.startLanding(P); },3500);
   },
 
   updateFlight(dt){

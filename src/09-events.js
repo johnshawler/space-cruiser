@@ -27,6 +27,8 @@ const FIELDS = [
   {name:'The Gravel Pit', ore:'Crunchy Iridium', val:46, orbit:505000, ang:0.95, y:-4000, col:'#b08a6e', R:9000, n:110},
   {name:"Grandma's Button Jar", ore:'Antique Moon Buttons', val:38, orbit:735000, ang:3.95, y:9000, col:'#9d8fc2', R:9000, n:110},
   {name:"Sir Reginald's Rubble", ore:'Smug Quartz', val:62, orbit:1025000, ang:2.25, y:-11000, col:'#c27a58', R:10000, n:120},
+  /* out in the far dark, near Beacon Far Wink: the best ore in the system, and the worst neighbourhood */
+  {name:'The Back of Beyond', ore:'Unreasonably Rare Glitterstone', val:135, orbit:3050000, ang:2.2, y:-45000, col:'#7fd6e8', R:10000, n:110},
 ];
 const MAYDAY = [
   "Mayday, mayday! Our drive just coughed and died. We are drifting and the snacks are running low.",
@@ -50,6 +52,19 @@ const Hull = {
   hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Math.random()<0.35) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
     UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
   breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
+};
+
+/* ---------- the economy: risk, reward and range ---------- */
+const Econ = {
+  /* a route is as risky as its riskier end; pay scales with it */
+  risk(A, B){ return routeRisk(A,B); },
+  mul(A, B){ return RISK[routeRisk(A,B)].mul; },
+  /* fuel a straight warp hop would burn, in tank units, for the current ship */
+  fuel(A, B){ return A.pos.distanceTo(B.pos)/SHIPS[G.shipId].warp*1.5*1.08+2; },
+  /* a short line for the job board: the risk tier, its pay bonus, and how much of a tank it takes */
+  line(A, B){ const k=routeRisk(A,B), R=RISK[k], f=this.fuel(A,B), tank=SHIPS[G.shipId].fuel, pct=Math.round(f/tank*100);
+    return `<span class="risk r${k}">${R.name} risk${R.mul>1?' · pays ×'+R.mul:''}</span> · ${pct>100?'<b class="warnf">more than a full tank</b>':'about '+pct+'% of a tank'}`; },
+  fuelPrice(P){ return P&&P.station?6:3; },
 };
 
 /* ---------- waypoints: a temporary nav target that outranks the planet destination ---------- */
@@ -108,7 +123,7 @@ const Ev = {
   fuelUnits(f){ return Math.max(1,Math.round(f)); },
   update(dt){
     if(this.hold>0){ this.hold-=dt; G.ship.throttle=0; if(G.ship.warp) Game.dropWarp(); }
-    Nav.update(dt); Distress.update(dt); Mining.update(dt); Customs.update(dt); Escort.update(dt); Flotsam.update(dt); Scoop.update(dt); Calls.update(); if(Hold.open&&Math.floor(Game.time*2)!==Math.floor((Game.time-dt)*2)) Hold.render();
+    Nav.update(dt); Deep.update(dt); Distress.update(dt); Mining.update(dt); Customs.update(dt); Escort.update(dt); Flotsam.update(dt); Scoop.update(dt); Calls.update(); if(Hold.open&&Math.floor(Game.time*2)!==Math.floor((Game.time-dt)*2)) Hold.render();
   },
 };
 
@@ -123,7 +138,7 @@ const Distress = {
     if(Math.random()<0.75) this.call();
   },
   call(){
-    const sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)};
+    const sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), c=this.cur={sp,seed,name:alienName(sp,seed),ship:shipName(seed),ambush:Math.random()<(G.rep>40?0.32:0.25)+0.1*Deep.z, mul:1+0.4*Deep.z, tollMul:1+0.35*Deep.z};
     Radio.cur=null; Radio.wait=20;
     Dlg.show({sp,seed,tone:'alert',who:`Mayday · ${c.name} · ${SPECIES[sp].name} · ${c.ship}`,text:pick(MAYDAY),timeout:30,onTimeout:()=>this.ignore(),
       opts:[{t:'Answer the call',sub:'A detour. Costs time and fuel.',fn:()=>this.answer()},{t:'Keep flying',sub:'Somebody else will help. Probably.',fn:()=>this.ignore()}]});
@@ -147,7 +162,7 @@ const Distress = {
   },
   reward(c, f){
     if(G.mode!=='flight'){ this.cur=null; return; } const r=Math.random(); let text;
-    if(r<0.5){ const cr=Math.round(f*rnd(9,14)/5)*5; G.credits+=cr; Sfx.cash(); text=`Engines are humming! Here's ${fmtCr(cr)} for the trouble. You're a star. Not literally. Stars are hot.`; }
+    if(r<0.5){ const cr=Math.round(f*rnd(9,14)*(c.mul||1)/5)*5; G.credits+=cr; Sfx.cash(); text=`Engines are humming! Here's ${fmtCr(cr)} for the trouble. You're a star. Not literally. Stars are hot.`; }
     else if(r<0.8){ let h; do{ h=Math.floor(Math.random()*PLANETS.length); }while(h===G.target&&PLANETS.length>1); G.hot=h; text=`We can't pay much, but here's a secret: ${PLANETS[h].name} is paying a fat bonus on deliveries right now.`; }
     else { const to=Math.floor(Math.random()*PLANETS.length), used=G.cargo.reduce((a,b)=>a+b.qty,0);
       if(used+1<=holdCap()){ G.cargo.push({good:'Thank-You Fruitcake',qty:1,to,pay:Math.round(rnd(220,380)/5)*5,from:-1}); Cockpit.drawManifest(); text=`Please take this fruitcake to ${PLANETS[to].name}. They'll pay you for it. Nobody has ever eaten one.`; }
@@ -157,10 +172,10 @@ const Distress = {
   ambush(c){
     Ev.dismiss(c.npc); const fwd=new V3(0,0,-1).applyQuaternion(G.ship.quat);
     c.pirates=[0,1].map(()=>Ev.npc('pirate',G.ship.pos.clone().addScaledVector(fwd,rnd(600,1200)).add(Ev.around(new V3(),rnd(250,600))),{sp:pick(['grondar','zkthar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
-    const toll=Math.round(clamp(G.credits*0.25,120,600)/10)*10, big=G.cargo.filter(x=>x.qty>0&&x.kind!=='escort').sort((a,b)=>b.pay-a.pay)[0];
-    const esc=clamp(0.3+G.shipId*0.09+(Game.massLock()?0:0.15),0.2,0.85);
+    const toll=Math.round(clamp(G.credits*0.25,120,600)*(c.tollMul||1)/10)*10, big=G.cargo.filter(x=>x.qty>0&&x.kind!=='escort').sort((a,b)=>b.pay-a.pay)[0];
+    const esc=clamp(0.3+G.shipId*0.09+(Game.massLock()?0:0.15)-(c.harder||0),0.15,0.85);
     const end=()=>{ c.pirates.forEach(p=>Ev.dismiss(p)); this.cur=null; };
-    Dlg.show({sp:c.pirates[0].pilot.sp,seed:c.pirates[0].pilot.seed,tone:'alert',who:`${c.name} · actually pirates`,text:pick(PIRATE),
+    Dlg.show({sp:c.pirates[0].pilot.sp,seed:c.pirates[0].pilot.seed,tone:'alert',who:c.who||`${c.name} · actually pirates`,text:c.text||pick(PIRATE),
       opts:[{t:'Pay the toll',sub:G.credits>=toll?fmtCr(toll):`All you have: ${fmtCr(G.credits)}`,fn:()=>{ G.credits-=Math.min(G.credits,toll); Sfx.cash(); UI.toast('They take the money and leave, laughing.','warn'); end(); }},
             {t:'Hand over some cargo',sub:big?`${big.qty}× ${big.good}`:'Your hold is empty',disabled:!big,fn:()=>{ G.cargo.splice(G.cargo.indexOf(big),1); Cockpit.drawManifest(); Rep.add(-3,'A client lost their cargo'); end(); }},
             {t:'Punch it!',sub:`${Math.round(esc*100)}% chance to get away`,fn:()=>{ G.ship.throttle=10; if(Math.random()<esc){ Hull.hit(rnd(4,9),'You got away with a few scorch marks'); G.fuel=Math.max(0,G.fuel-6); }
@@ -274,7 +289,7 @@ const Customs = {
   },
   /* 2. the journey: a customs cutter pulls you over */
   update(dt){
-    if(!this.armed||this.cur||Dlg.open||Walk.on||!Ev.clearOfPlanets(10)) return;
+    if(!this.armed||this.cur||Dlg.open||Walk.on||!Ev.clearOfPlanets(10)||Deep.z>=2) return;   // customs don't patrol deep space
     if(!this.illegal().length){ this.armed=false; return; }
     this.t-=dt; if(this.t>0) return; this.armed=false; this.stop();
   },
@@ -354,4 +369,56 @@ const Escort = {
     if(c.hp<=0){ Rep.add(-6,`${c.vip.title} refused to get off and demanded to go home. Contract failed`); return null; }
     const pay=Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5; Rep.add(5,`${c.vip.title} arrived safely`); return {good:`Escort of ${c.vip.title} (${Math.round(c.hp)}%)`,qty:0,pay};
   },
+};
+
+/* ---------- deep space ---------- */
+/* Past the patrols, things go wrong more often: raiders, meteor storms, and the odd derelict worth salvaging.
+   The further out, the more often, and the worse. It's why the research stations pay so well. */
+const RAIDERS = [
+  "Long way from a patrol, aren't you? Shame. Let's talk about what's in your hold.",
+  "Nobody comes out this far without something worth taking. Prove us right.",
+  "Welcome to the far dark. There's a toll. There's always a toll.",
+  "We've been waiting out here for weeks. You are the most exciting thing to happen. Sorry about that.",
+];
+const Deep = {
+  z:0, t:45, storm:null, warned:-1,
+  update(dt){
+    const s=G.ship, z=zoneAt(s.pos.length()), was=this.z; this.z=z;
+    if(z!==was){ if(z>was&&z>=1&&this.warned<z){ this.warned=z; UI.toast(z===1?'Leaving patrolled space. Pirates are rarer than rumours out here. Not much rarer.':z===2?'Deep space. No patrols, no customs, meteor storms, and a long, expensive tow.':'The far dark. Everything in deep space, more often and with worse manners.','warn'); Sfx.deny(); }
+      else if(z<was&&z===0){ this.warned=-1; UI.toast('Back in patrolled space. Somebody waves. It might be a customs officer.','good'); } }
+    this.badge();
+    if(this.storm){ this.stepStorm(dt); return; }
+    if(z<1||Dlg.open||Distress.cur||Customs.cur||Escort.hazard||Walk.on||Game.towing||(Nav.wp&&Nav.wp.kind==='salvage')) return;
+    if(!Ev.clearOfPlanets(12)) return;
+    this.t-=dt*[0,0.3,1,1.5][z]; if(this.t>0) return; this.t=rnd(45,80);
+    const r=Math.random();
+    if(z===1){ if(r<0.6) this.raid(); return; }
+    if(r<0.38) this.raid(); else if(r<0.74) this.meteors(); else this.salvage();
+  },
+  badge(){ const b=$('deep-badge'); if(!b) return; const on=G.mode==='flight'&&G.sys.hud&&this.z>=1; b.hidden=!on; if(!on) return;
+    const st=this.storm, txt=st?`Meteor storm · ${Math.ceil(st.t)} s · keep throttle at 4 or lower`:`${['','Frontier','Deep space','The far dark'][this.z]} · ${RISK[this.z].name} risk`;
+    if(b.textContent!==txt) b.textContent=txt; b.className='z'+this.z+(st?' storm':''); },
+  raid(){ if(G.ship.warp) Game.dropWarp('Interdiction field! Warp disengaged','warn',true);
+    Distress.ambush({name:'Raiders',who:`Raiders · ${this.z>=3?'the far dark':'deep space'}`,text:pick(RAIDERS),tollMul:1+0.4*this.z,harder:this.z>=3?0.12:0.05}); },
+  meteors(){ const s=G.ship; if(s.warp) Game.dropWarp('Meteor storm ahead! Warp disengaged','warn',true);
+    this.storm={t:14,dmg:0,tick:2.5,ore:0}; /* a couple of seconds' grace to slow down */ UI.toast('Meteor storm! Throttle 4 or lower and no warp until it passes. Slow ships catch the glass, not the rocks.','warn'); Sfx.deny(); },
+  stepStorm(dt){ const st=this.storm, s=G.ship; st.t-=dt; st.tick-=dt;
+    if(st.tick<=0){ st.tick=1; const fast=s.throttle>4||s.warp||s.warpF>0.05;
+      if(fast){ const n=Math.round(rnd(1.5,3.2)*(this.z>=3?1.4:1)); st.dmg+=n; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); Game.flash=Math.max(Game.flash,0.35); Sfx.thump(0.45); if(G.hull<=0){ this.storm=null; Hull.breach(); return; } }
+      else if(Math.random()<0.45) st.ore++; }
+    if(st.t>0) return; this.storm=null;
+    if(st.dmg) UI.toast(`The storm passes. It cost you ${st.dmg}% hull. Hull ${Math.round(G.hull)}%`,'warn');
+    else UI.toast('The storm passes without a scratch. Nicely flown.','good');
+    if(st.ore&&!st.dmg){ const q=Math.min(st.ore,holdFree()); if(q>0){ let c=G.cargo.find(x=>x.kind==='ore'&&x.good==='Meteor Glass'); if(!c){ c={kind:'ore',good:'Meteor Glass',qty:0,to:-1,pay:0,val:95,from:-1}; G.cargo.push(c); } c.qty+=q; Cockpit.drawManifest(); setTimeout(()=>UI.toast(`Your scoop caught ${q}× Meteor Glass. Any assay office will buy it.`,'good'),1600); } }
+    if(st.dmg>=4&&Math.random()<0.4) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'shaken loose by the storm'),900); },
+  salvage(){ const z=this.z, sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9);
+    Dlg.show({icon:'📡',tone:'alert',who:'Scanner · unidentified contact',text:'A derelict survey probe is drifting nearby, still blinking. Salvage could be worth a lot out here. It could also be bait.',timeout:25,mini:true,
+      opts:[{t:'Go and look',sub:'A short detour',fn:()=>{ const s=G.ship, fwd=new V3(0,0,-1).applyQuaternion(s.quat), side=new V3(1,0,0).applyQuaternion(s.quat), pos=s.pos.clone().addScaledVector(fwd,rnd(14000,22000)).addScaledVector(side,rnd(-7000,7000));
+          const n=Ev.npc('derelict',pos,{sp,seed,name:'Probe',ship:'Survey probe'}); Npc.label(n,'SURVEY PROBE','derelict · salvage','#ffd166');
+          Nav.set({name:'SURVEY PROBE',sub:'Salvage',kind:'salvage',pos,dropR:9000,arriveR:1200,expire:240,onArrive:()=>this.loot(n,z),onCancel:()=>Ev.dismiss(n)}); UI.toast('Probe marked. Press P for autopilot.','good'); }},
+            {t:'Leave it',sub:'Nothing out here is free'}]}); },
+  loot(n, z){ G.ship.throttle=0; Ev.dismiss(n);
+    if(Math.random()<0.28){ Hull.hit(rnd(9,16)*(z>=3?1.4:1),'It was booby-trapped. Of course it was'); return; }
+    const cr=Math.round(rnd(320,760)*(z>=3?1.6:1)/5)*5; G.credits+=cr; G.stats.earned+=cr; Sfx.cash();
+    UI.toast(`Salvaged the probe's data core and sold it to its owners over the radio for ${fmtCr(cr)}. They seemed surprised to hear from anyone.`,'good'); },
 };

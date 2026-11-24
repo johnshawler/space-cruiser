@@ -42,6 +42,15 @@ const STORY_ANY = [
   ["{from} says {to} will know what it means. {from} does not seem to know what it means.","{to} looks at it, then at you, then at it. \"Ah,\" they say. They do not say anything else."],
   ["{to} has been waiting for this on {planet} for so long that they have started telling people it is a myth.","{to} holds it up for the whole depot to see. \"It exists!\" Nobody else was ever in doubt."],
 ];
+/* deliveries out to the research stations: somebody very far away has been waiting a very long time */
+const STORY_STATION = [
+  ["{to} at {port} ordered this for an experiment. The experiment is to see whether anyone will deliver this far out.","{to} writes \"YES\" in a notebook, underlines it twice, and shakes your hand for slightly too long."],
+  ["{from} is sending this to {to}, who has been at {planet} for three years and has stopped being sure that other people exist.","{to} pokes you gently to check you are real. You are. They seem relieved, and then a bit overwhelmed."],
+  ["{to} asked for this in a message sent eleven months ago. {from} only just found the message behind a radiator.","{to} signs for it and says it is no longer needed, but they will keep it, because nobody ever comes out here."],
+  ["The crew at {port} drew lots to decide what to order this year. {to} won. {from} thinks {to} chose badly.","{to} unwraps it in front of the whole crew, who all applaud. Some of them are also quietly disappointed."],
+  ["{to} is running a very long study at {planet} on how long deliveries take. You are part of the study now.","{to} checks a stopwatch, nods, and writes down a number. They will not tell you whether it was a good number."],
+  ["{from} says this is the only thing keeping morale up at {port}. {from} has not seen the morale at {port}.","{to} hugs the crate. Morale at {port} goes up by a measurable amount. Somebody measures it."],
+];
 const STORY_CONTRA = [
   ["{from} says the crate is full of nothing, and nothing is worth a great deal on {planet}. Do not open it. There is nothing to see.","A figure in a long coat takes the crate, says \"we were never here\", and leaves. You were definitely there."],
   ["{from} needs this on {planet} before anyone official notices it is gone. {from} will not say gone from where.","Someone whistles from behind a stack of barrels. The crate goes in, a bag of credits comes out, and nobody makes eye contact."],
@@ -69,7 +78,7 @@ const PAX_TRIPS = [
 const Story = {
   who(sp, seed){ return {sp,seed,name:alienName(sp,seed)}; },
   /* an ordinary crate: someone at this port sends it to someone at the far end */
-  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(ALIEN_POOL),(j.seed*7+13)%1000000007), pair=STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
+  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(ALIEN_POOL),(j.seed*7+13)%1000000007), pair=T.station&&Math.random()<0.55?pick(STORY_STATION):STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
     const o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port}; return {pick:fill(pair[0],o),drop:fill(pair[1],o),to}; },
   contra(j){ const T=PLANETS[j.to], to=this.who(pick(['vrell','grondar','qeeble','blorpax']),(j.seed*11+5)%1000000007), pair=pick(STORY_CONTRA), o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port};
     return {pick:fill(pair[0],o),drop:fill(pair[1],o),to:{sp:to.sp,seed:to.seed,name:to.name+' · never here'}}; },

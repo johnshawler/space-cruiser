@@ -131,6 +131,12 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .opt small{display:block;color:var(--dim);font-size:20px;margin-top:4px;letter-spacing:.04em}
 .opt:disabled{opacity:.45;cursor:default}
 .tag.bad{border-color:var(--bad);color:var(--bad)}.tag.esc{border-color:var(--cyan);color:var(--cyan)}
+.tag.r2{border-color:#ff9a4a;color:#ff9a4a}.tag.r3{border-color:#ff5a5a;color:#fff;background:#8a1c1c}
+.risk{font-weight:700}.risk.r0{color:#7dffa8}.risk.r1{color:#ffd166}.risk.r2{color:#ff9a4a}.risk.r3{color:#ff6a6a}.warnf{color:#ff6a6a}
+#deep-badge{position:absolute;left:16px;top:16px;z-index:9;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid;padding:6px 16px;pointer-events:none;white-space:nowrap}
+#deep-badge.z1{color:#ffd166;border-color:#ffd166}#deep-badge.z2{color:#ff9a4a;border-color:#ff9a4a}#deep-badge.z3{color:#ff6a6a;border-color:#ff6a6a}
+#deep-badge.storm{color:#fff;background:#a8322a;border-color:#ff7a6a;animation:scoopPulse 1s ease-in-out infinite}
+@media (max-width:900px){ #deep-badge{font-size:16px} }
 .card.shady{border-color:rgba(255,111,97,.45)}
 #help{position:absolute;inset:0;z-index:30;background:rgba(2,4,8,.88);display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #help .box{max-width:1280px;width:100%;max-height:100%;overflow:auto;border:1px solid var(--line);background:var(--glass);padding:24px}

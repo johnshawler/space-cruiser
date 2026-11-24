@@ -58,6 +58,7 @@ const World = {
       P.idx=i; P.pos=new V3(Math.cos(P.ang)*P.orbit,P.y,Math.sin(P.ang)*P.orbit); P.sunDir=P.pos.clone().negate().normalize();
       P.landR=P.r*2+500; P.dropR=P.r*5+2000; P.lockR=P.r*3.5;
       const g=new THREE.Group(); g.position.copy(P.pos); g.rotation.z=0.15+0.25*Math.sin(i*2.1); g.rotation.x=0.1*Math.cos(i*1.3); this.universe.add(g); P.group=g;
+      if(P.station){ P.landR=P.r*2.4+600; P.dropR=P.r*7+3000; this.buildStation(P,g); this.marker(P); return; }
       const pal=P.pal, seed=i*13.37+2.5; let u;
       if(P.type==='gas'){
         u={uSun:{value:P.sunDir},uTime:{value:0},uSeed:{value:seed},uBands:{value:P.bands},uTurb:{value:P.turb},uAtm:{value:P.atm},uOct:{value:4},cA:{value:C(pal.a)},cB:{value:C(pal.b)},cC:{value:C(pal.c)},cD:{value:C(pal.d)},cAtm:{value:C(pal.atm)}};
@@ -76,10 +77,35 @@ const World = {
         rm.rotation.x=Math.PI/2-0.32; g.add(rm); g.updateMatrixWorld(true);
         const q=new Q4(); rm.getWorldQuaternion(q); rm.material.uniforms.uSunL.value.copy(P.sunDir).applyQuaternion(q.invert()); P.ringMesh=rm;
       }
-      // HUD marker
-      P.mk={cv:makeCanvas(384,240)}; P.mk.tex=canvasTex(P.mk.cv); P.mk.sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:P.mk.tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
-      P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(P.mk.sprite); P.mk.key='';
+      this.marker(P);
     });
+  },
+  /* HUD marker */
+  marker(P){ P.mk={cv:makeCanvas(384,240)}; P.mk.tex=canvasTex(P.mk.cv); P.mk.sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:P.mk.tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
+    P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(P.mk.sprite); P.mk.key=''; },
+  /* a research station seen from space: a hub, a slowly turning ring on spokes, solar wings, blinking lights, and
+     each one's speciality (a listening dish, frozen-sample tanks, a measuring spire, a lighthouse lamp) */
+  buildStation(P, g){
+    const r=P.r, M=(hex,ro=0.45,me=0.55)=>new THREE.MeshStandardMaterial({color:C(hex),roughness:ro,metalness:me,envMapIntensity:1.2}), mk=(geo,mat,x=0,y=0,z=0)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); g.add(m); return m; };
+    const hull=M(P.pal.a), dark=M(P.pal.c,0.6,0.4), trim=M(P.pal.b), glow=new THREE.MeshBasicMaterial({color:HDR(P.light,3.2)}), solar=M('#1d3566',0.3,0.8);
+    mk(new THREE.SphereGeometry(r*0.26,32,20),hull); mk(new THREE.CylinderGeometry(r*0.12,r*0.12,r*1.5,20),trim);
+    for(const s of [-1,1]){ mk(new THREE.CylinderGeometry(r*0.2,r*0.14,r*0.22,20),dark,0,s*r*0.8,0); mk(new THREE.SphereGeometry(r*0.05,10,8),glow,0,s*r*0.93,0); }
+    // the ring and its spokes turn together; it stands in for the planet mesh, which World.update spins
+    const spin=new THREE.Group(), ring=new THREE.Group(); g.add(spin); spin.add(ring); ring.rotation.x=Math.PI/2; ring.add(new THREE.Mesh(new THREE.TorusGeometry(r*0.85,r*0.085,14,72),hull));
+    const band=new THREE.Mesh(new THREE.TorusGeometry(r*0.85,r*0.088,6,72,Math.PI*2),new THREE.MeshBasicMaterial({color:HDR(P.light,1.4),wireframe:true,transparent:true,opacity:0.35})); ring.add(band);
+    for(let k=0;k<4;k++){ const a=k*Math.PI/2+Math.PI/4, sp=new THREE.Mesh(new THREE.CylinderGeometry(r*0.025,r*0.025,r*0.6,8),dark); sp.position.set(Math.cos(a)*r*0.55,Math.sin(a)*r*0.55,0); sp.rotation.z=a-Math.PI/2; ring.add(sp); }
+    P.blink=[]; for(let k=0;k<12;k++){ const a=k/12*Math.PI*2, l=new THREE.Mesh(new THREE.SphereGeometry(r*0.035,8,6),new THREE.MeshBasicMaterial({color:HDR(k%3?'#ffffff':'#ff4030',3)})); l.position.set(Math.cos(a)*r*0.85,Math.sin(a)*r*0.85,r*0.09); ring.add(l); P.blink.push(l); }
+    // solar wings on a long boom
+    mk(new THREE.CylinderGeometry(r*0.02,r*0.02,r*3.2,8),dark).rotation.z=Math.PI/2;
+    for(const s of [-1,1]) for(const q of [0.95,1.4]){ const w=mk(new THREE.BoxGeometry(r*0.42,r*0.012,r*0.55),solar,s*r*q,0,0); w.rotation.x=0.35; mk(new THREE.BoxGeometry(r*0.43,r*0.014,r*0.02),trim,s*r*q,0,0).rotation.x=0.35; }
+    if(P.dish){ const d=mk(new THREE.SphereGeometry(r*0.7,28,12,0,Math.PI*2,0,0.75),M('#e8eef4',0.35,0.3),0,r*1.55,0); d.material.side=THREE.DoubleSide; d.rotation.x=Math.PI; mk(new THREE.CylinderGeometry(r*0.02,r*0.02,r*0.6,8),dark,0,r*1.2,0); mk(new THREE.SphereGeometry(r*0.06,10,8),glow,0,r*1.35,0); }
+    if(P.tanks) for(let k=0;k<6;k++){ const a=k/6*Math.PI*2; mk(new THREE.SphereGeometry(r*0.13,16,12),M('#f4fbff',0.2,0.2),Math.cos(a)*r*0.3,-r*1.05,Math.sin(a)*r*0.3).scale.set(1,1.6,1); }
+    if(P.spire){ mk(new THREE.ConeGeometry(r*0.1,r*1.8,12),trim,0,r*1.7,0); for(let k=1;k<6;k++){ const t=mk(new THREE.TorusGeometry(r*(0.12-k*0.016),r*0.012,6,24),glow,0,r*(0.85+k*0.28),0); t.rotation.x=Math.PI/2; } }
+    if(P.beacon){ mk(new THREE.CylinderGeometry(r*0.07,r*0.12,r*1.1,14),M('#f4ece8',0.4,0.2),0,r*1.35,0); P.lamp=mk(new THREE.SphereGeometry(r*0.16,18,12),new THREE.MeshBasicMaterial({color:HDR(P.light,6)}),0,r*1.95,0);
+      P.flare=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:HDR(P.light,2.5),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); P.flare.scale.setScalar(r*5); P.flare.position.set(0,r*1.95,0); g.add(P.flare); }
+    // a soft glow so it can be found from a long way off
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glareTex(),color:HDR(P.light,0.9),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); halo.scale.setScalar(r*4.5); g.add(halo); P.halo=halo;
+    P.mesh=spin; P.mat={uniforms:{uTime:{value:0},uOct:{value:3}}};
   },
   drawMarker(P, isTarget, dist){
     const key=(isTarget?'T':'')+(isTarget?fmtDist(dist):''); if(P.mk.key===key) return; P.mk.key=key;
@@ -146,7 +172,8 @@ const World = {
     let near=null, nd=1e12; const tanH=Math.tan(this.fit(camFov)*Math.PI/360);
     for(const P of PLANETS){
       const d=P.pos.distanceTo(shipPos); P.dist=d; if(d<nd){ nd=d; near=P; }
-      P.mesh.rotation.y+=dt*(P.type==='gas'?0.006:0.0035);
+      P.mesh.rotation.y+=dt*(P.station?0.05:P.type==='gas'?0.006:0.0035);
+      if(P.station){ P.halo.material.opacity=clamp((d/P.r-8)/30,0,1); if(d<P.r*400){ const b=Math.floor(t*1.6); P.blink.forEach((l,k)=>{ l.visible=(b+k)%3===0; }); if(P.lamp){ const k=0.5+0.5*Math.sin(t*2.2); P.lamp.material.color.copy(HDR(P.light,2+k*6)); P.flare.material.opacity=0.35+0.65*k; } } }
       const px=P.r/d/tanH*this.h*0.5; P.px=px; const u=P.mat.uniforms; u.uTime.value=t;
       u.uOct.value=clamp(Math.floor(Math.log2(Math.max(px,1)))-2,3,7); if(u.uBump) u.uBump.value=px>120?P.r*0.22:0;
     }

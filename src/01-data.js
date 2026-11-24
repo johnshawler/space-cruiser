@@ -199,6 +199,37 @@ const PLANETS = [
     pal:{deep:'#0e3d66',shal:'#3f9fc6',a:'#bfe3f2',b:'#e6f6ff',c:'#9fc9e8',d:'#ffffff',atm:'#9fe0ff',cloud:'#ffffff',emis:'#ffd9a0'},
     sea:0.36, ice:0.42, cloud:0.4, lava:0, city:0.7, atm:0.8,
     surf:{zen:'#3f7fc6',hor:'#e6f6ff',g:['#9fc9e8','#e6f6ff','#ffffff'],amp:380,fog:0.00045,liquid:'#3f9fc6',style:'dome'} },
+  /* remote research stations, far out past the planets in unpatrolled space. They come after the planets so the
+     planets keep their numbers in old saves. You dock on an open deck; the station's ring arches overhead. */
+  { name:'Listening Post Hush', port:'The Quiet Ear', species:'nacrelle', station:true, risk:2, type:'station', r:650, orbit:1750000, ang:1.0, y:42000,
+    desc:'A dish the size of a county, listening for the universe to say something. So far: a hum, and once, a cough.',
+    pal:{a:'#d9e4ee',b:'#7f93a8',c:'#3a4a5e',d:'#ffffff',atm:'#9fc8ff'}, light:'#8fe0ff', dish:true,
+    surf:{zen:'#02040a',hor:'#18223a',g:['#4a525e','#69727e','#9aa3ae'],amp:0,fog:0.00010,liquid:null,style:'station',deck:true,planet:'#7a5ac8'} },
+  { name:'Cryo Vault Rimeholm', port:'The Freezer Aisle', species:'rimebud', station:true, risk:2, type:'station', r:700, orbit:2150000, ang:4.05, y:-38000,
+    desc:'Keeps one frozen sample of everything, including a sample of the station, just in case.',
+    pal:{a:'#e8f6ff',b:'#9fd6f0',c:'#3f7fa8',d:'#ffffff',atm:'#bfeaff'}, light:'#bff4ff', tanks:true,
+    surf:{zen:'#02050c',hor:'#1a2a40',g:['#56626e','#7a8794','#b8c6d2'],amp:0,fog:0.00010,liquid:null,style:'station',deck:true,planet:'#3f9fc6'} },
+  { name:'Calibration Spire', port:'Tolerance Station', species:'gaugekin', station:true, risk:3, type:'station', r:620, orbit:2700000, ang:5.9, y:55000,
+    desc:'Measures the universe to within a whisker. The whisker is also measured, and found wanting.',
+    pal:{a:'#ffe08a',b:'#c9a03a',c:'#5a4a2a',d:'#fff6d8',atm:'#ffd27a'}, light:'#ffd27a', spire:true,
+    surf:{zen:'#030308',hor:'#22202e',g:['#4e4a44','#706a60','#a8a090'],amp:0,fog:0.00008,liquid:null,style:'station',deck:true,planet:'#c96a3a'} },
+  { name:'Beacon Far Wink', port:'The Last Light', species:'winkmast', station:true, risk:3, type:'station', r:600, orbit:3200000, ang:2.45, y:-60000,
+    desc:'The furthest lighthouse in the system. It blinks at nothing, faithfully, and files a report on every blink.',
+    pal:{a:'#ffb0a0',b:'#e05a4a',c:'#5a2a2a',d:'#fff0e8',atm:'#ff9a7a'}, light:'#ff8a6a', beacon:true,
+    surf:{zen:'#040206',hor:'#2a1820',g:['#4c4648','#6e6668','#a89ea0'],amp:0,fog:0.00008,liquid:null,style:'station',deck:true,planet:'#5a8ac8'} },
 ];
 const SUN_R = 22000;
 const LS = 300000;
+
+/* how dangerous a stretch of space is. Inside FRONTIER_R the patrols keep things quiet; past DEEP_R nobody patrols at
+   all, and past EXTREME_R even the pirates are nervous. Riskier routes pay more, and the job board says by how much. */
+const FRONTIER_R = 1000000, DEEP_R = 1450000, EXTREME_R = 2500000;
+const RISK = [
+  {name:'Low', mul:1.0, col:'#7dffa8', note:'Patrolled space.'},
+  {name:'Medium', mul:1.2, col:'#ffd166', note:'The edge of patrolled space. Pirates are rarer than rumours, but not much.'},
+  {name:'High', mul:1.5, col:'#ff9a4a', note:'Unpatrolled deep space: pirates, meteor storms, and a long way from a tow.'},
+  {name:'Extreme', mul:1.9, col:'#ff5a5a', note:'The far dark. Everything in deep space, more often and with worse manners.'},
+];
+const zoneAt = r => r>=EXTREME_R?3:r>=DEEP_R?2:r>=FRONTIER_R?1:0;
+for(const P of PLANETS) if(P.risk==null) P.risk=zoneAt(P.orbit);
+const routeRisk = (A,B) => Math.max(A?A.risk:0, B?B.risk:0);

@@ -15,7 +15,7 @@ const UI = {
     const tabs=$('port-tabs'); tabs.innerHTML=''; Venues.defs(P).forEach(d=>{ const b=el('button','',VENUE_TABS[d.k]); b.dataset.k=d.k; b.onclick=()=>{ if(this.tab===d.k) return; Sfx.click(); this.tab=d.k; Cine.setPreview(null); this.render(); }; tabs.appendChild(b); });
     this.render();
   },
-  hidePort(){ $('port').hidden=true; },
+  hidePort(){ $('port').hidden=true; $('bubble').hidden=true; $('shelf-tip').hidden=true; },
   /* what is aboard for this port (contraband goes through the unloading crew instead) */
   due(P){ return P?G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='ore'):[]; },
   payFor(c){ return c.kind==='escort'?Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5:c.pay; },
@@ -70,17 +70,17 @@ const UI = {
       if(a){ if(a.paid.length){ const L=el('div','ledger'); a.paid.forEach(c=>{ L.appendChild(el('span','',`${c.qty?c.qty+'× ':''}${esc(c.good)}`)); L.appendChild(el('span','',fmtCr(c.pay))); }); if(a.fee){ L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); }
           L.appendChild(el('span','tot','Delivered and paid')); L.appendChild(el('span','tot',fmtCr(a.total))); body.appendChild(L); }
         else if(a.fee){ const L=el('div','ledger'); L.appendChild(el('span','','Tow fee')); L.appendChild(el('span','','−'+fmtCr(a.fee))); body.appendChild(L); } }
-      const need=Math.ceil(d.fuel-G.fuel), cost=need*3;
-      this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. Every depot sells fuel. Warp drinks it, cruising sips it.`,'3 cr per unit',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=3?'Buy what I can':'Beg',need<=0,()=>{
-        if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=3){ const u=Math.floor(G.credits/3); G.fuel+=u; G.credits-=u*3; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
+      const ppu=Econ.fuelPrice(P), need=Math.ceil(d.fuel-G.fuel), cost=need*ppu;
+      this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. Every depot sells fuel. Warp drinks it, cruising sips it.${P.station?' Out here it comes a very long way, and the price knows it.':''}`,`${ppu} cr per unit`,need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=ppu?'Buy what I can':'Beg',need<=0,()=>{
+        if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=ppu){ const u=Math.floor(G.credits/ppu); G.fuel+=u; G.credits-=u*ppu; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
       { const f=this.facts([['Hold',`${used} of ${holdCap()} units used`],['Reputation',`${Rep.label()} ${G.rep>0?'+':''}${G.rep} · pay ×${Rep.payMul().toFixed(2)}`]],[['View hold · I',()=>Hold.toggle(true)]]); f.insertBefore(el('span','','Ship '),f.firstChild); f.firstChild.appendChild(this.shipLink()); body.appendChild(f); }
       body.appendChild(el('div','note',`Contracts out of ${esc(P.port)}, also on the shelf behind the counter: click a model to find its job. The stock droid fetches your crate when you accept. Hand it over at the destination's cargo depot to get paid.`));
       if(!G.jobs.length) body.appendChild(el('div','note','The board is empty. Fly somewhere else and come back.'));
       G.jobs.forEach(j=>{ const c=el('div','card'+(j.kind==='contra'?' shady':'')); c.dataset.job=String(G.jobs.indexOf(j)); c.appendChild(portraitCanvas(j.sp,j.seed,128)); const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos);
-        let h3, meta;
-        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · rides in your passenger cabin · needs a free seat`; }
-        else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>`; meta=`To <i>${esc(T.name)}</i> · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrols en route`; }
-        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · full pay if delivered within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying`; }
+        let h3, meta; const rk=Econ.risk(P,T), rtag=rk>=2?`<span class="tag r${rk}">${RISK[rk].name.toUpperCase()} RISK</span>`:'';
+        if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.line(P,T)} · rides in your passenger cabin · needs a free seat`; }
+        else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.line(P,T)} · loading risk ${Math.round(Customs.risk(P)*100)}% · unloading risk ${Math.round(Customs.risk(T)*100)}% · customs patrol en route, but not in deep space`; }
+        else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.line(P,T)} · full pay if delivered within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying`; }
         c.appendChild(el('div','mid',`<h3>${h3}</h3><p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}<div class="meta">${meta}</div>`));
         const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay)));
         const busy=j.kind==='escort'&&G.cargo.some(x=>x.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat; const b=el('button','btn',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
@@ -139,7 +139,7 @@ const UI = {
       // passengers looking for a ride
       const seats=Cargo.seats(), taken=Cargo.pax().length; body.appendChild(el('div','note',`Passengers looking for a ride · your cabin has ${seats-taken} of ${seats} seats free. Their fares drop if the trip runs long.`));
       (G.paxJobs||[]).forEach(j=>{ const T=PLANETS[j.to], pc=el('div','card'); pc.appendChild(portraitCanvas(j.sp,j.seed,128));
-        pc.appendChild(el('div','mid',`<h3>${esc(j.good)}<span class="tag">PASSENGER</span></h3><p>${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.</p><div class="meta">To <i>${esc(T.name)}</i> · full fare within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying</div>`));
+        pc.appendChild(el('div','mid',`<h3>${esc(j.good)}<span class="tag">PASSENGER</span></h3><p>${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.</p><div class="meta">To <i>${esc(T.name)}</i> · ${Econ.line(P,T)} · full fare within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))} of flying</div>`));
         const pr=el('div','right'); pr.appendChild(el('div','pay',fmtCr(j.pay))); const pb=el('button','btn',taken>=seats?'No seats':'Take them'); pb.disabled=taken>=seats;
         pb.onclick=()=>{ G.cargo.push({kind:'pax',good:j.good,sp:j.sp,seed:j.seed,qty:0,to:j.to,pay:j.pay,from:P.idx,story:j.story}); G.paxJobs.splice(G.paxJobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
         pr.appendChild(pb); pc.appendChild(pr); body.appendChild(pc); });

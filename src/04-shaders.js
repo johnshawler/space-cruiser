@@ -213,14 +213,14 @@ void main(){ float nv=abs(dot(normalize(vN),vV)); float body=pow(nv,1.6); float 
   gl_FragColor=vec4(col,1.0); }`;
 
 GLSL.groundSkyFrag = `
-uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax; varying vec3 vD;
+uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax,uCloud; varying vec3 vD;
 ${GLSL.noise}
 void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
   vec3 col=mix(cHor,cZen,pow(h,0.55));
   col=mix(col,cHor*0.85,(1.0-smoothstep(-0.25,0.0,d.y)));
   float s=max(dot(d,uSun),0.0);
   col*=0.72; col+=cSun*(pow(s,8.0)*0.10+pow(s,64.0)*0.5+pow(s,1400.0)*30.0);
-  float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),5); col=mix(col,mix(cHor,vec3(1.0),0.6)*0.85,smoothstep(0.1,0.6,cl)*smoothstep(0.0,0.25,d.y)*0.55);
+  float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),5); col=mix(col,mix(cHor,vec3(1.0),0.6)*0.85,smoothstep(0.1,0.6,cl)*smoothstep(0.0,0.25,d.y)*0.55*uCloud);
   vec3 q=d*220.0; float st=step(0.992,hash13(floor(q)))*(1.0-smoothstep(0.0,0.35,length(fract(q)-0.5))); col+=vec3(st)*uStars*h;
   col=clamp(col,vec3(0.0),vec3(uMax));
   gl_FragColor=vec4(col,1.0); }`;
