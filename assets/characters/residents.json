@@ -1,0 +1,5002 @@
+[
+  {
+    "id": "orris-01",
+    "base": "orris",
+    "name": "Eda Loam",
+    "home": "Verdanthia",
+    "slot": 0,
+    "accent": "#d77b65",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "orris-02",
+    "base": "orris",
+    "name": "Moss Loam",
+    "home": "Scorchmaw",
+    "slot": 1,
+    "accent": "#68a8ae",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "orris-03",
+    "base": "orris",
+    "name": "Tavi Loam",
+    "home": "Dunemoor",
+    "slot": 2,
+    "accent": "#ac93c4",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "orris-04",
+    "base": "orris",
+    "name": "Mina Loam",
+    "home": "Sloshwell",
+    "slot": 3,
+    "accent": "#dfbc69",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "orris-05",
+    "base": "orris",
+    "name": "Cato Loam",
+    "home": "Amethyne",
+    "slot": 4,
+    "accent": "#91b275",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "orris-06",
+    "base": "orris",
+    "name": "Wren Loam",
+    "home": "Toxibloom",
+    "slot": 5,
+    "accent": "#759cca",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "orris-07",
+    "base": "orris",
+    "name": "Tula Loam",
+    "home": "Candara",
+    "slot": 6,
+    "accent": "#cb91a3",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "orris-08",
+    "base": "orris",
+    "name": "Ari Loam",
+    "home": "Jovexa",
+    "slot": 7,
+    "accent": "#9fc1af",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "orris-09",
+    "base": "orris",
+    "name": "Fern Loam",
+    "home": "Brrrindle",
+    "slot": 8,
+    "accent": "#d99c73",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "orris-10",
+    "base": "orris",
+    "name": "Sol Loam",
+    "home": "Verdanthia",
+    "slot": 9,
+    "accent": "#93a0bf",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "vela-01",
+    "base": "vela",
+    "name": "Umi Inkring",
+    "home": "Scorchmaw",
+    "slot": 0,
+    "accent": "#68a8ae",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "vela-02",
+    "base": "vela",
+    "name": "Nera Inkring",
+    "home": "Dunemoor",
+    "slot": 1,
+    "accent": "#ac93c4",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "vela-03",
+    "base": "vela",
+    "name": "Osa Inkring",
+    "home": "Sloshwell",
+    "slot": 2,
+    "accent": "#dfbc69",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "vela-04",
+    "base": "vela",
+    "name": "Viri Inkring",
+    "home": "Amethyne",
+    "slot": 3,
+    "accent": "#91b275",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "vela-05",
+    "base": "vela",
+    "name": "Enna Inkring",
+    "home": "Toxibloom",
+    "slot": 4,
+    "accent": "#759cca",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "vela-06",
+    "base": "vela",
+    "name": "Tel Inkring",
+    "home": "Candara",
+    "slot": 5,
+    "accent": "#cb91a3",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "vela-07",
+    "base": "vela",
+    "name": "Rou Inkring",
+    "home": "Jovexa",
+    "slot": 6,
+    "accent": "#9fc1af",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "vela-08",
+    "base": "vela",
+    "name": "Iri Inkring",
+    "home": "Brrrindle",
+    "slot": 7,
+    "accent": "#d99c73",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "vela-09",
+    "base": "vela",
+    "name": "Sen Inkring",
+    "home": "Verdanthia",
+    "slot": 8,
+    "accent": "#93a0bf",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "vela-10",
+    "base": "vela",
+    "name": "Yune Inkring",
+    "home": "Scorchmaw",
+    "slot": 9,
+    "accent": "#d77b65",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "obo-01",
+    "base": "obo",
+    "name": "Pip Reed",
+    "home": "Dunemoor",
+    "slot": 0,
+    "accent": "#ac93c4",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "obo-02",
+    "base": "obo",
+    "name": "Remi Reed",
+    "home": "Sloshwell",
+    "slot": 1,
+    "accent": "#dfbc69",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "obo-03",
+    "base": "obo",
+    "name": "Clef Reed",
+    "home": "Amethyne",
+    "slot": 2,
+    "accent": "#91b275",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "obo-04",
+    "base": "obo",
+    "name": "Basie Reed",
+    "home": "Toxibloom",
+    "slot": 3,
+    "accent": "#759cca",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "obo-05",
+    "base": "obo",
+    "name": "Fen Reed",
+    "home": "Candara",
+    "slot": 4,
+    "accent": "#cb91a3",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "obo-06",
+    "base": "obo",
+    "name": "Luma Reed",
+    "home": "Jovexa",
+    "slot": 5,
+    "accent": "#9fc1af",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "obo-07",
+    "base": "obo",
+    "name": "Ivo Reed",
+    "home": "Brrrindle",
+    "slot": 6,
+    "accent": "#d99c73",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "obo-08",
+    "base": "obo",
+    "name": "Tess Reed",
+    "home": "Verdanthia",
+    "slot": 7,
+    "accent": "#93a0bf",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "obo-09",
+    "base": "obo",
+    "name": "Bram Reed",
+    "home": "Scorchmaw",
+    "slot": 8,
+    "accent": "#d77b65",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "obo-10",
+    "base": "obo",
+    "name": "Della Reed",
+    "home": "Dunemoor",
+    "slot": 9,
+    "accent": "#68a8ae",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "silt-01",
+    "base": "silt",
+    "name": "Hessa Sandwell",
+    "home": "Sloshwell",
+    "slot": 0,
+    "accent": "#dfbc69",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "silt-02",
+    "base": "silt",
+    "name": "Ruun Sandwell",
+    "home": "Amethyne",
+    "slot": 1,
+    "accent": "#91b275",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "silt-03",
+    "base": "silt",
+    "name": "Teth Sandwell",
+    "home": "Toxibloom",
+    "slot": 2,
+    "accent": "#759cca",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "silt-04",
+    "base": "silt",
+    "name": "Kesh Sandwell",
+    "home": "Candara",
+    "slot": 3,
+    "accent": "#cb91a3",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "silt-05",
+    "base": "silt",
+    "name": "Voro Sandwell",
+    "home": "Jovexa",
+    "slot": 4,
+    "accent": "#9fc1af",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "silt-06",
+    "base": "silt",
+    "name": "Abba Sandwell",
+    "home": "Brrrindle",
+    "slot": 5,
+    "accent": "#d99c73",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "silt-07",
+    "base": "silt",
+    "name": "Nemm Sandwell",
+    "home": "Verdanthia",
+    "slot": 6,
+    "accent": "#93a0bf",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "silt-08",
+    "base": "silt",
+    "name": "Isha Sandwell",
+    "home": "Scorchmaw",
+    "slot": 7,
+    "accent": "#d77b65",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "silt-09",
+    "base": "silt",
+    "name": "Mako Sandwell",
+    "home": "Dunemoor",
+    "slot": 8,
+    "accent": "#68a8ae",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "silt-10",
+    "base": "silt",
+    "name": "Tull Sandwell",
+    "home": "Sloshwell",
+    "slot": 9,
+    "accent": "#ac93c4",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "mica-01",
+    "base": "mica",
+    "name": "Voss Facet",
+    "home": "Amethyne",
+    "slot": 0,
+    "accent": "#91b275",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "mica-02",
+    "base": "mica",
+    "name": "Keva Facet",
+    "home": "Toxibloom",
+    "slot": 1,
+    "accent": "#759cca",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "mica-03",
+    "base": "mica",
+    "name": "Iven Facet",
+    "home": "Candara",
+    "slot": 2,
+    "accent": "#cb91a3",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "mica-04",
+    "base": "mica",
+    "name": "Nira Facet",
+    "home": "Jovexa",
+    "slot": 3,
+    "accent": "#9fc1af",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "mica-05",
+    "base": "mica",
+    "name": "Sil Facet",
+    "home": "Brrrindle",
+    "slot": 4,
+    "accent": "#d99c73",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "mica-06",
+    "base": "mica",
+    "name": "Pell Facet",
+    "home": "Verdanthia",
+    "slot": 5,
+    "accent": "#93a0bf",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "mica-07",
+    "base": "mica",
+    "name": "Orra Facet",
+    "home": "Scorchmaw",
+    "slot": 6,
+    "accent": "#d77b65",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "mica-08",
+    "base": "mica",
+    "name": "Renn Facet",
+    "home": "Dunemoor",
+    "slot": 7,
+    "accent": "#68a8ae",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "mica-09",
+    "base": "mica",
+    "name": "Veya Facet",
+    "home": "Sloshwell",
+    "slot": 8,
+    "accent": "#ac93c4",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "mica-10",
+    "base": "mica",
+    "name": "Miro Facet",
+    "home": "Amethyne",
+    "slot": 9,
+    "accent": "#dfbc69",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "nim-01",
+    "base": "nim",
+    "name": "Pelo Seedpost",
+    "home": "Toxibloom",
+    "slot": 0,
+    "accent": "#759cca",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "nim-02",
+    "base": "nim",
+    "name": "Lumi Seedpost",
+    "home": "Candara",
+    "slot": 1,
+    "accent": "#cb91a3",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "nim-03",
+    "base": "nim",
+    "name": "Tika Seedpost",
+    "home": "Jovexa",
+    "slot": 2,
+    "accent": "#9fc1af",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "nim-04",
+    "base": "nim",
+    "name": "Ceri Seedpost",
+    "home": "Brrrindle",
+    "slot": 3,
+    "accent": "#d99c73",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "nim-05",
+    "base": "nim",
+    "name": "Otto Seedpost",
+    "home": "Verdanthia",
+    "slot": 4,
+    "accent": "#93a0bf",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "nim-06",
+    "base": "nim",
+    "name": "Winn Seedpost",
+    "home": "Scorchmaw",
+    "slot": 5,
+    "accent": "#d77b65",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "nim-07",
+    "base": "nim",
+    "name": "Pippa Seedpost",
+    "home": "Dunemoor",
+    "slot": 6,
+    "accent": "#68a8ae",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "nim-08",
+    "base": "nim",
+    "name": "Fia Seedpost",
+    "home": "Sloshwell",
+    "slot": 7,
+    "accent": "#ac93c4",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "nim-09",
+    "base": "nim",
+    "name": "Holl Seedpost",
+    "home": "Amethyne",
+    "slot": 8,
+    "accent": "#dfbc69",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "nim-10",
+    "base": "nim",
+    "name": "Timo Seedpost",
+    "home": "Toxibloom",
+    "slot": 9,
+    "accent": "#91b275",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "tally-01",
+    "base": "tally",
+    "name": "Nickel Halfounce",
+    "home": "Candara",
+    "slot": 0,
+    "accent": "#cb91a3",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "tally-02",
+    "base": "tally",
+    "name": "Penny Halfounce",
+    "home": "Jovexa",
+    "slot": 1,
+    "accent": "#9fc1af",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "tally-03",
+    "base": "tally",
+    "name": "Sprig Halfounce",
+    "home": "Brrrindle",
+    "slot": 2,
+    "accent": "#d99c73",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "tally-04",
+    "base": "tally",
+    "name": "Thimble Halfounce",
+    "home": "Verdanthia",
+    "slot": 3,
+    "accent": "#93a0bf",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "tally-05",
+    "base": "tally",
+    "name": "Tink Halfounce",
+    "home": "Scorchmaw",
+    "slot": 4,
+    "accent": "#d77b65",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "tally-06",
+    "base": "tally",
+    "name": "Clover Halfounce",
+    "home": "Dunemoor",
+    "slot": 5,
+    "accent": "#68a8ae",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "tally-07",
+    "base": "tally",
+    "name": "Midge Halfounce",
+    "home": "Sloshwell",
+    "slot": 6,
+    "accent": "#ac93c4",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "tally-08",
+    "base": "tally",
+    "name": "Button Halfounce",
+    "home": "Amethyne",
+    "slot": 7,
+    "accent": "#dfbc69",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "tally-09",
+    "base": "tally",
+    "name": "Clip Halfounce",
+    "home": "Toxibloom",
+    "slot": 8,
+    "accent": "#91b275",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "tally-10",
+    "base": "tally",
+    "name": "Dot Halfounce",
+    "home": "Candara",
+    "slot": 9,
+    "accent": "#759cca",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "lichen-01",
+    "base": "lichen",
+    "name": "Frond Fernwell",
+    "home": "Jovexa",
+    "slot": 0,
+    "accent": "#9fc1af",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "lichen-02",
+    "base": "lichen",
+    "name": "Hazel Fernwell",
+    "home": "Brrrindle",
+    "slot": 1,
+    "accent": "#d99c73",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "lichen-03",
+    "base": "lichen",
+    "name": "Willow Fernwell",
+    "home": "Verdanthia",
+    "slot": 2,
+    "accent": "#93a0bf",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "lichen-04",
+    "base": "lichen",
+    "name": "Sorrel Fernwell",
+    "home": "Scorchmaw",
+    "slot": 3,
+    "accent": "#d77b65",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "lichen-05",
+    "base": "lichen",
+    "name": "Reed Fernwell",
+    "home": "Dunemoor",
+    "slot": 4,
+    "accent": "#68a8ae",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "lichen-06",
+    "base": "lichen",
+    "name": "Laurel Fernwell",
+    "home": "Sloshwell",
+    "slot": 5,
+    "accent": "#ac93c4",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "lichen-07",
+    "base": "lichen",
+    "name": "Moss Fernwell",
+    "home": "Amethyne",
+    "slot": 6,
+    "accent": "#dfbc69",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "lichen-08",
+    "base": "lichen",
+    "name": "Alder Fernwell",
+    "home": "Toxibloom",
+    "slot": 7,
+    "accent": "#91b275",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "lichen-09",
+    "base": "lichen",
+    "name": "Briar Fernwell",
+    "home": "Candara",
+    "slot": 8,
+    "accent": "#759cca",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "lichen-10",
+    "base": "lichen",
+    "name": "Olive Fernwell",
+    "home": "Jovexa",
+    "slot": 9,
+    "accent": "#cb91a3",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "parallax-01",
+    "base": "parallax",
+    "name": "Delta Sightline",
+    "home": "Brrrindle",
+    "slot": 0,
+    "accent": "#d99c73",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "parallax-02",
+    "base": "parallax",
+    "name": "Opal Sightline",
+    "home": "Verdanthia",
+    "slot": 1,
+    "accent": "#93a0bf",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "parallax-03",
+    "base": "parallax",
+    "name": "Iris Sightline",
+    "home": "Scorchmaw",
+    "slot": 2,
+    "accent": "#d77b65",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "parallax-04",
+    "base": "parallax",
+    "name": "Focus Sightline",
+    "home": "Dunemoor",
+    "slot": 3,
+    "accent": "#68a8ae",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "parallax-05",
+    "base": "parallax",
+    "name": "Vector Sightline",
+    "home": "Sloshwell",
+    "slot": 4,
+    "accent": "#ac93c4",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "parallax-06",
+    "base": "parallax",
+    "name": "Echo Sightline",
+    "home": "Amethyne",
+    "slot": 5,
+    "accent": "#dfbc69",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "parallax-07",
+    "base": "parallax",
+    "name": "Finch Sightline",
+    "home": "Toxibloom",
+    "slot": 6,
+    "accent": "#91b275",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "parallax-08",
+    "base": "parallax",
+    "name": "Axial Sightline",
+    "home": "Candara",
+    "slot": 7,
+    "accent": "#759cca",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "parallax-09",
+    "base": "parallax",
+    "name": "Meridian Sightline",
+    "home": "Jovexa",
+    "slot": 8,
+    "accent": "#cb91a3",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "parallax-10",
+    "base": "parallax",
+    "name": "Pearl Sightline",
+    "home": "Brrrindle",
+    "slot": 9,
+    "accent": "#9fc1af",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "hush-01",
+    "base": "hush",
+    "name": "Murmur Bellfound",
+    "home": "Verdanthia",
+    "slot": 0,
+    "accent": "#93a0bf",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "hush-02",
+    "base": "hush",
+    "name": "Thrush Bellfound",
+    "home": "Scorchmaw",
+    "slot": 1,
+    "accent": "#d77b65",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "hush-03",
+    "base": "hush",
+    "name": "Oriel Bellfound",
+    "home": "Dunemoor",
+    "slot": 2,
+    "accent": "#68a8ae",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "hush-04",
+    "base": "hush",
+    "name": "Wren Bellfound",
+    "home": "Sloshwell",
+    "slot": 3,
+    "accent": "#ac93c4",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "hush-05",
+    "base": "hush",
+    "name": "Cricket Bellfound",
+    "home": "Amethyne",
+    "slot": 4,
+    "accent": "#dfbc69",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "hush-06",
+    "base": "hush",
+    "name": "Linnet Bellfound",
+    "home": "Toxibloom",
+    "slot": 5,
+    "accent": "#91b275",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "hush-07",
+    "base": "hush",
+    "name": "Dove Bellfound",
+    "home": "Candara",
+    "slot": 6,
+    "accent": "#759cca",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "hush-08",
+    "base": "hush",
+    "name": "Minnow Bellfound",
+    "home": "Jovexa",
+    "slot": 7,
+    "accent": "#cb91a3",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "hush-09",
+    "base": "hush",
+    "name": "Piper Bellfound",
+    "home": "Brrrindle",
+    "slot": 8,
+    "accent": "#9fc1af",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "hush-10",
+    "base": "hush",
+    "name": "Chord Bellfound",
+    "home": "Verdanthia",
+    "slot": 9,
+    "accent": "#d99c73",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "rivet-01",
+    "base": "rivet",
+    "name": "Ash Patchbay",
+    "home": "Scorchmaw",
+    "slot": 0,
+    "accent": "#d77b65",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "rivet-02",
+    "base": "rivet",
+    "name": "Copper Patchbay",
+    "home": "Dunemoor",
+    "slot": 1,
+    "accent": "#68a8ae",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "rivet-03",
+    "base": "rivet",
+    "name": "Ember Patchbay",
+    "home": "Sloshwell",
+    "slot": 2,
+    "accent": "#ac93c4",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "rivet-04",
+    "base": "rivet",
+    "name": "Flick Patchbay",
+    "home": "Amethyne",
+    "slot": 3,
+    "accent": "#dfbc69",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "rivet-05",
+    "base": "rivet",
+    "name": "Spark Patchbay",
+    "home": "Toxibloom",
+    "slot": 4,
+    "accent": "#91b275",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "rivet-06",
+    "base": "rivet",
+    "name": "Glaze Patchbay",
+    "home": "Candara",
+    "slot": 5,
+    "accent": "#759cca",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "rivet-07",
+    "base": "rivet",
+    "name": "Tin Patchbay",
+    "home": "Jovexa",
+    "slot": 6,
+    "accent": "#cb91a3",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "rivet-08",
+    "base": "rivet",
+    "name": "Solder Patchbay",
+    "home": "Brrrindle",
+    "slot": 7,
+    "accent": "#9fc1af",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "rivet-09",
+    "base": "rivet",
+    "name": "Clove Patchbay",
+    "home": "Verdanthia",
+    "slot": 8,
+    "accent": "#d99c73",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "rivet-10",
+    "base": "rivet",
+    "name": "Tack Patchbay",
+    "home": "Scorchmaw",
+    "slot": 9,
+    "accent": "#93a0bf",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "spool-01",
+    "base": "spool",
+    "name": "Bell Crossline",
+    "home": "Dunemoor",
+    "slot": 0,
+    "accent": "#68a8ae",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "spool-02",
+    "base": "spool",
+    "name": "Coda Crossline",
+    "home": "Sloshwell",
+    "slot": 1,
+    "accent": "#ac93c4",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "spool-03",
+    "base": "spool",
+    "name": "Pulse Crossline",
+    "home": "Amethyne",
+    "slot": 2,
+    "accent": "#dfbc69",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "spool-04",
+    "base": "spool",
+    "name": "Dial Crossline",
+    "home": "Toxibloom",
+    "slot": 3,
+    "accent": "#91b275",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "spool-05",
+    "base": "spool",
+    "name": "Patch Crossline",
+    "home": "Candara",
+    "slot": 4,
+    "accent": "#759cca",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "spool-06",
+    "base": "spool",
+    "name": "Trill Crossline",
+    "home": "Jovexa",
+    "slot": 5,
+    "accent": "#cb91a3",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "spool-07",
+    "base": "spool",
+    "name": "Link Crossline",
+    "home": "Brrrindle",
+    "slot": 6,
+    "accent": "#9fc1af",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "spool-08",
+    "base": "spool",
+    "name": "Vox Crossline",
+    "home": "Verdanthia",
+    "slot": 7,
+    "accent": "#d99c73",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "spool-09",
+    "base": "spool",
+    "name": "Coil Crossline",
+    "home": "Scorchmaw",
+    "slot": 8,
+    "accent": "#93a0bf",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "spool-10",
+    "base": "spool",
+    "name": "Signal Crossline",
+    "home": "Dunemoor",
+    "slot": 9,
+    "accent": "#d77b65",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "neru-01",
+    "base": "neru",
+    "name": "Nali Tidemark",
+    "home": "Sloshwell",
+    "slot": 0,
+    "accent": "#ac93c4",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "neru-02",
+    "base": "neru",
+    "name": "Toma Tidemark",
+    "home": "Amethyne",
+    "slot": 1,
+    "accent": "#dfbc69",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "neru-03",
+    "base": "neru",
+    "name": "Kell Tidemark",
+    "home": "Toxibloom",
+    "slot": 2,
+    "accent": "#91b275",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "neru-04",
+    "base": "neru",
+    "name": "Oona Tidemark",
+    "home": "Candara",
+    "slot": 3,
+    "accent": "#759cca",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "neru-05",
+    "base": "neru",
+    "name": "Pell Tidemark",
+    "home": "Jovexa",
+    "slot": 4,
+    "accent": "#cb91a3",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "neru-06",
+    "base": "neru",
+    "name": "Evi Tidemark",
+    "home": "Brrrindle",
+    "slot": 5,
+    "accent": "#9fc1af",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "neru-07",
+    "base": "neru",
+    "name": "Senn Tidemark",
+    "home": "Verdanthia",
+    "slot": 6,
+    "accent": "#d99c73",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "neru-08",
+    "base": "neru",
+    "name": "Uma Tidemark",
+    "home": "Scorchmaw",
+    "slot": 7,
+    "accent": "#93a0bf",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "neru-09",
+    "base": "neru",
+    "name": "Tika Tidemark",
+    "home": "Dunemoor",
+    "slot": 8,
+    "accent": "#d77b65",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "neru-10",
+    "base": "neru",
+    "name": "Norr Tidemark",
+    "home": "Sloshwell",
+    "slot": 9,
+    "accent": "#68a8ae",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "caelo-01",
+    "base": "caelo",
+    "name": "Elva Wickfen",
+    "home": "Amethyne",
+    "slot": 0,
+    "accent": "#dfbc69",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "caelo-02",
+    "base": "caelo",
+    "name": "Otti Wickfen",
+    "home": "Toxibloom",
+    "slot": 1,
+    "accent": "#91b275",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "caelo-03",
+    "base": "caelo",
+    "name": "Minna Wickfen",
+    "home": "Candara",
+    "slot": 2,
+    "accent": "#759cca",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "caelo-04",
+    "base": "caelo",
+    "name": "Iril Wickfen",
+    "home": "Jovexa",
+    "slot": 3,
+    "accent": "#cb91a3",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "caelo-05",
+    "base": "caelo",
+    "name": "Sav Wickfen",
+    "home": "Brrrindle",
+    "slot": 4,
+    "accent": "#9fc1af",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "caelo-06",
+    "base": "caelo",
+    "name": "Rola Wickfen",
+    "home": "Verdanthia",
+    "slot": 5,
+    "accent": "#d99c73",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "caelo-07",
+    "base": "caelo",
+    "name": "Aini Wickfen",
+    "home": "Scorchmaw",
+    "slot": 6,
+    "accent": "#93a0bf",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "caelo-08",
+    "base": "caelo",
+    "name": "Pero Wickfen",
+    "home": "Dunemoor",
+    "slot": 7,
+    "accent": "#d77b65",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "caelo-09",
+    "base": "caelo",
+    "name": "Linn Wickfen",
+    "home": "Sloshwell",
+    "slot": 8,
+    "accent": "#68a8ae",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "caelo-10",
+    "base": "caelo",
+    "name": "Itha Wickfen",
+    "home": "Amethyne",
+    "slot": 9,
+    "accent": "#ac93c4",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "rusk-01",
+    "base": "rusk",
+    "name": "Garn Ochrebank",
+    "home": "Toxibloom",
+    "slot": 0,
+    "accent": "#91b275",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "rusk-02",
+    "base": "rusk",
+    "name": "Rika Ochrebank",
+    "home": "Candara",
+    "slot": 1,
+    "accent": "#759cca",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "rusk-03",
+    "base": "rusk",
+    "name": "Dorn Ochrebank",
+    "home": "Jovexa",
+    "slot": 2,
+    "accent": "#cb91a3",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "rusk-04",
+    "base": "rusk",
+    "name": "Nemi Ochrebank",
+    "home": "Brrrindle",
+    "slot": 3,
+    "accent": "#9fc1af",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "rusk-05",
+    "base": "rusk",
+    "name": "Orru Ochrebank",
+    "home": "Verdanthia",
+    "slot": 4,
+    "accent": "#d99c73",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "rusk-06",
+    "base": "rusk",
+    "name": "Vedra Ochrebank",
+    "home": "Scorchmaw",
+    "slot": 5,
+    "accent": "#93a0bf",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "rusk-07",
+    "base": "rusk",
+    "name": "Tann Ochrebank",
+    "home": "Dunemoor",
+    "slot": 6,
+    "accent": "#d77b65",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "rusk-08",
+    "base": "rusk",
+    "name": "Kelo Ochrebank",
+    "home": "Sloshwell",
+    "slot": 7,
+    "accent": "#68a8ae",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "rusk-09",
+    "base": "rusk",
+    "name": "Dora Ochrebank",
+    "home": "Amethyne",
+    "slot": 8,
+    "accent": "#ac93c4",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "rusk-10",
+    "base": "rusk",
+    "name": "Jann Ochrebank",
+    "home": "Toxibloom",
+    "slot": 9,
+    "accent": "#dfbc69",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "plover-01",
+    "base": "plover",
+    "name": "Lali Reedbank",
+    "home": "Candara",
+    "slot": 0,
+    "accent": "#759cca",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "plover-02",
+    "base": "plover",
+    "name": "Tern Reedbank",
+    "home": "Jovexa",
+    "slot": 1,
+    "accent": "#cb91a3",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "plover-03",
+    "base": "plover",
+    "name": "Sella Reedbank",
+    "home": "Brrrindle",
+    "slot": 2,
+    "accent": "#9fc1af",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "plover-04",
+    "base": "plover",
+    "name": "Asto Reedbank",
+    "home": "Verdanthia",
+    "slot": 3,
+    "accent": "#d99c73",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "plover-05",
+    "base": "plover",
+    "name": "Piri Reedbank",
+    "home": "Scorchmaw",
+    "slot": 4,
+    "accent": "#93a0bf",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "plover-06",
+    "base": "plover",
+    "name": "Ferni Reedbank",
+    "home": "Dunemoor",
+    "slot": 5,
+    "accent": "#d77b65",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "plover-07",
+    "base": "plover",
+    "name": "Vela Reedbank",
+    "home": "Sloshwell",
+    "slot": 6,
+    "accent": "#68a8ae",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "plover-08",
+    "base": "plover",
+    "name": "Riva Reedbank",
+    "home": "Amethyne",
+    "slot": 7,
+    "accent": "#ac93c4",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "plover-09",
+    "base": "plover",
+    "name": "Tem Reedbank",
+    "home": "Toxibloom",
+    "slot": 8,
+    "accent": "#dfbc69",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "plover-10",
+    "base": "plover",
+    "name": "Minta Reedbank",
+    "home": "Candara",
+    "slot": 9,
+    "accent": "#91b275",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "fenn-01",
+    "base": "fenn",
+    "name": "Olli Ballast",
+    "home": "Jovexa",
+    "slot": 0,
+    "accent": "#cb91a3",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "fenn-02",
+    "base": "fenn",
+    "name": "Sena Ballast",
+    "home": "Brrrindle",
+    "slot": 1,
+    "accent": "#9fc1af",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "fenn-03",
+    "base": "fenn",
+    "name": "Milo Ballast",
+    "home": "Verdanthia",
+    "slot": 2,
+    "accent": "#d99c73",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "fenn-04",
+    "base": "fenn",
+    "name": "Nara Ballast",
+    "home": "Scorchmaw",
+    "slot": 3,
+    "accent": "#93a0bf",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "fenn-05",
+    "base": "fenn",
+    "name": "Kemi Ballast",
+    "home": "Dunemoor",
+    "slot": 4,
+    "accent": "#d77b65",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "fenn-06",
+    "base": "fenn",
+    "name": "Bera Ballast",
+    "home": "Sloshwell",
+    "slot": 5,
+    "accent": "#68a8ae",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "fenn-07",
+    "base": "fenn",
+    "name": "Willa Ballast",
+    "home": "Amethyne",
+    "slot": 6,
+    "accent": "#ac93c4",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "fenn-08",
+    "base": "fenn",
+    "name": "Tavo Ballast",
+    "home": "Toxibloom",
+    "slot": 7,
+    "accent": "#dfbc69",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "fenn-09",
+    "base": "fenn",
+    "name": "Pellu Ballast",
+    "home": "Candara",
+    "slot": 8,
+    "accent": "#91b275",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "fenn-10",
+    "base": "fenn",
+    "name": "Del Ballast",
+    "home": "Jovexa",
+    "slot": 9,
+    "accent": "#759cca",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "koro-01",
+    "base": "koro",
+    "name": "Roka Ambergap",
+    "home": "Brrrindle",
+    "slot": 0,
+    "accent": "#9fc1af",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "koro-02",
+    "base": "koro",
+    "name": "Dessi Ambergap",
+    "home": "Verdanthia",
+    "slot": 1,
+    "accent": "#d99c73",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "koro-03",
+    "base": "koro",
+    "name": "Tarn Ambergap",
+    "home": "Scorchmaw",
+    "slot": 2,
+    "accent": "#93a0bf",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "koro-04",
+    "base": "koro",
+    "name": "Mura Ambergap",
+    "home": "Dunemoor",
+    "slot": 3,
+    "accent": "#d77b65",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "koro-05",
+    "base": "koro",
+    "name": "Nola Ambergap",
+    "home": "Sloshwell",
+    "slot": 4,
+    "accent": "#68a8ae",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "koro-06",
+    "base": "koro",
+    "name": "Kalto Ambergap",
+    "home": "Amethyne",
+    "slot": 5,
+    "accent": "#ac93c4",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "koro-07",
+    "base": "koro",
+    "name": "Irem Ambergap",
+    "home": "Toxibloom",
+    "slot": 6,
+    "accent": "#dfbc69",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "koro-08",
+    "base": "koro",
+    "name": "Yara Ambergap",
+    "home": "Candara",
+    "slot": 7,
+    "accent": "#91b275",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "koro-09",
+    "base": "koro",
+    "name": "Torvi Ambergap",
+    "home": "Jovexa",
+    "slot": 8,
+    "accent": "#759cca",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "koro-10",
+    "base": "koro",
+    "name": "Brann Ambergap",
+    "home": "Brrrindle",
+    "slot": 9,
+    "accent": "#cb91a3",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "myrr-01",
+    "base": "myrr",
+    "name": "Perri Gillwick",
+    "home": "Verdanthia",
+    "slot": 0,
+    "accent": "#d99c73",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "myrr-02",
+    "base": "myrr",
+    "name": "Enna Gillwick",
+    "home": "Scorchmaw",
+    "slot": 1,
+    "accent": "#93a0bf",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "myrr-03",
+    "base": "myrr",
+    "name": "Cress Gillwick",
+    "home": "Dunemoor",
+    "slot": 2,
+    "accent": "#d77b65",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "myrr-04",
+    "base": "myrr",
+    "name": "Nel Gillwick",
+    "home": "Sloshwell",
+    "slot": 3,
+    "accent": "#68a8ae",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "myrr-05",
+    "base": "myrr",
+    "name": "Aven Gillwick",
+    "home": "Amethyne",
+    "slot": 4,
+    "accent": "#ac93c4",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "myrr-06",
+    "base": "myrr",
+    "name": "Lira Gillwick",
+    "home": "Toxibloom",
+    "slot": 5,
+    "accent": "#dfbc69",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "myrr-07",
+    "base": "myrr",
+    "name": "Saffi Gillwick",
+    "home": "Candara",
+    "slot": 6,
+    "accent": "#91b275",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "myrr-08",
+    "base": "myrr",
+    "name": "Rudi Gillwick",
+    "home": "Jovexa",
+    "slot": 7,
+    "accent": "#759cca",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "myrr-09",
+    "base": "myrr",
+    "name": "Opal Gillwick",
+    "home": "Brrrindle",
+    "slot": 8,
+    "accent": "#cb91a3",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "myrr-10",
+    "base": "myrr",
+    "name": "Bren Gillwick",
+    "home": "Verdanthia",
+    "slot": 9,
+    "accent": "#9fc1af",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "sarra-01",
+    "base": "sarra",
+    "name": "Esha Glasspool",
+    "home": "Scorchmaw",
+    "slot": 0,
+    "accent": "#93a0bf",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "sarra-02",
+    "base": "sarra",
+    "name": "Kavi Glasspool",
+    "home": "Dunemoor",
+    "slot": 1,
+    "accent": "#d77b65",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "sarra-03",
+    "base": "sarra",
+    "name": "Suna Glasspool",
+    "home": "Sloshwell",
+    "slot": 2,
+    "accent": "#68a8ae",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "sarra-04",
+    "base": "sarra",
+    "name": "Nesh Glasspool",
+    "home": "Amethyne",
+    "slot": 3,
+    "accent": "#ac93c4",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "sarra-05",
+    "base": "sarra",
+    "name": "Raya Glasspool",
+    "home": "Toxibloom",
+    "slot": 4,
+    "accent": "#dfbc69",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "sarra-06",
+    "base": "sarra",
+    "name": "Isen Glasspool",
+    "home": "Candara",
+    "slot": 5,
+    "accent": "#91b275",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "sarra-07",
+    "base": "sarra",
+    "name": "Liss Glasspool",
+    "home": "Jovexa",
+    "slot": 6,
+    "accent": "#759cca",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "sarra-08",
+    "base": "sarra",
+    "name": "Zeda Glasspool",
+    "home": "Brrrindle",
+    "slot": 7,
+    "accent": "#cb91a3",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "sarra-09",
+    "base": "sarra",
+    "name": "Imri Glasspool",
+    "home": "Verdanthia",
+    "slot": 8,
+    "accent": "#9fc1af",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "sarra-10",
+    "base": "sarra",
+    "name": "Tasso Glasspool",
+    "home": "Scorchmaw",
+    "slot": 9,
+    "accent": "#d99c73",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "ilex-01",
+    "base": "ilex",
+    "name": "Eryn Branchmere",
+    "home": "Dunemoor",
+    "slot": 0,
+    "accent": "#d77b65",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "ilex-02",
+    "base": "ilex",
+    "name": "Korra Branchmere",
+    "home": "Sloshwell",
+    "slot": 1,
+    "accent": "#68a8ae",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "ilex-03",
+    "base": "ilex",
+    "name": "Arlo Branchmere",
+    "home": "Amethyne",
+    "slot": 2,
+    "accent": "#ac93c4",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "ilex-04",
+    "base": "ilex",
+    "name": "Niva Branchmere",
+    "home": "Toxibloom",
+    "slot": 3,
+    "accent": "#dfbc69",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "ilex-05",
+    "base": "ilex",
+    "name": "Oriel Branchmere",
+    "home": "Candara",
+    "slot": 4,
+    "accent": "#91b275",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "ilex-06",
+    "base": "ilex",
+    "name": "Finn Branchmere",
+    "home": "Jovexa",
+    "slot": 5,
+    "accent": "#759cca",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "ilex-07",
+    "base": "ilex",
+    "name": "Mira Branchmere",
+    "home": "Brrrindle",
+    "slot": 6,
+    "accent": "#cb91a3",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "ilex-08",
+    "base": "ilex",
+    "name": "Grell Branchmere",
+    "home": "Verdanthia",
+    "slot": 7,
+    "accent": "#9fc1af",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "ilex-09",
+    "base": "ilex",
+    "name": "Selka Branchmere",
+    "home": "Scorchmaw",
+    "slot": 8,
+    "accent": "#d99c73",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "ilex-10",
+    "base": "ilex",
+    "name": "Tirr Branchmere",
+    "home": "Dunemoor",
+    "slot": 9,
+    "accent": "#93a0bf",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "kepp-01",
+    "base": "kepp",
+    "name": "Ludo Spiralfen",
+    "home": "Sloshwell",
+    "slot": 0,
+    "accent": "#68a8ae",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "kepp-02",
+    "base": "kepp",
+    "name": "Nelda Spiralfen",
+    "home": "Amethyne",
+    "slot": 1,
+    "accent": "#ac93c4",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "kepp-03",
+    "base": "kepp",
+    "name": "Fenn Spiralfen",
+    "home": "Toxibloom",
+    "slot": 2,
+    "accent": "#dfbc69",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "kepp-04",
+    "base": "kepp",
+    "name": "Orli Spiralfen",
+    "home": "Candara",
+    "slot": 3,
+    "accent": "#91b275",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "kepp-05",
+    "base": "kepp",
+    "name": "Pera Spiralfen",
+    "home": "Jovexa",
+    "slot": 4,
+    "accent": "#759cca",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "kepp-06",
+    "base": "kepp",
+    "name": "Noll Spiralfen",
+    "home": "Brrrindle",
+    "slot": 5,
+    "accent": "#cb91a3",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "kepp-07",
+    "base": "kepp",
+    "name": "Dari Spiralfen",
+    "home": "Verdanthia",
+    "slot": 6,
+    "accent": "#9fc1af",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "kepp-08",
+    "base": "kepp",
+    "name": "Tuli Spiralfen",
+    "home": "Scorchmaw",
+    "slot": 7,
+    "accent": "#d99c73",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "kepp-09",
+    "base": "kepp",
+    "name": "Karo Spiralfen",
+    "home": "Dunemoor",
+    "slot": 8,
+    "accent": "#93a0bf",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "kepp-10",
+    "base": "kepp",
+    "name": "Osti Spiralfen",
+    "home": "Sloshwell",
+    "slot": 9,
+    "accent": "#d77b65",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "yarro-01",
+    "base": "yarro",
+    "name": "Vira Sailridge",
+    "home": "Amethyne",
+    "slot": 0,
+    "accent": "#ac93c4",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "yarro-02",
+    "base": "yarro",
+    "name": "Senn Sailridge",
+    "home": "Toxibloom",
+    "slot": 1,
+    "accent": "#dfbc69",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "yarro-03",
+    "base": "yarro",
+    "name": "Loft Sailridge",
+    "home": "Candara",
+    "slot": 2,
+    "accent": "#91b275",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "yarro-04",
+    "base": "yarro",
+    "name": "Davi Sailridge",
+    "home": "Jovexa",
+    "slot": 3,
+    "accent": "#759cca",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "yarro-05",
+    "base": "yarro",
+    "name": "Hessa Sailridge",
+    "home": "Brrrindle",
+    "slot": 4,
+    "accent": "#cb91a3",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "yarro-06",
+    "base": "yarro",
+    "name": "Evin Sailridge",
+    "home": "Verdanthia",
+    "slot": 5,
+    "accent": "#9fc1af",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "yarro-07",
+    "base": "yarro",
+    "name": "Mira Sailridge",
+    "home": "Scorchmaw",
+    "slot": 6,
+    "accent": "#d99c73",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "yarro-08",
+    "base": "yarro",
+    "name": "Nari Sailridge",
+    "home": "Dunemoor",
+    "slot": 7,
+    "accent": "#93a0bf",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "yarro-09",
+    "base": "yarro",
+    "name": "Leto Sailridge",
+    "home": "Sloshwell",
+    "slot": 8,
+    "accent": "#d77b65",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "yarro-10",
+    "base": "yarro",
+    "name": "Rinn Sailridge",
+    "home": "Amethyne",
+    "slot": 9,
+    "accent": "#68a8ae",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "nacre-01",
+    "base": "nacre",
+    "name": "Sora Reefbell",
+    "home": "Toxibloom",
+    "slot": 0,
+    "accent": "#dfbc69",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "nacre-02",
+    "base": "nacre",
+    "name": "Anni Reefbell",
+    "home": "Candara",
+    "slot": 1,
+    "accent": "#91b275",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "nacre-03",
+    "base": "nacre",
+    "name": "Mael Reefbell",
+    "home": "Jovexa",
+    "slot": 2,
+    "accent": "#759cca",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "nacre-04",
+    "base": "nacre",
+    "name": "Piri Reefbell",
+    "home": "Brrrindle",
+    "slot": 3,
+    "accent": "#cb91a3",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "nacre-05",
+    "base": "nacre",
+    "name": "Iona Reefbell",
+    "home": "Verdanthia",
+    "slot": 4,
+    "accent": "#9fc1af",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "nacre-06",
+    "base": "nacre",
+    "name": "Talla Reefbell",
+    "home": "Scorchmaw",
+    "slot": 5,
+    "accent": "#d99c73",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "nacre-07",
+    "base": "nacre",
+    "name": "Nelvi Reefbell",
+    "home": "Dunemoor",
+    "slot": 6,
+    "accent": "#93a0bf",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "nacre-08",
+    "base": "nacre",
+    "name": "Cora Reefbell",
+    "home": "Sloshwell",
+    "slot": 7,
+    "accent": "#d77b65",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "nacre-09",
+    "base": "nacre",
+    "name": "Yari Reefbell",
+    "home": "Amethyne",
+    "slot": 8,
+    "accent": "#68a8ae",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "nacre-10",
+    "base": "nacre",
+    "name": "Voss Reefbell",
+    "home": "Toxibloom",
+    "slot": 9,
+    "accent": "#ac93c4",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "tacca-01",
+    "base": "tacca",
+    "name": "Kes Burrowby",
+    "home": "Candara",
+    "slot": 0,
+    "accent": "#91b275",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "tacca-02",
+    "base": "tacca",
+    "name": "Tamar Burrowby",
+    "home": "Jovexa",
+    "slot": 1,
+    "accent": "#759cca",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "tacca-03",
+    "base": "tacca",
+    "name": "Elsi Burrowby",
+    "home": "Brrrindle",
+    "slot": 2,
+    "accent": "#cb91a3",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "tacca-04",
+    "base": "tacca",
+    "name": "Fara Burrowby",
+    "home": "Verdanthia",
+    "slot": 3,
+    "accent": "#9fc1af",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "tacca-05",
+    "base": "tacca",
+    "name": "Rolo Burrowby",
+    "home": "Scorchmaw",
+    "slot": 4,
+    "accent": "#d99c73",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "tacca-06",
+    "base": "tacca",
+    "name": "Ivo Burrowby",
+    "home": "Dunemoor",
+    "slot": 5,
+    "accent": "#93a0bf",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "tacca-07",
+    "base": "tacca",
+    "name": "Otta Burrowby",
+    "home": "Sloshwell",
+    "slot": 6,
+    "accent": "#d77b65",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "tacca-08",
+    "base": "tacca",
+    "name": "Bex Burrowby",
+    "home": "Amethyne",
+    "slot": 7,
+    "accent": "#68a8ae",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "tacca-09",
+    "base": "tacca",
+    "name": "Cira Burrowby",
+    "home": "Toxibloom",
+    "slot": 8,
+    "accent": "#ac93c4",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "tacca-10",
+    "base": "tacca",
+    "name": "Thal Burrowby",
+    "home": "Candara",
+    "slot": 9,
+    "accent": "#dfbc69",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "sova-01",
+    "base": "sova",
+    "name": "Willa Quillfold",
+    "home": "Jovexa",
+    "slot": 0,
+    "accent": "#759cca",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "sova-02",
+    "base": "sova",
+    "name": "Lenn Quillfold",
+    "home": "Brrrindle",
+    "slot": 1,
+    "accent": "#cb91a3",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "sova-03",
+    "base": "sova",
+    "name": "Caro Quillfold",
+    "home": "Verdanthia",
+    "slot": 2,
+    "accent": "#9fc1af",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "sova-04",
+    "base": "sova",
+    "name": "Rumi Quillfold",
+    "home": "Scorchmaw",
+    "slot": 3,
+    "accent": "#d99c73",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "sova-05",
+    "base": "sova",
+    "name": "Ves Quillfold",
+    "home": "Dunemoor",
+    "slot": 4,
+    "accent": "#93a0bf",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "sova-06",
+    "base": "sova",
+    "name": "Asta Quillfold",
+    "home": "Sloshwell",
+    "slot": 5,
+    "accent": "#d77b65",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "sova-07",
+    "base": "sova",
+    "name": "Minn Quillfold",
+    "home": "Amethyne",
+    "slot": 6,
+    "accent": "#68a8ae",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "sova-08",
+    "base": "sova",
+    "name": "Thea Quillfold",
+    "home": "Toxibloom",
+    "slot": 7,
+    "accent": "#ac93c4",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "sova-09",
+    "base": "sova",
+    "name": "Orvi Quillfold",
+    "home": "Candara",
+    "slot": 8,
+    "accent": "#dfbc69",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "sova-10",
+    "base": "sova",
+    "name": "Olan Quillfold",
+    "home": "Jovexa",
+    "slot": 9,
+    "accent": "#91b275",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "pavo-01",
+    "base": "pavo",
+    "name": "Rafi Brightfan",
+    "home": "Brrrindle",
+    "slot": 0,
+    "accent": "#cb91a3",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "pavo-02",
+    "base": "pavo",
+    "name": "Ilna Brightfan",
+    "home": "Verdanthia",
+    "slot": 1,
+    "accent": "#9fc1af",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "pavo-03",
+    "base": "pavo",
+    "name": "Corin Brightfan",
+    "home": "Scorchmaw",
+    "slot": 2,
+    "accent": "#d99c73",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "pavo-04",
+    "base": "pavo",
+    "name": "Vani Brightfan",
+    "home": "Dunemoor",
+    "slot": 3,
+    "accent": "#93a0bf",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "pavo-05",
+    "base": "pavo",
+    "name": "Joss Brightfan",
+    "home": "Sloshwell",
+    "slot": 4,
+    "accent": "#d77b65",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "pavo-06",
+    "base": "pavo",
+    "name": "Olva Brightfan",
+    "home": "Amethyne",
+    "slot": 5,
+    "accent": "#68a8ae",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "pavo-07",
+    "base": "pavo",
+    "name": "Pello Brightfan",
+    "home": "Toxibloom",
+    "slot": 6,
+    "accent": "#ac93c4",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "pavo-08",
+    "base": "pavo",
+    "name": "Mena Brightfan",
+    "home": "Candara",
+    "slot": 7,
+    "accent": "#dfbc69",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "pavo-09",
+    "base": "pavo",
+    "name": "Sevi Brightfan",
+    "home": "Jovexa",
+    "slot": 8,
+    "accent": "#91b275",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "pavo-10",
+    "base": "pavo",
+    "name": "Yel Brightfan",
+    "home": "Brrrindle",
+    "slot": 9,
+    "accent": "#759cca",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "kipp-01",
+    "base": "kipp",
+    "name": "Hett Girderwell",
+    "home": "Verdanthia",
+    "slot": 0,
+    "accent": "#9fc1af",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "kipp-02",
+    "base": "kipp",
+    "name": "Ludo Girderwell",
+    "home": "Scorchmaw",
+    "slot": 1,
+    "accent": "#d99c73",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "kipp-03",
+    "base": "kipp",
+    "name": "Kiva Girderwell",
+    "home": "Dunemoor",
+    "slot": 2,
+    "accent": "#93a0bf",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "kipp-04",
+    "base": "kipp",
+    "name": "Rann Girderwell",
+    "home": "Sloshwell",
+    "slot": 3,
+    "accent": "#d77b65",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "kipp-05",
+    "base": "kipp",
+    "name": "Omri Girderwell",
+    "home": "Amethyne",
+    "slot": 4,
+    "accent": "#68a8ae",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "kipp-06",
+    "base": "kipp",
+    "name": "Siva Girderwell",
+    "home": "Toxibloom",
+    "slot": 5,
+    "accent": "#ac93c4",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "kipp-07",
+    "base": "kipp",
+    "name": "Tyne Girderwell",
+    "home": "Candara",
+    "slot": 6,
+    "accent": "#dfbc69",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "kipp-08",
+    "base": "kipp",
+    "name": "Odo Girderwell",
+    "home": "Jovexa",
+    "slot": 7,
+    "accent": "#91b275",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "kipp-09",
+    "base": "kipp",
+    "name": "Grell Girderwell",
+    "home": "Brrrindle",
+    "slot": 8,
+    "accent": "#759cca",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "kipp-10",
+    "base": "kipp",
+    "name": "Tess Girderwell",
+    "home": "Verdanthia",
+    "slot": 9,
+    "accent": "#cb91a3",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "marlo-01",
+    "base": "marlo",
+    "name": "Ulla Frostwharf",
+    "home": "Scorchmaw",
+    "slot": 0,
+    "accent": "#d99c73",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "marlo-02",
+    "base": "marlo",
+    "name": "Boro Frostwharf",
+    "home": "Dunemoor",
+    "slot": 1,
+    "accent": "#93a0bf",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "marlo-03",
+    "base": "marlo",
+    "name": "Nemi Frostwharf",
+    "home": "Sloshwell",
+    "slot": 2,
+    "accent": "#d77b65",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "marlo-04",
+    "base": "marlo",
+    "name": "Korr Frostwharf",
+    "home": "Amethyne",
+    "slot": 3,
+    "accent": "#68a8ae",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "marlo-05",
+    "base": "marlo",
+    "name": "Nell Frostwharf",
+    "home": "Toxibloom",
+    "slot": 4,
+    "accent": "#ac93c4",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "marlo-06",
+    "base": "marlo",
+    "name": "Rann Frostwharf",
+    "home": "Candara",
+    "slot": 5,
+    "accent": "#dfbc69",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "marlo-07",
+    "base": "marlo",
+    "name": "Esk Frostwharf",
+    "home": "Jovexa",
+    "slot": 6,
+    "accent": "#91b275",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "marlo-08",
+    "base": "marlo",
+    "name": "Nia Frostwharf",
+    "home": "Brrrindle",
+    "slot": 7,
+    "accent": "#759cca",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "marlo-09",
+    "base": "marlo",
+    "name": "Wulfe Frostwharf",
+    "home": "Verdanthia",
+    "slot": 8,
+    "accent": "#cb91a3",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "marlo-10",
+    "base": "marlo",
+    "name": "Siri Frostwharf",
+    "home": "Scorchmaw",
+    "slot": 9,
+    "accent": "#9fc1af",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "aril-01",
+    "base": "aril",
+    "name": "Ovie Leafstep",
+    "home": "Dunemoor",
+    "slot": 0,
+    "accent": "#93a0bf",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "aril-02",
+    "base": "aril",
+    "name": "Peta Leafstep",
+    "home": "Sloshwell",
+    "slot": 1,
+    "accent": "#d77b65",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "aril-03",
+    "base": "aril",
+    "name": "Noll Leafstep",
+    "home": "Amethyne",
+    "slot": 2,
+    "accent": "#68a8ae",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "aril-04",
+    "base": "aril",
+    "name": "Vim Leafstep",
+    "home": "Toxibloom",
+    "slot": 3,
+    "accent": "#ac93c4",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "aril-05",
+    "base": "aril",
+    "name": "Mara Leafstep",
+    "home": "Candara",
+    "slot": 4,
+    "accent": "#dfbc69",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "aril-06",
+    "base": "aril",
+    "name": "Sena Leafstep",
+    "home": "Jovexa",
+    "slot": 5,
+    "accent": "#91b275",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "aril-07",
+    "base": "aril",
+    "name": "Fern Leafstep",
+    "home": "Brrrindle",
+    "slot": 6,
+    "accent": "#759cca",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "aril-08",
+    "base": "aril",
+    "name": "Liri Leafstep",
+    "home": "Verdanthia",
+    "slot": 7,
+    "accent": "#cb91a3",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "aril-09",
+    "base": "aril",
+    "name": "Ori Leafstep",
+    "home": "Scorchmaw",
+    "slot": 8,
+    "accent": "#9fc1af",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "aril-10",
+    "base": "aril",
+    "name": "Teva Leafstep",
+    "home": "Dunemoor",
+    "slot": 9,
+    "accent": "#d99c73",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "sura-01",
+    "base": "sura",
+    "name": "Mavi Eddybend",
+    "home": "Sloshwell",
+    "slot": 0,
+    "accent": "#d77b65",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "sura-02",
+    "base": "sura",
+    "name": "Luro Eddybend",
+    "home": "Amethyne",
+    "slot": 1,
+    "accent": "#68a8ae",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "sura-03",
+    "base": "sura",
+    "name": "Isha Eddybend",
+    "home": "Toxibloom",
+    "slot": 2,
+    "accent": "#ac93c4",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "sura-04",
+    "base": "sura",
+    "name": "Renn Eddybend",
+    "home": "Candara",
+    "slot": 3,
+    "accent": "#dfbc69",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "sura-05",
+    "base": "sura",
+    "name": "Kori Eddybend",
+    "home": "Jovexa",
+    "slot": 4,
+    "accent": "#91b275",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "sura-06",
+    "base": "sura",
+    "name": "Nym Eddybend",
+    "home": "Brrrindle",
+    "slot": 5,
+    "accent": "#759cca",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "sura-07",
+    "base": "sura",
+    "name": "Bela Eddybend",
+    "home": "Verdanthia",
+    "slot": 6,
+    "accent": "#cb91a3",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "sura-08",
+    "base": "sura",
+    "name": "Aro Eddybend",
+    "home": "Scorchmaw",
+    "slot": 7,
+    "accent": "#9fc1af",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "sura-09",
+    "base": "sura",
+    "name": "Eri Eddybend",
+    "home": "Dunemoor",
+    "slot": 8,
+    "accent": "#d99c73",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "sura-10",
+    "base": "sura",
+    "name": "Dossa Eddybend",
+    "home": "Sloshwell",
+    "slot": 9,
+    "accent": "#93a0bf",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "lyre-01",
+    "base": "lyre",
+    "name": "Alto Fretwell",
+    "home": "Amethyne",
+    "slot": 0,
+    "accent": "#68a8ae",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "lyre-02",
+    "base": "lyre",
+    "name": "Viola Fretwell",
+    "home": "Toxibloom",
+    "slot": 1,
+    "accent": "#ac93c4",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "lyre-03",
+    "base": "lyre",
+    "name": "Coda Fretwell",
+    "home": "Candara",
+    "slot": 2,
+    "accent": "#dfbc69",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "lyre-04",
+    "base": "lyre",
+    "name": "Brass Fretwell",
+    "home": "Jovexa",
+    "slot": 3,
+    "accent": "#91b275",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "lyre-05",
+    "base": "lyre",
+    "name": "Quaver Fretwell",
+    "home": "Brrrindle",
+    "slot": 4,
+    "accent": "#759cca",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "lyre-06",
+    "base": "lyre",
+    "name": "Octave Fretwell",
+    "home": "Verdanthia",
+    "slot": 5,
+    "accent": "#cb91a3",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "lyre-07",
+    "base": "lyre",
+    "name": "Key Fretwell",
+    "home": "Scorchmaw",
+    "slot": 6,
+    "accent": "#9fc1af",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "lyre-08",
+    "base": "lyre",
+    "name": "Harmonic Fretwell",
+    "home": "Dunemoor",
+    "slot": 7,
+    "accent": "#d99c73",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "lyre-09",
+    "base": "lyre",
+    "name": "Treble Fretwell",
+    "home": "Sloshwell",
+    "slot": 8,
+    "accent": "#93a0bf",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "lyre-10",
+    "base": "lyre",
+    "name": "Drone Fretwell",
+    "home": "Amethyne",
+    "slot": 9,
+    "accent": "#d77b65",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "iris-01",
+    "base": "iris",
+    "name": "Sepia Silverplate",
+    "home": "Toxibloom",
+    "slot": 0,
+    "accent": "#ac93c4",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "iris-02",
+    "base": "iris",
+    "name": "Grain Silverplate",
+    "home": "Candara",
+    "slot": 1,
+    "accent": "#dfbc69",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "iris-03",
+    "base": "iris",
+    "name": "Focal Silverplate",
+    "home": "Jovexa",
+    "slot": 2,
+    "accent": "#91b275",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "iris-04",
+    "base": "iris",
+    "name": "Prism Silverplate",
+    "home": "Brrrindle",
+    "slot": 3,
+    "accent": "#759cca",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "iris-05",
+    "base": "iris",
+    "name": "Slate Silverplate",
+    "home": "Verdanthia",
+    "slot": 4,
+    "accent": "#cb91a3",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "iris-06",
+    "base": "iris",
+    "name": "Silver Silverplate",
+    "home": "Scorchmaw",
+    "slot": 5,
+    "accent": "#9fc1af",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "iris-07",
+    "base": "iris",
+    "name": "Bloom Silverplate",
+    "home": "Dunemoor",
+    "slot": 6,
+    "accent": "#d99c73",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "iris-08",
+    "base": "iris",
+    "name": "Frame Silverplate",
+    "home": "Sloshwell",
+    "slot": 7,
+    "accent": "#93a0bf",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "iris-09",
+    "base": "iris",
+    "name": "Flint Silverplate",
+    "home": "Amethyne",
+    "slot": 8,
+    "accent": "#d77b65",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "iris-10",
+    "base": "iris",
+    "name": "Flash Silverplate",
+    "home": "Toxibloom",
+    "slot": 9,
+    "accent": "#68a8ae",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "crimp-01",
+    "base": "crimp",
+    "name": "Buckle Lockjaw",
+    "home": "Candara",
+    "slot": 0,
+    "accent": "#dfbc69",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "crimp-02",
+    "base": "crimp",
+    "name": "Twist Lockjaw",
+    "home": "Jovexa",
+    "slot": 1,
+    "accent": "#91b275",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "crimp-03",
+    "base": "crimp",
+    "name": "Ferrule Lockjaw",
+    "home": "Brrrindle",
+    "slot": 2,
+    "accent": "#759cca",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "crimp-04",
+    "base": "crimp",
+    "name": "Pin Lockjaw",
+    "home": "Verdanthia",
+    "slot": 3,
+    "accent": "#cb91a3",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "crimp-05",
+    "base": "crimp",
+    "name": "Tin Lockjaw",
+    "home": "Scorchmaw",
+    "slot": 4,
+    "accent": "#9fc1af",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "crimp-06",
+    "base": "crimp",
+    "name": "Notch Lockjaw",
+    "home": "Dunemoor",
+    "slot": 5,
+    "accent": "#d99c73",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "crimp-07",
+    "base": "crimp",
+    "name": "Burr Lockjaw",
+    "home": "Sloshwell",
+    "slot": 6,
+    "accent": "#93a0bf",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "crimp-08",
+    "base": "crimp",
+    "name": "Bolt Lockjaw",
+    "home": "Amethyne",
+    "slot": 7,
+    "accent": "#d77b65",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "crimp-09",
+    "base": "crimp",
+    "name": "Crank Lockjaw",
+    "home": "Toxibloom",
+    "slot": 8,
+    "accent": "#68a8ae",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "crimp-10",
+    "base": "crimp",
+    "name": "Toggle Lockjaw",
+    "home": "Candara",
+    "slot": 9,
+    "accent": "#ac93c4",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "relay-01",
+    "base": "relay",
+    "name": "Pulse Waveband",
+    "home": "Jovexa",
+    "slot": 0,
+    "accent": "#91b275",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "relay-02",
+    "base": "relay",
+    "name": "Murmur Waveband",
+    "home": "Brrrindle",
+    "slot": 1,
+    "accent": "#759cca",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "relay-03",
+    "base": "relay",
+    "name": "Cobalt Waveband",
+    "home": "Verdanthia",
+    "slot": 2,
+    "accent": "#cb91a3",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "relay-04",
+    "base": "relay",
+    "name": "Sine Waveband",
+    "home": "Scorchmaw",
+    "slot": 3,
+    "accent": "#9fc1af",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "relay-05",
+    "base": "relay",
+    "name": "Crest Waveband",
+    "home": "Dunemoor",
+    "slot": 4,
+    "accent": "#d99c73",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "relay-06",
+    "base": "relay",
+    "name": "Static Waveband",
+    "home": "Sloshwell",
+    "slot": 5,
+    "accent": "#93a0bf",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "relay-07",
+    "base": "relay",
+    "name": "Coil Waveband",
+    "home": "Amethyne",
+    "slot": 6,
+    "accent": "#d77b65",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "relay-08",
+    "base": "relay",
+    "name": "Echo Waveband",
+    "home": "Toxibloom",
+    "slot": 7,
+    "accent": "#68a8ae",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "relay-09",
+    "base": "relay",
+    "name": "Loop Waveband",
+    "home": "Candara",
+    "slot": 8,
+    "accent": "#ac93c4",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "relay-10",
+    "base": "relay",
+    "name": "Copper Waveband",
+    "home": "Jovexa",
+    "slot": 9,
+    "accent": "#dfbc69",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "kiln-01",
+    "base": "kiln",
+    "name": "Brick Firebrick",
+    "home": "Brrrindle",
+    "slot": 0,
+    "accent": "#759cca",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "kiln-02",
+    "base": "kiln",
+    "name": "Ash Firebrick",
+    "home": "Verdanthia",
+    "slot": 1,
+    "accent": "#cb91a3",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "kiln-03",
+    "base": "kiln",
+    "name": "Umber Firebrick",
+    "home": "Scorchmaw",
+    "slot": 2,
+    "accent": "#9fc1af",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "kiln-04",
+    "base": "kiln",
+    "name": "Ember Firebrick",
+    "home": "Dunemoor",
+    "slot": 3,
+    "accent": "#d99c73",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "kiln-05",
+    "base": "kiln",
+    "name": "Pumice Firebrick",
+    "home": "Sloshwell",
+    "slot": 4,
+    "accent": "#93a0bf",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "kiln-06",
+    "base": "kiln",
+    "name": "Cinder Firebrick",
+    "home": "Amethyne",
+    "slot": 5,
+    "accent": "#d77b65",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "kiln-07",
+    "base": "kiln",
+    "name": "Flint Firebrick",
+    "home": "Toxibloom",
+    "slot": 6,
+    "accent": "#68a8ae",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "kiln-08",
+    "base": "kiln",
+    "name": "Glaze Firebrick",
+    "home": "Candara",
+    "slot": 7,
+    "accent": "#ac93c4",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "kiln-09",
+    "base": "kiln",
+    "name": "Luster Firebrick",
+    "home": "Jovexa",
+    "slot": 8,
+    "accent": "#dfbc69",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "kiln-10",
+    "base": "kiln",
+    "name": "Feldspar Firebrick",
+    "home": "Brrrindle",
+    "slot": 9,
+    "accent": "#91b275",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "wick-01",
+    "base": "wick",
+    "name": "Amber Lampline",
+    "home": "Verdanthia",
+    "slot": 0,
+    "accent": "#cb91a3",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "wick-02",
+    "base": "wick",
+    "name": "Halo Lampline",
+    "home": "Scorchmaw",
+    "slot": 1,
+    "accent": "#9fc1af",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "wick-03",
+    "base": "wick",
+    "name": "Gleam Lampline",
+    "home": "Dunemoor",
+    "slot": 2,
+    "accent": "#d99c73",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "wick-04",
+    "base": "wick",
+    "name": "Glow Lampline",
+    "home": "Sloshwell",
+    "slot": 3,
+    "accent": "#93a0bf",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "wick-05",
+    "base": "wick",
+    "name": "Dusk Lampline",
+    "home": "Amethyne",
+    "slot": 4,
+    "accent": "#d77b65",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "wick-06",
+    "base": "wick",
+    "name": "Lantern Lampline",
+    "home": "Toxibloom",
+    "slot": 5,
+    "accent": "#68a8ae",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "wick-07",
+    "base": "wick",
+    "name": "Ray Lampline",
+    "home": "Candara",
+    "slot": 6,
+    "accent": "#ac93c4",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "wick-08",
+    "base": "wick",
+    "name": "Ember Lampline",
+    "home": "Jovexa",
+    "slot": 7,
+    "accent": "#dfbc69",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "wick-09",
+    "base": "wick",
+    "name": "Glint Lampline",
+    "home": "Brrrindle",
+    "slot": 8,
+    "accent": "#91b275",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "wick-10",
+    "base": "wick",
+    "name": "Lumen Lampline",
+    "home": "Verdanthia",
+    "slot": 9,
+    "accent": "#759cca",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "fathom-01",
+    "base": "fathom",
+    "name": "Lead Sounding",
+    "home": "Scorchmaw",
+    "slot": 0,
+    "accent": "#9fc1af",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "fathom-02",
+    "base": "fathom",
+    "name": "Pearl Sounding",
+    "home": "Dunemoor",
+    "slot": 1,
+    "accent": "#d99c73",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "fathom-03",
+    "base": "fathom",
+    "name": "Diver Sounding",
+    "home": "Sloshwell",
+    "slot": 2,
+    "accent": "#93a0bf",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "fathom-04",
+    "base": "fathom",
+    "name": "Skiff Sounding",
+    "home": "Amethyne",
+    "slot": 3,
+    "accent": "#d77b65",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "fathom-05",
+    "base": "fathom",
+    "name": "Plumb Sounding",
+    "home": "Toxibloom",
+    "slot": 4,
+    "accent": "#68a8ae",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "fathom-06",
+    "base": "fathom",
+    "name": "Salt Sounding",
+    "home": "Candara",
+    "slot": 5,
+    "accent": "#ac93c4",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "fathom-07",
+    "base": "fathom",
+    "name": "Keel Sounding",
+    "home": "Jovexa",
+    "slot": 6,
+    "accent": "#dfbc69",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "fathom-08",
+    "base": "fathom",
+    "name": "Float Sounding",
+    "home": "Brrrindle",
+    "slot": 7,
+    "accent": "#91b275",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "fathom-09",
+    "base": "fathom",
+    "name": "Kelp Sounding",
+    "home": "Verdanthia",
+    "slot": 8,
+    "accent": "#759cca",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "fathom-10",
+    "base": "fathom",
+    "name": "Gull Sounding",
+    "home": "Scorchmaw",
+    "slot": 9,
+    "accent": "#cb91a3",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "dolly-01",
+    "base": "dolly",
+    "name": "Label Handcart",
+    "home": "Dunemoor",
+    "slot": 0,
+    "accent": "#d99c73",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "dolly-02",
+    "base": "dolly",
+    "name": "Crate Handcart",
+    "home": "Sloshwell",
+    "slot": 1,
+    "accent": "#93a0bf",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "dolly-03",
+    "base": "dolly",
+    "name": "Parcel Handcart",
+    "home": "Amethyne",
+    "slot": 2,
+    "accent": "#d77b65",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "dolly-04",
+    "base": "dolly",
+    "name": "Twine Handcart",
+    "home": "Toxibloom",
+    "slot": 3,
+    "accent": "#68a8ae",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "dolly-05",
+    "base": "dolly",
+    "name": "Clip Handcart",
+    "home": "Candara",
+    "slot": 4,
+    "accent": "#ac93c4",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "dolly-06",
+    "base": "dolly",
+    "name": "Tag Handcart",
+    "home": "Jovexa",
+    "slot": 5,
+    "accent": "#dfbc69",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "dolly-07",
+    "base": "dolly",
+    "name": "Tape Handcart",
+    "home": "Brrrindle",
+    "slot": 6,
+    "accent": "#91b275",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "dolly-08",
+    "base": "dolly",
+    "name": "Chit Handcart",
+    "home": "Verdanthia",
+    "slot": 7,
+    "accent": "#759cca",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "dolly-09",
+    "base": "dolly",
+    "name": "Ribbon Handcart",
+    "home": "Scorchmaw",
+    "slot": 8,
+    "accent": "#cb91a3",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "dolly-10",
+    "base": "dolly",
+    "name": "Quill Handcart",
+    "home": "Dunemoor",
+    "slot": 9,
+    "accent": "#9fc1af",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "orlo-01",
+    "base": "orlo",
+    "name": "Roll Axiswell",
+    "home": "Sloshwell",
+    "slot": 0,
+    "accent": "#93a0bf",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "orlo-02",
+    "base": "orlo",
+    "name": "Tilt Axiswell",
+    "home": "Amethyne",
+    "slot": 1,
+    "accent": "#d77b65",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "orlo-03",
+    "base": "orlo",
+    "name": "Zenith Axiswell",
+    "home": "Toxibloom",
+    "slot": 2,
+    "accent": "#68a8ae",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "orlo-04",
+    "base": "orlo",
+    "name": "Nadir Axiswell",
+    "home": "Candara",
+    "slot": 3,
+    "accent": "#ac93c4",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "orlo-05",
+    "base": "orlo",
+    "name": "North Axiswell",
+    "home": "Jovexa",
+    "slot": 4,
+    "accent": "#dfbc69",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "orlo-06",
+    "base": "orlo",
+    "name": "South Axiswell",
+    "home": "Brrrindle",
+    "slot": 5,
+    "accent": "#91b275",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "orlo-07",
+    "base": "orlo",
+    "name": "Level Axiswell",
+    "home": "Verdanthia",
+    "slot": 6,
+    "accent": "#759cca",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "orlo-08",
+    "base": "orlo",
+    "name": "Pivot Axiswell",
+    "home": "Scorchmaw",
+    "slot": 7,
+    "accent": "#cb91a3",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "orlo-09",
+    "base": "orlo",
+    "name": "Gimbal Axiswell",
+    "home": "Dunemoor",
+    "slot": 8,
+    "accent": "#9fc1af",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "orlo-10",
+    "base": "orlo",
+    "name": "Plumb Axiswell",
+    "home": "Sloshwell",
+    "slot": 9,
+    "accent": "#d99c73",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "chime-01",
+    "base": "chime",
+    "name": "Bronze Clapper",
+    "home": "Amethyne",
+    "slot": 0,
+    "accent": "#d77b65",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "chime-02",
+    "base": "chime",
+    "name": "Fifth Clapper",
+    "home": "Toxibloom",
+    "slot": 1,
+    "accent": "#68a8ae",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "chime-03",
+    "base": "chime",
+    "name": "Peal Clapper",
+    "home": "Candara",
+    "slot": 2,
+    "accent": "#ac93c4",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "chime-04",
+    "base": "chime",
+    "name": "Alto Clapper",
+    "home": "Jovexa",
+    "slot": 3,
+    "accent": "#dfbc69",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "chime-05",
+    "base": "chime",
+    "name": "Chord Clapper",
+    "home": "Brrrindle",
+    "slot": 4,
+    "accent": "#91b275",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "chime-06",
+    "base": "chime",
+    "name": "Clink Clapper",
+    "home": "Verdanthia",
+    "slot": 5,
+    "accent": "#759cca",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "chime-07",
+    "base": "chime",
+    "name": "Mezzo Clapper",
+    "home": "Scorchmaw",
+    "slot": 6,
+    "accent": "#cb91a3",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "chime-08",
+    "base": "chime",
+    "name": "Tenor Clapper",
+    "home": "Dunemoor",
+    "slot": 7,
+    "accent": "#9fc1af",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "chime-09",
+    "base": "chime",
+    "name": "Tacet Clapper",
+    "home": "Sloshwell",
+    "slot": 8,
+    "accent": "#d99c73",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "chime-10",
+    "base": "chime",
+    "name": "Ring Clapper",
+    "home": "Amethyne",
+    "slot": 9,
+    "accent": "#93a0bf",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "shuttle-01",
+    "base": "shuttle",
+    "name": "Weft Warpwood",
+    "home": "Toxibloom",
+    "slot": 0,
+    "accent": "#68a8ae",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "shuttle-02",
+    "base": "shuttle",
+    "name": "Tow Warpwood",
+    "home": "Candara",
+    "slot": 1,
+    "accent": "#ac93c4",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "shuttle-03",
+    "base": "shuttle",
+    "name": "Skein Warpwood",
+    "home": "Jovexa",
+    "slot": 2,
+    "accent": "#dfbc69",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "shuttle-04",
+    "base": "shuttle",
+    "name": "Pick Warpwood",
+    "home": "Brrrindle",
+    "slot": 3,
+    "accent": "#91b275",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "shuttle-05",
+    "base": "shuttle",
+    "name": "Warp Warpwood",
+    "home": "Verdanthia",
+    "slot": 4,
+    "accent": "#759cca",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "shuttle-06",
+    "base": "shuttle",
+    "name": "Twill Warpwood",
+    "home": "Scorchmaw",
+    "slot": 5,
+    "accent": "#cb91a3",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "shuttle-07",
+    "base": "shuttle",
+    "name": "Flax Warpwood",
+    "home": "Dunemoor",
+    "slot": 6,
+    "accent": "#9fc1af",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "shuttle-08",
+    "base": "shuttle",
+    "name": "Hem Warpwood",
+    "home": "Sloshwell",
+    "slot": 7,
+    "accent": "#d99c73",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "shuttle-09",
+    "base": "shuttle",
+    "name": "Loop Warpwood",
+    "home": "Amethyne",
+    "slot": 8,
+    "accent": "#93a0bf",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "shuttle-10",
+    "base": "shuttle",
+    "name": "Welt Warpwood",
+    "home": "Toxibloom",
+    "slot": 9,
+    "accent": "#d77b65",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "cairn-01",
+    "base": "cairn",
+    "name": "Datum Benchpin",
+    "home": "Candara",
+    "slot": 0,
+    "accent": "#ac93c4",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "cairn-02",
+    "base": "cairn",
+    "name": "Mark Benchpin",
+    "home": "Jovexa",
+    "slot": 1,
+    "accent": "#dfbc69",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "cairn-03",
+    "base": "cairn",
+    "name": "Cap Benchpin",
+    "home": "Brrrindle",
+    "slot": 2,
+    "accent": "#91b275",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "cairn-04",
+    "base": "cairn",
+    "name": "Fault Benchpin",
+    "home": "Verdanthia",
+    "slot": 3,
+    "accent": "#759cca",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "cairn-05",
+    "base": "cairn",
+    "name": "Plinth Benchpin",
+    "home": "Scorchmaw",
+    "slot": 4,
+    "accent": "#cb91a3",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "cairn-06",
+    "base": "cairn",
+    "name": "Slate Benchpin",
+    "home": "Dunemoor",
+    "slot": 5,
+    "accent": "#9fc1af",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "cairn-07",
+    "base": "cairn",
+    "name": "Strata Benchpin",
+    "home": "Sloshwell",
+    "slot": 6,
+    "accent": "#d99c73",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "cairn-08",
+    "base": "cairn",
+    "name": "Stake Benchpin",
+    "home": "Amethyne",
+    "slot": 7,
+    "accent": "#93a0bf",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "cairn-09",
+    "base": "cairn",
+    "name": "Chalk Benchpin",
+    "home": "Toxibloom",
+    "slot": 8,
+    "accent": "#d77b65",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "cairn-10",
+    "base": "cairn",
+    "name": "Level Benchpin",
+    "home": "Candara",
+    "slot": 9,
+    "accent": "#68a8ae",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "pinion-01",
+    "base": "pinion",
+    "name": "Kite Skybrace",
+    "home": "Jovexa",
+    "slot": 0,
+    "accent": "#dfbc69",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "pinion-02",
+    "base": "pinion",
+    "name": "Fin Skybrace",
+    "home": "Brrrindle",
+    "slot": 1,
+    "accent": "#91b275",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "pinion-03",
+    "base": "pinion",
+    "name": "Rudder Skybrace",
+    "home": "Verdanthia",
+    "slot": 2,
+    "accent": "#759cca",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "pinion-04",
+    "base": "pinion",
+    "name": "Slip Skybrace",
+    "home": "Scorchmaw",
+    "slot": 3,
+    "accent": "#cb91a3",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "pinion-05",
+    "base": "pinion",
+    "name": "Lift Skybrace",
+    "home": "Dunemoor",
+    "slot": 4,
+    "accent": "#9fc1af",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "pinion-06",
+    "base": "pinion",
+    "name": "Pitch Skybrace",
+    "home": "Sloshwell",
+    "slot": 5,
+    "accent": "#d99c73",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "pinion-07",
+    "base": "pinion",
+    "name": "Gale Skybrace",
+    "home": "Amethyne",
+    "slot": 6,
+    "accent": "#93a0bf",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "pinion-08",
+    "base": "pinion",
+    "name": "Vane Skybrace",
+    "home": "Toxibloom",
+    "slot": 7,
+    "accent": "#d77b65",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "pinion-09",
+    "base": "pinion",
+    "name": "Gust Skybrace",
+    "home": "Candara",
+    "slot": 8,
+    "accent": "#68a8ae",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "pinion-10",
+    "base": "pinion",
+    "name": "Kitelet Skybrace",
+    "home": "Jovexa",
+    "slot": 9,
+    "accent": "#ac93c4",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "tempo-01",
+    "base": "tempo",
+    "name": "Downbeat Beatwood",
+    "home": "Brrrindle",
+    "slot": 0,
+    "accent": "#91b275",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "tempo-02",
+    "base": "tempo",
+    "name": "Largo Beatwood",
+    "home": "Verdanthia",
+    "slot": 1,
+    "accent": "#759cca",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "tempo-03",
+    "base": "tempo",
+    "name": "Lilt Beatwood",
+    "home": "Scorchmaw",
+    "slot": 2,
+    "accent": "#cb91a3",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "tempo-04",
+    "base": "tempo",
+    "name": "Allegro Beatwood",
+    "home": "Dunemoor",
+    "slot": 3,
+    "accent": "#9fc1af",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "tempo-05",
+    "base": "tempo",
+    "name": "Triplet Beatwood",
+    "home": "Sloshwell",
+    "slot": 4,
+    "accent": "#d99c73",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "tempo-06",
+    "base": "tempo",
+    "name": "Tick Beatwood",
+    "home": "Amethyne",
+    "slot": 5,
+    "accent": "#93a0bf",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "tempo-07",
+    "base": "tempo",
+    "name": "Swing Beatwood",
+    "home": "Toxibloom",
+    "slot": 6,
+    "accent": "#d77b65",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "tempo-08",
+    "base": "tempo",
+    "name": "Rest Beatwood",
+    "home": "Candara",
+    "slot": 7,
+    "accent": "#68a8ae",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "tempo-09",
+    "base": "tempo",
+    "name": "Upbeat Beatwood",
+    "home": "Jovexa",
+    "slot": 8,
+    "accent": "#ac93c4",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "tempo-10",
+    "base": "tempo",
+    "name": "Cadence Beatwood",
+    "home": "Brrrindle",
+    "slot": 9,
+    "accent": "#dfbc69",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "glint-01",
+    "base": "glint",
+    "name": "Prism Sunframe",
+    "home": "Verdanthia",
+    "slot": 0,
+    "accent": "#759cca",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "glint-02",
+    "base": "glint",
+    "name": "Solar Sunframe",
+    "home": "Scorchmaw",
+    "slot": 1,
+    "accent": "#cb91a3",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "glint-03",
+    "base": "glint",
+    "name": "Gleam Sunframe",
+    "home": "Dunemoor",
+    "slot": 2,
+    "accent": "#9fc1af",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "glint-04",
+    "base": "glint",
+    "name": "Arc Sunframe",
+    "home": "Sloshwell",
+    "slot": 3,
+    "accent": "#d99c73",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "glint-05",
+    "base": "glint",
+    "name": "Beam Sunframe",
+    "home": "Amethyne",
+    "slot": 4,
+    "accent": "#93a0bf",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "glint-06",
+    "base": "glint",
+    "name": "Ray Sunframe",
+    "home": "Toxibloom",
+    "slot": 5,
+    "accent": "#d77b65",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "glint-07",
+    "base": "glint",
+    "name": "Flare Sunframe",
+    "home": "Candara",
+    "slot": 6,
+    "accent": "#68a8ae",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "glint-08",
+    "base": "glint",
+    "name": "Gold Sunframe",
+    "home": "Jovexa",
+    "slot": 7,
+    "accent": "#ac93c4",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "glint-09",
+    "base": "glint",
+    "name": "Glaze Sunframe",
+    "home": "Brrrindle",
+    "slot": 8,
+    "accent": "#dfbc69",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "glint-10",
+    "base": "glint",
+    "name": "Dawn Sunframe",
+    "home": "Verdanthia",
+    "slot": 9,
+    "accent": "#91b275",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "purl-01",
+    "base": "purl",
+    "name": "Rib Softwire",
+    "home": "Scorchmaw",
+    "slot": 0,
+    "accent": "#cb91a3",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "purl-02",
+    "base": "purl",
+    "name": "Stitch Softwire",
+    "home": "Dunemoor",
+    "slot": 1,
+    "accent": "#9fc1af",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "purl-03",
+    "base": "purl",
+    "name": "Loop Softwire",
+    "home": "Sloshwell",
+    "slot": 2,
+    "accent": "#d99c73",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "purl-04",
+    "base": "purl",
+    "name": "Knit Softwire",
+    "home": "Amethyne",
+    "slot": 3,
+    "accent": "#93a0bf",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "purl-05",
+    "base": "purl",
+    "name": "Cable Softwire",
+    "home": "Toxibloom",
+    "slot": 4,
+    "accent": "#d77b65",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "purl-06",
+    "base": "purl",
+    "name": "Skein Softwire",
+    "home": "Candara",
+    "slot": 5,
+    "accent": "#68a8ae",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "purl-07",
+    "base": "purl",
+    "name": "Bobbin Softwire",
+    "home": "Jovexa",
+    "slot": 6,
+    "accent": "#ac93c4",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "purl-08",
+    "base": "purl",
+    "name": "Hem Softwire",
+    "home": "Brrrindle",
+    "slot": 7,
+    "accent": "#dfbc69",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "purl-09",
+    "base": "purl",
+    "name": "Patch Softwire",
+    "home": "Verdanthia",
+    "slot": 8,
+    "accent": "#91b275",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "purl-10",
+    "base": "purl",
+    "name": "Needle Softwire",
+    "home": "Scorchmaw",
+    "slot": 9,
+    "accent": "#759cca",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "latch-01",
+    "base": "latch",
+    "name": "Hasp Turnkey",
+    "home": "Dunemoor",
+    "slot": 0,
+    "accent": "#9fc1af",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "latch-02",
+    "base": "latch",
+    "name": "Ward Turnkey",
+    "home": "Sloshwell",
+    "slot": 1,
+    "accent": "#d99c73",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "latch-03",
+    "base": "latch",
+    "name": "Shank Turnkey",
+    "home": "Amethyne",
+    "slot": 2,
+    "accent": "#93a0bf",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "latch-04",
+    "base": "latch",
+    "name": "Tumbler Turnkey",
+    "home": "Toxibloom",
+    "slot": 3,
+    "accent": "#d77b65",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "latch-05",
+    "base": "latch",
+    "name": "Bolt Turnkey",
+    "home": "Candara",
+    "slot": 4,
+    "accent": "#68a8ae",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "latch-06",
+    "base": "latch",
+    "name": "Catch Turnkey",
+    "home": "Jovexa",
+    "slot": 5,
+    "accent": "#ac93c4",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "latch-07",
+    "base": "latch",
+    "name": "Hinge Turnkey",
+    "home": "Brrrindle",
+    "slot": 6,
+    "accent": "#dfbc69",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "latch-08",
+    "base": "latch",
+    "name": "Lever Turnkey",
+    "home": "Verdanthia",
+    "slot": 7,
+    "accent": "#91b275",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "latch-09",
+    "base": "latch",
+    "name": "Spring Turnkey",
+    "home": "Scorchmaw",
+    "slot": 8,
+    "accent": "#759cca",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "latch-10",
+    "base": "latch",
+    "name": "Pawl Turnkey",
+    "home": "Dunemoor",
+    "slot": 9,
+    "accent": "#cb91a3",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "plume-01",
+    "base": "plume",
+    "name": "Mist Airwell",
+    "home": "Sloshwell",
+    "slot": 0,
+    "accent": "#d99c73",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "plume-02",
+    "base": "plume",
+    "name": "Cirrus Airwell",
+    "home": "Amethyne",
+    "slot": 1,
+    "accent": "#93a0bf",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "plume-03",
+    "base": "plume",
+    "name": "Cumulus Airwell",
+    "home": "Toxibloom",
+    "slot": 2,
+    "accent": "#d77b65",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "plume-04",
+    "base": "plume",
+    "name": "Virga Airwell",
+    "home": "Candara",
+    "slot": 3,
+    "accent": "#68a8ae",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "plume-05",
+    "base": "plume",
+    "name": "Cloud Airwell",
+    "home": "Jovexa",
+    "slot": 4,
+    "accent": "#ac93c4",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "plume-06",
+    "base": "plume",
+    "name": "Drift Airwell",
+    "home": "Brrrindle",
+    "slot": 5,
+    "accent": "#dfbc69",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "plume-07",
+    "base": "plume",
+    "name": "Zephyr Airwell",
+    "home": "Verdanthia",
+    "slot": 6,
+    "accent": "#91b275",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "plume-08",
+    "base": "plume",
+    "name": "Rain Airwell",
+    "home": "Scorchmaw",
+    "slot": 7,
+    "accent": "#759cca",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "plume-09",
+    "base": "plume",
+    "name": "Sleet Airwell",
+    "home": "Dunemoor",
+    "slot": 8,
+    "accent": "#cb91a3",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "plume-10",
+    "base": "plume",
+    "name": "Dew Airwell",
+    "home": "Sloshwell",
+    "slot": 9,
+    "accent": "#9fc1af",
+    "height": 1.017,
+    "width": 0.996
+  },
+  {
+    "id": "prong-01",
+    "base": "prong",
+    "name": "Tine Forklift",
+    "home": "Amethyne",
+    "slot": 0,
+    "accent": "#93a0bf",
+    "height": 0.981,
+    "width": 1.022
+  },
+  {
+    "id": "prong-02",
+    "base": "prong",
+    "name": "Axle Forklift",
+    "home": "Toxibloom",
+    "slot": 1,
+    "accent": "#d77b65",
+    "height": 1.024,
+    "width": 0.978
+  },
+  {
+    "id": "prong-03",
+    "base": "prong",
+    "name": "Crate Forklift",
+    "home": "Candara",
+    "slot": 2,
+    "accent": "#68a8ae",
+    "height": 0.969,
+    "width": 1.015
+  },
+  {
+    "id": "prong-04",
+    "base": "prong",
+    "name": "Skid Forklift",
+    "home": "Jovexa",
+    "slot": 3,
+    "accent": "#ac93c4",
+    "height": 1.035,
+    "width": 0.991
+  },
+  {
+    "id": "prong-05",
+    "base": "prong",
+    "name": "Pallet Forklift",
+    "home": "Brrrindle",
+    "slot": 4,
+    "accent": "#dfbc69",
+    "height": 1.012,
+    "width": 1.027
+  },
+  {
+    "id": "prong-06",
+    "base": "prong",
+    "name": "Lift Forklift",
+    "home": "Verdanthia",
+    "slot": 5,
+    "accent": "#91b275",
+    "height": 0.987,
+    "width": 0.981
+  },
+  {
+    "id": "prong-07",
+    "base": "prong",
+    "name": "Jack Forklift",
+    "home": "Scorchmaw",
+    "slot": 6,
+    "accent": "#759cca",
+    "height": 1.03,
+    "width": 1.011
+  },
+  {
+    "id": "prong-08",
+    "base": "prong",
+    "name": "Spur Forklift",
+    "home": "Dunemoor",
+    "slot": 7,
+    "accent": "#cb91a3",
+    "height": 0.977,
+    "width": 1.033
+  },
+  {
+    "id": "prong-09",
+    "base": "prong",
+    "name": "Pin Forklift",
+    "home": "Sloshwell",
+    "slot": 8,
+    "accent": "#9fc1af",
+    "height": 1.004,
+    "width": 0.974
+  },
+  {
+    "id": "prong-10",
+    "base": "prong",
+    "name": "Wedge Forklift",
+    "home": "Amethyne",
+    "slot": 9,
+    "accent": "#d99c73",
+    "height": 1.017,
+    "width": 0.996
+  }
+]

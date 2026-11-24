@@ -618,7 +618,7 @@ const Venues = (() => {
       return this.list;
     },
     restart(V, t0){ clearFx(V); V.fired={}; V.squash=0; V.flyer=null; V.t=t0||0; V.ok=Math.random()<0.38; for(const F of [V.A,V.B]){ Folk.rest(F); F.position.y=0; } V.gag.reset(V); },
-    current(){ if(G.mode!=='port'||!this.list.length) return null; const k=UI.tab; return this.list.find(v=>v.k===k)||this.list[0]; },
+    current(){ if(G.mode!=='port'||!this.list.length) return null; const k=UI.tab; if(k==='stations'&&PortSites.selected)return PortSites.selected.venue; if(k==='residents'&&ResidentDistrict.selected)return ResidentDistrict.selected.venue; return this.list.find(v=>v.k===k)||this.list[0]; },
     keeperHeadY(V){ const U=V.keeper.userData; return (U.head.position.y+0.62)*1.4; },
     react(kind, delay){ const V=this.current(); if(!V) return; setTimeout(()=>{ V.kr={kind,t:0};
         if(kind==='facepalm'){ Folk.mood(V.keeper,'sad'); Folk.mood(V.A,'shock'); Folk.mood(V.B,'worried'); } else { Folk.mood(V.keeper,'happy'); Folk.mood(V.A,'happy'); Folk.mood(V.B,'happy'); } },(delay||0)*1000); },

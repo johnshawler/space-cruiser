@@ -84,6 +84,8 @@ const Cine = {
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
     Crowd.build(scn,P,cloud,PADS,hAt,S.liquid?liq:null);
+    ResidentDistrict.populate(P,Venues.list);
+    PortSites.populate(P,Venues.list,hAt,cloud,S.liquid?liq:null);
     this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
   updateSurface(dt, t, alt){
@@ -92,6 +94,7 @@ const Cine = {
     s.beacon.visible=(t%1.6)<0.25;
     const ft=(t*0.02)%1; s.flyby.position.set(-2600+ft*5200,520+Math.sin(ft*6)*60,-1700); s.flyby.rotation.y=-Math.PI/2; Models.animate(s.flyby,0.8,t);
     Crowd.update(dt,t);
+    ResidentDistrict.update(this.cam);
     s.dustMat.opacity=s.dustI*0.42;
     if(s.dustI>0.01){ for(let i=0;i<s.dn;i++){ const a=s.dseed[i*3], ph=(s.dseed[i*3+1]+t*(0.35+s.dseed[i*3+2]*0.35))%1, r=8+ph*95; s.dp[i*3]=Math.cos(a+ph*0.8)*r; s.dp[i*3+1]=0.5+ph*ph*22*s.dseed[i*3+2]; s.dp[i*3+2]=Math.sin(a+ph*0.8)*r; } s.dust.geometry.attributes.position.needsUpdate=true; }
   },
@@ -139,7 +142,7 @@ const Cine = {
   /* the part of the screen not covered by the port panel */
   /* the shopkeeper's speech bubble rides above their head, kept clear of the panel and the top of the screen */
   placeBubble(V){ const b=$('bubble'); if(!b) return; if(G.mode!=='port') $('shelf-tip').hidden=true;
-    const show=G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
+    const show=UI.tab!=='residents'&&UI.tab!=='stations'&&G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
     if(!show){ if(!b.hidden) b.hidden=true; return; } const p=new V3(); V.keeper.userData.head.getWorldPosition(p); p.y+=1.0; const v=p.project(this.cam);
     if(v.z>1||v.x<-1.2||v.x>1.2||v.y<-1.2||v.y>1.4){ b.hidden=true; return; } b.hidden=false;
     const W=World.w, H=World.h, pr=$('port').getBoundingClientRect(), bw=b.offsetWidth, bh=b.offsetHeight, side=pr.height<H*0.9?0:pr.right;
@@ -174,10 +177,11 @@ const Cine = {
       Models.animate(m,0,time);
       // going to another shop (or to the showroom pad and back) is a quick fade to black and back, not a flight across the port:
       // the old view holds while the screen darkens, the camera cuts at black, and the new view fades in
-      const Vc=Venues.current(), key=Vc?Vc.k+(this.preview&&Vc.show?':show':''):'';
+      const meeting=UI.tab==='residents'&&ResidentDistrict.selected,site=UI.tab==='stations'&&PortSites.selected;
+      const Vc=Venues.current(), key=site?'site:'+site.id:meeting?'resident:'+meeting.person.id:Vc?Vc.k+(this.preview&&Vc.show?':show':''):'';
       if(Vc&&this.camP&&!this.camInit&&key!==this.camKey){ if(!this.xf||this.xf.cut) this.xf={t:this.xf?Math.min(0.3,this.fade*0.3):0,key}; else this.xf.key=key; this.fadeCol.setRGB(0,0,0); }
       Venues.moving=!!(this.xf&&!this.xf.cut); Venues.update(dt,time); const V=Venues.active, reg=this.region();
-      if(V){ const tg=Venues.cam(V,reg.w/reg.h,!!this.preview&&!!V.show);
+      if(V){ const tg=site?PortSites.camera(reg.w/reg.h):meeting?ResidentDistrict.camera(reg.w/reg.h):Venues.cam(V,reg.w/reg.h,!!this.preview&&!!V.show);
         if(this.camInit||!this.camP){ this.camInit=false; this.camP=tg.pos.clone(); this.camL=tg.look.clone(); this.camKey=key; this.fadeCol.setRGB(0,0,0); this.fade=1; }
         const x=this.xf; if(x){ x.t+=dt; if(x.t>=0.3&&!x.cut){ x.cut=true; this.camP.copy(tg.pos); this.camL.copy(tg.look); this.camKey=x.key; } }
         if(!x||x.cut){ const k=1-Math.exp(-dt*6); this.camP.lerp(tg.pos,k); this.camL.lerp(tg.look,k); }

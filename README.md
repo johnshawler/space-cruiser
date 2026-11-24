@@ -129,3 +129,7 @@ Open `?gallery` to compare three portraits per species and inspect the animated 
 | `sealump` | Sealump | robot | A spring-footed stamp robot collects impressions of perfectly ordinary floors. |
 | `tarestep` | Tarestep | robot | A two-pan hover scale weighs compliments before passing them along. |
 | `winkmast` | Winkmast | robot | A little tracked lighthouse keeps a diary of ships that wink back. |
+
+## Model galleries and port residents
+
+The nine ports host 500 named residents and 20 facilities. Open **Residents** or **Stations** after docking to see them. The [model placement guide](CLAUDE.md) maps the Three.js sources, downloadable GLBs, editable Blender scenes and game hooks. Browse the [character gallery](docs/character-models/index.html) or the [outpost and research station gallery](docs/outposts/index.html).
