@@ -141,3 +141,7 @@ Open `?gallery` to compare three portraits per species and inspect the animated 
 | `sealump` | Sealump | robot | A spring-footed stamp robot collects impressions of perfectly ordinary floors. |
 | `tarestep` | Tarestep | robot | A two-pan hover scale weighs compliments before passing them along. |
 | `winkmast` | Winkmast | robot | A little tracked lighthouse keeps a diary of ships that wink back. |
+
+## Model galleries and port residents
+
+The nine ports host 500 named residents and 20 landmark facilities. Open **Residents** or **Landmarks** after docking to meet someone or look a facility over. Each of the four research stations has five residents posted there as **Staff**, and an annex of a planetside landmark: Meridian Array at Hush, Lumen Vault at Rimeholm, Heliograph Observatory at Calibration Spire and Kestrel Spindle at Far Wink. All the characters and facilities are original designs. The [model placement guide](CLAUDE.md) maps the Three.js sources, downloadable GLBs, editable Blender scenes and game hooks. Browse the [character gallery](docs/character-models/index.html) or the [outpost and research station gallery](docs/outposts/index.html).

@@ -266,6 +266,8 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #hold-foot{font-family:var(--mono);font-size:22px;color:var(--dim);margin-top:12px;border-top:1px solid var(--line);padding-top:12px}#hold-foot b{color:#7fd6ff}
 .btn.mini{font-size:18px;padding:4px 10px;margin-left:auto}
 @media (max-width:900px){ #hold h2{font-size:26px}.hrow b{font-size:22px}.hrow small{font-size:17px}#hold-cap,#hold-foot{font-size:17px} }
+/* residents and landmarks panels: large, readable heading and picker */
+#port-body>h3{font-family:var(--display);font-size:24px;letter-spacing:.04em;margin:0;color:var(--amber)}#port-body>label{font-size:20px;display:flex;flex-direction:column;gap:8px}#port-body select{font:inherit;font-size:20px;padding:8px 10px;background:#0e1620;color:#e8f2ff;border:1px solid var(--line);border-radius:6px}#port-body>.note strong{font-size:24px}
 </style>
 <div id="app">
   <canvas id="gl" tabindex="0" aria-label="Flight view"></canvas>
@@ -363,7 +365,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.24</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.25</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -2322,6 +2324,923 @@ SPECIES_EXTRA.winkmast = {
     U.arms=[-1,1].map(side=>T.limb(rig,side*0.318,0.807,.085,0.301,.054,dark,light));
   },
 };
+const ResidentModels = (() => {
+// This scope receives the game's existing Three.js r128 global.
+const T=THREE, {Group,Box3,Vector3}=T;
+function paintedFinish(){return null;}
+class RoundedBoxGeometry extends T.BoxGeometry {
+  constructor(w,h,d,segments,radius){
+    const n=Math.max(3,2*segments+1);super(w,h,d,n,n,n);
+    const p=this.attributes.position,normal=this.attributes.normal;
+    const half=new T.Vector3(w/2-radius,h/2-radius,d/2-radius),low=half.clone().negate(),point=new T.Vector3(),inside=new T.Vector3(),delta=new T.Vector3();
+    for(let i=0;i<p.count;i++){
+      point.fromBufferAttribute(p,i);inside.copy(point).clamp(low,half);delta.copy(point).sub(inside).normalize();
+      point.copy(inside).addScaledVector(delta,radius);p.setXYZ(i,point.x,point.y,point.z);normal.setXYZ(i,delta.x,delta.y,delta.z);
+    }
+  }
+}
+
+const V = p => new T.Vector3(...p);
+const tau = Math.PI * 2;
+const sides = [-1,1];
+const materials = new Map();
+const unitSphere = new T.SphereGeometry(1,12,8);
+const up = new T.Vector3(0,1,0);
+const shapes = new Map();
+
+function surface(color) {
+  if (materials.has(color)) return materials.get(color);
+  const [value, finish='matte'] = color.split('/');
+  const metal = finish==='metal', glass=finish==='glass', lit=finish==='lit';
+  const m=new T.MeshStandardMaterial({name:color,color:value,roughness:metal?.37:glass?.19:lit?.26:.69,metalness:metal?.40:glass?.15:.035});
+  if(!lit && !glass){m.map=paintedFinish(metal?'metal':'matte');}
+  if(lit){m.emissive.set(value);m.emissiveIntensity=.35;}
+  materials.set(color,m);return m;
+}
+const steel='#52606a/metal', brass='#c4964e/metal', dark='#292d39', ink='#211f2d', ivory='#f2dfb5', leather='#895134', black='#28323a', copper='#b86c41/metal', teal='#287e79', jade='#89a653', optic='#8ee1df/lit';
+function group(parent,name,position=[0,0,0]){const g=new T.Group();g.name=name;g.position.fromArray(position);if(parent)parent.add(g);return g;}
+function mesh(p,name,geometry,color,pos=[0,0,0],angles=[0,0,0]){const m=new T.Mesh(geometry,surface(color));m.name=name;m.position.fromArray(pos);m.rotation.set(...angles);m.castShadow=m.receiveShadow=true;p.add(m);return m;}
+function oval(p,n,c,pos,scale,rot=[0,0,0]){const m=mesh(p,n,unitSphere,c,pos,rot);m.scale.fromArray(scale);return m;}
+function box(p,n,c,pos,size,bevel=.04,rot=[0,0,0]){
+  const k=[...size,bevel].join(':');if(!shapes.has(k))shapes.set(k,new RoundedBoxGeometry(...size,2,Math.min(bevel,...size.map(x=>x*.45))));return mesh(p,n,shapes.get(k),c,pos,rot);
+}
+function strut(p,n,c,a,b,base,tip=base,s=18){
+  const v=V(b).sub(V(a)),h=v.length(),k=[base,tip,h.toFixed(5),s].join(':');
+  if(!shapes.has(k))shapes.set(k,new T.CylinderGeometry(tip,base,h,s));
+  const m=mesh(p,n,shapes.get(k),c,V(a).addScaledVector(v,.5).toArray());m.quaternion.setFromUnitVectors(up,v.normalize());return m;
+}
+function tube(p,n,c,points,radii,facets=10){
+  const spline=new T.CatmullRomCurve3(points.map(V),false,'centripetal');
+  const steps=Math.max(8,(points.length-1)*6),geom=new T.TubeGeometry(spline,steps,1,facets,false),pos=geom.attributes.position,norm=geom.attributes.normal;
+  const rr=Array.isArray(radii)?radii:points.map(()=>radii);
+  for(let j=0;j<=steps;j++){
+    const u=j/steps,t=spline.getUtoTmapping(u)*(rr.length-1),i=Math.min(rr.length-2,Math.floor(t)),r=T.MathUtils.lerp(rr[i],rr[i+1],t-i),center=spline.getPointAt(u);
+    for(let k=0;k<=facets;k++){const a=j*(facets+1)+k;pos.setXYZ(a,center.x+norm.getX(a)*r,center.y+norm.getY(a)*r,center.z+norm.getZ(a)*r);}
+  }
+  geom.computeVertexNormals();geom.computeBoundingSphere();return mesh(p,n,geom,c);
+}
+// Cross-sections are [height, x radius, z radius, x offset, z offset].
+function loft(p,n,c,sections,sides=36){
+  const pts=[],idx=[];for(const [y,rx,rz,x=0,z=0] of sections)for(let i=0;i<sides;i++){let a=tau*i/sides;pts.push(x+rx*Math.cos(a),y,z+rz*Math.sin(a));}
+  for(let j=0;j<sections.length-1;j++)for(let i=0;i<sides;i++){let a=j*sides+i,b=j*sides+(i+1)%sides;idx.push(a,a+sides,b,b,a+sides,b+sides);}
+  for(let i=1;i<sides-1;i++){let o=(sections.length-1)*sides;idx.push(0,i,i+1,o,o+i+1,o+i);}
+  const uv=[];for(let j=0;j<sections.length;j++)for(let i=0;i<sides;i++)uv.push(i/sides,j/(sections.length-1));
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pts,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return mesh(p,n,g,c);
+}
+function plate(p,n,c,points,depth=.05,bev=.02,pos=[0,0,0],rot=[0,0,0]){
+  const sh=new T.Shape();points.forEach(([x,y],i)=>i?sh.lineTo(x,y):sh.moveTo(x,y));sh.closePath();
+  const geom=new T.ExtrudeGeometry(sh,{depth,bevelEnabled:bev>0,bevelSize:bev,bevelThickness:bev,bevelSegments:2,steps:1});geom.translate(0,0,-depth/2);return mesh(p,n,geom,c,pos,rot);
+}
+function ring(p,n,c,pos,r,t,scale=[1,1,1],rot=[0,0,0]){const k='r:'+r+':'+t;if(!shapes.has(k))shapes.set(k,new T.TorusGeometry(r,t,9,40));const m=mesh(p,n,shapes.get(k),c,pos,rot);m.scale.fromArray(scale);return m;}
+function eye(p,pos,sz,iris='#638661',tilt=0){const e=group(p,'Eye',pos);e.rotation.z=tilt;oval(e,'Sclera',ivory,[0,0,0],[sz,sz*.82,sz*.60]);oval(e,'Iris',iris,[0,.005,sz*.47],[sz*.60,sz*.64,sz*.24]);oval(e,'Pupil',ink,[0,.005,sz*.65],[sz*.28,sz*.49,sz*.13]);oval(e,'Eye glint','#fff5d5',[sz*.18,sz*.29,sz*.75],[sz*.14,sz*.14,sz*.08]);return e;}
+function leaf(p,n,c,base,tip,width){
+  const b=V(base),t=V(tip),v=t.clone().sub(b),d=v.length();const g=group(p,n,base);g.quaternion.setFromUnitVectors(up,v.normalize());
+  const a=[0,0,0,-width,d*.37,0,0,d*.46,width*.19,width,d*.37,0,0,d,0];const geom=new T.BufferGeometry();geom.setAttribute('position',new T.Float32BufferAttribute(a,3));geom.setAttribute('uv',new T.Float32BufferAttribute([.5,0,0,.37,.5,.46,1,.37,.5,1],2));geom.setIndex([0,2,1,0,3,2,1,2,4,2,3,4,1,4,3,0,1,3]);geom.computeVertexNormals();mesh(g,'Blade',geom,c);return g;
+}
+function bolt(p,pos,r=.035,c=brass){oval(p,'Rivet',c,pos,[r,r,r*.60]);}
+function fingers(p,from,to,c,spread=.08,r=.036){for(let i=-1;i<=1;i++){const a=[from[0]+i*spread,from[1],from[2]],b=[to[0]+i*spread,to[1],to[2]],mid=[(a[0]+b[0])/2,(a[1]+b[1])/2+.04,(a[2]+b[2])/2+.035];tube(p,'Finger',c,[a,mid,b],[r,r*.87,r*.42]);oval(p,'Fingertip',c,b,[r*.45,r*.5,r*.45]);}}
+function mechArm(p,a,b,c,thick=.13,shell=steel){
+  strut(p,'Upper link',shell,a,b,thick,thick*.86);oval(p,'Shoulder bearing',dark,a,[thick*1.25,thick*1.25,thick*1.25]);oval(p,'Elbow bearing',brass,b,[thick,thick,thick]);strut(p,'Forearm piston',steel,b,c,thick*.70,thick*.62);const sleeve=V(b).lerp(V(c),.42).toArray();strut(p,'Forearm sleeve',shell,sleeve,c,thick*.9,thick*.77);oval(p,'Wrist bearing',dark,c,[thick*.68,thick*.68,thick*.68]);
+}
+
+function legs(p,skin,x,hip,depth=0,count=2,foot=skin){
+  for(let row=0;row<count/2;row++)for(const s of sides){
+    const z=depth+(row-(count/2-1)/2)*.46,wide=s*x;
+    const g=group(p,'Leg', [wide,hip,z]);
+    tube(g,'Bent limb',skin,[[0,0,0],[wide*.25,-hip*.44,.06],[wide*.19,-hip*.68,-.025],[wide*.32,-hip+.11,.065]],[.104,.091,.068,.056]);
+    oval(g,'Foot',foot,[wide*.32,-hip+.083,.12],[.109,.077,.165]);
+  }
+}
+function arms(p,skin,x,y,z=0,raised=false){
+  for(const s of sides){const arm=group(p,'Arm',[s*x,y,z]),lift=raised&&s===1?.26:0;
+    tube(arm,'Forearm',skin,[[0,0,0],[s*.14,-.18,.02],[s*.15,-.29+lift,.13],[s*.09,-.36+lift,.22]],[.083,.076,.059,.047]);
+    oval(arm,'Hand',skin,[s*.09,-.36+lift,.225],[.075,.064,.075]);}
+}
+function head(p,{at,skin,r=[.31,.255,.25],neck=.17,iris='#618f7a',mouth='seam',eyeCount=2}){
+  const [x,y,z]=at,[rx,ry,rz]=r;strut(p,'Visible neck',skin,[x,y-ry-neck,z],[x,y-ry*.67,z],Math.min(rx*.49,.16),rx*.42);
+  const h=group(p,'Head',at);oval(h,'Cranium',skin,[0,0,0],r);
+  for(let i=0;i<eyeCount;i++){const k=eyeCount===1?0:(i/(eyeCount-1)-.5)*1.04;const ey=eyeCount===3&&i===1?.065:0;
+    eye(h,[k*rx,.035+ey,rz*Math.sqrt(Math.max(.1,1-k*k))*.9],Math.min(.104,rx*(eyeCount===3?.235:.31)),iris,k*-.115);}
+  const yy=-ry*.36,zz=rz*.94,w=rx*.32;
+  if(mouth==='bill'){tube(h,'Tapered beak','#ca985a',[[0,yy+.023,zz-.032],[0,yy+.002,zz+.063],[0,yy-.033,zz+.14]],[w,w*.63,.007]);}
+  else if(mouth==='pucker'){oval(h,'Puckered muzzle','#bc8374',[0,yy,zz-.015],[w,.053,.041]);oval(h,'Mouth slit',ink,[0,yy,zz+.019],[w*.47,.013,.008]);}
+  else if(mouth==='fang'){tube(h,'Snout seam',ink,[[-w,yy,zz-.018],[0,yy-.023,zz+.008],[w,yy,zz-.018]],[.006,.012,.006]);for(const s of sides)strut(h,'Ivory tusk',ivory,[s*w,yy+.012,zz],[s*w*.85,yy-.065,zz+.029],.025,.003);}
+  else {tube(h,'Lip crease',ink,[[-w,yy+.007,zz-.017],[0,yy-.018,zz+.008],[w,yy+.010,zz-.017]],[.007,.014,.006]);}
+  return h;
+}
+function fan(p,n,at,count,span,len,width,colors){
+  for(let i=0;i<count;i++){let a=(i/(count-1)-.5)*span;leaf(p,n,colors[i%colors.length],at,[at[0]+Math.sin(a)*len,at[1]+Math.cos(a)*len,at[2]-.08*(1-Math.cos(a))],width);}
+}
+function lens(p,at,r,col='#9de1d9/lit'){const g=group(p,'Lens',at);
+  strut(g,'Barrel',ink,[0,0,-.028],[0,0,.035],r,r,20);ring(g,'Lens bezel',brass,[0,0,.037],r*.81,r*.10);
+  oval(g,'Optical glass',col,[0,0,.038],[r*.69,r*.69,r*.31]);return g;}
+function tire(p,x,y,z,r,width=.10){
+  strut(p,'Rubber wheel',ink,[x-width/2,y,z],[x+width/2,y,z],r,r,24);
+  for(const s of sides)strut(p,'Wheel hub',brass,[x+s*width*.45,y,z],[x+s*width*.57,y,z],r*.48,r*.42,16);
+}
+function dial(p,at,r){const g=group(p,'Instrument dial',at);strut(g,'Dial case',brass,[0,0,-.03],[0,0,.03],r,r,24);strut(g,'Dial face',ivory,[0,0,.031],[0,0,.036],r*.89,r*.89,24);
+ for(let i=0;i<7;i++){const a=(-.39+i*.13)*tau;strut(g,'Scale mark',ink,[Math.sin(a)*r*.69,Math.cos(a)*r*.69,.04],[Math.sin(a)*r*.8,Math.cos(a)*r*.8,.04],.005,.005,5);}
+ strut(g,'Needle','#9d413c',[0,0,.044],[r*.41,r*.52,.044],.012,.004,7);}
+
+function orris(p){
+  const skin='#5f9d8b',belly='#b9d79f',lip='#7a4d60',coat='#a4573f';
+  loft(p,'Pear-shaped trunk',skin,[[.33,.32,.28],[.45,.55,.42],[.78,.70,.52],[1.09,.71,.52],[1.38,.59,.44],[1.62,.46,.36],[1.7,.29,.27]]);
+  oval(p,'Golden belly',belly,[0,.94,.26],[.59,.65,.3]);
+  for(const s of sides){
+    oval(p,'Haunch',skin,[s*.44,.46,-.03],[.34,.38,.37]);oval(p,'Webbed foot',skin,[s*.44,.17,.17],[.31,.16,.37]);
+    for(let i=-1;i<2;i++)oval(p,'Toe pad',belly,[s*.44+i*.15,.105,.44-Math.abs(i)*.05],[.10,.075,.16]);
+    loft(p,'Vest panel',coat,[[.97,.17,.22,s*.49,.14],[1.02,.21,.30,s*.46,.12],[1.32,.18,.32,s*.45,.13],[1.62,.17,.24,s*.34,.08]]);
+    box(p,'Bellows pocket','#bf6c4f',[s*.48,1.13,.39],[.23,.23,.10],.035);
+    box(p,'Pocket flap','#d78a5c',[s*.48,1.22,.45],[.25,.08,.025],.018);bolt(p,[s*.48,1.20,.474],.022);
+    tube(p,'Piped lapel','#efc66a',[[s*.28,1.69,.17],[s*.34,1.5,.39],[s*.32,1.25,.46],[s*.32,.99,.42]],.022);
+  }
+  oval(p,'Back of vest',coat,[0,1.31,-.25],[.56,.39,.26]);
+  const h=group(p,'Neck and head',[0,1.58,0]);h.rotation.z=-.14;h.rotation.x=.10;
+  loft(h,'Flexible neck',belly,[[0,.28,.26],[.07,.33,.29],[.25,.29,.25,0,-.04],[.47,.32,.27,0,-.01],[.58,.41,.30]]);
+  for(let j=0;j<3;j++)ring(h,'Throat fold',skin,[0,.10+j*.103,-.017],.29,.022,[1,.88,1],[Math.PI/2,0,0]);
+  loft(h,'Amphibian skull',skin,[[.43,.24,.22,0,.05],[.49,.41,.32,0,.06],[.65,.53,.37],[.88,.54,.38],[1.07,.42,.31,0,-.04],[1.16,.20,.16,0,-.06],[1.18,.035,.04]]);
+  for(const s of sides){
+    const e=eye(h,[s*.28,.83,.285],.185,'#537552',s*.1);
+    oval(e,'Heavy upper lid',skin,[0,.097,-.005],[.205,.124,.148],[.3,0,s*.09]);
+    tube(h,'Lower eye fold',belly,[[s*.44,.75,.24],[s*.31,.68,.354],[s*.17,.71,.36]],.025);
+    for(let j=0;j<4;j++)oval(h,'Cheek freckle','#2f6b5c',[s*(.29+j*.047),.64+.026*(j%2),.325-j*.027],[.014,.012,.009]);
+  }
+  for(const s of sides)leaf(h,'Frond ear','#7fb86a',[s*.36,.95,.05],[s*.78,1.18,-.10],.16);
+  oval(h,'Snout',belly,[0,.665,.32],[.16,.11,.10]);for(const s of sides)oval(h,'Nostril',leather,[s*.065,.688,.407],[.021,.012,.009]);
+  oval(h,'Mouth opening',lip,[0,.558,.332],[.126,.038,.035]);tube(h,'Pursed lower lip','#d58b69',[[-.12,.557,.35],[0,.529,.38],[.12,.562,.35]],[.01,.036,.01]);
+  const tray=group(p,'Seed tray',[.10,1.12,.64]);tray.rotation.x=.12;
+  box(tray,'Slatted tray','#c49254',[0,0,0],[.62,.10,.34],.02);box(tray,'Soil bed','#4a3c30',[0,.045,0],[.56,.03,.29],.01);
+  for(const [x,h2,c] of [[-.18,.20,'#79b65a'],[0,.27,'#8cc865'],[.18,.17,'#6aa54f']]){tube(tray,'Sprout stem','#5f8f45',[[x,.05,0],[x+.01,.05+h2*.6,0],[x-.01,.05+h2,0]],[.014,.012,.009]);
+    leaf(tray,'Seed leaf',c,[x,.05+h2,0],[x-.09,.08+h2,.02],.05);leaf(tray,'Seed leaf',c,[x,.05+h2,0],[x+.09,.09+h2,.02],.05);}
+  tube(p,'Supporting arm',skin,[[-.50,1.53,.04],[-.64,1.26,.18],[-.44,1.11,.52],[-.11,1.13,.71]],[.15,.145,.12,.09]);
+  oval(p,'Palm',belly,[-.07,1.13,.72],[.145,.09,.10]);fingers(p,[-.09,1.14,.75],[.09,1.18,.78],belly,.044,.032);
+  tube(p,'Inspecting arm',skin,[[.52,1.53,.04],[.70,1.46,.24],[.63,1.68,.52],[.48,1.87,.62]],[.155,.14,.11,.083]);
+  oval(p,'Palm',belly,[.46,1.87,.63],[.11,.09,.085]);tube(p,'Curled forefinger',belly,[[.49,1.89,.63],[.46,1.97,.66],[.37,1.98,.66],[.34,1.93,.65]],[.042,.039,.031,.018]);tube(p,'Thumb',belly,[[.43,1.84,.65],[.37,1.85,.67],[.34,1.9,.66]],[.045,.035,.02]);
+}
+
+function vela(p){
+  const mantle='#53568b',deep='#37365d',rim='#8d79a6',soft='#8175a2';
+  const h=group(p,'Fan mantle',[0,1.80,0]);
+  const fanRows=[];
+  for(let i=0;i<=18;i++){
+    const t=i/18,theta=t*Math.PI,wide=Math.sin(theta),bend=Math.sin(theta*1.7);
+    fanRows.push([-.06+t*.96,.008+wide*(.86+.085*bend),.012+wide*.345,-.26+t*.35,-.06-.15*wide]);
+  }
+  const mantleMesh=loft(h,'Broad fluted mantle',mantle,fanRows,72);
+  const pos=mantleMesh.geometry.attributes.position,colors=[];
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i),edge=Math.abs(x+.06),wave=Math.cos(12*x+4*y),t=Math.min(1,edge**1.35);
+    pos.setXYZ(i,x,y- .29*t + .12*wave*t, z+.105*wave*t-.10*t);
+    const band=Math.sin(17*x+3.4*y+Math.sin(6*y)*.9);colors.push(.72+.26*band*band,.76+.18*(.5+.5*Math.cos(7*x)),.87+.12*band*band);
+  }
+  mantleMesh.geometry.setAttribute('color',new (pos.constructor)(colors,3));
+  mantleMesh.material=mantleMesh.material.clone();mantleMesh.material.vertexColors=true;mantleMesh.geometry.computeVertexNormals();
+  oval(h,'Eye socket',mantle,[.13,.23,.10],[.342,.25,.196]);
+  for(const s of sides)for(let k=0;k<3;k++){
+    const x=s*(.36+k*.14);tube(h,'Mantle piping',k%2?soft:'#607998',[[s*.1,.38,.20],[x*.6,.53,.175],[x*.84,.59-k*.03,.09],[x,.53-k*.055,-.025]],[.018,.024,.017,.006]);
+  }
+  loft(p,'Siphon neck',soft,[[1.44,.16,.15],[1.56,.135,.14],[1.81,.14,.16],[1.99,.25,.23]]);
+  for(let k=0;k<3;k++)ring(p,'Siphon bands','#566786',[0,1.55+.06*k,0],.146,.016,[1,1,1],[Math.PI/2,0,0]);
+  const e=eye(h,[.18,.27,.29],.215,'#91b8a3',-.12);oval(e,'Overhanging lid',mantle,[0,.105,.004],[.234,.123,.16],[.17,0,-.09]);
+  tube(h,'Hooked beak',ink,[[.16,.07,.236],[.19,-.01,.31],[.186,-.095,.29]],[.073,.053,.007]);
+  const paths=[
+    [[0,1.54,0],[-.23,1.26,.10],[-.40,.93,.2],[-.72,.70,.14],[-.73,.48,.09],[-.64,.38,.12]],
+    [[-.03,1.54,-.05],[-.13,1.12,-.16],[-.28,.76,-.26],[-.31,.43,-.14],[-.48,.18,.02],[-.44,.10,.1]],
+    [[0,1.54,.03],[.10,1.22,-.04],[.21,.86,-.12],[.02,.50,.06],[.08,.24,.20],[-.03,.10,.25]],
+    [[.07,1.54,-.06],[.39,1.2,-.17],[.52,.89,-.12],[.39,.57,.01],[.46,.39,.09],[.59,.33,.12]],
+    [[-.04,1.54,.04],[-.32,1.36,.27],[-.45,1.42,.51],[-.15,1.50,.53],[-.04,1.51,.54]],
+    [[.03,1.5,.03],[.41,1.26,.22],[.64,1.39,.38],[.74,1.44,.47],[.69,1.53,.53]]];
+  paths.forEach((q,i)=>{tube(p,'Tapered ribbon arm '+(i+1),i%2?mantle:soft,q,q.map((_,j)=>.145*(1-j/(q.length-1))+.008),12);});
+  const t=group(p,'Inscribed tablet',[.33,1.42,.50]);t.rotation.set(.06,-.12,-.1);t.scale.setScalar(.81);
+  strut(t,'Ceramic disk',ivory,[0,0,-.047],[0,0,.047],.47,.47,48);ring(t,'Tablet edge','#ba9866',[0,0,.04],.444,.012);
+  const loop=[];for(let i=0;i<=30;i++){let a=.37+i/30*tau*.92;loop.push([Math.cos(a)*(.265+.034*Math.cos(3*a)),Math.sin(a)*.282,.052]);}
+  tube(t,'Ink glyph',ink,loop,loop.map((_,i)=>.013+.023*Math.sin(i/30*Math.PI)**2),7);
+}
+
+function obo(p){
+  const shell='#8a9f4c',darkGreen='#58713e',coat='#e2d5b0',sash='#823e4b';
+  for(const s of sides){
+    const x=s*.25,z=s*.055;
+    tube(p,'Cricket thigh',shell,[[x,1.34,0],[x*1.25,1.14,-.04],[x*1.75,.80,z-.13]],[.128,.15,.075]);
+    oval(p,'Knee',darkGreen,[x*1.75,.8,z-.13],[.095,.10,.10]);
+    tube(p,'Shin',shell,[[x*1.75,.8,z-.13],[x*1.45,.54,z-.06],[x*1.08,.18,z+.04]],[.061,.071,.052]);
+    tube(p,'Tarsus',darkGreen,[[x*1.08,.17,z+.04],[x*1.15,.091,z+.17],[x*1.36,.087,z+.39]],[.07,.086,.025]);
+    for(let k=0;k<2;k++)tube(p,'Toe claw',leather,[[x*1.35+(k-.5)*.07,.105,z+.34],[x*1.38+(k-.5)*.09,.085,z+.43],[x*1.45+(k-.5)*.09,.045,z+.50]],[.031,.025,.006]);
+  }
+  loft(p,'Abdomen',darkGreen,[[1.12,.15,.17],[1.26,.26,.24],[1.49,.24,.235],[1.66,.18,.18]]);
+  loft(p,'Linen jacket',coat,[[1.29,.35,.249],[1.47,.29,.245],[1.70,.26,.22],[1.96,.38,.25],[2.04,.31,.20],[2.08,.17,.16]]);
+  plate(p,'Folded shirt',ink,[[-.18,2.04],[0,1.7],[.16,2.04]],.035,.005,[0,0,.23]);for(const s of sides)plate(p,'Notched lapel','#f7e6c5',[[s*.24,2.07],[s*.12,2.06],[s*.022,1.76],[s*.185,1.92],[s*.135,1.967]],.032,.005,[0,0,.26]);
+  loft(p,'Burgundy sash',sash,[[1.37,.32,.257],[1.51,.30,.26],[1.57,.294,.236]]);
+  plate(p,'Knotted sash end',sash,[[-.21,1.49],[-.1,1.47],[-.14,.94],[-.28,.88]],.06,.016,[-.015,0,.18]);
+  strut(p,'Segmented neck',shell,[0,2.01,0],[.015,2.38,.02],.135,.104);for(let i=0;i<3;i++)ring(p,'Neck segment',darkGreen,[.005,2.10+i*.08,.012],.119-i*.006,.012,[1,1,1],[Math.PI/2,0,0]);
+  const h=group(p,'Head',[.015,2.45,.02]);h.rotation.z=-.08;oval(h,'Head capsule',shell,[0,.06,.01],[.32,.26,.25]);
+  for(const s of sides){
+    const e=eye(h,[s*.195,.115,.17],.132,'#a2712e',s*.14);oval(e,'Heavy lid',darkGreen,[0,.069,0],[.145,.084,.106],[.25,0,s*.1]);
+    tube(h,'Copper mandible',copper,[[s*.16,-.025,.17],[s*.17,-.098,.24],[s*.075,-.109,.305]],[.072,.062,.013]);
+    tube(h,'Antenna',darkGreen,[[s*.14,.255,0],[s*.22,.48,-.04],[s*.43,.64,-.10],[s*.63,.48,-.15],[s*.74,.32,-.12]],[.027,.022,.017,.013,.005]);
+  }
+  const a=[.012,2.36,.30],b=[.80,1.92,.86];strut(p,'Woodwind body','#925d3e',a,b,.028,.082);
+  for(let i=1;i<=7;i++){const t=i/9,u=V(a).lerp(V(b),t),v=V(a).lerp(V(b),t+.014);strut(p,'Key ring',brass,u.toArray(),v.toArray(),.033+.052*t,.034+.052*t);}
+  strut(p,'Woodwind bell',brass,b,[.99,1.81,1.0],.077,.19,28);strut(p,'Bell interior',ink,[.984,1.814,.997],[.999,1.805,1.006],.15,.158,28);
+  for(const [s,hand] of [[-1,[.25,2.23,.52]],[1,[.57,2.07,.70]]]){
+    const elbow=[s*.52,1.66,.29];tube(p,'Bent jacket sleeve',coat,[[s*.31,1.96,.02],elbow,[s*.4+.14,1.9,.40]],[.15,.106,.095]);tube(p,'Forearm',shell,[[s*.4+.14,1.9,.40],[(s*.4+.14+hand[0])/2,2.0,.43],hand],[.073,.066,.052]);oval(p,'Player hand',shell,hand,[.09,.068,.071]);fingers(p,hand,[hand[0]+.035,hand[1]-.065,hand[2]+.052],shell,.042,.022);
+  }
+}
+
+function silt(p){
+  const hide='#a85256',ridge='#bb6264',pad='#e1b383',strap='#b38245';
+  oval(p,'Burrowing trunk',hide,[0,.83,-.12],[.65,.65,1.03]);
+  for(let i=0;i<6;i++){
+    const z=.02+i*.12,y=.91+i*.025,rad=.615-i*.039;
+    oval(p,'Ribbed neck segment',i%2?hide:ridge,[0,y,z],[rad,rad*.94,.26]);
+  }
+  const jaw=group(p,'Ring mouth',[0,1.02,.77]);jaw.rotation.x=.12;
+  oval(jaw,'Lip foundation',ridge,[0,0,-.02],[.425,.398,.22]);
+  oval(jaw,'Mouth recess','#62363e',[0,0,.15],[.356,.328,.115]);
+  for(let i=0;i<20;i++){let a=tau*i/20;const v=oval(jaw,'Outer scalloped plate',i%2?pad:'#ebc599',[Math.cos(a)*.285,Math.sin(a)*.258,.236],[.090,.143,.068]);v.rotation.z=a-Math.PI/2+.22;}
+  for(let i=0;i<16;i++){let a=tau*i/16;const v=oval(jaw,'Inner scalloped plate','#bd906c',[Math.cos(a)*.164,Math.sin(a)*.143,.239],[.061,.085,.053]);v.rotation.z=a-Math.PI/2+.44;}
+  for(const s of sides){const e=eye(jaw,[s*.118,.408,.178],.088,'#edb73b');e.scale.z=.85;}
+  for(const s of sides)for(const z of [-.57,.41]){
+    const x=s*(z>0?.66:.54);tube(p,'Digging leg',hide,[[s*.42,.86,z],[x,.64,z-.02],[x*1.16,.42,z+.08],[x*1.19,.20,z+.20]],[.228,.207,.165,.14]);
+    oval(p,'Foot pad',ridge,[x*1.19,.18,z+.23],[.19,.14,.21]);for(let i=-1;i<=1;i++)tube(p,'Digging claw',pad,[[x*1.19+i*.09,.17,z+.32],[x*1.19+i*.09,.13,z+.40],[x*1.19+i*.097,.065,z+.48]],[.056,.045,.006]);
+  }
+  for(const z of [-.53,.04]){const r=z<0?.60:.663;ring(p,'Leather harness',strap,[0,.85,z],r,.048,[1,1,1.8]);ring(p,'Harness edging','#e7b464',[0,.85,z+.065],r,.018);}
+  box(p,'Bedroll cradle',leather,[0,1.46,-.33],[.68,.11,.42],.055);strut(p,'Canvas bedroll','#c5a273',[-.46,1.54,-.35],[.46,1.54,-.35],.145,.145,28);
+  for(const s of sides){ring(p,'Rolled canvas end',leather,[s*.463,1.54,-.35],.091,.017,[1,1,1],[0,Math.PI/2,0]);box(p,'Saddle bag',strap,[s*.63,.91,-.32],[.19,.39,.43],.06);box(p,'Bag flap',leather,[s*.68,1.04,-.32],[.16,.12,.45],.04);}
+  const hand=[-.82,.45,.82];tube(p,'Listening forelimb',hide,[[-.38,.99,.47],[-.64,.83,.64],hand],[.134,.115,.091]);
+  oval(p,'Gripping palm',ridge,hand,[.11,.103,.10]);fingers(p,hand,[-.846,.40,.87],ridge,.046,.029);
+  strut(p,'Fork handle',brass,hand,[-.85,.23,.89],.028,.029);
+  for(const x of [-.89,-.81]){strut(p,'Tuning fork tine',brass,[x,.235,.89],[x,.035,.91],.017,.014);}
+  box(p,'Fork bridge',brass,[-.85,.23,.89],[.11,.03,.034],.012);
+}
+
+function mica(p){
+  const scale='#537a7a',plateColor='#779494',underside='#445a63',cape='#ab5946',boot='#50595b';
+  for(const s of sides){
+    const x=s*.23; tube(p,'Leg',scale,[[x,1.52,0],[x*1.15,1.22,.02],[x*1.28,.91,.12],[x*1.10,.55,-.14],[x*1.28,.17,-.10]],[.16,.139,.098,.085,.059]);
+    oval(p,'Kneecap',plateColor,[x*1.28,.91,.13],[.119,.152,.095]);oval(p,'Boot',boot,[x*1.28,.12,.055],[.132,.105,.235]);
+    for(let j=-1;j<2;j++)tube(p,'Foot claw','#c8b18c',[[x*1.28+j*.066,.11,.18],[x*1.3+j*.079,.07,.29],[x*1.32+j*.10,.045,.36]],[.041,.027,.006]);
+  }
+  loft(p,'Segmented cuirass',underside,[[1.36,.21,.20],[1.48,.32,.24],[1.60,.28,.23],[1.88,.31,.25],[2.10,.42,.25],[2.20,.34,.21],[2.25,.17,.13]]);
+  for(let i=0;i<4;i++)plate(p,'Chest lamella',i%2?scale:plateColor,[[-.26,.11],[0,.055],[.26,.11],[.19,-.02],[0,-.09],[-.20,-.02]],.06,.017,[0,2.05-i*.13,.22]);
+  loft(p,'Utility belt',leather,[[1.43,.33,.245],[1.53,.326,.248]]);
+  box(p,'Buckle',brass,[0,1.48,.253],[.14,.09,.024],.015);
+  for(const s of sides){box(p,'Belt pouch','#bc8b57',[s*.26,1.40,.15],[.15,.21,.12],.025);}
+  plate(p,'Travel cape',cape,[[-.34,2.22],[.34,2.19],[.42,1.62],[.31,1.11],[-.03,1.18],[-.45,.91],[-.41,1.69]],.08,.045,[0,0,-.215],[.10,0,.04]);
+  oval(p,'Shoulder mantle',cape,[-.27,2.12,-.005],[.259,.17,.26]);bolt(p,[-.30,2.12,.24],.042);
+  strut(p,'Scaled neck',scale,[0,2.17,0],[0,2.53,0],.14,.145);for(let j=0;j<3;j++)ring(p,'Neck scales',underside,[0,2.27+.068*j,.003],.142,.015,[1,1,1],[Math.PI/2,0,0]);
+  const h=group(p,'Armored avian head',[0,2.62,0]);oval(h,'Cranium',scale,[0,.012,0],[.272,.27,.278]);
+  for(const s of sides){
+    for(let i=0;i<4;i++){const start=[s*(.16+.017*i),.11-.083*i,-.02],end=[s*(.33+.023*i),.30-.09*i,-.34-.037*i];leaf(h,'Swept crest blade',i%2?underside:plateColor,start,end,.11-i*.01);}
+    const e=eye(h,[s*.179,.06,.203],.080,'#bf9b50',s*-.28);e.scale.y=.76;
+    tube(h,'Brow armor',underside,[[s*.07,.113,.25],[s*.19,.137,.195],[s*.26,.16,.10]],[.032,.044,.019]);
+    tube(h,'Cheek mandible','#bd815c',[[s*.205,-.042,.12],[s*.176,-.143,.215],[s*.105,-.160,.31]],[.064,.052,.009]);
+  }
+  tube(h,'Upper beak','#d1a064',[[0,.015,.164],[0,-.015,.30],[0,-.082,.357]],[.128,.071,.009]);
+  const target=[.38,2.54,.59];for(const [s,w] of [[-1,[.10,2.49,.61]],[1,[.47,2.32,.57]]]){
+    const a=[s*.36,2.09,0],b=[s*.45,1.91,.29];tube(p,'Surveyor arm',scale,[a,b,w],[.118,.095,.06]);oval(p,'Glove',boot,w,[.082,.079,.081]);fingers(p,w,[w[0]+.045,w[1]+.083,w[2]+.06],boot,.032,.020);
+  }
+  const t=group(p,'Sextant',target);t.rotation.y=.48;
+  strut(t,'Sight telescope',brass,[-.15,.03,-.32],[-.15,.03,.22],.05,.071);oval(t,'Sight glass','#354d51/glass',[-.15,.03,.224],[.056,.056,.008]);ring(t,'Sextant arc',brass,[.067,-.164,0],.22,.019,[1,.8,1]);
+  for(const x of [-.15,.28])strut(t,'Frame',brass,[.0,.06,0],[x,-.27,0],.018,.019);strut(t,'Index arm',brass,[.00,.055,.04],[.23,-.30,.04],.024,.017);bolt(t,[0,.055,.055],.041);
+}
+
+function nim(p){
+  // A round seed courier in a wide woven sun hat, riding the crosswinds under a dandelion parasol.
+  const blue='#788dce',light='#a5addb',bag='#c64937',stem='#9aa978',straw='#d9b66a',straw2='#c49a4d';
+  oval(p,'Seed body',blue,[0,.62,0],[.37,.45,.30]);
+  for(const s of sides){
+    const lifted=s===1?.18:0;
+    tube(p,'Short leg',blue,[[s*.15,.40,0],[s*.18,.25+lifted*.45,.03],[s*.22,.10+lifted,.12+lifted]],[.091,.077,.063]);
+    oval(p,'Foot',blue,[s*.22,.07+lifted,.17+lifted],[.105,.067,.17],[-lifted*1.3,0,0]);
+  }
+  const h=group(p,'Round head',[0,1.20,.03]);h.rotation.z=-.06;oval(h,'Head',blue,[0,0,0],[.36,.31,.31]);
+  for(const s of sides){oval(h,'Dark oval eye',ink,[s*.135,.035,.272],[.06,.075,.035],[0,s*.29,0]);oval(h,'Catchlight',ivory,[s*.135-.017,.06,.302],[.017,.022,.009]);oval(h,'Blush','#bf92b8',[s*.235,-.05,.22],[.057,.022,.014],[0,s*.5,0]);}
+  tube(h,'Smiling mouth','#855663',[[-.07,-.075,.296],[0,-.10,.305],[.07,-.073,.294]],[.009,.016,.008]);
+  strut(h,'Hat brim',straw,[0,.20,0],[0,.235,0],.56,.55,28);strut(h,'Hat crown',straw2,[0,.22,0],[0,.40,0],.25,.21,24);strut(h,'Hat band',bag,[0,.245,0],[0,.30,0],.255,.248,24);
+  tube(p,'Cross-body strap',leather,[[-.23,.99,.06],[-.13,.88,.23],[.16,.65,.28],[.27,.53,.14],[.28,.58,-.09],[-.15,.89,-.20],[-.23,.99,.06]],.032);
+  box(p,'Postbag',bag,[.03,.59,.284],[.42,.30,.139],.062,[.08,0,-.065]);plate(p,'Envelope flap','#df6547',[[-.198,.092],[.20,.092],[.183,-.016],[.02,-.102],[-.18,-.025]],.028,.012,[.032,.626,.359],[0,0,-.065]);bolt(p,[.05,.565,.382],.031);
+  // left mitten holds the bag shut; right mitten grips the parasol stalk
+  tube(p,'Arm',blue,[[-.28,.88,0],[-.33,.72,.14],[-.18,.77,.33]],[.080,.066,.062]);oval(p,'Mitten hand',light,[-.18,.77,.33],[.072,.062,.052]);
+  const grip=[.42,.98,.26];tube(p,'Arm',blue,[[.29,.90,0],[.42,.86,.12],grip],[.080,.066,.062]);oval(p,'Mitten hand',light,grip,[.072,.066,.06]);
+  const center=[.50,1.98,.16];tube(p,'Parasol stalk',stem,[[.41,.80,.27],grip,[.45,1.45,.24],[.49,1.80,.19],center],[.03,.03,.026,.022,.02]);
+  oval(p,'Seed head','#c5a369',center,[.083,.06,.08]);
+  for(let tier=0;tier<2;tier++)for(let i=0;i<12;i++){
+    const a=tau*(i+tier*.5)/12,R=.40-tier*.12,dx=Math.cos(a)*R,dz=Math.sin(a)*R,y=center[1]+.22+tier*.12+.025*Math.sin(a*3),tip=[center[0]+dx,y,center[2]+dz];
+    tube(p,'Seed ray',tier===0?'#c8ac79':'#d9c497',[center,[center[0]+dx*.53,center[1]+.07+tier*.05,center[2]+dz*.53],tip],[.009,.008,.005],5);
+    for(const t of [-1,0,1]){const ex=center[0]+dx*1.13-Math.sin(a)*t*.058,ez=center[2]+dz*1.13+Math.cos(a)*t*.058;strut(p,'Silken filament','#f0dfb5',tip,[ex,y+.065+(1-Math.abs(t))*.035,ez],.006,.0015,5);}
+  }
+}
+
+
+function tally(p){
+  // A brass weighing drum balanced on one big wheel, steadied by two kickstand feet.
+  // Its spring-scale dial is its face; the pan on top takes whatever it is sorting.
+  const yellow='#c39140/metal', edge='#ebbe69/metal',tire='#384047';
+  strut(p,'Drive wheel',tire,[-.15,.37,0],[.15,.37,0],.37,.37,28);strut(p,'Wheel hub',brass,[-.17,.37,0],[.17,.37,0],.12,.12,16);
+  for(const s of sides){box(p,'Wheel fork',yellow,[s*.21,.56,0],[.06,.46,.2],.03);
+    tube(p,'Kickstand leg',steel,[[s*.34,.78,-.06],[s*.52,.40,-.14],[s*.60,.06,-.20]],[.055,.045,.04]);oval(p,'Kickstand foot',dark,[s*.60,.04,-.19],[.13,.04,.17]);}
+  strut(p,'Weighing drum',yellow,[0,.72,0],[0,1.36,0],.47,.44,32);strut(p,'Drum rim',edge,[0,1.33,0],[0,1.41,0],.48,.48,32);strut(p,'Drum skirt',edge,[0,.70,0],[0,.77,0],.49,.49,32);
+  const d=group(p,'Spring scale face',[0,1.02,.43]);d.rotation.x=-.06;
+  strut(d,'Metal bezel',brass,[0,0,-.043],[0,0,.036],.28,.278,48);strut(d,'Cream dial',ivory,[0,0,.035],[0,0,.044],.244,.244,48);
+  for(let i=0;i<=16;i++){const a=-2.28+i*4.56/16,x=Math.sin(a),y=Math.cos(a);strut(d,'Dial graduation',ink,[x*(i%4?.189:.167),y*(i%4?.189:.167),.05],[x*.220,y*.22,.05],.006,.006,6);}
+  tube(d,'Red pointer','#ab4c34',[[0,0,.056],[-.042,.078,.060],[-.092,.173,.060]],[.018,.012,.0015]);bolt(d,[0,0,.065],.024,steel);
+  for(const s of sides){oval(p,'Eye lamp',dark,[s*.16,1.30,.40],[.075,.075,.05]);oval(p,'Eye glint','#9de1d9/lit',[s*.16,1.31,.44],[.035,.035,.02]);bolt(p,[s*.36,.86,.33]);}
+  strut(p,'Pan pedestal',steel,[0,1.40,-.02],[0,1.52,-.02],.07,.082);
+  loft(p,'Weighing pan',brass,[[1.515,.065,.07,0,-.02],[1.528,.135,.14,0,-.02],[1.59,.27,.27,0,-.02],[1.612,.29,.29,0,-.02],[1.627,.283,.283,0,-.02],[1.59,.185,.185,0,-.02]]);
+  mechArm(p,[-.40,1.16,0],[-.68,1.30,.18],[-.52,1.56,.30],.076,yellow);for(const s of sides)tube(p,'Picking jaw',steel,[[-.52,1.56,.30],[-.44,1.58+s*.055,.33],[-.36,1.56+s*.019,.35]],[.031,.026,.012]);
+  strut(p,'Teaspoon handle','#b3b9ae/metal',[-.394,1.562,.34],[-.12,1.445,.27],.018,.026);oval(p,'Teaspoon bowl','#bcc6be/metal',[-.08,1.431,.266],[.085,.022,.049],[0,-.2,-.2]);
+  mechArm(p,[.40,1.16,0],[.62,.98,.16],[.50,.86,.34],.07,yellow);oval(p,'Tally counter','#ab4c34',[.50,.86,.36],[.09,.07,.05]);
+  for(let j=0;j<5;j++)box(p,'Rear cooling louver',dark,[0,.86+.085*j,-.445],[.42,.026,.028],.01);
+}
+
+
+function fern(p,base,dir,scale){
+  const b=V(base),d=V(dir).normalize(),end=b.clone().addScaledVector(d,scale);
+  tube(p,'Fern rachis','#64844b',[base,b.clone().lerp(end,.54).add(V([0,.026,0])).toArray(),end.toArray()],[.011,.009,.003],6);
+  for(let j=1;j<=7;j++){const t=j/9,origin=b.clone().lerp(end,t),w=Math.sin(Math.PI*t)**.64*scale*.24;
+    for(const s of sides){const tip=origin.clone().addScaledVector(d,scale*.15).add(V([s*w,.011,s*w*.38]));leaf(p,'Fern pinna',j%2?'#79a354':'#528550',origin.toArray(),tip.toArray(),w*.26);}}
+}
+function lichen(p){
+  const porcelain='#d9ccb1',moss='#62816c/metal',rim='#92977b/metal';
+  mechArm(p,[-.22,1.10,-.08],[-.35,.44,.33],[-.34,.13,-.15],.123,porcelain);
+  mechArm(p,[.18,1.10,-.04],[.43,.73,.29],[.44,.16,.32],.128,porcelain);
+  for(const [x,z] of [[-.34,-.10],[.44,.40]])box(p,'Ceramic foot',porcelain,[x,.09,z],[.22,.15,.39],.06);
+  loft(p,'Glazed torso',moss,[[.98,.15,.14],[1.09,.26,.20],[1.24,.27,.23],[1.45,.32,.24],[1.60,.36,.23],[1.72,.28,.19],[1.77,.14,.12]]);
+  plate(p,'Chest escutcheon','#88967c',[[-.14,.12],[.14,.12],[.11,-.06],[0,-.12],[-.1,-.06]],.018,.013,[0,1.46,.238]);for(let i=0;i<3;i++)strut(p,'Chest vent',dark,[-.071,1.49-.031*i,.263],[.071,1.49-.031*i,.263],.007,.007,6);
+  strut(p,'Neck piston',brass,[0,1.69,0],[.15,2.04,-.015],.084,.069);
+  const h=group(p,'Mask',[.17,2.11,0]);h.rotation.set(.17,-.27,-.27);loft(h,'Glazed porcelain mask',porcelain,[[-.23,.07,.078],[-.12,.16,.132],[.073,.182,.15],[.17,.136,.14],[.20,.069,.082]]);
+  oval(h,'Face socket',dark,[0,-.039,.138],[.052,.132,.025]);oval(h,'Vertical face lamp','#efc66b/lit',[0,-.041,.156],[.023,.100,.017]);
+  for(const s of sides){oval(p,'Shoulder cap',porcelain,[s*.31,1.61,0],[.18,.20,.18]);strut(p,'Hinge pin',rim,[s*.41,1.61,0],[s*.47,1.61,0],.074,.073);}
+  mechArm(p,[-.33,1.6,.015],[-.54,.87,.10],[-.22,1.30,.36],.081,porcelain);
+  mechArm(p,[.34,1.59,.015],[.56,1.00,.04],[.17,1.59,.30],.079,porcelain);
+  for(const [w,end] of [[[-.22,1.30,.36],[-.08,1.44,.32]],[[.17,1.59,.30],[-.07,1.72,.17]]]){
+    oval(p,'Porcelain palm',porcelain,w,[.078,.073,.052]);fingers(p,w,end,porcelain,.041,.021);
+  }
+  for(const [direction,length] of [[[-.7,.8,0],.40],[[-.2,1,-.07],.43],[[.7,1,.12],.39],[[.2,.8,.6],.32],[[-.6,.65,-.3],.35]])fern(p,[-.29,1.72,.008],direction,length);
+  tube(p,'Shoulder hairline crack',dark,[[-.35,1.78,.071],[-.38,1.69,.15],[-.35,1.65,.177],[-.38,1.59,.17]],.009);
+}
+
+function parallax(p){
+  const ceramic='#e2d7bc/metal',accent='#e39a41/metal';
+  const c=group(p,'Gauge chassis',[0,1.07,0]);
+  const outer=[],inner=[];for(let i=0;i<=40;i++){const a=(53+i*254/40)*Math.PI/180;outer.push([Math.cos(a)*.87,Math.sin(a)*.91]);}
+  for(let i=40;i>=0;i--){const a=(53+i*254/40)*Math.PI/180;inner.push([Math.cos(a)*.606,Math.sin(a)*.657]);}
+  plate(c,'Cast C-frame',ceramic,[...outer,...inner],.31,.036);
+  const trim=[];for(let i=0;i<=28;i++){const a=(57+247*i/28)*Math.PI/180;trim.push([Math.cos(a)*.663,Math.sin(a)*.719,.169]);}tube(c,'Inner track',dark,trim,.033);
+  for(const s of sides){
+    const y=s*.732;box(c,'Slider jaw',ceramic,[.48,y,0],[.46,.197,.32],.037,[0,0,-s*.09]);box(c,'Ram collar',dark,[.61,y-s*.086,0],[.12,.091,.20],.012);
+    strut(c,'Plunger',steel,[.615,y-s*.09,0],[.615,s*.32,0],.033,.026);strut(c,'Contact tip',accent,[.615,s*.375,0],[.615,s*.24,0],.049,.013);
+    bolt(c,[.385,y,.18],.036,steel);
+  }
+  box(c,'Calibration glass','#78bcc4/glass',[.615,0,0],[.38,.43,.37],.022,[0,.10,.03]);
+  strut(c,'Camera barrel',dark,[-.73,0,.11],[-.73,0,.245],.190,.185,32);ring(c,'Lens bezel',steel,[-.73,0,.252],.151,.031);oval(c,'Blue lens',optic,[-.73,0,.26],[.120,.120,.054]);
+  for(let i=0;i<6;i++){const a=(94+i*8)*Math.PI/180;strut(c,'Etched graduation',i===0?accent:steel,[Math.cos(a)*.782,Math.sin(a)*.812,.186],[Math.cos(a)*.848,Math.sin(a)*.873,.186],.010,.010,6);}
+  for(const s of sides)bolt(c,[-.63,s*.33,.18],.03,steel);strut(c,'Sensor whisker',steel,[-.52,.72,-.02],[-.58,1.03,-.035],.018,.008);
+}
+
+function songbird(p,pos){
+  const b=group(p,'Clockwork songbird',pos);oval(b,'Bird body',brass,[0,.066,0],[.11,.087,.084]);oval(b,'Bird head','#dcaa59/metal',[.067,.159,.016],[.077,.074,.067]);
+  oval(b,'Bird eye',ink,[.10,.17,.064],[.017,.019,.012]);strut(b,'Beak',copper,[.12,.154,.02],[.195,.151,.02],.030,.002);leaf(b,'Wing',copper,[.03,.1,.066],[-.12,.048,.069],.051);leaf(b,'Tail',brass,[-.068,.075,.01],[-.211,.094,.01],.040);
+  for(const x of [-.036,.035])strut(b,'Bird feet',copper,[x,.023,0],[x,-.024,.023],.010,.011);
+}
+function hush(p){
+  const enamel='#7395a6/metal',light='#99b2b7/metal',shadow='#526d7b/metal';
+  for(const s of sides){
+    const x=s*.45;oval(p,'Hip hinge',dark,[s*.34,.90,0],[.22,.19,.20]);strut(p,'Thigh',shadow,[s*.30,.90,0],[x,.65,.20],.16,.182);
+    oval(p,'Knee housing',enamel,[x,.61,.22],[.242,.213,.202]);strut(p,'Calf',enamel,[x,.62,.13],[x,.26,.02],.19,.24);box(p,'Riveted boot',shadow,[x,.17,.135],[.49,.30,.63],.065);
+    box(p,'Toe cap',light,[x,.18,.370],[.47,.21,.19],.048);for(const t of sides)bolt(p,[x+t*.14,.19,.468],.025);
+  }
+  loft(p,'Boiler torso',enamel,[[.81,.33,.29],[.91,.49,.33],[1.12,.59,.39],[1.38,.61,.365],[1.59,.50,.31],[1.69,.35,.25],[1.70,.26,.20]]);
+  const chest=group(p,'Acoustic grille',[0,1.24,.348]);oval(chest,'Grille recess',dark,[0,0,0],[.292,.242,.055]);
+  ring(chest,'Grille bezel',brass,[0,0,.031],.254,.026,[1.12,.88,1]);
+  for(let i=-3;i<=3;i++){let x=i*.063,h=.192*Math.sqrt(1-(x/.27)**2);box(chest,'Grille slat',steel,[x,0,.058],[.021,h*2,.035],.009);}
+  strut(p,'Neck column',dark,[0,1.60,-.02],[-.08,1.85,.015],.13,.11);const h=group(p,'Listening head',[-.075,1.89,.026]);h.rotation.set(.17,-.20,-.19);
+  box(h,'Steel head',enamel,[0,0,0],[.492,.38,.382],.082);box(h,'Face panel',shadow,[0,-.01,.183],[.395,.204,.043],.037);
+  for(const s of sides){box(h,'Amber eye','#f3bc61/lit',[s*.101,.015,.215],[.113,.04,.021],.018);strut(h,'Ear port',steel,[s*.233,0,-.004],[s*.269,0,-.004],.096,.091);bolt(h,[s*.18,.133,.16],.023);}
+  for(const s of sides){oval(p,'Shoulder dome',enamel,[s*.48,1.50,0],[.31,.25,.302]);for(let j=-1;j<2;j++)bolt(p,[s*.49+j*.096,1.53,.279],.026);}
+  mechArm(p,[-.55,1.48,0],[-.70,1.024,.24],[-.34,1.13,.53],.157,enamel);
+  oval(p,'Open palm',light,[-.24,1.144,.567],[.218,.091,.145],[0,0,.07]);for(let i=0;i<4;i++){let z=.475+i*.060;tube(p,'Curled gauntlet finger',enamel,[[-.22,1.14,z],[-.08,1.14,z+.013],[-.012,1.197,z+.026]],[.04,.038,.027]);}
+  songbird(p,[-.23,1.255,.577]);
+  mechArm(p,[.56,1.49,0],[.73,1.37,.25],[.365,1.88,.19],.145,enamel);
+  oval(p,'Cupped listening hand',light,[.322,1.91,.12],[.111,.17,.129],[0,0,-.25]);fingers(p,[.31,1.967,.10],[.205,2.08,.025],enamel,.048,.036);
+  for(const x of [-.26,0,.26])box(p,'Rear access seam',shadow,[x,1.19,-.345],[.027,.35,.045],.013);
+}
+
+function rivet(p){
+  const bronze='#ba744a/metal',patina='#458a82/metal',gold='#ca9859/metal';
+  loft(p,'Copper hull',bronze,[[.68,.23,.22],[.73,.38,.33],[.81,.53,.43],[.98,.68,.55],[1.12,.68,.55],[1.25,.57,.48],[1.36,.40,.33],[1.39,.17,.14]]);
+  loft(p,'Patinated belly',patina,[[.68,.22,.22],[.70,.30,.27],[.78,.47,.39],[.86,.565,.458],[.89,.59,.476]]);
+  for(let i=0;i<20;i++){
+    const a=tau*i/20,x=Math.cos(a)*.676,z=Math.sin(a)*.539;oval(p,'Belt rivet',gold,[x,1.055,z],[.026,.026,.026]);
+  }
+  for(const y of [.94,1.14]){const rr=y<1?.64:.665;ring(p,'Hull seam',gold,[0,y,0],rr,.018,[1,.81,1],[Math.PI/2,0,0]);}
+  for(const s of sides){
+    const g=group(p,'Porthole',[s*.242,1.10,.478]);g.rotation.y=s*.31;strut(g,'Brass bezel',brass,[0,0,-.066],[0,0,.054],.14,.146,32);oval(g,'Aquamarine lens',optic,[0,0,.065],[.108,.11,.051]);ring(g,'Lens rim',gold,[0,0,.07],.117,.018);
+    const f=group(p,'Stabilizer',[s*.51,.97,-.12]);f.rotation.y=s*.32;
+    plate(f,'Copper fin',bronze,[[0,0],[s*.13,-.014],[s*.47,.21],[s*.53,.38],[s*.35,.32],[s*.09,.20]],.064,.020);
+    plate(f,'Cream fin stripe',ivory,[[s*.31,.175],[s*.37,.217],[s*.43,.335],[s*.365,.314]],.011,.005,[0,0,.039]);
+    mechArm(p,[s*.29,.75,-.09],[s*.45,.62,-.19],[s*.32,.54,-.01],.044,brass);
+  }
+  plate(p,'Dorsal rudder',bronze,[[-.09,1.30],[-.04,1.71],[.04,1.77],[.13,1.54],[.19,1.32]],.077,.022,[0,0,-.16],[0,.12,0]);
+  plate(p,'Rudder flash',ivory,[[-.042,1.59],[-.04,1.65],[.09,1.60],[.11,1.54]],.011,.004,[0,0,-.108]);
+  tube(p,'Soldering snout',steel,[[.01,1.04,.48],[.05,.96,.69],[.127,.91,.79]],[.086,.074,.049]);
+  strut(p,'Hot iron',brass,[.119,.92,.783],[.25,.78,.88],.051,.011);oval(p,'Heated contact','#efb351/lit',[.253,.778,.883],[.023,.020,.023]);
+  mechArm(p,[-.35,.85,.22],[-.42,.57,.48],[-.12,.58,.78],.059,brass);
+  box(p,'Work clamp',dark,[-.09,.61,.80],[.13,.083,.09],.016);
+  plate(p,'Patch under repair','#879699/metal',[[-.16,-.07],[.13,-.09],[.22,.01],[.17,.14],[-.09,.10]],.025,.006,[.095,.665,.865],[.15,0,.33]);
+}
+function spool(p){
+  const plum='#844458/metal',deep='#613749/metal',trim='#c79650/metal';
+  for(const x of [-.30,0,.30])for(const z of [-.16,.16]){
+    strut(p,'Caster',brass,[x-.04,.113,z],[x+.04,.113,z],.092,.092);oval(p,'Caster bracket',steel,[x,.16,z],[.06,.072,.073]);
+  }
+  box(p,'Rolling plinth',deep,[0,.239,0],[.88,.16,.55],.054);
+  plate(p,'Tapered exchange cabinet',plum,[[-.409,.27],[.409,.27],[.275,1.61],[.21,1.71],[-.20,1.71],[-.275,1.63]],.43,.053);
+  box(p,'Base molding',trim,[0,.32,0],[.79,.058,.52],.023);box(p,'Base apron',deep,[0,.38,-.003],[.765,.066,.52],.021);
+  for(let i=-3;i<=3;i++){let h=.34-Math.abs(i)*.06;box(p,'Art deco fluting',trim,[i*.075,.46+h/2,.228],[.025,h,.023],.011);}
+  box(p,'Patch panel',trim,[0,1.10,.244],[.46,.63,.049],.03);box(p,'Panel insert',deep,[0,1.10,.271],[.418,.58,.015],.013);
+  for(let i=0;i<3;i++)for(let j=0;j<4;j++){let x=-.137+i*.136,y=.891+j*.136;oval(p,'Socket',ink,[x,y,.29],[.048,.048,.017]);ring(p,'Socket collar',trim,[x,y,.30],.042,.007);}
+  for(let j=-3;j<=3;j++){const x=j*.035;strut(p,'Sunburst inlay',trim,[x*.39,1.46,.24],[x*1.56,1.59-Math.abs(j)*.019,.24],.008,.008,7);}
+  strut(p,'Telescoping neck',trim,[0,1.66,0],[0,1.91,0],.082,.066);ring(p,'Neck bearing',deep,[0,1.70,0],.093,.017,[1,1,1],[Math.PI/2,0,0]);
+  const h=group(p,'Receiver head',[0,1.99,0]);h.rotation.z=.06;
+  tube(h,'Curved handset',plum,[[-.33,-.01,.02],[-.23,.05,0],[0,.097,-.02],[.22,.054,0],[.33,-.013,.023]],[.092,.082,.077,.082,.093],14);
+  for(const s of sides){oval(h,'Receiver cup',deep,[s*.32,-.021,.011],[.14,.134,.135]);strut(h,'Ear cap',trim,[s*.32,-.027,.108],[s*.32,-.027,.133],.088,.093);for(let k=0;k<5;k++){const a=k*tau/5;oval(h,'Receiver perforation',ink,[s*.32+Math.cos(a)*.052,-.027+Math.sin(a)*.052,.137],[.013,.013,.006]);}}
+  box(h,'Face bridge',plum,[0,0,.027],[.36,.127,.15],.047);for(const s of sides)box(h,'Operator lamp','#eec56f/lit',[s*.070,.004,.105],[.072,.029,.014],.012);
+  mechArm(p,[-.29,1.38,0],[-.49,1.07,.10],[-.32,.91,.325],.054,brass);mechArm(p,[.29,1.36,0],[.49,1.14,.089],[.27,1.21,.37],.055,brass);
+  for(const [x,y] of [[-.31,.92],[.26,1.20]]){oval(p,'Plug-hand',trim,[x,y,.33],[.073,.065,.06]);fingers(p,[x,y,.34],[x*.83,y+.02,.38],trim,.023,.016);}
+  tube(p,'Braided patch cable','#d0a257',[[-.10,.88,.291],[-.18,.84,.35],[-.31,.91,.36],[-.39,.68,.33],[-.29,.52,.34],[.04,.48,.36],[.35,.68,.41],[.40,1.02,.42],[.26,1.20,.385],[.132,1.166,.36] ],.023,9);
+  strut(p,'Patch plug',brass,[.131,1.16,.292],[.131,1.16,.388],.032,.030);
+  box(p,'Service hatch',deep,[0,1.10,-.227],[.41,.58,.038],.028);for(let i=0;i<4;i++)box(p,'Rear vent',dark,[0,.97+i*.066,-.251],[.275,.021,.009],.007);
+}
+
+function neru(p){
+ const skin='#6cabac';oval(p,'Otterlike trunk',skin,[0,.51,-.06],[.31,.28,.50]);legs(p,skin,.22,.39,-.02,4);
+ tube(p,'Paddle tail',skin,[[0,.54,-.43],[.09,.48,-.69],[.25,.49,-.86],[.31,.58,-.96]],[.15,.117,.071,.008]);
+ const h=head(p,{at:[0,.91,.33],skin,r:[.32,.24,.245],mouth:'pucker'});for(const s of sides)for(let i=0;i<3;i++){
+ const o=[s*.23,.035+i*.045,-.04],e=[s*(.53-.035*i),.13+i*.12,-.10];tube(h,'Gill branch','#bd6b7d',[o,[s*.40,.12+i*.07,-.06],e],[.035,.028,.012]);
+ for(let j=1;j<4;j++)leaf(h,'Gill finger','#dd8b99',[s*(.27+j*.063),.08+i*.07+j*.01,-.06],[s*(.32+j*.063),.17+i*.08+j*.017,-.06],.021);}
+ box(p,'Survey case',leather,[-.23,.63,-.13],[.13,.27,.33],.04);
+}
+function caelo(p){
+ const s='#817393';legs(p,s,.17,.46);oval(p,'Velvet thorax',s,[0,.72,0],[.245,.38,.218]);arms(p,s,.20,.90,0,true);
+ const h=head(p,{at:[0,1.35,.04],skin:'#a698aa',r:[.257,.216,.206],mouth:'pucker'});for(const d of sides){
+ tube(h,'Comb antenna',dark,[[d*.1,.14,0],[d*.19,.34,0],[d*.31,.41,-.06]],[.022,.019,.008]);for(let i=0;i<4;i++)strut(h,'Antenna barb',s,[d*(.16+i*.028),.24+i*.032,0],[d*(.19+i*.032),.30+i*.037,-.05],.014,.002);
+ const g=group(p,'Moth wing',[d*.12,.90,-.12]);g.rotation.y=d*.35;
+ plate(g,'Upper wing','#586487',[[0,0],[d*.23,.35],[d*.67,.55],[d*.56,.11],[d*.30,-.19]],.039,.027);
+ plate(g,'Lower wing','#ac7c8c',[[0,-.05],[d*.39,.06],[d*.45,-.26],[d*.29,-.48],[d*.06,-.3]],.034,.018);
+ oval(g,'Eyespot','#dbbb78',[d*.39,.20,.05],[.087,.109,.018]);oval(g,'Spot center',ink,[d*.39,.20,.068],[.046,.06,.009]);}
+ ring(p,'Lantern handle',brass,[.30,.84,.23],.084,.014);box(p,'Amber lantern','#e9b659/lit',[.30,.70,.23],[.12,.16,.105],.019);
+}
+function rusk(p){
+ const s='#b77553';legs(p,s,.32,.54,-.09,4,leather);oval(p,'Low hauler',s,[0,.70,-.03],[.47,.38,.62]);
+ for(let row=0;row<4;row++)for(let k=-2;k<=2;k++){const a=k*.38;oval(p,'Overlapping kiln scale',row%2?'#885142':'#ae7457',[Math.sin(a)*.44,.73+Math.cos(a)*.26,-.43+row*.22],[.13,.071,.205],[.32,0,-a]);}
+ const h=head(p,{at:[0,.94,.51],skin:s,r:[.256,.20,.253],mouth:'fang'});tube(h,'Long nose',s,[[0,-.044,.145],[0,-.09,.31],[.012,-.13,.41]],[.120,.077,.03]);
+ tube(p,'Armored tail',s,[[0,.7,-.52],[.10,.54,-.81],[.31,.40,-1.01],[.49,.39,-1.08]],[.16,.13,.085,.009]);
+}
+function plover(p){
+ const s='#699ba3';legs(p,'#a87550',.15,.92);oval(p,'Wader breast',s,[0,1.1,0],[.24,.26,.35]);
+ tube(p,'Curved throat',s,[[0,1.22,.035],[0,1.44,.02],[0,1.51,.13],[0,1.62,.20]],[.109,.075,.074,.092]);
+ const h=head(p,{at:[0,1.72,.20],skin:'#b7c7b5',r:[.183,.14,.162],neck:.10,mouth:'bill'});
+ tube(h,'Sounding bill',brass,[[0,-.045,.10],[0,-.051,.24],[0,-.086,.48]],[.055,.041,.003]);
+ for(const d of sides)leaf(p,'Folded wing','#517584',[d*.18,1.20,.07],[d*.24,1.04,-.47],.11);
+ tube(p,'Chart satchel strap',leather,[[-.17,1.23,.16],[0,1.09,.30],[.18,1.01,.19]],.025);box(p,'Chart bag','#ba8051',[.18,1.0,.19],[.16,.18,.105],.025);
+}
+function fenn(p){
+ const s='#cf9b63';oval(p,'Pressure bladder',s,[0,.96,-.045],[.48,.47,.44]);for(let i=0;i<12;i++){const a=i*tau/12;strut(p,'Pressure spine','#eed1a5',[Math.cos(a)*.415,.99,Math.sin(a)*.39-.05],[Math.cos(a)*.545,1.03,Math.sin(a)*.51-.05],.037,.004);}
+ const h=head(p,{at:[0,1.40,.20],skin:'#dcaf7c',r:[.28,.22,.25],neck:.11,mouth:'pucker'});
+ for(const d of sides)leaf(h,'Fin ear','#b6675b',[d*.19,.035,-.04],[d*.42,.16,-.09],.082);
+ for(const d of sides){leaf(p,'Stabilizing fin','#aa695a',[d*.34,.84,.03],[d*.62,.60,-.04],.096);tube(p,'Basket cord',leather,[[d*.30,.73,.10],[d*.21,.48,.09],[d*.15,.35,.06]],.014);}
+ box(p,'Weather instrument basket',leather,[0,.31,.055],[.37,.13,.25],.045);strut(p,'Wind vane',brass,[.12,1.40,-.24],[.12,1.68,-.24],.018,.012);
+}
+function koro(p){
+ const s='#786867';legs(p,s,.31,.54,0,2,'#51495a');loft(p,'Geode torso',s,[[.42,.26,.21],[.52,.43,.28],[.81,.49,.32],[1.09,.43,.285],[1.20,.24,.18]],9);
+ const h=head(p,{at:[0,1.52,0],skin:'#97818c',r:[.30,.25,.23],mouth:'fang'});arms(p,s,.40,.99,0,true);
+ for(const d of sides)for(let j=0;j<3;j++){const x=d*(.26+j*.065);strut(p,'Amethyst seam',j%2?'#af83b0':'#7768a0',[x,1.08-.045*j,-.035],[x+d*.08,1.35-.035*j,-.044],.071,.007,5);}
+ plate(p,'Open crystal seam','#71598a',[[-.12,.13],[.03,.17],[.17,.01],[.07,-.13],[-.11,-.09]],.033,.009,[0,.84,.306]);
+ for(const d of sides)strut(p,'Mineral glint','#d3a6c9',[d*.06,.81,.334],[d*.08,.89,.34],.024,.003,5);
+}
+function myrr(p){
+ const s='#d8b58e';legs(p,s,.17,.37);loft(p,'Pleated body',s,[[.26,.24,.18],[.36,.28,.20],[.64,.21,.17],[.80,.17,.15]],15);
+ const h=head(p,{at:[0,1.12,0],skin:s,r:[.20,.19,.18],mouth:'pucker'});arms(p,s,.20,.70,0,true);
+ loft(h,'Bell cap','#a85f57',[[.07,.41,.34],[.10,.48,.38],[.18,.41,.33],[.28,.31,.27],[.39,.15,.14],[.43,.035,.036]]);
+ for(let i=0;i<12;i++){let a=i*tau/12;strut(h,'Cream gill',ivory,[Math.cos(a)*.18,.089,Math.sin(a)*.16],[Math.cos(a)*.425,.087,Math.sin(a)*.326],.015,.006,7);}
+ oval(p,'Apron','#7b9175',[0,.50,.15],[.19,.20,.059]);strut(p,'Tasting spoon',leather,[.27,.62,.20],[.37,.86,.24],.018,.022);oval(p,'Spoon bowl',brass,[.38,.89,.24],[.044,.059,.014]);
+}
+function sarra(p){
+ const s='#719d89';tube(p,'Coiled body',s,[[-.34,.14,.29],[-.57,.16,-.10],[-.25,.20,-.42],[.38,.22,-.33],[.43,.27,.17],[.07,.34,.27],[-.20,.58,.13],[-.15,.81,.03],[.01,.99,.06]],[.012,.113,.158,.19,.17,.157,.139,.122,.10],14);
+ const h=head(p,{at:[.04,1.22,.09],skin:s,r:[.249,.172,.231],mouth:'fang'});for(const d of sides)plate(h,'Neck hood','#a6b679',[[d*.10,.095],[d*.33,.215],[d*.42,.07],[d*.33,-.14],[d*.14,-.26]],.045,.025,[0,-.045,-.065]);
+ tube(p,'Glassblowing pipe',brass,[[.04,1.15,.305],[.12,1.10,.48],[.36,1.01,.62]],.017);oval(p,'Molten gather','#e6a65e/glass',[.38,1.0,.63],[.078,.062,.071]);
+}
+function ilex(p){
+ const s='#7d9982';legs(p,s,.24,.71,-.04,4);oval(p,'Mossy back',s,[0,.80,-.05],[.32,.26,.46]);const h=head(p,{at:[0,1.38,.22],skin:'#8fa58c',r:[.223,.22,.24],neck:.31,mouth:'seam'});
+ for(const d of sides){tube(h,'Antler',leather,[[d*.11,.15,-.03],[d*.20,.32,-.04],[d*.30,.43,-.10],[d*.35,.64,-.10]],[.045,.038,.026,.005]);
+ tube(h,'Antler fork',leather,[[d*.24,.36,-.06],[d*.39,.44,-.04],[d*.46,.53,0]],[.025,.016,.004]);leaf(h,'Ear',s,[d*.17,.07,0],[d*.36,.20,-.06],.062);leaf(h,'Lichen sprig','#b4c36d',[d*.31,.45,-.08],[d*.41,.49,-.03],.044);}
+}
+function kepp(p){
+ const s='#85a79b';loft(p,'Muscular foot',s,[[.025,.39,.66],[.09,.45,.72],[.18,.37,.61],[.26,.21,.39]],28);
+ oval(p,'Shell','#ad795a',[0,.43,-.17],[.39,.42,.395]);for(const d of sides){let curve=[];for(let i=0;i<32;i++){let a=i*.228,r=.035+i*.009;curve.push([d*(.40-.15*(r/.33)**2),.44+Math.sin(a)*r,-.17+Math.cos(a)*r]);}tube(p,'Shell spiral','#dbb17b',curve,.022,7);}
+ tube(p,'Rising neck',s,[[0,.16,.37],[0,.29,.50],[0,.45,.53]],[.21,.17,.13]);const h=head(p,{at:[0,.61,.54],skin:s,r:[.211,.16,.196],neck:.10,mouth:'pucker'});
+ for(const d of sides){tube(h,'Sensing stalk',s,[[d*.10,.08,0],[d*.15,.20,-.02],[d*.20,.32,.02]],[.033,.026,.018]);oval(h,'Sensory bulb','#c0c593',[d*.20,.32,.02],[.039,.044,.038]);}
+}
+function yarro(p){
+ const s='#488c91';legs(p,s,.20,.58);oval(p,'Glider body',s,[0,.88,0],[.28,.37,.24]);const h=head(p,{at:[0,1.51,.02],skin:s,r:[.267,.205,.22],neck:.19,mouth:'bill'});
+ for(const d of sides){const wing=group(p,'Gliding sail',[d*.20,1.02,-.045]);plate(wing,'Membrane','#ca926e',[[0,0],[d*.44,.27],[d*.82,.18],[d*.57,.015],[d*.46,-.16],[d*.32,-.185],[d*.16,-.37]],.025,.012);
+ for(const [x,y] of [[.82,.18],[.46,-.16],[.16,-.37]])tube(wing,'Sail spar',s,[[0,0,.022],[d*.31,.14,.025],[d*x,y,.026]],[.044,.027,.009]);}
+ fan(h,'Head crest',[0,.12,-.06],5,.68,.27,.045,['#809f86','#c49d77']);
+}
+function nacre(p){
+ const s='#ae817e';for(let k=0;k<6;k++){const a=k*tau/6;let x=Math.cos(a),z=Math.sin(a);tube(p,'Shell foot',s,[[x*.17,.57,z*.13],[x*.26,.37,z*.22],[x*.37,.18,z*.31],[x*.44,.085,z*.37],[x*.47,.12,z*.39]],[.088,.093,.058,.033,.009]);}
+ oval(p,'Mantle',s,[0,.62,0],[.32,.285,.27]);const h=head(p,{at:[0,.98,.10],skin:s,r:[.26,.187,.21],mouth:'bill'});
+ for(let i=0;i<11;i++){let a=(-.5+i/10)*2.35;leaf(p,'Shell rib',i%2?'#d8b29a':'#b88e8d',[0,.66,-.14],[Math.sin(a)*.62,.76+Math.cos(a)*.70,-.19],.102);}
+}
+function tacca(p){
+ const s='#ad8c71';legs(p,s,.18,.39);oval(p,'Compact body',s,[0,.64,0],[.27,.30,.25]);arms(p,s,.21,.77);const h=head(p,{at:[0,1.13,.03],skin:s,r:[.289,.232,.23],mouth:'pucker'});
+ for(const d of sides){oval(h,'Resonating ear',s,[d*.22,.32,-.013],[.124,.31,.073],[0,0,-d*.28]);oval(h,'Ear lining','#c28e92',[d*.227,.337,.055],[.079,.238,.018],[0,0,-d*.28]);}
+ box(p,'Seismic receiver','#507e7f',[0,.59,.25],[.24,.20,.085],.035);ring(p,'Receiver grille',brass,[0,.61,.297],.064,.012);
+}
+function sova(p){
+ const s='#927c6b';legs(p,'#ac915c',.17,.36);oval(p,'Feathered body',s,[0,.67,0],[.31,.37,.25]);const h=head(p,{at:[0,1.26,.016],skin:'#ab9980',r:[.347,.259,.25],mouth:'bill',iris:'#a67c39'});
+ for(const d of sides){ring(h,'Facial disk',ivory,[d*.168,.028,.202],.115,.018,[1,1.12,1],[0,d*.28,0]);leaf(h,'Ear tuft',s,[d*.20,.17,-.04],[d*.30,.35,-.07],.068);leaf(p,'Tucked wing','#78685e',[d*.23,.86,-.03],[d*.26,.45,-.19],.14);}
+ box(p,'Archive folio','#516966',[0,.59,.25],[.35,.28,.08],.02,[0,0,.1]);box(p,'Paper edges',ivory,[0,.60,.286],[.305,.22,.021],.005,[0,0,.1]);}
+function pavo(p){
+ const s='#528a89';legs(p,'#a07c5a',.16,.51);oval(p,'Herald torso',s,[0,.78,0],[.25,.32,.24]);const h=head(p,{at:[0,1.34,.09],skin:s,r:[.219,.182,.20],neck:.23,mouth:'bill'});
+ for(let i=0;i<11;i++){let a=-1.15+i*.23,x=Math.sin(a)*.69,y=.77+Math.cos(a)*.91;leaf(p,'Fan feather',i%2?'#537d70':'#6a9490',[0,.53,-.16],[x,y,-.28],.094);oval(p,'Feather eye','#a5a35e',[x*.90,y-.078,-.25],[.064,.094,.023],[0,0,-a]);oval(p,'Eye center','#476777',[x*.90,y-.075,-.224],[.034,.050,.010],[0,0,-a]);}
+ fan(h,'Coronet',[0,.14,0],3,.7,.20,.026,[brass]);}
+function kipp(p){
+ const s='#869557';legs(p,s,.31,.48,-.05,6);oval(p,'Beetle belly',s,[0,.59,-.07],[.355,.27,.49]);
+ for(const d of sides){oval(p,'Wing case','#526b69',[d*.15,.745,-.14],[.195,.19,.42],[0,d*.10,0]);for(let j=0;j<3;j++)oval(p,'Case stud','#ccb67a',[d*.22,.891,-.37+j*.17],[.035,.022,.039]);}
+ const h=head(p,{at:[0,.90,.355],skin:s,r:[.235,.176,.2],mouth:'fang'});for(const d of sides)tube(h,'Club antenna',dark,[[d*.12,.12,0],[d*.19,.25,.05],[d*.25,.30,.14]],[.017,.014,.028]);}
+function marlo(p){
+ const s='#91a5a4';legs(p,s,.28,.38);oval(p,'Heavy coat',s,[0,.72,0],[.426,.45,.35]);arms(p,s,.33,.90);const h=head(p,{at:[0,1.38,.04],skin:s,r:[.319,.247,.258],mouth:'seam'});
+ for(const d of sides){oval(h,'Whisker pad','#c4b5a1',[d*.092,-.068,.218],[.10,.076,.076]);tube(h,'Ivory tusk',ivory,[[d*.115,-.09,.248],[d*.127,-.20,.259],[d*.104,-.31,.29]],[.043,.033,.004]);}
+ ring(p,'Wool scarf','#a5574d',[0,1.09,.028],.211,.040,[1,.88,1],[Math.PI/2,0,0]);}
+function aril(p){
+ const s='#72966c';for(const d of sides){tube(p,'Root stilt',s,[[d*.13,.77,0],[d*.29,.48,-.03],[d*.21,.22,.04],[d*.32,.075,.13]],[.08,.067,.041,.022]);oval(p,'Root foot',s,[d*.31,.066,.13],[.09,.049,.11]);}
+ oval(p,'Seedpod','#c99363',[0,.92,0],[.24,.35,.207]);const h=head(p,{at:[0,1.46,.02],skin:'#97ab77',r:[.218,.179,.19],mouth:'pucker'});arms(p,s,.19,1.09,0,true);
+ tube(h,'Vine curl',s,[[0,.13,0],[.02,.33,0],[.18,.43,0],[.25,.32,0],[.16,.29,.012]],[.028,.025,.022,.019,.007]);leaf(h,'Cotyledon',s,[0,.24,0],[-.29,.39,-.025],.09);leaf(h,'Cotyledon','#a3b67a',[.03,.31,0],[.15,.53,-.01],.071);}
+function sura(p){
+ const s='#daa16b';tube(p,'Anchor tail',s,[[0,.80,0],[-.12,.54,-.01],[-.21,.28,.06],[-.08,.12,.12],[.13,.14,.15],[.19,.29,.12],[.07,.32,.10],[.04,.25,.10]],[.155,.13,.091,.069,.05,.033,.022,.006]);
+ oval(p,'Keel chest',s,[0,.85,0],[.205,.35,.242]);tube(p,'Arched neck',s,[[0,1.02,0],[-.05,1.19,-.035],[.015,1.36,.03]],[.115,.102,.094]);const h=head(p,{at:[.025,1.48,.08],skin:s,r:[.19,.187,.18],neck:.1,mouth:'pucker'});
+ tube(h,'Sounding snout',s,[[0,-.06,.12],[0,-.082,.23],[0,-.091,.35]],[.085,.056,.064]);oval(h,'Snout opening',ink,[0,-.09,.353],[.032,.034,.009]);for(let j=0;j<5;j++)leaf(p,'Dorsal ribbon','#c47870',[0,.67+.09*j,-.16],[0,.75+.09*j,-.38],.06);fan(h,'Coral crest',[0,.12,-.03],5,.98,.18,.029,['#be7968','#c98a63']);}
+
+function feet(p,x,y,paint,z=0){
+ for(const s of sides){mechArm(p,[s*x,y,z],[s*x*1.12,y*.56,z+.035],[s*x*1.10,.13,z+.03],Math.min(.105,y*.18),paint);box(p,'Sole',dark,[s*x*1.1,.082,z+.09],[.21,.15,.29],.036);}
+}
+function neck(p,y,h,paint,x=0,z=0){strut(p,'Neck piston',brass,[x,y,z],[x,y+h,z],.062,.059);box(p,'Optics housing',paint,[x,y+h+.072,z],[.33,.19,.23],.048);lens(p,[x,y+h+.073,z+.115],.075);}
+function gripping(p,shoulder,elbow,hand,paint){mechArm(p,shoulder,elbow,hand,.057,paint);for(const s of sides){tube(p,'Jaw',brass,[hand,[hand[0]+s*.043,hand[1]-.065,hand[2]+.025],[hand[0]+s*.026,hand[1]-.095,hand[2]+.065]],[.026,.022,.013]);}}
+function lyre(p){
+ const c='#58918b/metal';feet(p,.22,.37,c);box(p,'Soundboard',c,[0,.47,0],[.54,.31,.23],.079);
+ for(const d of sides)tube(p,'Resonator horn',c,[[d*.16,.53,0],[d*.33,.70,0],[d*.32,1.04,0],[d*.42,1.28,0]],[.078,.077,.060,.042]);
+ strut(p,'Tuning rail',brass,[-.38,1.23,0],[.38,1.23,0],.037,.037);for(let i=0;i<7;i++){let x=(i-3)*.07;strut(p,'Harmonic string',ivory,[x,.55,.025],[x*1.2,1.23,.025],.005,.005,5);bolt(p,[x*1.2,1.24,.038],.018);}
+ lens(p,[0,.49,.115],.081);gripping(p,[.24,.57,0],[.43,.53,.1],[.19,.73,.11],c);
+}
+function iris(p){
+ const c='#688694/metal';for(let k=0;k<3;k++){let a=k*tau/3;strut(p,'Camera tripod',steel,[0,.66,0],[.39*Math.cos(a),.08,.39*Math.sin(a)],.043,.031);oval(p,'Tripod foot',dark,[.39*Math.cos(a),.056,.39*Math.sin(a)],[.081,.046,.077]);}
+ strut(p,'Camera column',brass,[0,.51,0],[0,.89,0],.073,.067);box(p,'Bellows camera',c,[0,1.07,0],[.56,.34,.30],.045);
+ for(let i=0;i<5;i++)box(p,'Bellows fold',i%2?dark:steel,[0,1.07,.18+i*.036],[.31-i*.016,.25-i*.014,.047],.014);
+ lens(p,[0,1.07,.36],.136);box(p,'Finder',brass,[-.17,1.29,0],[.15,.08,.13],.018);strut(p,'Cable release',c,[.26,1.12,0],[.42,1.25,.015],.018,.014);
+}
+function crimp(p){
+ const c='#bc765c/metal';for(const d of sides)tire(p,d*.28,.21,0,.21,.12);
+ box(p,'Bench vice chassis',c,[0,.37,0],[.58,.26,.36],.054);box(p,'Jaw bed',steel,[0,.58,0],[.71,.12,.30],.03);
+ for(const d of sides){box(p,'Vice jaw',c,[d*.252,.75,0],[.15,.29,.29],.03);box(p,'Jaw liner',brass,[d*.18,.84,0],[.048,.12,.30],.009);}
+ strut(p,'Lead screw',brass,[-.47,.55,.03],[.47,.55,.03],.039,.039);strut(p,'T handle',steel,[.49,.42,.03],[.49,.68,.03],.018,.018);
+ neck(p,.46,.59,c,0,-.13);gripping(p,[-.28,.45,0],[-.48,.47,.02],[-.42,.68,.08],c);
+}
+function relay(p){
+ const c='#64867b/metal';feet(p,.23,.42,c);box(p,'Receiver cabinet',c,[0,.68,0],[.60,.56,.32],.056);
+ for(let j=0;j<4;j++)box(p,'Speaker slot',dark,[0,.55+j*.056,.171],[.34,.021,.015],.007);
+ const g=group(p,'Dish gimbal',[0,1.02,0]);g.rotation.x=-.39;
+ for(let i=0;i<3;i++)ring(g,'Parabolic rib',brass,[0,.15,i*.035],.12+i*.095,.014);
+ for(let i=0;i<8;i++){let a=i*tau/8;strut(g,'Dish spoke',steel,[0,.15,-.07],[Math.cos(a)*.31,.15+Math.sin(a)*.31,.08],.013,.009);}
+ lens(g,[0,.15,.106],.074);strut(p,'Whip aerial',c,[-.26,.92,-.08],[-.32,1.48,-.09],.016,.006);
+}
+function kiln(p){
+ const c='#b96d49/metal';for(const d of sides){tire(p,d*.33,.15,-.12,.15,.09);tire(p,d*.33,.15,.12,.15,.09);}
+ loft(p,'Furnace body',c,[[.18,.28,.24],[.24,.37,.29],[.65,.39,.31],[.89,.29,.25],[.97,.19,.17]],16);
+ box(p,'Hearth door',dark,[0,.57,.29],[.39,.29,.075],.04);box(p,'Furnace glow','#f39847/lit',[0,.57,.333],[.30,.20,.016],.027);
+ for(let i=-2;i<=2;i++)box(p,'Fire bar',steel,[i*.058,.57,.347],[.018,.20,.018],.005);strut(p,'Flue',steel,[.12,.90,-.04],[.12,1.26,-.04],.093,.074);ring(p,'Chimney lip',brass,[.12,1.26,-.04],.079,.014,[1,1,1],[Math.PI/2,0,0]);lens(p,[-.097,.82,.228],.085);
+}
+function wick(p){
+ const c='#6b7e86/metal';feet(p,.16,.32,c);strut(p,'Beacon base',c,[0,.27,0],[0,.48,0],.25,.215,12);strut(p,'Beacon pedestal',c,[0,.46,0],[0,.87,0],.20,.124,12);
+ strut(p,'Crystal lantern','#dfb36f/glass',[0,.88,0],[0,1.21,0],.141,.14,12);for(let i=0;i<4;i++){const a=i*tau/4+.4;strut(p,'Guard rod',brass,[Math.cos(a)*.15,.86,Math.sin(a)*.15],[Math.cos(a)*.15,1.23,Math.sin(a)*.15],.013,.013);}
+ strut(p,'Lantern canopy',c,[0,1.21,0],[0,1.32,0],.219,.065,12);oval(p,'Beacon finial',brass,[0,1.35,0],[.033,.051,.033]);lens(p,[0,.67,.167],.063);
+}
+function fathom(p){
+ const c='#aa8452/metal';oval(p,'Bathysphere',c,[0,.71,0],[.38,.381,.36]);ring(p,'Pressure seam',steel,[0,.71,0],.37,.026,[1,.95,1],[Math.PI/2,0,0]);lens(p,[0,.76,.318],.155);
+ for(const d of sides){strut(p,'Ballast strut',steel,[d*.19,.47,0],[d*.30,.23,0],.041,.036);box(p,'Landing skid',c,[d*.30,.19,0],[.092,.08,.55],.031);strut(p,'Thruster',c,[d*.40,.58,-.11],[d*.40,.58,.09],.105,.105);}
+ strut(p,'Periscope',brass,[.04,1.02,0],[.04,1.24,0],.036,.03);box(p,'Scope mirror',c,[.04,1.25,.035],[.11,.082,.115],.019);
+}
+function dolly(p){
+ const c='#9e6d80/metal';for(const x of [-.27,.27])for(const z of [-.24,.24])tire(p,x,.108,z,.101,.075);box(p,'Parcel deck',c,[0,.235,0],[.63,.15,.68],.05);
+ for(const d of sides)tube(p,'Cart handle',brass,[[d*.23,.30,-.25],[d*.23,.79,-.29],[d*.23,.91,-.18]],[.026,.026,.022]);strut(p,'Push bar',dark,[-.23,.91,-.18],[.23,.91,-.18],.031,.031);
+ box(p,'Lower parcel','#ae9269',[0,.43,.06],[.47,.22,.40],.026);box(p,'Upper parcel','#70877c',[-.04,.62,.02],[.34,.17,.33],.021,[0,.15,0]);box(p,'Strap',ivory,[0,.622,.03],[.048,.18,.339],.007,[0,.15,0]);lens(p,[0,.26,.335],.072);
+}
+function orlo(p){
+ const c='#667c9a/metal';strut(p,'Gyro base',c,[0,.11,0],[0,.25,0],.25,.18,16);strut(p,'Axle post',brass,[0,.23,0],[0,.66,0],.057,.049);
+ const center=[0,.83,0];for(const [r,rot,col] of [[.39,[.19,.20,.20],c],[.32,[.89,-.72,.12],brass],[.24,[-.66,.63,-.3],steel]])ring(p,'Gimbal',col,center,r,.027,[1,1,1],rot);
+ oval(p,'Pendulum core',c,center,[.145,.18,.13]);lens(p,[0,.84,.131],.064);
+}
+function chime(p){
+ const c='#a98451/metal';feet(p,.22,.35,steel);loft(p,'Bell housing',c,[[.30,.36,.32],[.35,.39,.35],[.42,.32,.29],[.67,.22,.21],[.89,.19,.18],[.96,.10,.10]]);
+ ring(p,'Bell rim',brass,[0,.35,0],.36,.023,[1,.89,1],[Math.PI/2,0,0]);neck(p,.94,.15,c);
+ gripping(p,[.18,.75,0],[.39,.62,.07],[.42,.49,.16],steel);strut(p,'Striker shaft',dark,[.42,.50,.15],[.29,.38,.22],.016,.018);oval(p,'Felt mallet','#875557',[.27,.37,.23],[.056,.052,.057]);
+}
+function shuttle(p){
+ const c='#7e8181/metal';oval(p,'Weaving shuttle',c,[0,.60,0],[.67,.18,.205]);box(p,'Bobbin well',dark,[0,.74,0],[.42,.055,.195],.025);
+ strut(p,'Spool spindle',brass,[-.20,.79,0],[.20,.79,0],.028,.028);for(let i=0;i<7;i++)strut(p,'Thread wrap','#ad6677',[-.11+i*.031,.79,0],[-.087+i*.031,.79,0],.075,.075);
+ for(const d of sides){for(const z of [-.107,.107])mechArm(p,[d*.28,.52,z],[d*.39,.30,z],[d*.46,.19,z+.03],.039,brass);}
+ lens(p,[-.28,.63,.168],.063);tube(p,'Loose thread','#c39b96',[[.06,.84,.03],[.16,.89,.10],[.37,.72,.17],[.50,.66,.06]],.009);
+}
+function cairn(p){
+ const c='#80938e/metal';for(const [i,y,w] of [[0,.23,.59],[1,.49,.48],[2,.74,.39]]){const g=group(p,'Counterweight '+i,[0,y,0]);g.rotation.y=i*.36;box(g,'Rounded stone housing',i===1?'#9f9284/metal':c,[0,0,0],[w,.24,w*.76],.08);}
+ strut(p,'Top survey pin',brass,[0,.84,0],[0,1.06,0],.045,.034);box(p,'Level head',c,[0,1.08,0],[.37,.11,.13],.025);lens(p,[.073,1.08,.065],.044);
+ for(const d of sides)box(p,'Sled runner',dark,[d*.18,.08,0],[.077,.08,.49],.026);
+}
+function pinion(p){
+ const c='#9a6c56/metal';oval(p,'Aerial gearbox',c,[0,.68,0],[.22,.20,.30]);for(const d of sides){
+ plate(p,'Fixed wing',ivory,[[d*.10,.69],[d*.81,.82],[d*.90,.74],[d*.36,.62]],.16,.013,[0,0,-.05]);
+ strut(p,'Wing brace',brass,[d*.11,.54,0],[d*.62,.75,0],.014,.012);strut(p,'Prop axle',steel,[d*.46,.75,.05],[d*.46,.75,.22],.024,.021);for(const t of sides)leaf(p,'Prop blade',dark,[d*.46,.75,.22],[d*.46+t*.05,.75+t*.16,.22],.034);}
+ lens(p,[0,.70,.273],.087);plate(p,'Tail rudder',c,[[-.12,0],[0,.27],[.14,.02]],.045,.015,[0,.72,-.29]);}
+function tempo(p){
+ const c='#996653/metal';for(const d of sides)tire(p,d*.19,.13,0,.13,.07);
+ plate(p,'Metronome case',c,[[-.25,.21],[.25,.21],[.11,1.12],[-.095,1.12]],.28,.042);plate(p,'Scale insert',dark,[[-.14,.44],[.14,.44],[.06,1.04],[-.055,1.04]],.01,.008,[0,0,.167]);
+ for(let i=0;i<7;i++)box(p,'Engraving',ivory,[0,.51+i*.07,.18],[.104-i*.005,.008,.01],.002);
+ strut(p,'Pendulum',brass,[0,.39,.195],[.20,1.13,.197],.014,.014);box(p,'Sliding weight',steel,[.146,.93,.20],[.095,.089,.034],.012,[0,0,-.26]);lens(p,[0,.33,.168],.056);
+}
+function glint(p){
+ const c='#8299a5/metal';for(const d of sides)strut(p,'Landing leg',c,[d*.12,.48,0],[d*.28,.055,.08],.051,.044);strut(p,'Rear support',steel,[0,.48,-.08],[0,.055,-.28],.041,.032);
+ oval(p,'Mirror yoke',c,[0,.64,0],[.24,.21,.175]);const g=group(p,'Mirror head',[0,.96,0]);g.rotation.set(-.17,-.15,.1);
+ plate(g,'Hexagonal reflector frame',brass,[[-.33,0],[-.17,.30],[.17,.30],[.33,0],[.17,-.30],[-.17,-.30]],.055,.02);
+ plate(g,'Silver reflector','#adc9cb/glass',[[-.29,0],[-.146,.26],[.146,.26],[.29,0],[.146,-.26],[-.146,-.26]],.019,.008,[0,0,.043]);lens(p,[0,.65,.164],.065);
+}
+function purl(p){
+ const c='#9e7982/metal';feet(p,.16,.37,c);oval(p,'Yarn drum',c,[0,.57,0],[.27,.27,.23]);for(let j=0;j<7;j++)ring(p,'Wound fibre',j%2?'#be9688':'#ae7c75',[0,.44+j*.044,0],.243-((j-3)**2)*.005,.016,[1,.85,1],[Math.PI/2,0,0]);
+ neck(p,.79,.13,c);for(const d of sides){gripping(p,[d*.21,.64,0],[d*.36,.55,.09],[d*.30,.72,.20],steel);strut(p,'Knitting needle',brass,[d*.40,.66,.24],[-d*.11,.99,.25],.014,.003);}
+}
+function latch(p){
+ const c='#718a77/metal';for(const d of sides)tire(p,d*.25,.185,0,.185,.10);
+ box(p,'Lock body',c,[0,.49,0],[.61,.47,.28],.075);tube(p,'U-shaped shackle',steel,[[-.19,.68,0],[-.19,.97,0],[-.14,1.10,0],[.03,1.15,0],[.17,1.06,0],[.19,.90,0],[.19,.72,0]],.054);
+ lens(p,[0,.55,.145],.092);box(p,'Keyway',dark,[0,.403,.157],[.045,.09,.016],.01);gripping(p,[.25,.60,0],[.39,.54,.09],[.38,.39,.15],c);
+}
+function plume(p){
+ const c='#698e9a/metal';strut(p,'Nozzle bank',c,[0,.38,0],[0,.64,0],.21,.29,12);oval(p,'Air sampler',c,[0,.75,0],[.285,.20,.25]);lens(p,[0,.76,.222],.087);
+ for(let i=0;i<5;i++){let a=tau*i/5;let x=Math.cos(a)*.14,z=Math.sin(a)*.13;strut(p,'Sample tube',i%2?brass:steel,[x,.86,z],[x*1.2,1.12+.085*(i%3),z*1.2],.037,.039);}
+ for(const d of sides){strut(p,'Jet pod',steel,[d*.26,.48,0],[d*.26,.75,0],.097,.075);ring(p,'Exhaust lip',brass,[d*.26,.48,0],.084,.014,[1,1,1],[Math.PI/2,0,0]);}
+}
+function prong(p){
+ const c='#c68c49/metal';for(const d of sides)for(const z of [-.21,.21])tire(p,d*.28,.14,z,.13,.082);
+ box(p,'Cargo tug',c,[0,.32,-.02],[.57,.28,.60],.053);box(p,'Counterweight',steel,[0,.53,-.17],[.47,.23,.29],.052);
+ for(const d of sides){box(p,'Mast rail',steel,[d*.185,.55,.238],[.055,.87,.074],.014);box(p,'Fork heel',c,[d*.185,.29,.312],[.077,.23,.105],.01);box(p,'Lifting tine',brass,[d*.185,.197,.51],[.079,.047,.43],.013);}
+ box(p,'Lift carriage',c,[0,.38,.284],[.447,.091,.071],.016);neck(p,.60,.17,c,0,-.14);
+}
+const newCast=[
+ ['neru','Neru','Alien','Tidal cartographer','Neru dips the lowest gill into a current before unfolding the chart.',24],
+ ['caelo','Caelo','Alien','Night lantern keeper','Caelo shields the lantern with one wing while replacing the wick.',-14],
+ ['rusk','Rusk','Alien','Kiln inspector','Rusk taps the cooled tiles with a back plate and listens for a crack.',32],
+ ['plover','Plover','Alien','Reed-bed surveyor','Plover marks a sounding with the tip of a very long bill.',26],
+ ['fenn','Fenn','Alien','Pressure observer','Fenn knows the weather has turned when the little basket lifts.',-18],
+ ['koro','Koro','Alien','Geode carver','Koro checks every amethyst offcut for a second geode.',18],
+ ['myrr','Myrr','Alien','Spore kitchen steward','Myrr hides the tasting spoon under a broad mushroom cap.',-19],
+ ['sarra','Sarra','Alien','Glassblower','Sarra steadies the pipe with a coil until the molten bead rounds over.',22],
+ ['ilex','Ilex','Alien','Lichen ranger','Ilex carries the smallest field samples between two antler tines.',29],
+ ['kepp','Kepp','Alien','Trail map keeper','Kepp can trace the way home along the spiral on the shell.',-35],
+ ['yarro','Yarro','Alien','Thermal scout','Yarro opens one sail first to see which way the warm air leans.',-18],
+ ['nacre','Nacre','Alien','Reef acoustician','Nacre presses a shell rib to a wall to hear the tide beyond it.',18],
+ ['tacca','Tacca','Alien','Tunnel listener','Tacca angles one long ear toward the track and keeps the other on the crew.',-15],
+ ['sova','Sova','Alien','Night archivist','Sova marks the last page read with a down feather.',20],
+ ['pavo','Pavo','Alien','Court herald','Pavo opens the feather fan before announcing an arrival.',-14],
+ ['kipp','Kipp','Alien','Bridge inspector','Kipp tests a beam with each foot before giving it a clean bill.',26],
+ ['marlo','Marlo','Alien','Ice harbormaster','Marlo tests the ice with a tusk before sending out a tug.',-19],
+ ['aril','Aril','Alien','Canopy gardener','Aril toes the soil with a root before choosing a seedbed.',17],
+ ['sura','Sura','Alien','Current reader','Sura anchors a tail curl while reading the eddies around a piling.',28],
+ ['lyre','Lyre','Robot','Harmonic calibrator','Lyre listens to the fourth string while adjusting the fifth.',-14],
+ ['iris','Iris','Robot','Plate photographer','Iris opens the bellows only after all three feet settle.',21],
+ ['crimp','Crimp','Robot','Cable splicer','Crimp closes the vice on scrap wire to test the jaw spacing.',-18],
+ ['relay','Relay','Robot','Signal catcher','Relay tilts its dish until a distant carrier resolves into a whistle.',22],
+ ['kiln','Kiln','Robot','Ceramic furnace tender','Kiln watches the glaze change colour through a barred hearth door.',-20],
+ ['wick','Wick','Robot','Fog beacon','Wick trims the lantern as soon as the quay begins to disappear.',16],
+ ['fathom','Fathom','Robot','Hull diver','Fathom checks the pressure seam before every dive.',-23],
+ ['dolly','Dolly','Robot','Parcel porter','Dolly balances the fragile parcel where it can see the corners.',24],
+ ['orlo','Orlo','Robot','Inertial surveyor','Orlo holds the inner gimbal still while the platform settles.',-17],
+ ['chime','Chime','Robot','Shift bell keeper','Chime wraps the mallet after the last shift sounds.',20],
+ ['shuttle','Shuttle','Robot','Vacuum loom tender','Shuttle draws slack thread back into the bobbin before it snags.',-21],
+ ['cairn','Cairn','Robot','Datum marker','Cairn waits for the counterweights to settle before logging a reading.',24],
+ ['pinion','Pinion','Robot','Air-lane inspector','Pinion checks the wing braces before taking the crosswind lane.',-19],
+ ['tempo','Tempo','Robot','Pulse timer','Tempo moves the pendulum weight one graduation before every count-in.',17],
+ ['glint','Glint','Robot','Solar mirror tender','Glint finds the edge of a beam with a six-sided mirror.',-14],
+ ['purl','Purl','Robot','Suit-liner knitter','Purl counts the stitches between the pressure seams of a glove.',18],
+ ['latch','Latch','Robot','Airlock locksmith','Latch tries the shackle twice before admitting a seal is sound.',-17],
+ ['plume','Plume','Robot','Atmosphere sampler','Plume uncaps the tallest tube to sample air above the engine wash.',20],
+ ['prong','Prong','Robot','Precision stevedore','Prong slides the tines beneath a crate without disturbing the dust.',28]
+];
+
+const cast=[
+  ['orris','Orris','Alien','Field botanist','Orris turns every leaf over before declaring a seedling healthy.',12],
+  ['vela','Vela','Alien','Ink interpreter','Vela leaves a finger-width gap in a greeting so the other speaker can finish the circle.',-12],
+  ['obo','Obo','Alien','Cantina reed player','Obo tests a new reed on the last three notes of the closing-time tune.',14],
+  ['silt','Silt','Alien','Desert listener','Silt puts a tuning fork to the sand and waits for the answer through four planted feet.',32],
+  ['mica','Mica','Alien','Route surveyor','Mica keeps a brass sextant for the days when the ship insists it knows where it is.',24],
+  ['nim','Nim','Alien','Seed courier','Nim tips the dandelion parasol into a crosswind and lets it carry the mailbag the last few metres.',-16],
+  ['tally','Tally','Robot','Salvage sorter','Tally weighs every bent teaspoon before deciding whether it belongs back in the galley.',-22],
+  ['lichen','Lichen','Robot','Conservatory keeper','Lichen kneels to tuck a stray frond back into the crack in its shoulder.',14],
+  ['parallax','Parallax','Robot','Spatial surveyor','Parallax checks the calibration cube again if anyone breathes near the gauge.',16],
+  ['hush','Hush','Robot','Acoustics technician','Hush cups one ear to hear the smallest tooth on a clockwork bird’s gear.',-16],
+  ['rivet','Rivet','Robot','Airborne seam welder','Rivet keeps a little scrap of hull plate on hand to test the iron before each repair.',24],
+  ['spool','Spool','Robot','Switchboard operator','Spool patches through the late call with one hand while the other catches the slack.',-17]
+].concat(newCast).map(([id,name,type,role,habit,angle])=>({id,name,type,role,habit,angle}));
+const sculptors={orris,vela,obo,silt,mica,nim,tally,lichen,parallax,hush,rivet,spool,neru,caelo,rusk,plover,fenn,koro,myrr,sarra,ilex,kepp,yarro,nacre,tacca,sova,pavo,kipp,marlo,aril,sura,lyre,iris,crimp,relay,kiln,wick,fathom,dolly,orlo,chime,shuttle,cairn,pinion,tempo,glint,purl,latch,plume,prong};
+function buildCharacter(id){
+  const info=cast.find(c=>c.id===id);if(!info)throw new Error('Unknown character '+id);
+  const root=new Group();root.name=info.name;root.userData={role:info.role};
+  const parts=new Group();parts.name=info.name+' sculpture';root.add(parts);sculptors[id](parts);
+  const bounds=new Box3().setFromObject(root,true),center=bounds.getCenter(new Vector3());
+  // Ground the feet; retain the air gap on the hovering characters.
+  const hover=['vela','parallax','rivet','fenn','sura','pinion','plume','shuttle'].includes(id)?.13:0;
+  parts.position.set(-center.x,-bounds.min.y+hover,-center.z);root.updateMatrixWorld(true);return root;
+}
+
+// Keep these planet keys stable across saves and UI translations.
+const homeworlds=['Verdanthia','Scorchmaw','Dunemoor','Sloshwell','Amethyne','Toxibloom','Candara','Jovexa','Brrrindle'];
+// Each line names ten individuals from one model family. Names are authored identifiers,
+// so adding another family never renames any existing resident.
+const families={
+ orris:['Loam','Eda Moss Tavi Mina Cato Wren Tula Ari Fern Sol'],
+ vela:['Inkring','Umi Nera Osa Viri Enna Tel Rou Iri Sen Yune'],
+ obo:['Reed','Pip Remi Clef Basie Fen Luma Ivo Tess Bram Della'],
+ silt:['Sandwell','Hessa Ruun Teth Kesh Voro Abba Nemm Isha Mako Tull'],
+ mica:['Facet','Voss Keva Iven Nira Sil Pell Orra Renn Veya Miro'],
+ nim:['Seedpost','Pelo Lumi Tika Ceri Otto Winn Pippa Fia Holl Timo'],
+ tally:['Halfounce','Nickel Penny Sprig Thimble Tink Clover Midge Button Clip Dot'],
+ lichen:['Fernwell','Frond Hazel Willow Sorrel Reed Laurel Moss Alder Briar Olive'],
+ parallax:['Sightline','Delta Opal Iris Focus Vector Echo Finch Axial Meridian Pearl'],
+ hush:['Bellfound','Murmur Thrush Oriel Wren Cricket Linnet Dove Minnow Piper Chord'],
+ rivet:['Patchbay','Ash Copper Ember Flick Spark Glaze Tin Solder Clove Tack'],
+ spool:['Crossline','Bell Coda Pulse Dial Patch Trill Link Vox Coil Signal'],
+ neru:['Tidemark','Nali Toma Kell Oona Pell Evi Senn Uma Tika Norr'],
+ caelo:['Wickfen','Elva Otti Minna Iril Sav Rola Aini Pero Linn Itha'],
+ rusk:['Ochrebank','Garn Rika Dorn Nemi Orru Vedra Tann Kelo Dora Jann'],
+ plover:['Reedbank','Lali Tern Sella Asto Piri Ferni Vela Riva Tem Minta'],
+ fenn:['Ballast','Olli Sena Milo Nara Kemi Bera Willa Tavo Pellu Del'],
+ koro:['Ambergap','Roka Dessi Tarn Mura Nola Kalto Irem Yara Torvi Brann'],
+ myrr:['Gillwick','Perri Enna Cress Nel Aven Lira Saffi Rudi Opal Bren'],
+ sarra:['Glasspool','Esha Kavi Suna Nesh Raya Isen Liss Zeda Imri Tasso'],
+ ilex:['Branchmere','Eryn Korra Arlo Niva Oriel Finn Mira Grell Selka Tirr'],
+ kepp:['Spiralfen','Ludo Nelda Fenn Orli Pera Noll Dari Tuli Karo Osti'],
+ yarro:['Sailridge','Vira Senn Loft Davi Hessa Evin Mira Nari Leto Rinn'],
+ nacre:['Reefbell','Sora Anni Mael Piri Iona Talla Nelvi Cora Yari Voss'],
+ tacca:['Burrowby','Kes Tamar Elsi Fara Rolo Ivo Otta Bex Cira Thal'],
+ sova:['Quillfold','Willa Lenn Caro Rumi Ves Asta Minn Thea Orvi Olan'],
+ pavo:['Brightfan','Rafi Ilna Corin Vani Joss Olva Pello Mena Sevi Yel'],
+ kipp:['Girderwell','Hett Ludo Kiva Rann Omri Siva Tyne Odo Grell Tess'],
+ marlo:['Frostwharf','Ulla Boro Nemi Korr Nell Rann Esk Nia Wulfe Siri'],
+ aril:['Leafstep','Ovie Peta Noll Vim Mara Sena Fern Liri Ori Teva'],
+ sura:['Eddybend','Mavi Luro Isha Renn Kori Nym Bela Aro Eri Dossa'],
+ lyre:['Fretwell','Alto Viola Coda Brass Quaver Octave Key Harmonic Treble Drone'],
+ iris:['Silverplate','Sepia Grain Focal Prism Slate Silver Bloom Frame Flint Flash'],
+ crimp:['Lockjaw','Buckle Twist Ferrule Pin Tin Notch Burr Bolt Crank Toggle'],
+ relay:['Waveband','Pulse Murmur Cobalt Sine Crest Static Coil Echo Loop Copper'],
+ kiln:['Firebrick','Brick Ash Umber Ember Pumice Cinder Flint Glaze Luster Feldspar'],
+ wick:['Lampline','Amber Halo Gleam Glow Dusk Lantern Ray Ember Glint Lumen'],
+ fathom:['Sounding','Lead Pearl Diver Skiff Plumb Salt Keel Float Kelp Gull'],
+ dolly:['Handcart','Label Crate Parcel Twine Clip Tag Tape Chit Ribbon Quill'],
+ orlo:['Axiswell','Roll Tilt Zenith Nadir North South Level Pivot Gimbal Plumb'],
+ chime:['Clapper','Bronze Fifth Peal Alto Chord Clink Mezzo Tenor Tacet Ring'],
+ shuttle:['Warpwood','Weft Tow Skein Pick Warp Twill Flax Hem Loop Welt'],
+ cairn:['Benchpin','Datum Mark Cap Fault Plinth Slate Strata Stake Chalk Level'],
+ pinion:['Skybrace','Kite Fin Rudder Slip Lift Pitch Gale Vane Gust Kitelet'],
+ tempo:['Beatwood','Downbeat Largo Lilt Allegro Triplet Tick Swing Rest Upbeat Cadence'],
+ glint:['Sunframe','Prism Solar Gleam Arc Beam Ray Flare Gold Glaze Dawn'],
+ purl:['Softwire','Rib Stitch Loop Knit Cable Skein Bobbin Hem Patch Needle'],
+ latch:['Turnkey','Hasp Ward Shank Tumbler Bolt Catch Hinge Lever Spring Pawl'],
+ plume:['Airwell','Mist Cirrus Cumulus Virga Cloud Drift Zephyr Rain Sleet Dew'],
+ prong:['Forklift','Tine Axle Crate Skid Pallet Lift Jack Spur Pin Wedge']
+};
+const dyes=['#d77b65','#68a8ae','#ac93c4','#dfbc69','#91b275','#759cca','#cb91a3','#9fc1af','#d99c73','#93a0bf'];
+const residents=cast.flatMap((model,index)=>{
+ const [surname,given]=families[model.id];return given.split(' ').map((first,i)=>({
+   id:model.id+'-'+String(i+1).padStart(2,'0'),base:model.id,name:first+' '+surname,
+   home:homeworlds[(index*10+i)%homeworlds.length],slot:i,
+   accent:dyes[(i+index)%10],height:[.981,1.024,.969,1.035,1.012,.987,1.030,.977,1.004,1.017][i],
+   width:[1.022,.978,1.015,.991,1.027,.981,1.011,1.033,.974,.996][i]
+ }));
+});
+function dressResident(root,person,Color){
+ const dye=new Color(person.accent),colors=new Map();
+ root.traverse(m=>{if(!m.isMesh)return;const old=m.material;
+   if(!colors.has(old)){const mat=old.clone();const hsl={};mat.color.getHSL(hsl);
+     const amount=hsl.s<.14?.035:(mat.metalness>.23?.175:.115);mat.color.lerp(dye,amount);colors.set(old,mat);}
+   m.material=colors.get(old);
+ });root.scale.set(person.width,person.height,1/person.width);root.name=person.name;root.userData.resident=person.id;return root;
+}
+return {cast,residents,homeworlds,buildCharacter};})();
+const StationModels = (() => {
+const RoundedBoxGeometry = class extends THREE.BoxGeometry {constructor(w,h,d){super(w,h,d);}};
+/* Architectural recipes shared by the Three.js gallery and the Blender scene builder.
+   Y is up. Dimensions are metres. Ordered rotations use radians, XYZ. */
+const pi=Math.PI,tau=2*pi;
+const cream='#d7cdb2',light='#afc0bd',slate='#485967',navy='#355266',brass='#c19b5b',rust='#a86049',glass='#5796a2',lit='#9ddcd3',steel='#77838a',coal='#353d46',wood='#927659';
+const stations=[
+ ['brineglass','Brineglass Laboratory','Research station','A seabed pressure lab with three viewports and an umbilical dock.'],
+ ['rookfall','Rookfall Outpost','Outpost','A snowbound shelter built behind a berm, with a heated tunnel entrance.'],
+ ['meridian','Meridian Array','Research station','Three independently aimed radio dishes share a low correlator building.'],
+ ['kestrel','Kestrel Spindle','Outpost','An orbital transfer wheel with a fixed docking spindle through its hub.'],
+ ['emberstep','Emberstep Condenser','Outpost','Stepped desert terraces catch the cool air below four wind scoops.'],
+ ['mossward','Mossward Conservatory','Research station','A geodesic greenhouse grows a miniature forest beside its seed vault.'],
+ ['faraday','Faraday Reach','Research station','Four sea laboratories meet at a raised pressure lock above a dark ocean.'],
+ ['anchor','Anchor Nine','Outpost','A gantry, ore hopper and transfer arm cling to an irregular asteroid.'],
+ ['tidecomb','Tidecomb Nursery','Research station','Egg-shaped pressure chambers rise on branching umbilicals above a reef.'],
+ ['lumenvault','Lumen Vault','Research station','A dark lens-shaped archive opens onto a straight instrumented approach.'],
+ ['windharp','Windharp Hangar','Outpost','A coastal sailplane shed sits between two wind-driven generators.'],
+ ['frostline','Frostline Bore','Research station','A polar core drill stands above a break in the ice between two warm cabins.'],
+ ['lanternshoal','Lantern Shoal','Outpost','Three anchored pontoons carry an acoustic beacon and two listening huts.'],
+ ['saffron','Saffron Stack','Outpost','A refinery exchanges heat through staggered stacks and overhead pipes.'],
+ ['triune','Triune Aperture','Research station','Three tilted pylons support an instrument ring above an excavation.'],
+ ['redkite','Red Kite Camp','Outpost','Linked pressure tents and a folding solar farm form a desert field camp.'],
+ ['cairnrelay','Cairn Relay','Outpost','Two finned repeater towers bridge a deep cut between stone mesas.'],
+ ['heliograph','Heliograph Observatory','Research station','A hexagonal mirror shield shades a small instrument bus and radiator wings.'],
+ ['palisade','Palisade Watch','Outpost','A mobile survey station rides on paired crawler tracks under a white radome.'],
+ ['blackwell','Blackwell Tidal Station','Research station','Twin measurement arches frame a low wave basin and a sheltered instrument deck.']
+].map(([id,name,type,habit])=>({id,name,type,habit,role:type,angle:32}));
+function architecturalKit(){
+ const parts=[];const put=(name,kind,color,pos,size,rotation=[0,0,0],extra={})=>{parts.push({name,kind,color,pos,size,rotation,...extra});};
+ const box=(n,c,p,d,r=[0,0,0])=>put(n,'box',c,p,d,r);
+ const ball=(n,c,p,d)=>put(n,'sphere',c,p,d);
+ const cyl=(n,c,p,rad,h,top=rad,nside=24,rot=[0,0,0])=>put(n,'cylinder',c,p,[1,1,1],rot,{radius:rad,top,height:h,segments:nside});
+ const bar=(n,c,a,b,r,t=r,nside=12)=>put(n,'beam',c,a,[1,1,1],[0,0,0],{end:b,radius:r,top:t,segments:nside});
+ const ring=(n,c,p,r,t,rot=[0,0,0],scale=[1,1,1])=>put(n,'torus',c,p,scale,rot,{radius:r,minor:t});
+ function deck(x,z,w,d,y=.21,c=slate){box('Structural deck',c,[x,y,z],[w,.24,d]);}
+ function hab(x,y,z,w,h,d,c=cream){box('Habitat pressure shell',c,[x,y+h/2,z],[w,h,d]);box('Roof slab',slate,[x,y+h+.045,z],[w+.13,.10,d+.12]);
+   const ws=Math.max(2,Math.round(w/.65));for(let i=0;i<ws;i++)box('Forward window',glass,[x-w*.35+i*w*.70/(ws-1),y+h*.60,z+d*.5+.018],[Math.min(.36,w*.20),h*.22,.037]);}
+ function hatch(x,y,z){box('Airlock surround',steel,[x,y+.28,z],[.43,.56,.10]);box('Sealed door',coal,[x,y+.27,z+.059],[.30,.45,.032]);box('Door light',lit,[x,y+.48,z+.08],[.17,.038,.025]);}
+ function mast(x,y,z,h=1.4){bar('Antenna mast',steel,[x,y,z],[x,y+h,z],.045,.015);for(let j=0;j<3;j++)bar('Antenna crossbar',cream,[x-.17+j*.033,y+h*(.67+j*.13),z],[x+.17-j*.033,y+h*(.67+j*.13),z],.014);ball('Beacon light','#ecad73',[x,y+h+.02,z],[.044,.044,.044]);}
+ function pad(x,z,r,c=steel,y=.28){cyl('Landing apron',c,[x,y,z],r,.15,r,12);ring('Pad marking',cream,[x,y+.078,z],r*.75,.023,[pi/2,0,0]);}
+ function tanks(x,y,z,n,c=steel){for(let i=0;i<n;i++){let xx=x+i*.37;cyl('Storage vessel',c,[xx,y+.32,z],.155,.64);ball('Tank crown',c,[xx,y+.63,z],[.152,.07,.152]);ring('Tank band',brass,[xx,y+.38,z],.154,.012,[pi/2,0,0]);}}
+ function panel(x,y,z,w,d,tilt=-.25,c='#4e6d88'){const cp=Math.cos(tilt),sp=Math.sin(tilt);box('Panel backing',steel,[x,y,z],[w,.07,d],[tilt,0,0]);for(let i=0;i<4;i++)for(let j=0;j<2;j++){const dx=(i-1.5)*w/4,dz=(j-.5)*d/2;box('Collector cell',c,[x+dx,y-dz*sp+.052*cp,z+dz*cp+.052*sp],[w*.22,.023,d*.42],[tilt,0,0]);}}
+ function dish(x,y,z,r,yaw=0){bar('Dish pedestal',steel,[x,.23,z],[x,y,z],r*.15,r*.09);const C=[x,y+.16,z],axis=[Math.sin(yaw)*.70,.71,Math.cos(yaw)*.70],u=[Math.cos(yaw),0,-Math.sin(yaw)],v=[-Math.sin(yaw)*.71,.70,-Math.cos(yaw)*.71];
+   const pt=(scale,a,offset)=>C.map((n,k)=>n+scale*r*(Math.cos(a)*u[k]+Math.sin(a)*v[k])+axis[k]*offset*r);
+   for(let j=0;j<12;j++){let a=j*tau/12,b=(j+1)*tau/12;bar('Dish rim',cream,pt(1,a,.28),pt(1,b,.28),.026);bar('Parabolic spoke',light,pt(.08,a,0),pt(.55,a,.07),.019);bar('Parabolic spoke',light,pt(.55,a,.07),pt(1,a,.28),.015);bar('Dish inner lattice',steel,pt(.55,a,.07),pt(.55,b,.07),.012);if(j%4===0)bar('Focus brace',brass,pt(.86,a,.20),pt(0,a,.72),.017);}ball('Receiver',brass,pt(0,0,.73),[.062,.068,.063]);}
+ function ground(c='#a89983',r=2.9){cyl('Terrain cutaway',c,[0,-.04,0],r,.33,r*.98,10);cyl('Substrate',slate,[0,-.235,0],r*.99,.09,r*.99,10);}
+ function dome(x,y,z,r,c=glass){put('Geodesic dome','dome',c,[x,y,z],[r,r*.83,r]);ring('Dome sill',cream,[x,y,z],r,.045,[pi/2,0,0]);
+ for(let j=0;j<8;j++){let a=j*tau/8;for(let k=0;k<5;k++){let t=k*pi/10,e=(k+1)*pi/10;bar('Meridian rib',cream,[x+r*Math.cos(t)*Math.cos(a),y+r*.83*Math.sin(t),z+r*Math.cos(t)*Math.sin(a)],[x+r*Math.cos(e)*Math.cos(a),y+r*.83*Math.sin(e),z+r*Math.cos(e)*Math.sin(a)],.019);}}}
+ return {parts,box,ball,cyl,bar,ring,deck,hab,hatch,mast,pad,tanks,panel,dish,ground,dome};
+}
+function layout(id){
+ const k=architecturalKit(),{box,ball,cyl,bar,ring,deck,hab,hatch,mast,pad,tanks,panel,dish,ground,dome}=k;
+ switch(id){
+ case 'brineglass':ground('#65918c');for(const [x,z,r] of [[0,0,.76],[-1.31,.45,.49],[1.26,-.29,.50]]){cyl('Pressure foot',steel,[x,.34,z],r*.61,.45);ball('Pressure sphere',navy,[x,.84,z],[r,r,r]);ring('Forward porthole',brass,[x,.90,z+r*.91],r*.38,.047);ball('Porthole glass',glass,[x,.90,z+r*.96],[r*.32,r*.32,.04]);}
+ bar('Transfer lock',cream,[-1.30,.75,.45],[1.26,.75,-.29],.205);pad(.56,1.50,.53);tanks(-.75,.15,-.82,3);mast(.22,1.36,0,1.00);break;
+ case 'rookfall':ground('#c5d8d9');deck(0,0,3.7,1.75,.18);for(const d of [-1,1]){box('Snow berm','#c6d7d8',[d*1.33,.50,-.16],[.84,.69,1.85],[0,0,-d*.23]);hab(d*.93,.26,-.42,1.17,.60,.92,light);}box('Bunker roof',cream,[0,.84,-.30],[2.32,.22,1.6]);for(let j=0;j<4;j++){box('Tunnel arch top',j%2?steel:light,[0,.71,.39+j*.26],[.90,.16,.10]);for(const d of [-1,1])box('Tunnel wall',slate,[d*.40,.45,.39+j*.26],[.10,.50,.13]);}hatch(0,.20,.34);mast(-1.48,.8,-.29,1.20);dish(1.47,1.13,-.55,.42,.48);break;
+ case 'meridian':ground('#a89881');hab(0,.17,-.27,1.52,.47,.75,cream);dish(-1.52,.74,.30,.68,-.75);dish(.09,1.05,-.55,.88,.22);dish(1.63,.65,.38,.59,.71);hatch(.07,.15,.14);box('Service walkway',slate,[0,.18,1.0],[2.78,.09,.36]);tanks(-.52,.15,-1.25,3);break;
+ case 'kestrel':ring('Rotating habitat rim',cream,[0,1.57,0],1.25,.16,[pi/2,0,0]);ring('Outer docking lane',slate,[0,1.57,0],1.42,.047,[pi/2,0,0]);for(let j=0;j<8;j++){let a=tau*j/8;bar('Spoke truss',light,[0,1.57,0],[Math.cos(a)*1.22,1.57,Math.sin(a)*1.22],.056);box('Habitat segment',navy,[Math.cos(a)*1.25,1.61,Math.sin(a)*1.25],[.22,.22,.34],[0,-a,0]);}cyl('Axial spindle',slate,[0,1.38,0],.22,2.18,.18);cyl('Arrival collar',brass,[0,2.45,0],.34,.17);bar('Solar spar',steel,[-1.27,.49,0],[1.27,.49,0],.045);for(const d of [-1,1])panel(d*.90,.50,0,1.0,.65);break;
+ case 'emberstep':ground('#ba8763');for(let j=0;j<3;j++){box('Condenser terrace',j%2?'#af7e5a':'#c39b6a',[0,.39+j*.43,0],[3.4-j*.73,.47,2.18-j*.43]);}for(const x of [-1.27,1.27])for(const z of [-.66,.66]){cyl('Wind scoop',rust,[x,1.00,z],.18,1.27,.27,8);box('Intake slit',coal,[x,1.47,z+.215],[.27,.13,.08]);}hatch(0,.16,1.09);mast(.4,1.52,-.11,.65);break;
+ case 'mossward':ground('#758f75');cyl('Greenhouse foundation',slate,[-.53,.28,.04],1.17,.27,1.17,16);dome(-.53,.42,.04,1.17,'#8bbbae');for(let i=0;i<7;i++){const a=i*tau/7;ball('Canopy crown','#627d59',[-.53+.74*Math.cos(a),.45,.04+.74*Math.sin(a)],[.22,.12,.22]);}hab(1.27,.18,-.30,1.06,.68,1.13,cream);bar('Seed lock',light,[.44,.53,-.05],[1.13,.53,-.29],.19);hatch(1.27,.17,.28);panel(1.53,.70,1.18,.86,.58);break;
+ case 'faraday':ground('#516f79');for(const [x,z] of [[0,0],[1.22,0],[-1.22,0],[0,1.12],[0,-1.12]]){for(const d of [-1,1])bar('Stilt',steel,[x+d*.28,.11,z],[x+d*.28,.88,z],.06);hab(x,.82,z,.91,.50,.77,light);if(x||z)bar('Covered gangway',navy,[0,1.02,0],[x,1.02,z],.15);}dome(0,1.44,0,.37);mast(-1.27,1.45,-.05,.65);break;
+ case 'anchor':for(const [x,y,z,a,b,c] of [[0,.1,0,1.56,.84,1.03],[-.86,.22,.37,.90,.57,.67],[.97,.13,-.44,.91,.73,.74]]){k.parts.push({name:'Rock face',kind:'rock',color:'#776c70',pos:[x,y,z],size:[a,b,c],rotation:[.1,y,.2]});}deck(0,0,2.39,1.12,1.02);hab(-.59,1.12,0,.92,.48,.74,cream);for(const d of [-1,1])bar('Crane leg',rust,[.43+d*.27,1.11,-.10],[.43+d*.15,2.25,-.10],.065);bar('Boom',rust,[.3,2.24,-.10],[1.68,2.49,.05],.075);bar('Hoist line',coal,[1.55,2.45,.03],[1.55,1.44,.03],.013);cyl('Ore hopper',brass,[1.03,1.32,.06],.15,.44,.35,8);break;
+ case 'tidecomb':ground('#59867e');for(const [x,z,h] of [[-.9,.1,1.25],[0,-.46,1.79],[.92,.18,1.02]]){bar('Umbilical',light,[x*.5,.16,z*.4],[x,h-.19,z],.095,.075);ball('Nursery pod',cream,[x,h,z],[.40,.54,.36]);ball('Observation blister',glass,[x,h+.04,z+.27],[.30,.33,.14]);ring('Pod collar',brass,[x,h-.24,z],.31,.031,[pi/2,0,0]);}hab(0,.18,.70,.77,.35,.52,navy);for(const d of [-1,1])bar('Snorkel',rust,[d*.52,.26,-.25],[d*.60,2.05,-.28],.026,.018);break;
+ case 'lumenvault':ground('#87918b');ball('Archive monolith',coal,[0,1.25,-.22],[1.18,1.19,.47]);box('Entrance slit',lit,[0,.95,.237],[.083,.92,.054]);deck(0,1.13,.65,1.55,.21,steel);for(const d of [-1,1])for(let j=0;j<3;j++){cyl('Path sensor',slate,[d*.48,.37,.64+j*.4],.047,.41);ball('Marker lamp',brass,[d*.48,.59,.64+j*.4],[.055,.055,.055]);}hab(-1.48,.18,-.38,.57,.31,.51,light);break;
+ case 'windharp':ground('#9caa8c');hab(-.34,.18,-.20,1.85,.65,1.18,cream);for(const d of [-1,1])box('Folded hangar roof',rust,[-.34+d*.48,.96,-.20],[1.05,.11,1.38],[0,0,-d*.25]);box('Hangar opening',coal,[-.34,.49,.398],[1.0,.53,.055]);for(const [x,z] of [[-1.49,.36],[1.37,-.34]]){bar('Turbine tower',slate,[x,.19,z],[x,1.47,z],.065,.042);for(let j=0;j<3;j++){let a=j*tau/3+.32;bar('Turbine blade',cream,[x,1.47,z+.09],[x+Math.sin(a)*.55,1.47+Math.cos(a)*.55,z+.07],.061,.009);}ball('Rotor hub',brass,[x,1.47,z+.1],[.073,.073,.056]);}break;
+ case 'frostline':ground('#b9d2d3');for(const d of [-1,1]){hab(d*1.29,.18,-.1,.89,.53,.81,rust);hatch(d*1.26,.18,.31);}for(const x of [-.39,.39])for(const z of [-.34,.34])bar('Derrick leg',slate,[x,.16,z],[x*.44,2.06,z*.44],.054,.035);
+ for(let j=0;j<4;j++){let y=.36+j*.37,w=.38-j*.047;bar('Cross brace',brass,[-w,y,w],[w-.04,y+.35,w-.04],.027);bar('Cross brace',steel,[w,y,w],[-w+.04,y+.35,w-.04],.022);}cyl('Core barrel',steel,[0,.91,0],.082,1.46);box('Hoist hood',rust,[0,2.09,0],[.54,.19,.50]);tanks(-.53,.16,1.05,3);break;
+ case 'lanternshoal':ground('#669296');for(const [x,z,r] of [[0,-.36,.74],[-1.19,.60,.57],[1.15,.58,.54]]){cyl('Buoyant hull',rust,[x,.28,z],r,.26,r*.91,12);cyl('Pontoon deck',light,[x,.43,z],r,.068,r,12);if(x)hab(x,.48,z,.65,.47,.54,cream);else{cyl('Beacon tower',navy,[x,.97,z],.22,1.04,.17);cyl('Fresnel lantern',lit,[x,1.61,z],.19,.26);cyl('Beacon cap',brass,[x,1.77,z],.26,.09,.13);}}for(const d of [-1,1])bar('Pontoon bridge',wood,[d*.43,.44,-.07],[d*.95,.44,.51],.100);break;
+ case 'saffron':ground('#9d8b79');hab(-.50,.16,-.12,1.70,.61,1.33,slate);for(const [x,z,h,r] of [[-.93,-.39,1.73,.19],[-.23,-.43,2.04,.15],[.55,-.39,1.56,.23]]){cyl('Heat chimney',rust,[x,.18+h*.5,z],r,h,r*.83,16);for(let j=0;j<3;j++)cyl('Chimney band',cream,[x,h*.72+j*.13,z],r*.91,.06,r*.91,16);}
+ for(let i=0;i<3;i++){bar('Transfer pipe',brass,[-.94,.80+i*.10,.65],[.90,.80+i*.10,.65],.032);bar('Downcomer',brass,[.9,.80+i*.10,.65],[.9,.24,.65+i*.085],.032);}tanks(.88,.16,-.39,3);hatch(-.48,.16,.55);break;
+ case 'triune':ground('#a89d87');cyl('Excavation lip',slate,[0,.18,0],1.05,.15,1.05,12);cyl('Excavation floor',coal,[0,.26,0],.86,.028,.86,12);
+ for(let j=0;j<3;j++){let a=j*tau/3+.3;bar('Sloping pylon',cream,[1.34*Math.cos(a),.16,1.34*Math.sin(a)],[.73*Math.cos(a),1.76,.73*Math.sin(a)],.199,.105,5);}ring('Instrument ring',brass,[0,1.76,0],.76,.091,[pi/2,0,0]);ring('Readout track',navy,[0,1.85,0],.73,.033,[pi/2,0,0]);hab(1.39,.16,.86,.63,.38,.52);break;
+ case 'redkite':ground('#b57f62');for(const [x,z] of [[-.78,-.28],[.39,-.42]]){cyl('Pressure tent',cream,[x,.55,z],.40,.84,.40,24,[pi/2,0,0]);for(const zz of [-.33,0,.33])ring('Restraint hoop',rust,[x,.55,z+zz],.405,.026);hatch(x,.24,z+.431);}bar('Pressure link',light,[-.64,.52,-.36],[.39,.52,-.36],.15);for(let i=0;i<3;i++){panel(-.85+i*.73,.53,1.15,.66,.75);bar('Panel support',steel,[-.85+i*.73,.16,1.15],[-.85+i*.73,.52,1.15],.027);}mast(1.41,.16,-.18,1.37);break;
+ case 'cairnrelay':for(const d of [-1,1]){cyl('Isolated mesa','#92897e',[d*1.04,.24,0],.87,.88,.74,7);deck(d*1.04,0,1.04,.89,.72);hab(d*1.04,.82,0,.70,.52,.61,navy);for(let j=0;j<3;j++){let x=d*1.04+(j-1)*.16;box('Relay fin',j%2?brass:cream,[x,1.57+j*.10,0],[.11,.83+j*.15,.30],[0,0,d*.14]);}}box('Service bridge',steel,[0,.84,.12],[1.70,.12,.38]);for(const z of [-.05,.29])bar('Bridge rail',brass,[-.76,1.00,z],[.76,1.0,z],.02);break;
+ case 'heliograph':cyl('Instrument bus',slate,[0,.74,0],.37,1.24,.31,8);for(const [x,z] of [[0,0],[.65,0],[-.65,0],[.325,.56],[-.325,.56],[.325,-.56],[-.325,-.56]])cyl('Hexagonal sun reflector',brass,[x,1.54,z],.365,.075,.365,6,[0,pi/6,0]);for(const d of [-1,1]){bar('Radiator boom',light,[0,.48,0],[d*1.50,.48,0],.055);panel(d*1.17,.48,0,1.02,.72,0,navy);}dish(0,.30,.30,.32,.75);break;
+ case 'palisade':ground('#9a9999');for(const d of [-1,1]){box('Crawler track',coal,[d*.63,.40,.02],[.42,.46,1.72]);for(let j=0;j<6;j++)box('Track shoe',steel,[d*.63,.19,-.68+j*.27],[.46,.095,.093]);}
+ hab(0,.65,-.07,1.68,.70,1.40,light);box('Bridge window',glass,[0,1.16,.651],[1.15,.19,.044]);dome(-.30,1.45,-.12,.47,cream);mast(.59,1.45,-.42,1.03);hatch(.59,.66,.65);break;
+ case 'blackwell':ground('#708389');deck(0,0,3.38,1.91,.28);box('Tidal basin',glass,[0,.415,.15],[1.82,.03,1.48]);for(const x of [-.90,.9]){for(let j=0;j<12;j++){let a=pi*j/12,b=pi*(j+1)/12;bar('Wave gauge arch',cream,[x,.43+.95*Math.sin(a),Math.cos(a)*.82],[x,.43+.95*Math.sin(b),Math.cos(b)*.82],.065);}bar('Gauge staff',brass,[x,.42,.05],[x,1.37,.05],.021);}
+ hab(0,.48,-1.05,1.87,.56,.68,navy);mast(.58,1.12,-1.09,.49);break;
+ default:throw Error('Unknown station '+id);
+ }return k.parts;
+}
+function buildStation(id){
+ const info=stations.find(s=>s.id===id);if(!info)throw new Error(id);const root=new THREE.Group();root.name=info.name;
+ const mats=new Map(),geos=new Map(),up=new THREE.Vector3(0,1,0);
+ for(const part of layout(id)){
+  const {name,kind,color,pos,size,rotation}=part;
+  if(!mats.has(color))mats.set(color,new THREE.MeshStandardMaterial({color,metalness:.21,roughness:.55,name:color}));
+  const dims=kind==='beam'?new THREE.Vector3(...part.end).sub(new THREE.Vector3(...pos)):null;
+  const key=JSON.stringify([kind,kind==='box'?size:null,part.radius,part.top,part.height,dims?.length(),part.minor,part.segments]);
+  if(!geos.has(key)){let g;switch(kind){
+   case 'box':g=new RoundedBoxGeometry(...size,1,Math.min(.034,...size.map(x=>x*.13)));break;
+   case 'sphere':g=new THREE.SphereGeometry(1,24,16);break;
+   case 'rock':g=new THREE.IcosahedronGeometry(1,0);break;
+   case 'dome':g=new THREE.SphereGeometry(1,24,12,0,Math.PI*2,0,Math.PI/2);break;
+   case 'torus':g=new THREE.TorusGeometry(part.radius,part.minor,8,40);break;
+   default:g=new THREE.CylinderGeometry(part.top,part.radius,dims?dims.length():part.height,part.segments);break;
+  }geos.set(key,g);}
+  const m=new THREE.Mesh(geos.get(key),mats.get(color));m.name=name;m.position.fromArray(pos);m.rotation.set(...rotation);
+  if(kind!=='box')m.scale.fromArray(size);
+  if(dims){m.position.addScaledVector(dims,.5);m.quaternion.setFromUnitVectors(up,dims.normalize());}m.castShadow=m.receiveShadow=true;root.add(m);
+ }
+ root.userData={id,type:info.type};return root;
+}
+return {stations,buildStation};})();
 'use strict';
 /* ===================== DATA ===================== */
 const SPECIES = {
@@ -4002,6 +4921,8 @@ const Cine = {
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
     Crowd.build(scn,P,cloud,PADS,hAt,S.liquid?liq:null);
+    ResidentDistrict.populate(P,Venues.list);
+    PortSites.populate(P,Venues.list,hAt,cloud,S.liquid?liq:null);
     this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
   },
   /* a research station's docking deck: a big round metal deck with lamps around its rim, open to space. The station's
@@ -4039,6 +4960,7 @@ const Cine = {
     s.beacon.visible=(t%1.6)<0.25;
     const ft=(t*0.02)%1; s.flyby.position.set(-2600+ft*5200,520+Math.sin(ft*6)*60,-1700); s.flyby.rotation.y=-Math.PI/2; Models.animate(s.flyby,0.8,t);
     Crowd.update(dt,t);
+    ResidentDistrict.update(this.cam);
     s.dustMat.opacity=s.dustI*0.42;
     if(s.dustI>0.01){ for(let i=0;i<s.dn;i++){ const a=s.dseed[i*3], ph=(s.dseed[i*3+1]+t*(0.35+s.dseed[i*3+2]*0.35))%1, r=8+ph*95; s.dp[i*3]=Math.cos(a+ph*0.8)*r; s.dp[i*3+1]=0.5+ph*ph*22*s.dseed[i*3+2]; s.dp[i*3+2]=Math.sin(a+ph*0.8)*r; } s.dust.geometry.attributes.position.needsUpdate=true; }
   },
@@ -4086,7 +5008,7 @@ const Cine = {
   /* the part of the screen not covered by the port panel */
   /* the shopkeeper's speech bubble rides above their head, kept clear of the panel and the top of the screen */
   placeBubble(V){ const b=$('bubble'); if(!b) return; if(G.mode!=='port') $('shelf-tip').hidden=true;
-    const show=G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
+    const show=UI.tab!=='residents'&&UI.tab!=='stations'&&G.mode==='port'&&this.mode==='port'&&V&&V.keeper&&UI.bubble&&!Venues.moving&&!this.xf&&!(this.preview&&V.show)&&this.fade<0.3&&!$('port').hidden;
     if(!show){ if(!b.hidden) b.hidden=true; return; } const p=new V3(); V.keeper.userData.head.getWorldPosition(p); p.y+=1.0; const v=p.project(this.cam);
     if(v.z>1||v.x<-1.2||v.x>1.2||v.y<-1.2||v.y>1.4){ b.hidden=true; return; } b.hidden=false;
     const W=World.w, H=World.h, pr=$('port').getBoundingClientRect(), bw=b.offsetWidth, bh=b.offsetHeight, side=pr.height<H*0.9?0:pr.right;
@@ -4125,10 +5047,11 @@ const Cine = {
       Models.animate(m,0,time);
       // going to another shop (or to the showroom pad and back) is a quick fade to black and back, not a flight across the port:
       // the old view holds while the screen darkens, the camera cuts at black, and the new view fades in
-      const Vc=Venues.current(), key=Vc?Vc.k+(this.preview&&Vc.show?':show':''):'';
+      const meeting=UI.tab==='residents'&&ResidentDistrict.selected,site=UI.tab==='stations'&&PortSites.selected;
+      const Vc=Venues.current(), key=site?'site:'+site.id:meeting?'resident:'+meeting.person.id:Vc?Vc.k+(this.preview&&Vc.show?':show':''):'';
       if(Vc&&this.camP&&!this.camInit&&key!==this.camKey){ if(!this.xf||this.xf.cut) this.xf={t:this.xf?Math.min(0.3,this.fade*0.3):0,key}; else this.xf.key=key; this.fadeCol.setRGB(0,0,0); }
       Venues.moving=!!(this.xf&&!this.xf.cut); Venues.update(dt,time); const V=Venues.active, reg=this.region();
-      if(V){ const tg=Venues.cam(V,reg.w/reg.h,!!this.preview&&!!V.show);
+      if(V){ const tg=site?PortSites.camera(reg.w/reg.h):meeting?ResidentDistrict.camera(reg.w/reg.h):Venues.cam(V,reg.w/reg.h,!!this.preview&&!!V.show);
         if(this.camInit||!this.camP){ this.camInit=false; this.camP=tg.pos.clone(); this.camL=tg.look.clone(); this.camKey=key; this.fadeCol.setRGB(0,0,0); this.fade=1; }
         const x=this.xf; if(x){ x.t+=dt; if(x.t>=0.3&&!x.cut){ x.cut=true; this.camP.copy(tg.pos); this.camL.copy(tg.look); this.camKey=x.key; } }
         if(!x||x.cut){ const k=1-Math.exp(-dt*6); this.camP.lerp(tg.pos,k); this.camL.lerp(tg.look,k); }
@@ -5198,7 +6121,7 @@ const Venues = (() => {
       return this.list;
     },
     restart(V, t0){ clearFx(V); V.fired={}; V.squash=0; V.flyer=null; V.t=t0||0; V.ok=Math.random()<0.38; for(const F of [V.A,V.B]){ Folk.rest(F); F.position.y=0; } V.gag.reset(V); },
-    current(){ if(G.mode!=='port'||!this.list.length) return null; const k=UI.tab; return this.list.find(v=>v.k===k)||this.list[0]; },
+    current(){ if(G.mode!=='port'||!this.list.length) return null; const k=UI.tab; if(k==='stations'&&PortSites.selected)return PortSites.selected.venue; if(k==='residents'&&ResidentDistrict.selected)return ResidentDistrict.selected.venue; return this.list.find(v=>v.k===k)||this.list[0]; },
     keeperHeadY(V){ const U=V.keeper.userData; return (U.head.position.y+0.62)*1.4; },
     react(kind, delay){ const V=this.current(); if(!V) return; setTimeout(()=>{ V.kr={kind,t:0};
         if(kind==='facepalm'){ Folk.mood(V.keeper,'sad'); Folk.mood(V.A,'shock'); Folk.mood(V.B,'worried'); } else { Folk.mood(V.keeper,'happy'); Folk.mood(V.A,'happy'); Folk.mood(V.B,'happy'); } },(delay||0)*1000); },
@@ -5628,6 +6551,128 @@ const GoodsArt = (() => {
   function crate(g, shady){ R(g,0.5,0.46,0.42,0.04,P(shady?'#5d6455':'#b9823f',{roughness:0.8,clearcoat:0}),0,0.23,0); label(g,shady?'NOTHING':'GOODS',0.36,0.1,0,0.26,0.215,shady?'#2c3028':'#e8d8b0',shady?'#f4f1e4':'#2a1a0c');
     if(shady){ const s=label(g,'?',0.12,0.12,0.16,0.4,0.215,'#2c3028','#ffd23f'); } }
   return { build(name, shady){ const g=new THREE.Group(); (ART[name]&&!shady?ART[name]:gg=>crate(gg,shady))(g); g.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; }); return g; }, has:n=>!!ART[n] };
+})();
+/* The full-resolution masters are in assets/characters. Port residents use one
+   merged vertex-coloured mesh each, built on approach and shared by family. */
+const ResidentDistrict=(()=>{
+  const {cast,residents,buildCharacter}=ResidentModels,designs=new Map(cast.map(c=>[c.id,c]));
+  let entries=[],selected=null,world=null;
+  // A few residents are posted to the far research stations. Their homeworld stays the same (saves and the
+  // roster key on it), but they're met at their posting instead of at home.
+  const postings={
+    'Listening Post Hush':['relay-01','hush-01','lyre-01','nacre-01','tacca-01'],
+    'Cryo Vault Rimeholm':['marlo-01','sova-01','iris-01','plume-01','fathom-01'],
+    'Calibration Spire':['parallax-01','orlo-01','cairn-01','tempo-01','mica-01'],
+    'Beacon Far Wink':['wick-01','glint-01','caelo-01','pinion-01','spool-01']};
+  const posted=new Set(Object.values(postings).flat());
+  const here=name=>postings[name]?residents.filter(r=>postings[name].includes(r.id)):residents.filter(r=>r.home===name&&!posted.has(r.id));
+  const templates=new Map(),sceneMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.65,metalness:.17});
+  function compile(id){
+    if(templates.has(id))return templates.get(id);
+    const root=buildCharacter(id),pos=[],norm=[],cols=[],weights=[],indices=[],v=new THREE.Vector3(),nm=new THREE.Matrix3();root.updateMatrixWorld(true);
+    const box=new THREE.Box3().setFromObject(root),extent=box.getSize(new THREE.Vector3()),fit=Math.min(1.95/extent.y,1.7/extent.x,1.6/extent.z);
+    root.traverse(o=>{
+      if(!o.isMesh)return;const g=o.geometry,a=g.attributes.position,n=g.attributes.normal,vc=g.attributes.color,first=pos.length/3;
+      const base=o.material.color.clone(),hsl={};base.getHSL(hsl);const weight=hsl.s<.14?.035:o.material.metalness>.23?.175:.115;
+      nm.getNormalMatrix(o.matrixWorld);
+      for(let i=0;i<a.count;i++){
+        v.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld).multiplyScalar(fit);pos.push(v.x,v.y,v.z);
+        v.fromBufferAttribute(n,i).applyMatrix3(nm).normalize();norm.push(v.x,v.y,v.z);
+        cols.push(base.r*(vc?vc.getX(i):1),base.g*(vc?vc.getY(i):1),base.b*(vc?vc.getZ(i):1));weights.push(weight);
+      }
+      if(g.index){for(let i=0;i<g.index.count;i++)indices.push(first+g.index.getX(i));}
+      else for(let i=0;i<a.count;i++)indices.push(first+i);
+    });
+    const compact=new THREE.BufferGeometry();compact.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));compact.setAttribute('normal',new THREE.Float32BufferAttribute(norm,3));compact.setIndex(indices);compact.computeBoundingSphere();
+    const t={geometry:compact,colors:new Float32Array(cols),weights:new Float32Array(weights),height:extent.y*fit};
+    templates.set(id,t);return t;
+  }
+  function materialize(e){
+    if(e.mesh)return;const t=compile(e.person.base),p=e.person,g=new THREE.BufferGeometry(),source=t.geometry;
+    g.setAttribute('position',source.attributes.position);g.setAttribute('normal',source.attributes.normal);g.setIndex(source.index);g.boundingSphere=source.boundingSphere;
+    const values=t.colors.slice(),col=new THREE.Color(),tint=new THREE.Color(p.accent);
+    for(let i=0;i<t.weights.length;i++){const j=i*3;col.fromArray(values,j).lerp(tint,t.weights[i]).convertSRGBToLinear();col.toArray(values,j);}
+    g.setAttribute('color',new THREE.BufferAttribute(values,3));const m=new THREE.Mesh(g,sceneMaterial);
+    m.scale.set(p.width,p.height,1/p.width);m.name=p.name;m.userData.residentId=p.id;m.receiveShadow=true;m.castShadow=true;e.anchor.add(m);e.mesh=m;e.height=t.height*p.height;
+  }
+  function populate(P,venues){
+    entries=[];selected=null;world=P.name;templates.clear();const locals=here(world);
+    for(const [i,person] of locals.entries()){
+      const venue=venues[i%venues.length],place=Math.floor(i/venues.length),col=place%5,row=Math.floor(place/5);
+      // The public promenade is on the front half of the venue's 30 m terrace.
+      const anchor=new THREE.Group();anchor.name=person.name;anchor.position.set((col-2)*2.6+(row%2)*.6,.01,12+row*2.25);
+      anchor.rotation.y=(col-2)*-.075+(row%2?.14:-.14);venue.root.add(anchor);entries.push({person,venue,anchor,mesh:null,height:1.6});
+    }
+  }
+  const pos=new THREE.Vector3();
+  const selPos=new THREE.Vector3();
+  function update(camera){
+    // while meeting someone, neighbours standing between them and the camera step out of shot
+    const meet=selected&&UI.tab==='residents'?selected:null;let selDist=0;
+    if(meet){meet.anchor.getWorldPosition(selPos);selDist=selPos.distanceTo(camera.position);}
+    for(const e of entries){if(!e.venue.root.visible)continue;e.anchor.getWorldPosition(pos);let near=pos.distanceToSquared(camera.position)<26*26||e===selected;
+      if(near&&!e.mesh)materialize(e);
+      if(near&&meet&&e!==meet&&pos.distanceTo(selPos)<6&&pos.distanceTo(camera.position)<selDist+0.6)near=false;
+      if(e.mesh)e.mesh.visible=near;}
+  }
+  function choose(id){const e=entries.find(item=>item.person.id===id);if(!e)return;selected=e;materialize(e);}
+  function camera(aspect){
+    if(!selected)return null;const e=selected,h=e.height,point=e.anchor.localToWorld(new THREE.Vector3(0,h*.49,0));
+    const from=e.anchor.localToWorld(new THREE.Vector3(1.45,1.10+h*.42,3.35));const distance=Math.max(1,1/aspect);from.sub(point).multiplyScalar(distance).add(point);
+    return {pos:from,look:point,fov:36};
+  }
+  function panel(body){
+    if(!entries.length){body.textContent='No residents are on this manifest.';return;}
+    if(!selected)choose(entries[0].person.id);
+    const e=selected,r=e.person,model=designs.get(r.base);
+    const title=document.createElement('h3');title.textContent=world+(postings[world]?' staff':' residents');body.append(title);
+    const label=document.createElement('label');label.textContent='Meet a resident ';const select=document.createElement('select');select.style.maxWidth='100%';
+    for(const person of entries.map(x=>x.person).sort((a,b)=>a.name.localeCompare(b.name))){const o=document.createElement('option');o.value=person.id;o.textContent=person.name;select.append(o);}
+    select.value=r.id;select.onchange=()=>{choose(select.value);UI.render();};label.append(select);body.append(label);
+    const details=document.createElement('div');details.className='note';const who=document.createElement('strong');who.textContent=r.name;
+    const text=document.createElement('p');text.textContent=model.role+' · '+model.name;const location=document.createElement('p');location.textContent=e.venue.def.name+' · '+UI.P.port;
+    details.append(who,text,location);body.append(details);
+  }
+  return {populate,update,panel,choose,camera,has:P=>here(P.name).length>0,get selected(){return selected;},get entries(){return entries;}};
+})();
+/* Two or three named facilities per port. The same architectural definitions
+   also build the Blender scenes and the downloadable Three.js gallery. */
+const PortSites=(()=>{
+ const places={
+   Verdanthia:['meridian','windharp'],Scorchmaw:['saffron','anchor'],
+   Dunemoor:['emberstep','triune','redkite'],Sloshwell:['brineglass','tidecomb','blackwell'],
+   Amethyne:['lumenvault','cairnrelay'],Toxibloom:['mossward','faraday'],
+   Candara:['lanternshoal','heliograph'],Jovexa:['kestrel','palisade'],
+   Brrrindle:['rookfall','frostline'],
+   // The four far research stations each keep an annex of a planetside facility, built to the same plans.
+   'Listening Post Hush':['meridian'],'Cryo Vault Rimeholm':['lumenvault'],
+   'Calibration Spire':['heliograph'],'Beacon Far Wink':['kestrel']
+ };
+ const annex={'Listening Post Hush':'Hush','Cryo Vault Rimeholm':'Rimeholm','Calibration Spire':'Spire','Beacon Far Wink':'Far Wink'};
+ // Shown to players: "Research facility", so it isn't confused with the research stations they fly to.
+ const kind=t=>t==='Research station'?'Research facility':t;
+ let entries=[],selected=null;
+ function populate(P,venues,hAt,cloud,liquid){
+   const ids=places[P.name]||[];selected=null;entries=ids.map((id,i)=>{
+     const venue=venues[i%venues.length],group=new THREE.Group();group.name=id;
+     group.position.set(-47,0,38);venue.root.add(group);let baseY=0;
+     if(!cloud&&hAt){const world=group.getWorldPosition(new THREE.Vector3());if(Number.isFinite(world.y)){
+       const peak=Math.max(...[-1,0,1].flatMap(x=>[-1,0,1].map(z=>hAt(world.x+x*12,world.z+z*12))));
+       baseY=Math.max(peak+1,liquid==null?-Infinity:liquid+1)-venue.root.position.y;}}
+     group.position.y=baseY+1.1;
+     const m=StationModels.buildStation(id);m.scale.setScalar(4.2);group.add(m);
+     const footing=new THREE.Mesh(new THREE.CylinderGeometry(13,cloud?7:14,cloud?2:8,12),new THREE.MeshStandardMaterial({color:0x5b6667,roughness:.85}));
+     footing.position.y=cloud?-1.9:-4.9;group.add(footing);
+     const info=StationModels.stations.find(s=>s.id===id);
+     return {id,group,venue,info,name:info.name,annex:annex[P.name]};
+   });
+ }
+ function panel(body){if(!entries.length)return;if(!selected)selected=entries[0];
+  const title=document.createElement('h3');title.textContent=UI.P.port+' landmarks';body.append(title);
+  for(const e of entries){const b=document.createElement('button');b.className='btn';b.textContent=e.name;b.setAttribute('aria-pressed',String(selected===e));b.onclick=()=>{selected=e;UI.render();};body.append(b);}
+  const note=document.createElement('p');note.className='note';note.textContent=(selected.annex?'The '+selected.annex+' annex, built to the same plans as the planetside original. ':'')+kind(selected.info.type)+' · '+selected.info.habit;body.append(note);}
+ function camera(aspect){const g=selected.group;const look=g.localToWorld(new THREE.Vector3(0,3.7,0)),offset=new THREE.Vector3(13,10,19).multiplyScalar(Math.max(1,1/aspect));const pos=g.localToWorld(offset.add(new THREE.Vector3(0,3.7,0)));return {look,pos,fov:50};}
+ return {populate,panel,camera,has:P=>!!(places[P.name]||[]).length,get selected(){return selected;},get entries(){return entries;}};
 })();
 /* ===================== CARGO HOLD, SCOOP, FLOATING CARGO, RADIO CALLS ===================== */
 
@@ -6681,6 +7726,7 @@ const UI = {
     this.P=P; this.arrival=arrival; this.told=null; this.tab='depot'; $('port').hidden=false; $('keys').hidden=true;
     $('port-name').textContent=P.name; $('port-sub').textContent=P.port+' · '+P.desc;
     const tabs=$('port-tabs'); tabs.innerHTML=''; Venues.defs(P).forEach(d=>{ const b=el('button','',VENUE_TABS[d.k]); b.dataset.k=d.k; b.onclick=()=>{ if(this.tab===d.k) return; Sfx.click(); this.tab=d.k; Cine.setPreview(null); this.render(); }; tabs.appendChild(b); });
+    for(const [key,label,mod] of [['residents','Residents',ResidentDistrict],['stations','Landmarks',PortSites]]){if(!mod.has(P))continue;const button=el('button','',key==='residents'&&P.station?'Staff':label);button.dataset.k=key;button.onclick=()=>{Sfx.click();this.tab=key;Cine.setPreview(null);this.render();};tabs.appendChild(button);}
     this.render();
   },
   hidePort(){ $('port').hidden=true; $('bubble').hidden=true; $('shelf-tip').hidden=true; },
@@ -6720,6 +7766,11 @@ const UI = {
     for(const k of ['yard','garage','livery','outfit','assay','bar']){ if(here.includes(k)) continue; const where=PLANETS.filter(Q=>Q!==P&&Venues.has(Q,k)).map(Q=>Q.name); if(where.length) out.push(`<b>${VENUE_TABS[k]}</b>: ${where.join(', ')}`); }
     return `Here at ${esc(P.port)}: ${here.map(k=>VENUE_TABS[k]).join(', ')}.`+(out.length?`<br>Not here. Try: ${out.join(' · ')}.`:''); },
   render(){
+    if(this.tab==='residents'||this.tab==='stations'){
+      const body=$('port-body');body.replaceChildren();this.bubble=null;$('bubble').hidden=true;this.stats();
+      for(const b of $('port-tabs').children)b.classList.toggle('on',b.dataset.k===this.tab);
+      (this.tab==='residents'?ResidentDistrict:PortSites).panel(body);return;
+    }
     const P=this.P, body=$('port-body'), d=SHIPS[G.shipId], v=Venues.def(P,this.tab)||Venues.defs(P)[0]; this.tab=v.k; body.innerHTML=''; this.stats(); let used=0; G.cargo.forEach(c=>used+=c.qty);
     for(const b of $('port-tabs').children) b.classList.toggle('on',b.dataset.k===this.tab);
     const cash=()=>{ Sfx.cash(); Venues.react('cash'); };

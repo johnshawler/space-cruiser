@@ -13,6 +13,7 @@ const UI = {
     this.P=P; this.arrival=arrival; this.told=null; this.tab='depot'; $('port').hidden=false; $('keys').hidden=true;
     $('port-name').textContent=P.name; $('port-sub').textContent=P.port+' · '+P.desc;
     const tabs=$('port-tabs'); tabs.innerHTML=''; Venues.defs(P).forEach(d=>{ const b=el('button','',VENUE_TABS[d.k]); b.dataset.k=d.k; b.onclick=()=>{ if(this.tab===d.k) return; Sfx.click(); this.tab=d.k; Cine.setPreview(null); this.render(); }; tabs.appendChild(b); });
+    for(const [key,label,mod] of [['residents','Residents',ResidentDistrict],['stations','Landmarks',PortSites]]){if(!mod.has(P))continue;const button=el('button','',key==='residents'&&P.station?'Staff':label);button.dataset.k=key;button.onclick=()=>{Sfx.click();this.tab=key;Cine.setPreview(null);this.render();};tabs.appendChild(button);}
     this.render();
   },
   hidePort(){ $('port').hidden=true; $('bubble').hidden=true; $('shelf-tip').hidden=true; },
@@ -52,6 +53,11 @@ const UI = {
     for(const k of ['yard','garage','livery','outfit','assay','bar']){ if(here.includes(k)) continue; const where=PLANETS.filter(Q=>Q!==P&&Venues.has(Q,k)).map(Q=>Q.name); if(where.length) out.push(`<b>${VENUE_TABS[k]}</b>: ${where.join(', ')}`); }
     return `Here at ${esc(P.port)}: ${here.map(k=>VENUE_TABS[k]).join(', ')}.`+(out.length?`<br>Not here. Try: ${out.join(' · ')}.`:''); },
   render(){
+    if(this.tab==='residents'||this.tab==='stations'){
+      const body=$('port-body');body.replaceChildren();this.bubble=null;$('bubble').hidden=true;this.stats();
+      for(const b of $('port-tabs').children)b.classList.toggle('on',b.dataset.k===this.tab);
+      (this.tab==='residents'?ResidentDistrict:PortSites).panel(body);return;
+    }
     const P=this.P, body=$('port-body'), d=SHIPS[G.shipId], v=Venues.def(P,this.tab)||Venues.defs(P)[0]; this.tab=v.k; body.innerHTML=''; this.stats(); let used=0; G.cargo.forEach(c=>used+=c.qty);
     for(const b of $('port-tabs').children) b.classList.toggle('on',b.dataset.k===this.tab);
     const cash=()=>{ Sfx.cash(); Venues.react('cash'); };

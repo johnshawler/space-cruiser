@@ -1,5 +1,6 @@
 #!/bin/bash
 # Bundles src/ into a single self-contained page.
+set -e
 cd "$(dirname "$0")"
 {
   cat src/head.html
@@ -11,6 +12,7 @@ cd "$(dirname "$0")"
   echo '<script>'
   echo 'const SPECIES_EXTRA={};'
   cat src/species/*.js 2>/dev/null
+  sh tools/bundle-residents.sh
   cat src/*.js
   echo '</script>'
 } > long-haul.html
