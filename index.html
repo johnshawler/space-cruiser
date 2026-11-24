@@ -248,9 +248,10 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port-foot{display:flex;flex-direction:column;font-family:var(--mono);font-size:20px;color:var(--dim);letter-spacing:.04em;line-height:1.2}#port-foot .cr{color:var(--cyan);font-weight:400;font-size:30px}
 #port-top-btns{display:flex;gap:8px}#port-top .btn{font-size:20px;padding:10px 14px}#port-top .big{padding:14px 28px}
 /* the signpost: wooden arms pointing left and right off a pole in the scene */
-#port-tabs{position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:grid;grid-template-columns:auto auto;column-gap:14px;row-gap:8px;padding-bottom:4px}
+#port-tabs{position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:grid;grid-template-columns:auto;row-gap:8px;padding-bottom:4px}
 #port .arm{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:#fff4dc;background:#7a5230;border:0;padding:10px 30px 10px 18px;cursor:pointer;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 50%,calc(100% - 20px) 100%,0 100%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);white-space:nowrap}
-#port .arm.l{justify-self:end;padding:10px 18px 10px 30px;clip-path:polygon(20px 0,100% 0,100% 100%,20px 100%,0 50%)}
+#port .arm.r{justify-self:start;margin-left:22px}
+#port .arm.l{justify-self:end;margin-right:22px;padding:10px 18px 10px 30px;clip-path:polygon(20px 0,100% 0,100% 100%,20px 100%,0 50%)}
 #port .arm:hover,#port .arm:focus-visible{background:#9a6a3c}
 #port .arm.on{background:var(--amber);color:#1a1206;cursor:default}
 /* price tags along the counter */
@@ -278,7 +279,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port-card .close{position:absolute;right:6px;top:6px;background:none;border:0;color:var(--dim);font-size:28px;line-height:1;padding:6px 10px;cursor:pointer}
 #port-card .mid{padding-right:34px;display:flex;flex-direction:column;gap:6px}
 #port-card .big{padding:14px 30px}
-@media (max-width:700px){#port-bar{flex-wrap:wrap}#port .sub{display:none}#port-top{flex-wrap:wrap;margin-left:0;flex:1 1 100%}#port-top-btns{margin-left:auto}#port-tabs.dock{width:calc(100vw - 32px);grid-template-columns:1fr 1fr}#port-tabs.dock .arm{font-size:16px;padding:9px 22px 9px 12px}#port-tabs.dock .arm.l{padding:9px 12px 9px 22px}}
+@media (max-width:700px){#port-bar{flex-wrap:wrap}#port .sub{display:none}#port-top{flex-wrap:wrap;margin-left:0;flex:1 1 100%}#port-top-btns{margin-left:auto}#port-tabs.dock{width:calc(100vw - 32px);grid-template-columns:1fr 1fr;column-gap:10px}#port-tabs.dock .arm{margin:0}#port-tabs.dock .arm{font-size:16px;padding:9px 22px 9px 12px}#port-tabs.dock .arm.l{padding:9px 12px 9px 22px}}
 @media (max-width:900px){#port-title{padding:8px 12px}#port h2{font-size:24px}#port .sub{font-size:14px}#port-foot .cr{font-size:22px}#port-foot{font-size:15px}#port-top{gap:8px;padding:8px}#port-top .btn{font-size:16px;padding:8px 10px}#port-top .big{font-size:18px;padding:10px 16px}#port .arm{font-size:17px}#port .card{width:250px}}
 </style>
 <div id="app">
@@ -374,7 +375,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.30</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.31</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -6005,22 +6006,53 @@ const Venues = (() => {
   const once=(V,k)=>{ if(V.fired[k]) return false; V.fired[k]=1; return true; };
   const snd=(V,f)=>{ if(V===api.active&&G.mode==='port'&&!api.moving) f(); };
   const GAGS = {
-    stack:{ dur:12, reset(V){ const {A,B}=V, g=V.g; A.position.set(-3.8,0,-3.6); A.rotation.y=Math.PI/2; B.position.set(3.1,0,-3.4); B.rotation.y=-Math.PI/2; g.crates.forEach(c=>{ c.visible=true; c.scale.setScalar(1); c.rotation.set(0,0,0); }); },
-      update(V,t,dt){ const {A,B}=V, g=V.g, ok=V.ok;
-        if(t<4.6){ const u=E(P_(t,0.4,4.6)); A.position.x=lerp(-3.8,1.2,u); Folk.walk(A,t*9,t>0.4?1:0); Folk.arms(A,[1.35,0.1],[1.35,0.1]); const wob=P_(t,1,4.6)*(ok?0.35:1);
-          g.crates.forEach((c,i)=>{ c.position.set(A.position.x+0.5+Math.sin(t*7+i*0.9)*0.06*i*wob,1.0+i*0.64,-3.6); c.rotation.z=Math.sin(t*7+i)*0.08*i*wob; });
-          Folk.arms(B,null,[0.3,2.3+Math.sin(t*8)*0.4]); }
-        else if(!ok){
-          if(t<5.3){ const k=P_(t,4.6,5.3); g.crates.forEach((c,i)=>{ c.position.x=A.position.x+0.5+Math.sin(t*11+i)*0.22*i*k; c.rotation.z=Math.sin(t*11+i)*0.3*i*k; }); A.userData.rig.rotation.z=Math.sin(t*10)*0.12*k; Folk.walk(A,0,0); }
-          if(t>=5.3&&once(V,'drop')){ g.crates.forEach((c,i)=>{ const p=V.phys.length; toss(V,c,new V3(rnd(1,3.2),rnd(1.5,4),rnd(-0.5,2.4)),new V3(rnd(-6,6),rnd(-3,3),rnd(-6,6)),0.31); V.phys[p].onHit=q=>{ if(q.hit===1&&once(V,'thud'+i)) puff(V,q.o.position.clone().setY(0.1),'#c9b79a',5,1.2,0.18,0.8,{grow:1.6,op:0.6}); }; }); snd(V,()=>Sfx.crash(0.8)); api.react('facepalm',0.3); }
-          if(t>=5.3){ const r=A.userData.rig; r.rotation.z=0; r.rotation.x=t<7.8?-E(P_(t,5.3,5.65))*1.45:-1.45*(1-E(P_(t,7.8,8.6))); r.position.y=t<7.8?-0.1*P_(t,5.3,5.65):0; Folk.arms(A,[t<7.8?2.6:0.2,0.4],[t<7.8?2.6:0.2,0.4]);
-            Folk.arms(B,t<7.6?[2.7,0.3]:[0.2,t<9.4?1.2:0.1],t<7.6?[2.7,0.3]:[0.2,t<9.4?1.2:0.1]); if(t>6&&once(V,'wah')) void 0; }
-        } else {
-          if(t<5.6){ const k=E(P_(t,4.6,5.6)); g.crates.forEach((c,i)=>{ c.position.set(lerp(c.position.x,2.15,k*0.3),lerp(1.0+i*0.64,0.31+i*0.62,k),-3.6); c.rotation.z*=0.9; }); A.userData.rig.position.y=-0.15*Math.sin(k*Math.PI); Folk.walk(A,0,0); }
-          if(t>=5.6&&once(V,'win')){ void 0; api.react('clap',0.2); }
-          if(t>=5.8&&t<7.6){ for(const F of [A,B]){ F.userData.rig.position.y=Math.abs(Math.sin((t-5.8)*7))*0.35; Folk.arms(F,[0.3,2.6],[0.3,2.6]); } } else if(t>=7.6){ A.userData.rig.position.y=B.userData.rig.position.y=0; Folk.arms(B,[0,0],[0,0]); }
-        }
-        if(t>9.4){ A.rotation.y=-Math.PI/2; A.userData.rig.rotation.set(0,0,0); A.position.x=lerp(A.position.x,-3.8,1-Math.exp(-dt*1.6)); Folk.walk(A,t*9,t<11.6?1:0); g.crates.forEach(c=>{ c.scale.setScalar(Math.max(0.001,1-P_(t,9.4,10.2))); }); }
+    /* the depot: A picks up a stack of crates from the pile on the left and carries it through the doorway into the stock
+       room at the back, while B waves them in from beside the door. On a bad day the stack topples halfway: A goes over,
+       gets back up, picks up every box one at a time, restacks them and carries on into the stock room anyway. Then A
+       comes back out for the next lot, which has turned up on the pile in the meantime. */
+    stack:{ dur:120, PILE:[-4.45,-3.6], HOME:[-3.6,-3.6], SPILL:[0.6,-3.6], ROUTE:[[2.8,-5.3],[4.3,-7.0],[4.3,-10.3]], BACK:[[4.3,-7.0],[1.4,-4.6],[-3.6,-3.6]], DROP:[3.4,-10.0],
+      reset(V){ const {A,B}=V, g=V.g, Q=this; A.position.set(Q.HOME[0],0,Q.HOME[1]); A.rotation.y=-Math.PI/2; B.position.set(6.2,0,-6.9); B.rotation.y=-Math.PI/2;
+        g.crates.forEach((c,i)=>{ c.visible=true; c.scale.setScalar(1); c.rotation.set(0,0,0); c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); });
+        g.held=[]; g.st='lift'; g.sT=0; g.wp=0; g.ph=0; g.spilt=false; },
+      update(V,t,dt){ const {A,B}=V, g=V.g, Q=this, U=A.userData, r=U.rig; g.sT+=dt; const s=g.st, T=g.sT;
+        const go=s=>{ g.st=s; g.sT=0; };
+        const face=(x,z,k=6)=>{ const a=Math.atan2(x-A.position.x,z-A.position.z); let d=((a-A.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; A.rotation.y+=Math.sign(d)*Math.min(Math.abs(d),dt*k); return Math.abs(d)<0.08; };
+        const walkTo=(x,z,stop=0)=>{ const dx=x-A.position.x, dz=z-A.position.z, d=Math.hypot(dx,dz); face(x,z); if(d<=stop+0.03){ Folk.walk(A,g.ph,0); return true; }
+          const st=Math.min(d-stop,(g.held.length?1.45:1.8)*dt); A.position.x+=dx/d*st; A.position.z+=dz/d*st; g.ph+=dt*9; Folk.walk(A,g.ph,1); return false; };
+        // the stack rides in A's arms, a little in front, swaying more the higher it gets
+        const carry=(wob=0.25)=>{ const f=new V3(Math.sin(A.rotation.y),0,Math.cos(A.rotation.y)); g.held.forEach((c,i)=>{ const sw=Math.sin(t*7+i*0.9)*0.05*i*wob;
+            c.position.set(A.position.x+f.x*0.55+f.z*sw,1.0+i*0.62,A.position.z+f.z*0.55-f.x*sw); c.rotation.set(0,A.rotation.y,Math.sin(t*7+i)*0.07*i*wob); });
+          if(g.held.length) Folk.arms(A,[1.35,0.1],[1.35,0.1]); };
+        const bend=(u)=>{ r.rotation.x=0.55*Math.sin(Math.PI*u); r.position.y=-0.08*Math.sin(Math.PI*u); };
+        // B by the stock-room door: beckons while A is on the way, hands on head when it all goes over
+        B.rotation.y=Math.atan2(A.position.x-B.position.x,A.position.z-B.position.z);
+        if(s==='spill'||s==='down') Folk.arms(B,[2.7,0.3],[2.7,0.3]); else if(g.held.length&&s!=='gather'&&s!=='pick') Folk.arms(B,null,[0.3,2.3+Math.sin(t*8)*0.4]); else Folk.arms(B,[0.1,0.1],[0.1,0.1]);
+        if(s==='lift'){ face(Q.PILE[0],Q.PILE[1]); const u=P_(T,0,0.9); bend(u); if(T>0.45&&!g.held.length){ g.held=g.crates.slice(); snd(V,()=>Sfx.clunk()); } carry(0); if(T>0.9){ r.rotation.x=0; r.position.y=0; go('out'); } }
+        else if(s==='out'){ // across the back of the shop; on a bad day it all goes over halfway
+          const dest=Q.ROUTE[g.wp]; if(!V.ok&&!g.spilt&&g.wp===0&&A.position.x>Q.SPILL[0]-0.05){ go('wobble'); return; }
+          if(walkTo(dest[0],dest[1])){ g.wp++; if(g.wp>=Q.ROUTE.length){ go('drop'); api.react('clap',0.1); } } carry(V.ok?0.35:0.6+P_(A.position.x,-3.6,0.6)); }
+        else if(s==='wobble'){ Folk.walk(A,0,0); const k=P_(T,0,0.8); g.held.forEach((c,i)=>{ c.rotation.z=Math.sin(t*11+i)*0.3*i*k; }); carry(0.6+k*2.5); r.rotation.z=Math.sin(t*10)*0.12*k; if(T>0.8){ r.rotation.z=0; go('spill'); } }
+        else if(s==='spill'){ if(once(V,'spill')){ const f=new V3(Math.sin(A.rotation.y),0,Math.cos(A.rotation.y));
+            g.held.forEach((c,i)=>{ const p=V.phys.length; toss(V,c,f.clone().multiplyScalar(rnd(1,3)).add(new V3(rnd(-1.2,1.2),rnd(1.5,4),rnd(-0.6,1.2))),new V3(rnd(-6,6),rnd(-3,3),rnd(-6,6)),0.31);
+              V.phys[p].onHit=q=>{ if(q.hit===1&&once(V,'thud'+i)) puff(V,q.o.position.clone().setY(0.1),'#c9b79a',5,1.2,0.18,0.8,{grow:1.6,op:0.6}); }; });
+            g.held=[]; g.spilt=true; snd(V,()=>Sfx.crash(0.8)); api.react('facepalm',0.3); }
+          r.rotation.x=-E(P_(T,0,0.35))*1.45; r.position.y=-0.1*P_(T,0,0.35); Folk.arms(A,[2.6,0.4],[2.6,0.4]); if(T>2.4) go('up'); }
+        else if(s==='up'){ const k=E(P_(T,0,0.8)); r.rotation.x=-1.45*(1-k); r.position.y=-0.1*(1-k); Folk.arms(A,[2.6*(1-k)+0.2,0.4],[2.6*(1-k)+0.2,0.4]); if(T>0.8){ r.rotation.set(0,0,0); r.position.y=0; go('gather'); } }
+        else if(s==='gather'){ // nearest box first, once it has stopped bouncing about
+          const left=g.crates.filter(c=>!g.held.includes(c)); if(!left.length){ g.wp=0; go('out'); return; }
+          left.sort((a,b)=>a.position.distanceToSquared(A.position)-b.position.distanceToSquared(A.position)); g.tgt=left[0];
+          if(walkTo(g.tgt.position.x,g.tgt.position.z,0.62)&&face(g.tgt.position.x,g.tgt.position.z)) go('pick'); carry(0.3); }
+        else if(s==='pick'){ const c=g.tgt, u=P_(T,0,0.8); bend(u); Folk.walk(A,0,0);
+          if(T>0.4&&!g.held.includes(c)){ const i=V.phys.findIndex(p=>p.o===c); if(i>=0) V.phys.splice(i,1); g.held.push(c); snd(V,()=>Sfx.thump(0.3)); }
+          carry(0.3); if(T>0.8){ r.rotation.x=0; r.position.y=0; go('gather'); } }
+        else if(s==='drop'){ // set the stack down just inside the stock room
+          Folk.walk(A,0,0); face(Q.DROP[0],Q.DROP[1]); const u=P_(T,0,0.9); bend(u);
+          if(T>0.45&&g.held.length){ g.held.forEach((c,i)=>{ c.position.set(Q.DROP[0],0.31+i*0.62,Q.DROP[1]); c.rotation.set(0,0.1*i,0); }); g.held=[]; snd(V,()=>Sfx.thump(0.5)); }
+          carry(); if(T>0.9){ r.rotation.x=0; r.position.y=0; g.wp=0; go('back'); } }
+        else if(s==='back'){ const dest=Q.BACK[g.wp]; Folk.arms(A,[0,0],[0,0]);
+          if(g.wp===1&&!g.fresh){ g.fresh=true; g.crates.forEach((c,i)=>{ c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); c.rotation.set(0,0,0); c.scale.setScalar(0.001); }); } // the next lot turns up on the pile
+          if(g.fresh) g.crates.forEach(c=>c.scale.setScalar(Math.min(1,c.scale.x+dt*1.6)));
+          if(walkTo(dest[0],dest[1])){ g.wp++; if(g.wp>=Q.BACK.length){ g.fresh=false; V.t=Q.dur+1; } } }
       } },
     crane:{ dur:13, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.6,0,-3.0); A.rotation.y=0.5; B.position.set(3.3,0,-3.0); B.rotation.y=-Math.PI/2; g.tro.position.x=-3.6; g.pod.visible=true; g.pod.scale.setScalar(1); g.pod.rotation.set(0,0,0); g.hookY=4.8; },
       update(V,t,dt){ const {A,B}=V, g=V.g, ok=V.ok; let tx=g.tro.position.x, hy=g.hookY, swing=0, attached=!V.fired.snap;
