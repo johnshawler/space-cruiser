@@ -381,6 +381,6 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 1. **Glow.** The current Stoat and Empress decks use lit edge strips and illuminated arches. These briefs swap them for shaded and lensed lamps. The cockpits keep their glow.
 2. **Fine clutter against low vision.** The game's rule is big readable shapes. The clutter here is written to be modelled chunky, and can be thinned to three items a room.
 3. **Films as mood only.** The "used-future" feel is kept. No prop, shape or name is taken from any film or series.
-4. **The new walkable rooms need game changes.** The walking bounds, the stock deck's walls and the five deck models all need doorways cut and floors added for the airlock, the scrubber bay and the two service alleys. None of that is done yet.
-5. **Seven repair spots need game changes.** The game has six today. This plan needs a new fault (airlock seal leaking, with an effect to be chosen), the coolant leak moved to the cabin, new anchors in the five deck models, and the asset checker updated. None of that is done yet.
+4. **Built so far.** The walkable airlock, scrubber bay and service alleys, their doorways, and the seven repair spots are in the game and in all five deck models. The new airlock fault costs 20% of top speed until fixed. The room-by-room dressing in these briefs (the repairs, lamps and clutter) is not modelled yet: the new rooms have only their main fittings.
+5. **Standing height.** The service alleys are modelled at the full 2.3 m, not the 1.9 m written above, with the pipe runs overhead.
 6. **Seats.** All five still use four passenger places, the known gap in PR #7.

@@ -5,9 +5,13 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'cockpits'))
 from fabricate import Ship,coord,camera,bpy
 
 ROOMS={'corridor':(-.9,.9,.70,7.20),'passenger cabin':(-4.4,-.9,1.4,5.8),
-       'galley':(.9,4.,1.4,5.),'cargo hold':(-3.4,3.4,7.2,14.2),'engine room':(-2.4,2.4,14.2,19.)}
-FAULTS={'coolant':(-2.25,.15,16.2),'thruster':(1.3,.35,18.85),'fuse':(2.45,.45,1.46),
-        'scrubber':(-3.,.95,5.74),'crack':(-.86,.55,5.15),'strap':(1.55,.1,10.6)}
+       'galley':(.9,4.,1.4,5.),'cargo hold':(-3.4,3.4,7.2,14.2),'engine room':(-2.4,2.4,14.2,19.),
+       # walkable rooms in what used to be sealed voids; they borrow the light of the rooms beside them
+       'scrubber bay':(-4.4,-.9,5.8,7.2),'airlock':(.9,4.,5.,7.2),'port alley':(-3.4,-2.4,14.2,19.),'starboard alley':(2.4,3.4,14.2,19.)}
+UNLIT={'scrubber bay','airlock','port alley','starboard alley'}
+# one repair spot in each of the seven rooms
+FAULTS={'coolant':(-3.,-.35,1.55),'thruster':(1.3,.35,18.85),'fuse':(2.45,.45,1.46),
+        'scrubber':(-3.,.95,5.86),'crack':(-.86,.55,5.15),'strap':(1.55,.1,10.6),'seal':(2.82,.45,5.32)}
 def build(path):
     r=Ship(path,True);k=r.key
     face='Wood' if k=='manatee' else 'Pale' if k=='empress' else 'Frame'
@@ -17,7 +21,8 @@ def build(path):
         r.section(name+' deck');r.quad((a,-d,-.97),(b,-d,-.97),(b,-c,-.97),(a,-c,-.97),'Leather' if k=='manatee' and name=='passenger cabin' else 'Panel')
         r.section(name+' roof',True);r.quad((a,-c,1.33),(b,-c,1.33),(b,-d,1.33),(a,-d,1.33),face)
         cx=(a+b)/2;cz=(c+d)/2
-        r.anchor('lamp_'+name.replace(' ','_'),(cx,1.18,cz))
+        # 'fill_' markers light the preview renders only; the game makes lights from 'lamp_' markers
+        r.anchor(('fill_' if name in UNLIT else 'lamp_')+name.replace(' ','_'),(cx,1.18,cz))
         bx(cx,cz,1.28,min(1.1,(b-a)*.6),.20,.065,'Diffuser')
         bx(cx,cz,1.24,min(.83,(b-a)*.4),.10,.03,'Glow')
     def lengthwall(x,z0,z1,gaps=(),portholes=()):
@@ -38,15 +43,31 @@ def build(path):
             r.back_panel(gap[0],gap[1],gap[2],1.33,-z,face)
         else:r.back_panel(a,b,-.97,1.33,-z,face)
     r.section('Hall bulkheads')
-    lengthwall(-.9,.7,7.2,[(3.,4.2)]);lengthwall(.9,.7,7.2,[(2.5,3.7)])
+    lengthwall(-.9,.7,7.2,[(3.,4.2),(6.,7.)]);lengthwall(.9,.7,7.2,[(2.5,3.7),(5.6,6.6)])
     endwall(.70,-.9,.9,(-.42,.42,.62))
     r.section('Cabin glazing');lengthwall(-4.4,1.4,5.8,portholes=[(1.95,2.75),(3.15,3.95),(4.35,5.15)])
     endwall(1.4,-4.4,-.9);endwall(5.8,-4.4,-.9)
     r.section('Galley walls');lengthwall(4.,1.4,5.,portholes=[(3.,3.8)]);endwall(1.4,.9,4);endwall(5.,.9,4)
+    r.section('Scrubber bay');lengthwall(-4.4,5.8,7.2);endwall(7.2,-4.4,-3.4)
+    bx(-3.95,6.5,-.76,.5,.5,.42,'Pale',.1);bx(-4.26,6.5,-.27,.2,.5,.5,'Pale',.06)
+    bx(-3.35,6.87,.08,.04,.6,2.0,'Upholstery',.015);pipe((-3.35,1.12,5.85),(-3.35,1.12,7.15),.025,'Trim')
+    bx(-1.9,7.04,-.2,.5,.26,.14,'Pale',.05);pipe((-3.,1.15,5.93),(-3.,1.32,5.93),.1,'Steel')
+    r.section('Airlock');lengthwall(4.,5.,7.2);endwall(7.2,3.4,4.);lengthwall(2.9,5.,7.2,[(5.65,6.55)])
+    pipe((3.86,0,6.1),(3.98,0,6.1),.6,'Frame');pipe((3.76,0,6.1),(3.88,0,6.1),.13,'Trim')
+    for a in range(3):r.box((3.83,-6.1,0),(.04,.05,.95),'Trim',.012,rot=(a*math.pi/3,0,0))
+    bx(1.85,5.14,-.045,1.5,.24,1.85,'Frame');bx(1.9,7.03,-.77,1.3,.28,.4,'Leather',.08)
+    for x in [1.6,2.1,2.6]:bx(x,5.27,-.045,.025,.02,1.7,'Trim',.005)
+    bx(3.45,5.08,.95,.2,.1,.2,'Glow',.03)
+    r.section('Cabin heater');pipe((-4.3,-.35,1.52),(-1.9,-.35,1.52),.07,'Trim')
     r.section('Freight bulkheads');endwall(7.2,-3.4,3.4,(-.90,.90,1.0));endwall(14.2,-3.4,3.4,(-.8,.8,.95))
     for x in [-3.4,3.4]:lengthwall(x,7.2,14.2)
     r.section('Engine bulkheads');endwall(19.,-2.4,2.4)
-    for x in [-2.4,2.4]:lengthwall(x,14.2,19.)
+    for x in [-2.4,2.4]:lengthwall(x,14.2,19.,[(14.6,15.6)])
+    r.section('Service alleys')
+    for sx in [-1,1]:
+        lengthwall(sx*3.4,14.2,19.);endwall(19.,*sorted((sx*2.4,sx*3.4)))
+        pipe((sx*3.28,.95,14.4),(sx*3.28,.95,18.8),.07,'Trim');pipe((sx*3.28,1.13,14.4),(sx*3.28,1.13,18.8),.06,'Steel')
+        bx(sx*2.9,18.62,-.67,.7,.6,.6,'Panel',.05);bx(sx*2.9,18.66,-.17,.5,.5,.4,'Frame',.05)
     r.section('Passenger furniture')
     for i in range(4):
         z=1.95+i*1.15;r.anchor('passenger_'+str(i+1),(-3.8,0,z))
@@ -66,15 +87,15 @@ def build(path):
         pipe((x,-.72,z),(x,1.1,z),.059,'Trim')
     r.section('Ship-specific construction')
     if k=='rustbucket':
-        for z in [1.38,4.55,6.64]:
+        for z in [1.38,4.55,5.48]:
             r.wire([(-.81,-z,.77),(-.64,-z,1.14),(.66,-z,1.14),(.82,-z,.78)],.075,'Steel',False)
-        for j in range(3):pipe((2.25,-.54+j*.22,14.65),(2.25,-.54+j*.22,18.45),.085,'Trim')
+        for j in range(3):pipe((2.25,-.54+j*.22,15.85),(2.25,-.54+j*.22,18.45),.085,'Trim')
         for x in [-3.12,3.12]:
             for z in [8.1,10.2,12.5]:
                 pipe((x,-.65,z),(x,.83,z),.21,'Steel')
         bx(2.4,4.64,.15,.42,.38,.32,'Steel');r.ring(2.57,-4.52,.15,.09,.021,'Trim')
     elif k=='dromedary':
-        for z in [1.30,4.60,6.72,7.8,10.6,13.65]:
+        for z in [1.30,4.60,5.48,7.8,10.6,13.65]:
             w=.78 if z<7 else 3.22
             bx(-w,z,.05,.13,.14,2.05,'Trim');bx(w,z,.05,.13,.14,2.05,'Trim');bx(0,z,1.11,w*2,.15,.16,'Frame')
         for i in range(6):
@@ -82,7 +103,7 @@ def build(path):
             bx(-3.10,7.94+i*1.0,-.06,.08,.40,.08,'Trim')
         for x in [1.55,2.38,3.22]:bx(x,4.82,.63,.69,.25,.6,'Panel')
     elif k=='stoat':
-        for z in [1.37,4.58,6.7]:
+        for z in [1.37,4.58,5.48]:
             r.wire([(-.81,-z,.63),(-.56,-z,1.12),(0,-z,1.24),(.56,-z,1.12),(.81,-z,.63)],.047,'Trim')
         for x in [-3.19,3.19]:
             r.wire([(x,-7.48,-.51),(x*.98,-10.19,.15),(x,-13.93,.65)],.063,'Trim')
@@ -91,7 +112,7 @@ def build(path):
             r.box((side*1.9,-17.4,.56),(.19,2.4,.24),'Pale',.075,rot=(.16,0,0))
         for z in [2.45,3.0,3.55]:bx(3.91,z,-.13,.10,.17,.19,'Trim')
     elif k=='manatee':
-        for z in [1.30,4.55,6.72]:
+        for z in [1.30,4.55,5.48]:
             r.wire([(-.82,-z,.70),(-.7,-z,1.03),(0,-z,1.23),(.7,-z,1.03),(.82,-z,.70)],.062,'Wood')
         for z in [2.35,3.55,4.75]:
             for kx in [-4.28,-.99]:bx(kx,z,.84,.08,.74,.13,'Trim')
@@ -99,9 +120,9 @@ def build(path):
             for z in [8.15,10.48,12.83]:bx(x,z,.12,.18,1.8,1.7,'Wood',.075)
         for x in [1.60,2.26,2.92]:
             pipe((x,.02,4.63),(x,.22,4.63),.095,'Pale')
-        for h in [-.50,.15,.8]:pipe((-2.26,h,14.6),(-2.26,h,18.8),.069,'Trim')
+        for h in [-.50,.15,.8]:pipe((-2.26,h,15.85),(-2.26,h,18.8),.069,'Trim')
     else:
-        for z in [1.28,4.62,6.72,8.1,11.,13.72]:
+        for z in [1.28,4.62,5.48,8.1,11.,13.72]:
             w=.81 if z<7 else 3.23
             for side in [-1,1]:
                 r.wire([(side*w,-z,-.57),(side*w,-z,.42),(side*w*.83,-z,1.02),(side*w*.43,-z,1.19)],.074,'Pale')
@@ -115,7 +136,8 @@ def build(path):
     r.anchor('cockpit_door',(0,-.175,.68));r.anchor('cargo_aisle',(0,-.97,10.6))
     for n,p,a in [('corridor',(0,-1.13,.62),(0,-6.7,.29)),('cabin',(-1.19,-3.60,.62),(-4.35,-3.55,.08)),
                   ('galley',(1.05,-2.77,.62),(3.10,-4.4,.02)),('hold',(0,-7.52,.62),(.15,-13.65,.20)),
-                  ('engine',(0,-14.35,.62),(.07,-17.05,.18))]:
+                  ('engine',(0,-14.35,.62),(.07,-17.05,.18)),
+                  ('airlock',(1.2,-6.1,.62),(3.9,-6.1,.05)),('scrubber',(-1.2,-6.5,.62),(-4.3,-6.5,-.1)),('alley',(-2.9,-14.55,.62),(-2.9,-18.8,0))]:
         cam=camera(bpy.context.scene,n,p,a);cam.data.lens=18;cam.data.clip_start=.02;r.cams[n]=cam
     cam=camera(bpy.context.scene,'overview',(14,-22,16.5),(0,-9.9,0));cam.data.type='ORTHO';cam.data.ortho_scale=22;r.cams['overview']=cam
     r.finish()

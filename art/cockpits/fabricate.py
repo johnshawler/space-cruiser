@@ -189,7 +189,7 @@ class Ship(Room):
         world=bpy.data.worlds.new('Deep space');scene.world=world;world.use_nodes=True
         nt=world.node_tree;e=nt.nodes.new('ShaderNodeTexEnvironment');e.image=im;nt.links.new(e.outputs[0],nt.nodes['Background'].inputs[0])
         for n in self.anchors:
-            if n.name.startswith('lamp_'):
+            if n.name.startswith(('lamp_','fill_')):
                 x,y,z=n.location;area(scene,'Preview '+n.name,(x,y,z-.04),(x,y+.2,z-2),'#'+FLEET[self.key][4],22 if not self.walk else 50,.31)
         if self.walk:
             for i,y in enumerate([-3.6,-9.5,-16.1]):area(scene,'Skylight '+str(i),(-.4,y,1.15),(0,y-.3,-.7),'#c6dcff',65,1)
