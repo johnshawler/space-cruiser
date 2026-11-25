@@ -158,7 +158,7 @@ const Folk = (() => {
     +' float back = pow( saturate( dot( geometry.viewDir, -directLight.direction ) ), 4.0 ) * 0.3;'
     +' reflectedLight.directDiffuse += ( wrapNL * vec3( 1.0, 0.55, 0.42 ) + back * vec3( 1.0, 0.72, 0.56 ) ) * directLight.color * material.diffuseColor; }');
   function sssPatch(shader){ shader.fragmentShader=shader.fragmentShader.replace('#include <lights_physical_pars_fragment>',SSS_CHUNK); }
-  function sssSkin(F){ F.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial&&!m.userData.sss){ m.onBeforeCompile=sssPatch; m.userData.sss=true; m.needsUpdate=true; } }); }
+  function sssSkin(F){ F.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial&&m.userData.subsurfaceWeight>0&&!m.userData.sss){ m.onBeforeCompile=sssPatch; m.userData.sss=true; m.needsUpdate=true; } }); }
   const contactGeo=new THREE.PlaneGeometry(1,1); let _contactMat=null;
   function contactMat(){ if(_contactMat) return _contactMat; const cv=makeCanvas(128,128), x=cv.getContext('2d'), g=x.createRadialGradient(64,64,4,64,64,62);
     g.addColorStop(0,'rgba(0,0,0,0.62)'); g.addColorStop(0.35,'rgba(0,0,0,0.38)'); g.addColorStop(0.7,'rgba(0,0,0,0.12)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128);
