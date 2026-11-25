@@ -59,3 +59,24 @@ jobs:
           name: cast-portraits-${{ matrix.batch }}
           retention-days: 30
           path: package/
+  collection:
+    needs: portraits
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cast-portraits-*
+          path: parts
+      - name: Verify and assemble the complete collection
+        run: python3 art/characters/blender/package_outputs.py cast
+      - uses: actions/upload-artifact@v4
+        with:
+          name: long-haul-cast-complete
+          path: assembled/
+          retention-days: 30
