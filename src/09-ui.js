@@ -149,7 +149,7 @@ const UI = {
       // passengers looking for a ride
       const seats=Cargo.seats(), taken=Cargo.pax().length;
       (G.paxJobs||[]).forEach(j=>{ const T=PLANETS[j.to];
-        this.card(body,portraitCanvas(j.sp,j.seed,128),esc(j.good)+'<span class="tag">PASSENGER</span>',`${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.`,`To <i>${esc(T.name)}</i> · ${Econ.line(P,T)} · ${seats-taken} of ${seats} seats free`,fmtCr(j.pay),taken>=seats?'No seats':'Take them',taken>=seats,()=>{
+        this.card(body,portraitCanvas(j.sp,j.seed,128),esc(j.good)+'<span class="tag">PASSENGER</span>',`${esc(SPECIES[j.sp].name)}, ${esc(j.why)}.`,`To <i>${esc(T.name)}</i> · ${Econ.riskLine(P,T)} · ${seats-taken} of ${seats} seats free`,fmtCr(j.pay),taken>=seats?'No seats':'Take them',taken>=seats,()=>{
           G.cargo.push({kind:'pax',good:j.good,sp:j.sp,seed:j.seed,qty:0,to:j.to,pay:j.pay,from:P.idx,story:j.story}); G.paxJobs.splice(G.paxJobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); }); });
     }
     body.classList.toggle('empty',!body.children.length); Venues.syncShelf(G.jobs);
