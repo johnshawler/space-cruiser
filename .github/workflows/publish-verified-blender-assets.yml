@@ -1,0 +1,77 @@
+name: Publish verified Blender assets once
+on:
+  pull_request:
+    types: [synchronize]
+    paths: ['.github/workflows/publish-verified-blender-assets.yml']
+permissions: {}
+jobs:
+  publish:
+    if: github.repository == 'johnshawler/space-cruiser' && github.event.pull_request.head.repo.full_name == 'johnshawler/space-cruiser' && github.event.pull_request.head.ref == 'bespoke-cockpits' && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Download the pinned artifact and stage only verified assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          gh api repos/johnshawler/space-cruiser/actions/artifacts/14996965139/zip > "$RUNNER_TEMP/blender-assets.zip"
+          printf '%s  %s\n' 'f32b562208ee3ba978359d6a9e72621e772ef5c318cd24cf29ff9a308cf01c0e' "$RUNNER_TEMP/blender-assets.zip" | sha256sum --check --status
+          unset GH_TOKEN
+          python3 -I - <<'PY'
+          from collections import Counter
+          from pathlib import Path, PurePosixPath
+          import os
+          import re
+          import struct
+          import zipfile
+          rules = [["assets/cockpits/[a-z0-9-]+[.]glb",5],["assets/ship-interiors/[a-z0-9-]+[.]glb",5],["assets/(cockpits|ship-interiors)/manifest[.]json",2],["assets/(cockpits|ship-interiors)/finish/[a-z0-9-]+/grade[.]png",10],["assets/(cockpits|ship-interiors)/finish/[a-z0-9-]+/space[.]hdr",10],["art/(cockpits|ship-interiors)/[a-z0-9-]+[.]blend",10],["docs/cockpits/[a-z0-9-]+/[a-z0-9-]+[.]png",25],["docs/ship-interiors/[a-z0-9-]+/[a-z0-9-]+[.]png",30]]
+          counts = Counter()
+          selected = {}
+          with zipfile.ZipFile(Path(os.environ["RUNNER_TEMP"]) / "blender-assets.zip") as archive:
+              for item in archive.infolist():
+                  name = item.filename
+                  rule = next((rule for rule, _ in rules if re.fullmatch(rule, name)), None)
+                  if rule is None:
+                      continue
+                  path = PurePosixPath(name)
+                  assert all(p not in {"..", "."} for p in path.parts)
+                  assert name not in selected and item.file_size < 25_000_000
+                  data = archive.read(item)
+                  if name.endswith(".glb"):
+                      assert data[:8] == bytes.fromhex("676c544602000000") and struct.unpack_from("<I", data, 8)[0] == len(data)
+                  if name.endswith(".png"):
+                      assert data[:8] == bytes.fromhex("89504e470d0a1a0a")
+                  counts[rule] += 1
+                  selected[name] = data
+              for rule, expected in rules:
+                  assert counts[rule] == expected, (rule, counts[rule], expected)
+              for name, data in sorted(selected.items()):
+                  path = Path(name)
+                  assert all(not p.is_symlink() for p in (path, *path.parents))
+                  path.parent.mkdir(parents=True, exist_ok=True)
+                  path.write_bytes(data)
+          with open(Path(os.environ["RUNNER_TEMP"]) / "asset-paths", "wb") as manifest:
+              for name in sorted(selected):
+                  manifest.write(name.encode() + bytes(1))
+          print(f"Verified {len(selected)} generated files")
+          PY
+          git add --pathspec-from-file="$RUNNER_TEMP/asset-paths" --pathspec-file-nul
+          git diff --cached --stat
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Publish verified Blender models and render gallery'
+      - name: Fast-forward only the bespoke-cockpits feature branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_PARENT: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+          git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin HEAD:refs/heads/bespoke-cockpits
