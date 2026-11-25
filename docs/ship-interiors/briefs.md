@@ -16,15 +16,19 @@ The game walks all five decks on one plan, so the rooms, doorways and seats stay
 
 The hold sits between the bunks and the engine, which is the sound and heat break the brief asks for.
 
-### Three pockets the plan wastes today
+### Three new walkable spaces
 
-The stock plan leaves sealed voids. Each brief below fills them. They are **dressing behind a doorway or grille**, so the walking bounds do not change. Making any of them walkable is a code change in `src/09-walk.js`.
+The stock plan leaves sealed voids. Each brief below turns them into rooms you can walk into, so **every part of every ship is accessible**.
 
-| New space | The void it fills | Size (m) |
-| --- | --- | --- |
-| **Airlock and suit locker** | starboard, between the galley and the hold | 3.1 by 2.2 |
-| **Scrubber bay and head** | port, between the cabin and the hold | 3.5 by 1.4 |
-| **Engine crawlways** | either side of the engine room | 1.0 by 4.8 each, 1.2 high |
+| New space | The void it fills | Size (m) | How you get in |
+| --- | --- | --- | --- |
+| **Airlock and suit locker** | starboard, between the galley and the hold | 3.1 by 2.2 | an arch in the corridor's starboard wall, just fore of the hold |
+| **Scrubber bay and head** | port, between the cabin and the hold | 3.5 by 1.4 | a slider in the corridor's port wall, just fore of the hold |
+| **Service alleys** (two) | either side of the engine room | 1.0 by 4.8 each | a narrow doorway in each side wall of the engine room, at its fore end |
+
+- **Airlock.** You walk through the suit locker and the open inner hatch into the chamber. The outer hatch stays shut in flight.
+- **Scrubber bay.** Crew and passengers both reach it from the corridor. The grille in the cabin's aft wall stays, as a vent you can see through.
+- **Service alleys.** These replace the crawlspaces. They are full standing height, 1.9 m under the pipe runs, so you walk them without crouching. Each runs aft to the back of the thruster housings and ends in improvised storage.
 
 ### Seven repair spots, one per room
 
@@ -34,15 +38,15 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 | --- | --- | --- |
 | Corridor | Hull crack, port wall | none |
 | Passenger cabin | Coolant leak, on the heater pipe at the fore wall | **moved** from the engine room |
-| Scrubber bay and head | Air scrubber jammed, at the grille | same place, now counted as the bay's |
+| Scrubber bay and head | Air scrubber jammed, on the scrubber | **moved** through the wall from the cabin side |
 | Galley and crew bunk | Blown fuse, fore wall | none |
 | Airlock and suit locker | **Airlock seal leaking**, at the inner hatch | **new** |
 | Cargo hold | Cargo strap snapped, starboard side | none |
 | Engine room | Thruster misfire, aft wall | none |
 
 - The cabin heater on every hull runs off the engine's coolant loop, which is why a coolant leak can show up there.
-- The airlock spot is worked from the corridor, standing in the airlock's arch, so the walking bounds still hold.
-- The scrubber is worked from the cabin side of its grille, as now.
+- The airlock spot is inside the airlock, at the inner hatch.
+- The scrubber spot moves a short step, from the cabin side of the grille to the scrubber itself inside the bay.
 
 ### Rules for all five
 
@@ -77,7 +81,7 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 
 ### Scrubber bay and head
 
-- **Layout.** Behind the cabin grille. A fat drum scrubber on the left, a curtained head on the right. Reached by lifting the grille off.
+- **Layout.** In through a slider from the corridor. A fat drum scrubber on the left, a curtained head on the right, and the cabin grille between them.
 - **Hardware.** A belt-driven fan drum the size of a barrel, with a pull-out filter tray.
 - **Repairs.** (1) At the scrubber spot, the drive belt is a pair of braces knotted together. (2) A filter made of a folded blanket. (3) A drip tray that is plainly a roasting tin.
 - **Light.** One red pilot lamp and whatever leaks through the grille.
@@ -107,13 +111,13 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 - **Light.** Four caged work lamps, one flickering. Cold. Oil sheen in the bilge.
 - **Clutter.** A hand truck with one odd wheel. A stack of dunnage planks. A dart board on the engine bulkhead. A tarpaulin over something nobody has asked about. A chalked "MIND THE BOXES".
 
-### Engine room and crawlways
+### Engine room and service alleys
 
-- **Layout.** Reactor in the centre, 1.3 m walkway all round. Coolant runs on the port wall, console at the aft wall. Knee-high hatches either side open onto the crawlways.
+- **Layout.** Reactor in the centre, 1.3 m walkway all round. Coolant runs on the port wall, console at the aft wall. A narrow doorway either side opens onto the service alleys.
 - **Hardware.** A riveted boiler-shaped reactor with a round sight glass. A lever console with six worn levers and a row of dial gauges.
 - **Repairs.** (1) A steam line lagged with rolled newspaper and string. (2) At the thruster spot, an access panel held shut with a G-clamp. (3) One reactor band is a cargo strap.
 - **Light.** Blue-white glow from the sight glass against amber gauge faces. Steam at shin height.
-- **Clutter.** A deck chair facing the gauges. A mug hook welded to the console. A hammer on a lanyard, labelled "TOOL". A row of leftover screws in a muffin tin. A crawlway hatch propped open with a paperback.
+- **Clutter.** A deck chair facing the gauges. A mug hook welded to the console. A hammer on a lanyard, labelled "TOOL". A row of leftover screws in a muffin tin. An alley door propped open with a paperback.
 
 ---
 
@@ -139,7 +143,7 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 
 ### Scrubber bay and head
 
-- **Layout.** Behind a square louvred panel in the cabin's aft wall.
+- **Layout.** In through a slider from the corridor. Scrubber cabinet at the outer wall, head behind a steel half-door. A square louvred panel looks into the cabin.
 - **Hardware.** A cabinet scrubber with three pull-out filter drawers and a big green RUN button.
 - **Repairs.** (1) At the scrubber spot, one filter drawer front missing, the gap filled with cardboard. (2) A fan guard made from a fridge shelf. (3) A hose joined with two different couplings and tape.
 - **Light.** The green RUN button and a caged lamp on a pull cord.
@@ -169,13 +173,13 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 - **Light.** Rows of caged floods, two dead. Dust in the beams.
 - **Clutter.** A pallet jack with a name painted on it. A chalk hopscotch grid in the aisle. A broom worn to a wedge. Stacked empty crates used as a desk. A hard hat with a sticker collection.
 
-### Engine room and crawlways
+### Engine room and service alleys
 
-- **Layout.** Square reactor housing in a railed pit one step down. Crawlways behind yellow grille doors.
+- **Layout.** Square reactor housing in a railed pit one step down. Service alleys behind yellow grille doors, both hooked open.
 - **Hardware.** A slab-sided reactor with four bolted inspection doors. A stand-up console with breakers, two amber tubes and a dead-man lever.
 - **Repairs.** (1) A reactor inspection door held shut with a ratchet strap. (2) At the thruster spot, a panel replaced with a road sign, blank side out. (3) A railing section made of scaffolding.
 - **Light.** Blue glow through the inspection slots, amber breakers, cold caged floods above.
-- **Clutter.** A maintenance log chained to the console. Ear defenders on a hook. A swear jar, nearly full. A torch taped to a broom handle for the crawlway. A crate marked "SPARES (ASSORTED, UNKNOWN)".
+- **Clutter.** A maintenance log chained to the console. Ear defenders on a hook. A swear jar, nearly full. A torch taped to a broom handle for the alleys. A crate marked "SPARES (ASSORTED, UNKNOWN)".
 
 ---
 
@@ -201,7 +205,7 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 
 ### Scrubber bay and head
 
-- **Layout.** Behind an oval mesh panel.
+- **Layout.** In through an oval pocket door from the tunnel. Scrubber along the outer wall, a fold-down head opposite. An oval mesh panel looks into the cabin.
 - **Hardware.** A slim turbine scrubber on its side, with a quick-release cartridge.
 - **Repairs.** (1) At the scrubber spot, the cartridge held in with a bungee. (2) An intake scoop cut from a mudguard. (3) A cracked duct wrapped in racing tape.
 - **Light.** A teal pilot lamp behind a domed lens.
@@ -231,9 +235,9 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 - **Light.** Caged lamps in the rib bays. Sharp shadows from the nets.
 - **Clutter.** A dismantled wing pod under a sheet. A crate of spare canopy frames. A skateboard used as a creeper. A "FRAGILE (THE SHIP)" stencil. A hanging tyre nobody can explain.
 
-### Engine room and crawlways
+### Engine room and service alleys
 
-- **Layout.** A long narrow reactor on its side would not fit, so it stands upright in a teardrop shroud. Crawlways are oval tubes.
+- **Layout.** A long narrow reactor on its side would not fit, so it stands upright in a teardrop shroud. The service alleys are oval tubes, tall enough to stand in.
 - **Hardware.** A finned turbine reactor in a shroud with a hinged cowl. A sit-down console with a tachometer the size of a dinner plate.
 - **Repairs.** (1) A fuel line sleeved in a length of garden hose. (2) At the thruster spot, a blown gasket rebuilt from a cereal box. (3) The cowl held up by a prop rod that is a ski pole.
 - **Light.** Blue-white glow through the fins. Teal dials. Heat shimmer rather than steam.
@@ -263,7 +267,7 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 
 ### Scrubber bay and head
 
-- **Layout.** Behind a brass fretwork grille. The head has a proper door, and a proper queue hook.
+- **Layout.** In through a panelled door from the corridor. The head has a proper door of its own, and a proper queue hook. A brass fretwork grille looks into the cabin.
 - **Hardware.** A scrubber in a walnut cabinet with a brass wind-up timer.
 - **Repairs.** (1) At the scrubber spot, the fretwork cracked and backed with tights. (2) A cabinet door tied shut with a dressing-gown cord. (3) A brass pipe elbow replaced in grey plastic.
 - **Light.** A small shaded lamp over the washbasin.
@@ -279,7 +283,7 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 
 ### Airlock and suit locker
 
-- **Layout.** An arch with a velvet rope across it. Behind the rope it is plain steel again.
+- **Layout.** An arch with a velvet rope, unhooked and hanging from one post. Past the rope it is plain steel again.
 - **Hardware.** A round hatch with a brass handwheel, polished on the passenger side only.
 - **Repairs.** (1) The rope stanchion bolted to the deck through the carpet, off centre. (2) A pressure dial with a hand-painted face. (3) At the seal spot, the hatch rim packed with a rolled napkin and candle wax.
 - **Light.** One brass sconce outside, one caged red lamp inside.
@@ -293,9 +297,9 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 - **Light.** Caged work lamps, with one stray table lamp on a crate, plugged in.
 - **Clutter.** Steamer trunks with destination labels. A birdcage, empty, door open. A deck chair stack. A porter's trolley. A dressmaker's dummy wearing a hard hat.
 
-### Engine room and crawlways
+### Engine room and service alleys
 
-- **Layout.** A reactor with a brass-railed walkway round it, as though tours were once given.
+- **Layout.** A reactor with a brass-railed walkway round it, as though tours were once given. The service alleys are behind baize doors marked "STAFF".
 - **Hardware.** A drum reactor banded in brass, with a row of round gauges at eye level. A console desk with a leather inset and levers with turned wooden grips.
 - **Repairs.** (1) A brass steam valve with a door knob for a handle. (2) At the thruster spot, a panel screwed shut with cabinet hinges. (3) A gauge glass replaced with a monocle.
 - **Light.** Blue glow from the reactor ports, gold from the gauges. Steam drifting over the rail.
@@ -325,7 +329,7 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 
 ### Scrubber bay and head
 
-- **Layout.** Behind a pearl lattice screen.
+- **Layout.** In through a slider from the corridor. Twin scrubbers on the outer wall, head behind a pearl lattice screen that also looks into the cabin.
 - **Hardware.** Twin ring scrubbers, one running, one donated for parts.
 - **Repairs.** (1) The dead ring stripped to its frame. (2) A lattice section replaced with chicken wire. (3) At the scrubber spot, a duct joined with a saucepan with the bottom cut out.
 - **Light.** One blue pilot lens and a caged lamp.
@@ -355,9 +359,9 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 - **Light.** Caged floods on the ribs. A rug and a lamp by the marshalling desk make one warm corner.
 - **Clutter.** A grand piano under a tarpaulin, lashed down. Crates stencilled with a previous owner's crest. A badminton net. A ladder against the gap in the track. A tea chest of spare lenses.
 
-### Engine room and crawlways
+### Engine room and service alleys
 
-- **Layout.** A ringed reactor gallery: the walkway circles the core at deck level, with the ring overhead.
+- **Layout.** A ringed reactor gallery: the walkway circles the core at deck level, with the ring overhead. The service alleys open through tall pearl arches, one of them missing its door.
 - **Hardware.** A slender core inside a spoked ring, with a hand-cranked ring brake. A horseshoe console with rows of lit buttons and two amber tubes.
 - **Repairs.** (1) A pearl shroud panel replaced with a sheet of grey primer steel. (2) At the thruster spot, a panel missing altogether, wiring bundled with zip ties. (3) One ring spoke braced with a turnbuckle.
 - **Light.** Blue-white from the core, the one place the old glow survives. Amber buttons. Thin mist at the ring.
@@ -367,8 +371,8 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 
 ## The submarine audit
 
-- **No dead floor.** The three sealed voids are now the airlock, the scrubber bay and the crawlways. Corridor walls carry lockers, rails or racks on every hull.
-- **Maintenance access.** Every room has exactly one repair spot, with a clear place to stand. The thruster spot backs onto a crawlway. The scrubber is reached from the cabin grille, and the airlock seal from the corridor arch.
+- **No dead floor.** The three sealed voids are now the airlock, the scrubber bay and the service alleys, and you can walk into all of them. Corridor walls carry lockers, rails or racks on every hull.
+- **Maintenance access.** Every room has exactly one repair spot, with a clear place to stand. The thruster spot backs onto a service alley. Every pipe run and housing can be reached on foot.
 - **Nothing factory-fresh.** Each space has three visible repairs, and the room's repair spot is one of them, so a fault appears where the ship already looks mended.
 - **Noise and heat.** The hold separates the bunk and cabin from the engine on all five.
 
@@ -377,5 +381,6 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 1. **Glow.** The current Stoat and Empress decks use lit edge strips and illuminated arches. These briefs swap them for shaded and lensed lamps. The cockpits keep their glow.
 2. **Fine clutter against low vision.** The game's rule is big readable shapes. The clutter here is written to be modelled chunky, and can be thinned to three items a room.
 3. **Films as mood only.** The "used-future" feel is kept. No prop, shape or name is taken from any film or series.
-4. **Seven repair spots need game changes.** The game has six today. This plan needs a new fault (airlock seal leaking, with an effect to be chosen), the coolant leak moved to the cabin, new anchors in the five deck models, and the asset checker updated. None of that is done yet.
-5. **Seats.** All five still use four passenger places, the known gap in PR #7.
+4. **The new walkable rooms need game changes.** The walking bounds, the stock deck's walls and the five deck models all need doorways cut and floors added for the airlock, the scrubber bay and the two service alleys. None of that is done yet.
+5. **Seven repair spots need game changes.** The game has six today. This plan needs a new fault (airlock seal leaking, with an effect to be chosen), the coolant leak moved to the cabin, new anchors in the five deck models, and the asset checker updated. None of that is done yet.
+6. **Seats.** All five still use four passenger places, the known gap in PR #7.
