@@ -255,3 +255,13 @@ Open `?gallery` and choose **Animated cast** to inspect the 50 articulated desig
 - **Last Light Freight Office** (Beacon Far Wink) — A signal box astride a freight airlock.
 - **End of the Line Garage** (Beacon Far Wink) — A dead-end rail shed on the lamp service deck.
 - **The Final Blink** (Beacon Far Wink) — The lighthouse lantern room after hours.
+
+## Bespoke cockpits
+
+[Cockpit renders](docs/cockpits/index.md) · [Walkable deck renders](docs/ship-interiors/index.md)
+
+- **Rustbucket Mk I** — Riveted salvage cab with a patched windscreen and exposed copper lines. The walkable deck adds exposed service lines, patched berths and a repair gantry.
+- **Dromedary 400** — Freight cab with yellow load rails and recessed drawer handles. The walkable deck adds industrial tie-down rails, stowage and a freight-handling spine.
+- **Stellar Stoat** — Close-fitting courier canopy with turquoise edging and shoulder bolsters. The walkable deck adds compact foldaway furnishings and a streamlined service tunnel.
+- **Opulent Manatee** — Walnut instrument cabinets and upholstered seating inside a bowed observation bay. The walkable deck adds upholstered berths, walnut cabinetry and a brass-trimmed passenger lounge.
+- **Quasar Empress** — Pale ceramic arches framing a panoramic bridge and a suspended pilot chair. The walkable deck adds illuminated structural arches and a ringed reactor gallery.
