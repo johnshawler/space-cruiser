@@ -213,13 +213,20 @@ void main(){ float nv=abs(dot(normalize(vN),vV)); float body=pow(nv,1.6); float 
   gl_FragColor=vec4(col,1.0); }`;
 
 GLSL.groundSkyFrag = `
-uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax,uCloud; varying vec3 vD;
+uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax,uCloud,uAtmo; varying vec3 vD;
 ${GLSL.noise}
 void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
   vec3 col=mix(cHor,cZen,pow(h,0.55));
   col=mix(col,cHor*0.85,(1.0-smoothstep(-0.25,0.0,d.y)));
   float s=max(dot(d,uSun),0.0);
   col*=0.72; col+=cSun*(pow(s,8.0)*0.10+pow(s,64.0)*0.5+pow(s,1400.0)*30.0);
+  // atmospheric scattering: thick air toward the horizon brightens and hazes the sky; light scattered forward makes a broad
+  // glow round the sun; when the sun is low its side of the horizon reddens and the far side cools
+  if(uAtmo>0.0){ float band=pow(1.0-h,5.0)*smoothstep(-0.2,0.02,d.y), low=1.0-smoothstep(0.02,0.5,uSun.y), toward=pow(s,2.5);
+    vec3 warm=vec3(1.0,0.52,0.26);
+    col=mix(col,mix(cHor,vec3(1.0),0.3),band*0.4*uAtmo);
+    col+=cSun*warm*(band*toward*low*0.65+pow(s,4.0)*0.16*(0.4+0.6*low))*uAtmo;
+    col=mix(col,col*vec3(0.9,0.86,1.06)+vec3(0.04,0.03,0.07)*low,band*(1.0-toward)*0.45*uAtmo); }
   float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),5); col=mix(col,mix(cHor,vec3(1.0),0.6)*0.85,smoothstep(0.1,0.6,cl)*smoothstep(0.0,0.25,d.y)*0.55*uCloud);
   vec3 q=d*220.0; float st=step(0.992,hash13(floor(q)))*(1.0-smoothstep(0.0,0.35,length(fract(q)-0.5))); col+=vec3(st)*uStars*h;
   col=clamp(col,vec3(0.0),vec3(uMax));
@@ -227,7 +234,7 @@ void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
 
 GLSL.postVert = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.postFrag = `
-uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash; uniform vec3 uFadeCol;
+uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash,uBlur,uSat,uContrast; uniform vec3 uFadeCol,uLift,uGain;
 varying vec2 vUv;
 vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }
 float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
@@ -235,13 +242,30 @@ void main(){
   vec2 c=vUv-0.5; float r2=dot(c,c);
   float ca=(0.0035+uWarp*0.02)*r2;
   vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-c*ca).b);
+  // motion blur: at speed the picture streaks outwards from the middle, more towards the edges
+  if(uBlur>0.001){ vec3 acc=col; float k=uBlur*sqrt(r2)*0.09; for(int i=1;i<7;i++){ acc+=texture2D(tDiffuse,vUv-c*k*float(i)).rgb; } col=acc/7.0; }
   col=mix(col,col*vec3(0.75,0.9,1.35),uWarp*0.5);
   col+=vec3(0.7,0.85,1.0)*uFlash*2.0;
   col*=uExposure;
   col=aces(col);
   col=pow(col,vec3(1.0/2.2));
+  // colour grading: each planet's own mood (saturation, contrast, tinted shadows and highlights)
+  float lum=dot(col,vec3(0.299,0.587,0.114)); col=mix(vec3(lum),col,uSat); col=(col-0.5)*uContrast+0.5; col=clamp(col,0.0,1.0)*uGain+uLift*(1.0-clamp(col,0.0,1.0));
   col*=1.0-r2*0.75;
   col+=(h21(vUv*vec2(1920.0,1080.0)+fract(uTime)*91.7)-0.5)*0.03;
   col=mix(col,uFadeCol,uFade);
   gl_FragColor=vec4(col,1.0);
 }`;
+
+/* depth of field: things well behind what you're looking at go soft, using a depth picture of the scene */
+GLSL.dofFrag = `
+#include <packing>
+uniform sampler2D tDiffuse, tDepth; uniform float uNear, uFar, uFocus, uMax; uniform vec2 uPx; varying vec2 vUv;
+float distAt(vec2 uv){ float d=unpackRGBAToDepth(texture2D(tDepth,uv)); return -perspectiveDepthToViewZ(d,uNear,uFar); }
+float cocAt(vec2 uv){ return clamp((distAt(uv)-uFocus-1.5)/(uFocus*0.8+4.0),0.0,1.0); }
+void main(){
+  vec4 base=texture2D(tDiffuse,vUv); float coc=cocAt(vUv)*uMax; if(coc<0.4){ gl_FragColor=base; return; }
+  vec3 acc=base.rgb; float w=1.0;
+  for(int i=0;i<16;i++){ float a=float(i)*2.39996, r=sqrt(float(i)+0.5)/4.0; vec2 o=vec2(cos(a),sin(a))*r*coc*uPx;
+    float cs=cocAt(vUv+o); float ww=smoothstep(0.0,0.35,cs); acc+=texture2D(tDiffuse,vUv+o).rgb*ww; w+=ww; }
+  gl_FragColor=vec4(acc/w,base.a); }`;

@@ -105,7 +105,9 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .tag.bad{border-color:var(--bad);color:var(--bad)}.tag.esc{border-color:var(--cyan);color:var(--cyan)}
 .tag.r2{border-color:#ff9a4a;color:#ff9a4a}.tag.r3{border-color:#ff5a5a;color:#fff;background:#8a1c1c}
 .risk{font-weight:700}.risk.r0{color:#7dffa8}.risk.r1{color:#ffd166}.risk.r2{color:#ff9a4a}.risk.r3{color:#ff6a6a}.warnf{color:#ff6a6a}
-#deep-badge{position:absolute;left:16px;top:16px;z-index:9;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid;padding:6px 16px;pointer-events:none;white-space:nowrap}
+/* the top-left alert stack: the deep-space zone, then the port approach speed limit underneath */
+#alerts{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(16px + env(safe-area-inset-top,0px));z-index:9;display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
+#deep-badge{position:relative;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid;padding:6px 16px;pointer-events:none;white-space:nowrap}
 #deep-badge.z1{color:#ffd166;border-color:#ffd166}#deep-badge.z2{color:#ff9a4a;border-color:#ff9a4a}#deep-badge.z3{color:#ff6a6a;border-color:#ff6a6a}
 #deep-badge.storm{color:#fff;background:#a8322a;border-color:#ff7a6a;animation:scoopPulse 1s ease-in-out infinite}
 @media (max-width:900px){ #deep-badge{font-size:16px} }
@@ -201,7 +203,7 @@ body.touch #title dl div{white-space:normal}
 }
 @media (max-height:520px) and (min-aspect-ratio:4/3){ #title .pitch{display:none}#title dl{grid-template-columns:repeat(2,max-content)} }
 .hrow small.due{color:#8fe3a8}.hrow small.late{color:var(--bad)}
-#zone-badge{position:absolute;left:50%;transform:translateX(-50%);top:calc(34% + 54px);z-index:9;font-family:var(--mono);font-size:24px;letter-spacing:.1em;text-transform:uppercase;color:#ffd166;background:var(--glass);border:1px solid #ffd166;padding:6px 16px;pointer-events:auto;cursor:pointer;white-space:nowrap}
+#zone-badge{position:relative;max-width:min(330px,42vw);white-space:normal!important;line-height:1.3;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:#ffd166;background:var(--glass);border:1px solid #ffd166;padding:6px 16px;pointer-events:auto;cursor:pointer;white-space:nowrap}
 #zone-badge.fast{color:#fff;background:#a8322a;border-color:#ff7a6a}
 #fault-badge{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:30%;z-index:9;font-family:var(--mono);font-size:22px;color:#ffb3a8;background:var(--glass);border:1px solid #ff7a6a;border-left:6px solid #ff5a4a;padding:8px 14px;pointer-events:none;max-width:44vw}
 #fault-badge div{padding:2px 0}#fault-badge span{color:var(--dim)}
@@ -280,6 +282,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port-card .big{padding:14px 30px}
 @media (max-width:700px){#port-bar{flex-wrap:wrap}#port .sub{display:none}#port-top{flex-wrap:wrap;margin-left:0;flex:1 1 100%}#port-top-btns{margin-left:auto}#port-tabs.dock{width:calc(100vw - 32px);grid-template-columns:1fr 1fr;column-gap:10px}#port-tabs.dock .arm{margin:0}#port-tabs.dock .arm{font-size:16px;padding:9px 22px 9px 12px}#port-tabs.dock .arm.l{padding:9px 12px 9px 22px}}
 @media (max-width:900px){#port-title{padding:8px 12px}#port h2{font-size:24px}#port .sub{font-size:14px}#port-foot .cr{font-size:22px}#port-foot{font-size:15px}#port-top{gap:8px;padding:8px}#port-top .btn{font-size:16px;padding:8px 10px}#port-top .big{font-size:18px;padding:10px 16px}#port .arm{font-size:17px}#port .card{width:250px}}
+#help .gfx-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0;font-size:20px;color:var(--dim)}#help .gfx-row .btn{font-size:20px}
 </style>
 <div id="app">
   <canvas id="gl" tabindex="0" aria-label="Flight view"></canvas>
@@ -345,8 +348,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   </section>
 
   <div id="scoop-badge" hidden>Cargo scoop open</div>
-  <div id="zone-badge" hidden></div>
-  <div id="deep-badge" hidden></div>
+  <div id="alerts"><div id="deep-badge" hidden></div><div id="zone-badge" hidden></div></div>
   <div id="fault-badge" hidden></div>
   <div id="reticle" hidden></div>
   <div id="prompt" hidden></div>
@@ -374,7 +376,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.35</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.36</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -447,6 +449,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
       </dl>
       <p class="note">Point at your destination, set throttle, press Z. The drive drops out by itself near a planet. Fly on toward it and the port brings you down automatically. Deliveries pay on landing.</p>
       <p class="note">Side work: answer maydays (or don't), mine the asteroid fields on the map and sell the ore at an assay office, take risky contraband runs, or escort nervous VIPs. Your reputation changes what people pay you and how hard customs look at you.</p>
+      <p class="gfx-row"><button class="btn" id="gfx-toggle"></button> <span id="gfx-note"></span></p>
       <button class="big" id="help-close">Back to the cockpit</button>
     </div>
   </section>
@@ -459,6 +462,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FXAAShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
 <script>
 const SPECIES_EXTRA={};
 // Shared by the fifty cast builders. The animation joints point into the existing
@@ -8025,13 +8029,20 @@ void main(){ float nv=abs(dot(normalize(vN),vV)); float body=pow(nv,1.6); float 
   gl_FragColor=vec4(col,1.0); }`;
 
 GLSL.groundSkyFrag = `
-uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax,uCloud; varying vec3 vD;
+uniform vec3 cZen,cHor,uSun,cSun; uniform float uStars,uMax,uCloud,uAtmo; varying vec3 vD;
 ${GLSL.noise}
 void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
   vec3 col=mix(cHor,cZen,pow(h,0.55));
   col=mix(col,cHor*0.85,(1.0-smoothstep(-0.25,0.0,d.y)));
   float s=max(dot(d,uSun),0.0);
   col*=0.72; col+=cSun*(pow(s,8.0)*0.10+pow(s,64.0)*0.5+pow(s,1400.0)*30.0);
+  // atmospheric scattering: thick air toward the horizon brightens and hazes the sky; light scattered forward makes a broad
+  // glow round the sun; when the sun is low its side of the horizon reddens and the far side cools
+  if(uAtmo>0.0){ float band=pow(1.0-h,5.0)*smoothstep(-0.2,0.02,d.y), low=1.0-smoothstep(0.02,0.5,uSun.y), toward=pow(s,2.5);
+    vec3 warm=vec3(1.0,0.52,0.26);
+    col=mix(col,mix(cHor,vec3(1.0),0.3),band*0.4*uAtmo);
+    col+=cSun*warm*(band*toward*low*0.65+pow(s,4.0)*0.16*(0.4+0.6*low))*uAtmo;
+    col=mix(col,col*vec3(0.9,0.86,1.06)+vec3(0.04,0.03,0.07)*low,band*(1.0-toward)*0.45*uAtmo); }
   float cl=fbm(vec3(d.xz/max(d.y+0.18,0.06)*0.9,3.0),5); col=mix(col,mix(cHor,vec3(1.0),0.6)*0.85,smoothstep(0.1,0.6,cl)*smoothstep(0.0,0.25,d.y)*0.55*uCloud);
   vec3 q=d*220.0; float st=step(0.992,hash13(floor(q)))*(1.0-smoothstep(0.0,0.35,length(fract(q)-0.5))); col+=vec3(st)*uStars*h;
   col=clamp(col,vec3(0.0),vec3(uMax));
@@ -8039,7 +8050,7 @@ void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
 
 GLSL.postVert = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.postFrag = `
-uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash; uniform vec3 uFadeCol;
+uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash,uBlur,uSat,uContrast; uniform vec3 uFadeCol,uLift,uGain;
 varying vec2 vUv;
 vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }
 float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
@@ -8047,16 +8058,33 @@ void main(){
   vec2 c=vUv-0.5; float r2=dot(c,c);
   float ca=(0.0035+uWarp*0.02)*r2;
   vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-c*ca).b);
+  // motion blur: at speed the picture streaks outwards from the middle, more towards the edges
+  if(uBlur>0.001){ vec3 acc=col; float k=uBlur*sqrt(r2)*0.09; for(int i=1;i<7;i++){ acc+=texture2D(tDiffuse,vUv-c*k*float(i)).rgb; } col=acc/7.0; }
   col=mix(col,col*vec3(0.75,0.9,1.35),uWarp*0.5);
   col+=vec3(0.7,0.85,1.0)*uFlash*2.0;
   col*=uExposure;
   col=aces(col);
   col=pow(col,vec3(1.0/2.2));
+  // colour grading: each planet's own mood (saturation, contrast, tinted shadows and highlights)
+  float lum=dot(col,vec3(0.299,0.587,0.114)); col=mix(vec3(lum),col,uSat); col=(col-0.5)*uContrast+0.5; col=clamp(col,0.0,1.0)*uGain+uLift*(1.0-clamp(col,0.0,1.0));
   col*=1.0-r2*0.75;
   col+=(h21(vUv*vec2(1920.0,1080.0)+fract(uTime)*91.7)-0.5)*0.03;
   col=mix(col,uFadeCol,uFade);
   gl_FragColor=vec4(col,1.0);
 }`;
+
+/* depth of field: things well behind what you're looking at go soft, using a depth picture of the scene */
+GLSL.dofFrag = `
+#include <packing>
+uniform sampler2D tDiffuse, tDepth; uniform float uNear, uFar, uFocus, uMax; uniform vec2 uPx; varying vec2 vUv;
+float distAt(vec2 uv){ float d=unpackRGBAToDepth(texture2D(tDepth,uv)); return -perspectiveDepthToViewZ(d,uNear,uFar); }
+float cocAt(vec2 uv){ return clamp((distAt(uv)-uFocus-1.5)/(uFocus*0.8+4.0),0.0,1.0); }
+void main(){
+  vec4 base=texture2D(tDiffuse,vUv); float coc=cocAt(vUv)*uMax; if(coc<0.4){ gl_FragColor=base; return; }
+  vec3 acc=base.rgb; float w=1.0;
+  for(int i=0;i<16;i++){ float a=float(i)*2.39996, r=sqrt(float(i)+0.5)/4.0; vec2 o=vec2(cos(a),sin(a))*r*coc*uPx;
+    float cs=cocAt(vUv+o); float ww=smoothstep(0.0,0.35,cs); acc+=texture2D(tDiffuse,vUv+o).rgb*ww; w+=ww; }
+  gl_FragColor=vec4(acc/w,base.a); }`;
 /* ===================== MATERIAL HELPERS ===================== */
 /* The game uses the original lit look (MeshStandardMaterial, no outlines). Toon.mat and Toon.ink.mark are kept as
    plain pass-throughs so code written against them still works. */
@@ -8217,6 +8245,11 @@ ScenesPass.prototype.render=function(renderer, wb, rb){
   for(let i=0;i<this.list.length;i++){ if(i>0) renderer.clearDepth(); renderer.render(this.list[i].scene, this.list[i].camera); }
 };
 
+/* graphics quality: 'high' adds depth of field, floor reflections and multisample anti-aliasing; 'balanced' leaves them out.
+   Touch devices (iPad, phones) start on balanced, everything else on high; the choice is remembered. */
+const GFX = { high: (()=>{ try{ const v=localStorage.getItem('lh-gfx'); if(v) return v==='high'; }catch(e){} return !(window.matchMedia&&matchMedia('(pointer: coarse)').matches); })(),
+  set(high){ this.high=!!high; try{ localStorage.setItem('lh-gfx',high?'high':'balanced'); }catch(e){} } };
+
 const World = {
   dpr:1, frameMs:16, slowT:0, sunDir:new V3(1,0,0), time:0,
   init(canvas){
@@ -8353,11 +8386,17 @@ const World = {
   buildComposer(){
     const r=this.renderer; this.scenes=new ScenesPass();
     if(!THREE.EffectComposer || !THREE.UnrealBloomPass){ this.composer=null; r.toneMapping=THREE.ACESFilmicToneMapping; r.outputEncoding=THREE.sRGBEncoding; return; }
-    const rt=new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+    // multisample anti-aliasing on 'high' (WebGL 2): four samples per pixel smooth every edge before FXAA tidies the rest
+    const opts={type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter};
+    const msaa=GFX.high&&r.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget, rt=msaa?new THREE.WebGLMultisampleRenderTarget(4,4,opts):new THREE.WebGLRenderTarget(4,4,opts); if(msaa) rt.samples=4;
     this.composer=new THREE.EffectComposer(r,rt); this.composer.addPass(this.scenes);
+    // depth of field (off until a shop view turns it on)
+    this.dofRT=new THREE.WebGLRenderTarget(4,4,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter}); this.depthMat=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking});
+    this.dofPass=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},tDepth:{value:this.dofRT.texture},uNear:{value:1},uFar:{value:1000},uFocus:{value:10},uMax:{value:8},uPx:{value:new THREE.Vector2(1/1024,1/768)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.dofFrag});
+    this.dofPass.enabled=false; this.composer.addPass(this.dofPass);
     this.bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256),0.75,0.6,1.0);
     this.composer.addPass(this.bloom);
-    this.post=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uExposure:{value:1},uWarp:{value:0},uFade:{value:0},uFlash:{value:0},uFadeCol:{value:new THREE.Color(0,0,0)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.postFrag});
+    this.post=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uExposure:{value:1},uWarp:{value:0},uFade:{value:0},uFlash:{value:0},uFadeCol:{value:new THREE.Color(0,0,0)},uBlur:{value:0},uSat:{value:1},uContrast:{value:1},uLift:{value:new THREE.Color(0,0,0)},uGain:{value:new THREE.Color(1,1,1)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.postFrag});
     this.composer.addPass(this.post);
     if(THREE.FXAAShader){ this.fxaa=new THREE.ShaderPass(THREE.FXAAShader); this.composer.addPass(this.fxaa); }
   },
@@ -8367,7 +8406,7 @@ const World = {
     for(const c of [this.spaceCam,this.cockCam]){ c.aspect=w/h; c.updateProjectionMatrix(); }
     if(typeof Cine!=='undefined' && Cine.cam){ Cine.cam.aspect=w/h; Cine.cam.updateProjectionMatrix(); }
     const pw=Math.round(w*this.dpr), ph=Math.round(h*this.dpr);
-    if(this.composer){ this.composer.setSize(pw,ph); if(this.fxaa) this.fxaa.material.uniforms.resolution.value.set(1/pw,1/ph); }
+    if(this.composer){ this.composer.setSize(pw,ph); if(this.fxaa) this.fxaa.material.uniforms.resolution.value.set(1/pw,1/ph); this.dofRT.setSize(Math.max(2,pw>>1),Math.max(2,ph>>1)); this.dofPass.uniforms.uPx.value.set(1/pw,1/ph); }
     if(this.starMat) this.starMat.uniforms.uPx.value=this.dpr;
   },
   /* the cockpit was framed for a 16:10 window; on narrower screens (iPad, portrait) widen the vertical view so the sides still fit */
@@ -8398,8 +8437,18 @@ const World = {
     const now=performance.now(), raw=now-(this.lastNow||now); this.lastNow=now;
     if(raw>0&&raw<200&&!document.hidden){ this.frameMs=lerp(this.frameMs,raw,0.05); if(this.frameMs>24&&this.dpr>1){ this.slowT+=raw/1000; if(this.slowT>3){ this.dpr=Math.max(1,this.dpr-0.25); this.slowT=0; this.frameMs=16; this.resize(); } } else this.slowT=0; }
   },
-  render(){ if(this.composer) this.composer.render(); else { this.scenes.renderToScreen=true; this.scenes.render(this.renderer,null,null); } },
+  /* depth of field needs a picture of how far away everything is: when a shop view asks for it (this.dof = {scene,
+     camera, focus}), the scene is drawn once more, small, as depth only */
+  render(){ const D=this.dof, on=!!(D&&this.composer&&GFX.high); if(this.dofPass) this.dofPass.enabled=on;
+    if(on){ const r=this.renderer, sc=D.scene, cam=D.camera, hidden=[]; sc.traverse(o=>{ if(o.visible&&(o.userData.fx||o.isSprite||o.isPoints)){ o.visible=false; hidden.push(o); } });
+      const prev=sc.overrideMaterial, bg=sc.background, cc=r.getClearColor(new THREE.Color()), ca=r.getClearAlpha(), au=r.shadowMap.autoUpdate; r.shadowMap.autoUpdate=false; sc.overrideMaterial=this.depthMat; sc.background=null; r.setRenderTarget(this.dofRT); r.setClearColor(0xffffff,1); r.clear(true,true,true); r.render(sc,cam);
+      sc.overrideMaterial=prev; sc.background=bg; r.setClearColor(cc,ca); r.shadowMap.autoUpdate=au; r.setRenderTarget(null); hidden.forEach(o=>o.visible=true);
+      const u=this.dofPass.uniforms; u.uNear.value=cam.near; u.uFar.value=cam.far; u.uFocus.value=D.focus; }
+    if(this.composer) this.composer.render(); else { this.scenes.renderToScreen=true; this.scenes.render(this.renderer,null,null); } },
   /* set a post-processing uniform if the chain exists */
+  /* colour grade for the current scene (null = neutral, for space and the cockpit) */
+  grade(g){ if(!this.post) return; const u=this.post.uniforms; if(!g){ u.uSat.value=1; u.uContrast.value=1; u.uLift.value.setRGB(0,0,0); u.uGain.value.setRGB(1,1,1); return; }
+    u.uSat.value=g.sat; u.uContrast.value=g.con; u.uLift.value.copy(g.lift); u.uGain.value.copy(g.gain); },
   fx(name, v){ if(this.post){ const u=this.post.uniforms[name]; if(u.value && u.value.isColor) u.value.copy(v); else u.value=v; } },
 };
 
@@ -8896,7 +8945,7 @@ const Cine = {
       this.surf.scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose()); } }); if(this.surf.env) this.surf.env.dispose(); }
     const S=P.surf, scn=new THREE.Scene(), seed=P.idx*977+5, rr=mulberry32(seed), cloud=!!S.cloudsea, deck=!!S.deck, spc=SPECIES[P.species];
     const sunDir=new V3(Math.cos(P.idx*1.7)*0.75,0.36+0.16*Math.sin(P.idx*2.3),Math.sin(P.idx*1.7)*0.75).normalize();
-    const skyU={cZen:{value:C(S.zen)},cHor:{value:C(S.hor)},uSun:{value:sunDir},cSun:{value:C('#fff0d8')},uStars:{value:deck||P.atm<0.75?1:0.15},uMax:{value:3},uCloud:{value:deck?0:1}};
+    const skyU={cZen:{value:C(S.zen)},cHor:{value:C(S.hor)},uSun:{value:sunDir},cSun:{value:C('#fff0d8')},uStars:{value:deck||P.atm<0.75?1:0.15},uMax:{value:3},uCloud:{value:deck?0:1},uAtmo:{value:deck?0:clamp(P.atm==null?1:P.atm,0,1)}};
     const skyMat=new THREE.ShaderMaterial({vertexShader:GLSL.skyVert,fragmentShader:GLSL.groundSkyFrag,uniforms:skyU,side:THREE.BackSide,depthWrite:false});
     const sky=new THREE.Mesh(new THREE.SphereGeometry(26000,48,32),skyMat); scn.add(sky);
     // reflection map: render the sky to a float cube first (a raw shader cannot be fed to PMREM's fromScene directly)
@@ -8971,9 +9020,13 @@ const Cine = {
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
     Crowd.build(scn,P,cloud,PADS,hAt,S.liquid?liq:null);
+    Bake.detailLive(scn);   // dents and grain on the port's buildings, pads and parked ships
     ResidentDistrict.populate(P,Venues.list);
     PortSites.populate(P,Venues.list,hAt,cloud,S.liquid?liq:null);
-    this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
+    // colour grade: each world's own mood, from its sky and ground (stations cooler and crisper)
+    const hor=C(deck?'#cfe0ff':S.hor), lum=Math.max(0.05,(hor.r+hor.g+hor.b)/3), gain=new THREE.Color(1,1,1).lerp(hor.clone().multiplyScalar(1/lum),deck?0.12:0.1), lift=C(deck?'#203048':S.g[0]).multiplyScalar(0.06);
+    const grade={sat:deck?1.04:1.1,con:1.06,gain,lift};
+    this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0,grade};
   },
   /* a research station's docking deck: a big round metal deck with lamps around its rim, open to space. The station's
      hub and habitat ring loom behind it, and a planet hangs in the sky (they're the system's, seen from very far off). */
@@ -9068,7 +9121,10 @@ const Cine = {
     b.style.left=x+'px'; b.style.top=y+'px'; },
   /* the price tags along the bottom of the screen; the scene is framed in the space above them */
   strip(){ const b=$('port-body'); return !b||$('port').hidden||b.classList.contains('empty')?0:b.offsetHeight; },
-  region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const s=this.strip();
+  /* the shop is always framed as if the price tags were showing, so the view doesn't zoom in when the counter is bare:
+     the last real height of the strip, or a typical one until a strip has been seen at this window size */
+  frameStrip(){ const s=this.strip(), H=World.h, guess=clamp(Math.round(H*0.26),160,260); if(!this.lastStrip||this.lastStrip.H!==H) this.lastStrip={s:guess,H}; this.lastStrip.s=Math.max(this.lastStrip.s,s); return this.lastStrip.s; },
+  region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const s=this.frameStrip();
     return {w:W,h:Math.max(1,H-s),ox:0,oy:s/2}; },
   update(dt, time){
     this.t+=dt; const t=this.t, P=this.P, s=G.ship, cam=this.cam, m=this.model; let fov=42; if(this.mode!=='port'&&cam.view&&cam.view.enabled) cam.clearViewOffset();
@@ -9137,6 +9193,10 @@ const Cine = {
     // near the ground the camera can see things a metre away; high above the port (take-off) the near plane moves out with
     // it, which keeps the depth buffer precise enough that the ground, pads and roofs don't flicker against each other
     const nearW=this.mode==='A'||this.mode==='B'?1:clamp(Math.abs(cam.position.y)*0.03,1,60);
+    // grade, depth of field and motion blur for the scene on screen
+    const onSurface=this.mode!=='A'&&this.mode!=='B'&&this.surf; World.grade(onSurface?this.surf.grade:null);
+    World.dof=this.mode==='port'&&this.surf&&!this.preview&&this.camL?{scene:this.surf.scene,camera:cam,focus:Math.max(3,cam.position.distanceTo(this.camL)-1.2)}:null;
+    World.fx('uBlur',this.mode==='T'?clamp((this.t-1.6)/4,0,0.55):0);
     this.fovRaw=fov; if(!this.fovFixed) fov=World.fit(fov); this.fovFixed=false; if(Math.abs(cam.fov-fov)>0.01||Math.abs(cam.near-nearW)>0.05){ cam.fov=fov; cam.near=nearW; cam.updateProjectionMatrix(); }
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },
@@ -9682,11 +9742,28 @@ const Folk = (() => {
     const build=S.build||OriginalFolk[sp];
     build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
       glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
-    U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; }); mood(F,'neutral'); return F;
+    U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; });
+    // contact shadow: a soft dark patch on the ground under the feet, darkest where they touch, so nobody floats
+    { const b=new THREE.Box3().setFromObject(rig), w=Math.max(0.35,Math.max(b.max.x-b.min.x,b.max.z-b.min.z)/scale*0.62); const cs=new THREE.Mesh(contactGeo,contactMat());
+      cs.rotation.x=-Math.PI/2; cs.position.y=0.012; cs.scale.set(w,w*0.8,1); cs.renderOrder=-1; cs.userData.contact=true; F.add(cs); U.contact=cs; }
+    if(S.family!=='robot') sssSkin(F);
+    mood(F,'neutral'); return F;
   }
   /* attach a prop to the end of the right arm */
   /* the lowest point of a character, in world space, from its actual vertices (bounding boxes overstate a tilted body) */
-  function lowest(F){ F.updateMatrixWorld(true); let m=Infinity; F.traverse(o=>{ if(!o.isMesh||!o.visible) return; const a=o.geometry.attributes.position, e=o.matrixWorld.elements, st=a.count>400?2:1;
+  /* subsurface scattering, approximated: on living things light wraps a little past the edge of the lit side, warmed the
+     way light through skin or a leaf is, and glows through them when the light is behind them */
+  const SSS_CHUNK=THREE.ShaderChunk.lights_physical_pars_fragment.replace('vec3 irradiance = dotNL * directLight.color;',
+    'vec3 irradiance = dotNL * directLight.color;\n\t{ float nl = dot( geometry.normal, directLight.direction ); float wrapNL = saturate( ( nl + 0.5 ) / 1.5 ) - dotNL;'
+    +' float back = pow( saturate( dot( geometry.viewDir, -directLight.direction ) ), 4.0 ) * 0.3;'
+    +' reflectedLight.directDiffuse += ( wrapNL * vec3( 1.0, 0.55, 0.42 ) + back * vec3( 1.0, 0.72, 0.56 ) ) * directLight.color * material.diffuseColor; }');
+  function sssPatch(shader){ shader.fragmentShader=shader.fragmentShader.replace('#include <lights_physical_pars_fragment>',SSS_CHUNK); }
+  function sssSkin(F){ F.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial&&!m.userData.sss){ m.onBeforeCompile=sssPatch; m.userData.sss=true; m.needsUpdate=true; } }); }
+  const contactGeo=new THREE.PlaneGeometry(1,1); let _contactMat=null;
+  function contactMat(){ if(_contactMat) return _contactMat; const cv=makeCanvas(128,128), x=cv.getContext('2d'), g=x.createRadialGradient(64,64,4,64,64,62);
+    g.addColorStop(0,'rgba(0,0,0,0.62)'); g.addColorStop(0.35,'rgba(0,0,0,0.38)'); g.addColorStop(0.7,'rgba(0,0,0,0.12)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128);
+    return _contactMat=new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,toneMapped:false}); }
+  function lowest(F){ F.updateMatrixWorld(true); let m=Infinity; F.traverse(o=>{ if(!o.isMesh||!o.visible||o.userData.contact) return; const a=o.geometry.attributes.position, e=o.matrixWorld.elements, st=a.count>400?2:1;
       for(let i=0;i<a.count;i+=st){ const y=e[1]*a.getX(i)+e[5]*a.getY(i)+e[9]*a.getZ(i)+e[13]; if(y<m) m=y; } }); return m; }
   /* keep a character out of the floor at world height y: whenever a gag tips, flattens or sinks them, the lift layer raises
      them just enough that their lowest point rests on the floor (no lower than they stand normally). Upright poses cost nothing. */
@@ -9729,7 +9806,7 @@ const Portrait = (() => {
       const f=new THREE.DirectionalLight(0x9fd8ff,0.5); f.position.set(-2.5,0.6,1.5); scn.add(f); const rim=new THREE.DirectionalLight(0x8fe8ff,0.9); rim.position.set(-0.6,1.6,-3); scn.add(rim);
       cam=new THREE.PerspectiveCamera(26,1,0.05,50); }catch(e){ failed=true; } }
   function render(sp, seed){ if(!R) setup(); if(failed) return null;
-    const F=Folk.make(sp,seed,1); F.rotation.y=0.32; scn.add(F); F.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(F), sz=new THREE.Vector3(); b.getSize(sz);
+    const F=Folk.make(sp,seed,1); if(F.userData.contact) F.remove(F.userData.contact); F.rotation.y=0.32; scn.add(F); F.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(F), sz=new THREE.Vector3(); b.getSize(sz);
     // head and shoulders: the top of the model, as wide as it needs to be
     const vh=Math.max(Math.min(sz.y,sz.y*0.62+0.2),sz.x*0.95), cy=b.max.y-vh/2+0.02, d=vh*0.56/Math.tan(13*Math.PI/180);
     cam.position.set(0,cy+vh*0.08,d+b.max.z*0.5); cam.lookAt(0,cy,0);
@@ -9769,6 +9846,19 @@ const Venues = (() => {
     if(V.k!=='depot') for(let i=0;i<3;i++){ const c=bx(0.6,0.6,0.6,M(['#b07a3a','#9c6a30','#c48a48'][i],0.8,0.02),-5.6+i*0.15,0.3+i*0.6,1.2+(i%2)*0.1); c.rotation.y=i*0.3; R.add(c); }
   }
 
+  /* the location sign: a name plate on the front of the counter, right in view, with the port in big letters and the
+     planet (or the station and its risk) underneath */
+  function locationSign(V, P, pal){
+    const R=V.root, cv=makeCanvas(768,220), x=cv.getContext('2d');
+    x.fillStyle='#10161c'; x.fillRect(0,0,768,220); x.strokeStyle=pal[4]; x.lineWidth=12; x.strokeRect(8,8,752,204); x.textAlign='center'; x.textBaseline='middle';
+    const fit=(t,max,px,f)=>{ let s=px; do{ x.font=f.replace('#',s); s-=2; }while(x.measureText(t).width>max&&s>10); };
+    const port=P.port.toUpperCase(), where=(P.station?P.name+' · '+RISK[P.risk].name+' risk':P.name).toUpperCase();
+    x.fillStyle='#ffffff'; fit(port,700,92,`700 #px ${FONT_DISP}`); x.fillText(port,384,84);
+    x.fillStyle=pal[4]; fit(where,700,48,`600 #px ${FONT_DISP}`); x.fillText(where,384,165);
+    const t=canvasTex(cv), w=2.9, h=w*220/768;
+    const plate=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:t,emissive:C('#ffffff'),emissiveMap:t,emissiveIntensity:0.5,roughness:0.5}));
+    plate.position.set(0,0.52,0.47); R.add(plate); R.add(bx(w+0.1,h+0.1,0.05,M("#20242a",0.5,0.4),0,0.52,0.42));
+  }
   /* back-of-set scenery and props for each kind; returns the props its gag needs */
   const SETS = {
     depot(V,pal){ const R=V.root; for(const sx of [-1,1]){ R.add(cyl(0.12,0.12,4.6,M('#6a6f76',0.5,0.6),sx*5.8,2.3,-6.6,8)); R.add(cyl(0.12,0.12,4.6,M('#6a6f76',0.5,0.6),sx*5.8,2.3,-1.6,8)); }
@@ -9888,7 +9978,7 @@ const Venues = (() => {
     const S=V.room=roomSpec(k), R=V.root, g=new THREE.Group(); R.add(g);
     const W=S.x1-S.x0, D=S.z1-S.z0, cx=(S.x0+S.x1)/2, cz=(S.z0+S.z1)/2, H=S.h, big=H>20, T=big?1.2:0.4;
     const wallM=M(S.wall,0.88,0.06,S.splat?{map:splatTex(S.wall,rr),color:C('#ffffff')}:{}), trimM=M(S.trim,0.5,0.35), darkM=M('#2a2d32',0.7,0.4), floorM=M(S.floor,0.86,0.08), ceilM=M('#3a3d42',0.9,0.1), lampM=glow(S.lamp,1.5),
-      glassM=new THREE.MeshStandardMaterial({color:C('#bcd8ee'),roughness:0.05,metalness:0.5,transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide});
+      glassM=new THREE.MeshStandardMaterial({color:C('#bcd8ee'),roughness:0.05,metalness:0.5,transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide,emissive:C(cloud?'#e8f2ff':'#d8ecff'),emissiveIntensity:0.9});   // daylight glows in the panes
     const B=(w,h,d,m,x,y,z)=>{ const o=bx(w,h,d,m,x,y,z); g.add(o); return o; };
     // floor slab and what holds it up, then the roof
     B(W+T*2,0.3,D+T*2,floorM,cx,-0.15,cz);
@@ -9988,7 +10078,7 @@ const Venues = (() => {
   /* keep the shelf in step with the board: one model per contract, in board order */
   function syncShelf(jobs){ const V=api.list.find(v=>v.shelf); if(!V) return; const S=V.shelf, want=jobs.filter(j=>j.kind!=='escort').slice(0,SHELF.rows.length*SHELF.cols);
     for(const it of S.items.slice()) if(!want.includes(it.job)){ S.g.remove(it.o); S.items.splice(S.items.indexOf(it),1); }
-    want.forEach((j,i)=>{ let it=S.items.find(q=>q.job===j); if(!it){ const o=GoodsArt.build(j.good,j.kind==='contra'); o.scale.setScalar(1.45); o.traverse(q=>{ if(q.isMesh) q.userData.shelfJob=j; }); S.g.add(o); it={o,job:j,ph:Math.random()*6,hop:0}; S.items.push(it); }
+    want.forEach((j,i)=>{ let it=S.items.find(q=>q.job===j); if(!it){ const o=GoodsArt.build(j.good,j.kind==='contra'); o.scale.setScalar(1.45); Bake.useProbe(V,o,false); o.traverse(q=>{ if(q.isMesh) q.userData.shelfJob=j; }); S.g.add(o); it={o,job:j,ph:Math.random()*6,hop:0}; S.items.push(it); }
       const r=Math.floor(i/SHELF.cols), c=i%SHELF.cols, step=SHELF.w/SHELF.cols; it.o.position.set(-SHELF.w/2+step*(c+0.5),SHELF.rows[2-r]+0.0,0.05); it.base=it.o.position.y; }); }
   function stepShelf(V, dt, t){ const S=V.shelf; if(!S) return; for(const it of S.items){ const on=S.hover===it.job; it.hop=Math.max(0,it.hop-dt*2.2);
       it.o.rotation.y=Math.sin(t*0.6+it.ph)*0.35+(on?Math.sin(t*3)*0.25:0); const sc=1.45*(on?1.18:1); it.o.scale.lerp(new V3(sc,sc,sc),1-Math.exp(-dt*10));
@@ -10011,9 +10101,15 @@ const Venues = (() => {
     d.position.set(HOME[0],0,HOME[1]); V.root.add(d); return {grp:d,rig,head,eye,lift,q:[],cur:null,i:0,t:0,go:false,crate:null,slots:[null,null,null],n:0}; }
   function stepDroid(V, dt, t){
     const D=V.droid; if(!D) return; const g=D.grp, x0=STORE.dx; D.rig.position.y=0.05+Math.sin(t*3.1)*0.03; D.eye.position.x=Math.sin(t*1.3)*0.12;
-    if(!D.cur){ if(!D.q.length){ D.head.rotation.y=Math.sin(t*0.6)*0.5; return; } const name=D.q.shift(), slot=D.n++%3, sx=SLOTX[slot];
-      D.cur={slot,steps:[['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['grab'],['rev',x0,-11.4],['to',x0,-9.2],['to',x0,-2.3],['to',sx,-1.9],['face',0],['lift',1.14],['rev',sx,-0.85],['drop'],['rev',sx,-1.9],['lift',0.95],['to',HOME[0],HOME[1]],['face',0]]}; D.i=0; D.t=0;
-      const c=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(name)}),x0,0.93+0.31,-13.6); c.castShadow=true; V.root.add(c); D.crate=c; snd(V,()=>Sfx.beep(1320)); }
+    if(!D.cur){ if(!D.q.length){ D.head.rotation.y=Math.sin(t*0.6)*0.5; return; } const job=D.q.shift(), name=job.name||job, it=job.item, slot=D.n++%3, sx=SLOTX[slot];
+      const back=[['rev',x0,-11.4],['to',x0,-9.2],['to',x0,-2.3],['to',sx,-1.9],['face',0],['lift',1.14],['rev',sx,-0.85],['drop'],['rev',sx,-1.9],['lift',0.95],['to',HOME[0],HOME[1]],['face',0]];
+      if(it){ // the good's own model: round the front of the counter to the shelf, lift it off, take it to the bench in the stock room, crate it there, bring the crate out
+        const p=it.o.getWorldPosition(new V3()); V.root.worldToLocal(p); const ix=Math.min(-2.7,p.x);
+        D.cur={slot,name,it,iy:p.y,steps:[['to',3.4,1.5],['to',ix,1.5],['to',ix,0.55],['face',Math.PI],['liftTo',Math.max(0.6,p.y-0.04)],['take'],['liftTo',1.0],['rev',ix,1.5],['to',3.4,1.5],['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['liftTo',1.0],['pack'],...back]};
+      } else { // no model to hand (a long board): fetch a ready-made crate from the stock room as before
+        D.cur={slot,name,steps:[['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['grab'],...back]};
+        const c=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(name)}),x0,0.93+0.31,-13.6); c.castShadow=true; V.root.add(c); Bake.useProbe(V,c,false); D.crate=c; }
+      D.i=0; D.t=0; snd(V,()=>Sfx.beep(1320)); }
     D.head.rotation.y*=0.9; const s=D.cur.steps[D.i]; if(!s){ D.cur=null; return; } const k=s[0]; let done=false;
     const turn=a=>{ const d=((a-g.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; g.rotation.y+=Math.sign(d)*Math.min(Math.abs(d),dt*4.5); return Math.abs(d)<0.05; };
     const move=(x,z)=>{ const dx=x-g.position.x, dz=z-g.position.z, d=Math.hypot(dx,dz), st=Math.min(d,3.4*dt); if(d>1e-4){ g.position.x+=dx/d*st; g.position.z+=dz/d*st; } return d-st<0.01; };
@@ -10021,6 +10117,13 @@ const Venues = (() => {
     else if(k==='rev') done=move(s[1],s[2]);
     else if(k==='face') done=turn(s[1]);
     else if(k==='lift'){ const d=s[1]-D.lift.position.y; D.lift.position.y+=clamp(d,-dt*0.5,dt*0.5); done=Math.abs(d)<0.005; }
+    else if(k==='liftTo'){ const d=s[1]-D.lift.position.y; D.lift.position.y+=clamp(d,-dt*1.6,dt*1.6); done=Math.abs(d)<0.01; }
+    else if(k==='take'){ const c=D.cur, o=c.it.o; D.t+=dt; if(o.parent!==D.lift){ D.lift.attach(o); c.from=o.position.clone(); c.fromR=o.rotation.y; snd(V,()=>Sfx.click()); }
+      const u=clamp(D.t/0.6,0,1), e=u*u*(3-2*u); o.position.lerpVectors(c.from,new V3(0,0.06,0.62),e); o.rotation.set(0,c.fromR*(1-e),0); done=D.t>0.7; }
+    else if(k==='pack'){ const c=D.cur, o=c.it.o; D.t+=dt;   // at the bench the model is wrapped up into a labelled crate
+      if(!D.crate){ D.crate=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(c.name)}),0,0.335,0.6); D.crate.castShadow=true; D.crate.scale.setScalar(0.01); D.lift.add(D.crate); Bake.useProbe(V,D.crate,false); snd(V,()=>Sfx.hiss(0.5,0.15)); }
+      const u=clamp(D.t/1.1,0,1); o.scale.setScalar(Math.max(0.001,1.45*(1-u))); o.rotation.y+=dt*6; D.crate.scale.setScalar(Math.max(0.01,u<0.3?u/0.3*0.4:0.4+0.6*((u-0.3)/0.7)));
+      if(u>=1&&o.parent){ o.parent.remove(o); snd(V,()=>Sfx.thump(0.4)); } done=D.t>1.3; }
     else if(k==='grab'){ D.t+=dt; if(D.t>0.35&&D.crate&&D.crate.parent!==D.lift){ D.lift.add(D.crate); D.crate.position.set(0,0.335,0.6); D.crate.rotation.set(0,0,0); snd(V,()=>Sfx.clunk()); } D.lift.position.y=0.95+0.06*clamp((D.t-0.35)/0.3,0,1); done=D.t>0.8; }
     else if(k==='drop'){ D.t+=dt; if(D.t>0.25&&D.crate){ const old=D.slots[D.cur.slot]; if(old) V.root.remove(old); V.root.add(D.crate); D.crate.position.set(SLOTX[D.cur.slot],1.1+0.31,-0.05); D.crate.rotation.set(0,(Math.random()-0.5)*0.25,0); D.slots[D.cur.slot]=D.crate; D.crate=null; snd(V,()=>{ Sfx.thump(0.4); Sfx.beep(1760); }); } done=D.t>0.6; }
     if(done){ D.i++; D.t=0; }
@@ -10204,11 +10307,15 @@ const Venues = (() => {
         if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(4,8,600,12),padMat); py.position.set(0,-303,-6); root.add(py); }
         DISTRICT[d.k](root,pal,rr,V); lampPosts(root); room(V,d.k,pal,cloud,rr);
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
-        shell(V,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
+        shell(V,pal); locationSign(V,P,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
         V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,-0.85); root.add(V.keeper);
         const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
-        if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,scn,P);   // light the room once and paint it in (?nobake shows the live lighting)
+        if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,scn,P);
+        if(!/[?&]nobake\b/.test(location.search)) Bake.probe(V,scn);   // the room's own light for its live things
+        Bake.beams(V,scn);   // sunbeams through the windows and cones of light under the lamps
+        Bake.decals(V);   // oil, scuffs and drink rings on the floor
+        Bake.floorMirror(V);   // reflections on the floor (high quality only)   // light the room once and paint it in (?nobake shows the live lighting)
         this.list.push(V); });
       return this.list;
     },
@@ -10235,11 +10342,15 @@ const Venues = (() => {
     hoverShelf(j){ const V=this.list.find(v=>v.shelf); if(V) V.shelf.hover=j; },
     hopShelf(j){ const V=this.list.find(v=>v.shelf); const it=V&&V.shelf.items.find(i=>i.job===j); if(it) it.hop=1; },
     /* ask the depot's droid to bring a crate of this out to the counter */
-    fetch(name){ const V=this.list.find(v=>v.droid); if(!V) return; const q=V.droid.q; q.push(name); if(q.length>4) q.shift(); },
+    /* the stock droid fetches what you signed for: the good's model off the shelf if it's there (it is held back from
+       the shelf's tidy-up until the droid collects it), else a ready-made crate */
+    fetch(name, job){ const V=this.list.find(v=>v.droid); if(!V) return; const q=V.droid.q, S=V.shelf; let item=null;
+      if(S&&job){ const i=S.items.findIndex(it=>it.job===job); if(i>=0){ item=S.items[i]; S.items.splice(i,1); if(S.hover===job) S.hover=null; } }
+      q.push({name,item}); if(q.length>4){ const old=q.shift(); if(old.item&&old.item.o.parent) old.item.o.parent.remove(old.item.o); } },
     near(x,z,r){ return this.list.some(v=>Math.hypot(v.root.position.x-x,v.root.position.z-z)<r); },
     update(dt, t){
       const V=this.current(); if(V!==this.active){ this.prev=this.active; this.active=V; }
-      for(const v of this.list) v.root.visible=v===V||(this.moving&&v===this.prev); if(!V) return;
+      for(const v of this.list){ v.root.visible=v===V||(this.moving&&v===this.prev); if(v.mirror) v.mirror.visible=GFX.high&&v===V&&!this.moving&&G.mode==='port'; } if(!V) return;
       V.t+=dt; if(V.t>V.gag.dur) this.restart(V,0);
       V.gag.update(V,V.t,dt); stepFx(V,dt); for(const F of [V.A,V.B,V.keeper]) Folk.ground(F,V.root.position.y); stepDroid(V,dt,t); stepShelf(V,dt,t); if(V.spin) for(const o of V.spin) o.rotation.y+=dt*0.8;
       for(const F of [V.A,V.B,V.keeper]) Folk.blink(F,t);
@@ -10790,7 +10901,7 @@ const PortSites=(()=>{
 const Bake = (() => {
   const tmpM = new THREE.Matrix4(), tmpN = new THREE.Matrix3(), box = new THREE.Box3(), v = new THREE.Vector3(), n = new THREE.Vector3();
   // balance against the live lighting it replaces: lamps and sun, then sky light (hemisphere plus the sky's reflection)
-  const GD = 0.62, GE = 0.62, ENV_K = 0.4, SUN_K = 1.0, AOP = 2, GS = 1.0;
+  const GD = 0.52, GE = 0.5, ENV_K = 0.4, SUN_K = 1.0, AOP = 2, GS = 1.0, GI_K = 0.55;
   // a dozen fixed directions spread over a hemisphere (around +z), for ambient occlusion
   const AO_DIRS = (() => { const out = [], N = 12, ga = Math.PI * (3 - Math.sqrt(5));
     for (let i = 0; i < N; i++) { const z = Math.sqrt(1 - (i + 0.5) / N), r = Math.sqrt(1 - z * z), a = i * ga; out.push([Math.cos(a) * r, Math.sin(a) * r, z]); } return out; })();
@@ -10844,8 +10955,11 @@ const Bake = (() => {
       for (let k = k0; k <= k1; k++) for (let j = j0; j <= j1; j++) { const row = (k * ny + j) * nx; for (let i = i0; i <= i1; i++) occ[row + i] = id + 1; } });
 
     // a ray through the grid: the distance to the first filled cell that isn't the surface it starts on, or Infinity
-    const march = (px, py, pz, dx, dy, dz, maxT, self, step) => { for (let t = step; t < maxT; t += step) { const o = at(px + dx * t, py + dy * t, pz + dz * t);
-        if (o && (o !== self || t > cell * 3)) return t; } return Infinity; };
+    const cellOf = (x, y, z) => { const i = Math.floor((x - x0) / cell), j = Math.floor((y - y0) / cell), k = Math.floor((z - z0) / cell);
+      return i < 0 || j < 0 || k < 0 || i >= nx || j >= ny || k >= nz ? -1 : (k * ny + j) * nx + i; };
+    let hitCell = -1;   // the cell the last ray stopped in, for the bounce-light pass
+    const march = (px, py, pz, dx, dy, dz, maxT, self, step) => { for (let t = step; t < maxT; t += step) { const x = px + dx * t, y = py + dy * t, z = pz + dz * t, o = at(x, y, z);
+        if (o && (o !== self || t > cell * 3)) { hitCell = cellOf(x, y, z); return t; } } hitCell = -1; return Infinity; };
 
     // the lights: the room's own lamps (in the shop's frame), the sun, the sky light and an approximation of the sky's reflection
     const lamps = []; R.traverse(o => { if (o.isPointLight && !skip.has(o.parent)) { o.updateMatrixWorld(true); const p = new THREE.Vector3().setFromMatrixPosition(o.matrixWorld).applyMatrix4(inv);
@@ -10859,27 +10973,33 @@ const Bake = (() => {
     // a plain surface has its own colour folded into the vertex colours (so the sky's sheen can be added on top, untinted);
     // a textured one, or a mesh with several materials, keeps its colour on the material and gets light only
     const conv = new Map(), basic = (mat, fold) => { const key = mat.uuid + (fold ? 'f' : ''); if (conv.has(key)) return conv.get(key);
-      const b = new THREE.MeshBasicMaterial({ color: fold ? new THREE.Color(1, 1, 1) : mat.color.clone().multiplyScalar(1 - (mat.metalness || 0) * 0.5), map: mat.map || null, vertexColors: true, side: mat.side, fog: true });
+      const b = new THREE.MeshBasicMaterial({ color: fold ? new THREE.Color(1, 1, 1) : mat.color.clone().multiplyScalar(1 - (mat.metalness || 0) * 0.5), map: mat.map || (fold ? detailTex() : null), vertexColors: true, side: mat.side, fog: true });
       b.name = mat.name; conv.set(key, b); return b; };
-    let verts = 0; const tx = new THREE.Vector3(), ty = new THREE.Vector3(), up = new THREE.Vector3();
-    meshes.forEach((e, id) => {
+    let verts = 0; const tx = new THREE.Vector3(), ty = new THREE.Vector3(), up = new THREE.Vector3(), RAO = big ? 8 : 2.2, ND = AO_DIRS.length;
+    /* pass 1: at every vertex, the light arriving straight from the lamps and the sun, the sky light, how open the
+       surroundings are, and where each of those openness rays ran into something */
+    const jobs = meshes.map((e, id) => {
       const o = e.o, single = !Array.isArray(o.material), fold = single && !o.material.map, M0 = single ? o.material : null;
       const base = fold ? M0.color.clone().multiplyScalar(1 - (M0.metalness || 0) * 0.5) : new THREE.Color(1, 1, 1);
+      // what colour it reflects onto its neighbours (a textured surface counts as a bit darker than its tint)
+      const firstMat = single ? M0 : o.material.find(m => !keepLive(m)) || o.material[0], albedo = fold ? base.clone() : firstMat.color.clone().multiplyScalar(firstMat.map ? 0.6 : 1);
       // the sky's sheen on it: white on plastic and paint, tinted by the metal's own colour on metal
       const rgh = fold ? (M0.roughness ?? 1) : 1, mtl = fold ? (M0.metalness || 0) : 0, gloss = 0.04 + 0.22 * Math.pow(1 - rgh, 2);
       const ksC = fold ? new THREE.Color(gloss, gloss, gloss).lerp(M0.color.clone().multiplyScalar(0.25 + 0.45 * (1 - rgh)), mtl).multiplyScalar(GS) : new THREE.Color(0, 0, 0);
       const geo = subdivide(o.geometry, big ? 2.5 : 0.5); geo.computeVertexNormals && !geo.attributes.normal && geo.computeVertexNormals();
-      const pos = geo.attributes.position, nor = geo.attributes.normal, count = pos.count, col = new Float32Array(count * 3), had = geo.attributes.color;
+      const pos = geo.attributes.position, nor = geo.attributes.normal, count = pos.count;
+      const E = new Float32Array(count * 3), AO = new Float32Array(count), hits = new Int32Array(count * ND), surf = new Int32Array(count);
       tmpN.getNormalMatrix(e.m); const self = id + 1;
       for (let i = 0; i < count; i++) {
         v.fromBufferAttribute(pos, i).applyMatrix4(e.m); n.fromBufferAttribute(nor, i).applyMatrix3(tmpN).normalize();
         const off = cell * 0.8, px = v.x + n.x * off, py = v.y + n.y * off, pz = v.z + n.z * off;
+        surf[i] = cellOf(v.x - n.x * cell * 0.3, v.y - n.y * cell * 0.3, v.z - n.z * cell * 0.3);
         // ambient occlusion: how open the hemisphere above this point is, out to a couple of metres
         up.set(Math.abs(n.y) < 0.9 ? 0 : 1, Math.abs(n.y) < 0.9 ? 1 : 0, 0); tx.crossVectors(up, n).normalize(); ty.crossVectors(n, tx);
-        const RAO = big ? 8 : 2.2; let ao = 0;
-        for (const [a, b, c] of AO_DIRS) { const dx = tx.x * a + ty.x * b + n.x * c, dy = tx.y * a + ty.y * b + n.y * c, dz = tx.z * a + ty.z * b + n.z * c;
-          const hit = march(px, py, pz, dx, dy, dz, RAO, self, cell); ao += hit === Infinity ? 1 : Math.pow(hit / RAO, 0.7); }
-        ao /= AO_DIRS.length;
+        let ao = 0;
+        AO_DIRS.forEach(([a, b, c], d) => { const dx = tx.x * a + ty.x * b + n.x * c, dy = tx.y * a + ty.y * b + n.y * c, dz = tx.z * a + ty.z * b + n.z * c;
+          const hit = march(px, py, pz, dx, dy, dz, RAO * 1.6, self, cell); hits[i * ND + d] = hitCell; ao += hit >= RAO ? 1 : Math.pow(hit / RAO, 0.7); });
+        ao /= ND; AO[i] = ao;
         // direct light from each lamp and the sun, unless something is in the way
         let r = 0, g = 0, bl = 0;
         for (const L of lamps) { const lx = L.p.x - px, ly = L.p.y - py, lz = L.p.z - pz, d = Math.hypot(lx, ly, lz); if (d < 1e-4) continue;
@@ -10887,22 +11007,147 @@ const Bake = (() => {
           if (march(px, py, pz, lx / d, ly / d, lz / d, d - 0.35, self, cell * 1.4) !== Infinity) continue;
           const w = ndl * att; r += L.c.r * w; g += L.c.g * w; bl += L.c.b * w; }
         if (sun) { const ndl = n.x * sun.d.x + n.y * sun.d.y + n.z * sun.d.z; if (ndl > 0 && march(px, py, pz, sun.d.x, sun.d.y, sun.d.z, big ? 120 : 40, self, cell * 1.4) === Infinity) { r += sun.c.r * ndl; g += sun.c.g * ndl; bl += sun.c.b * ndl; } }
-        // sky light and the sky's reflection, from above and below, through the open part of the hemisphere
-        const h = 0.5 + 0.5 * n.y, aoA = Math.pow(ao, AOP) * GE;
+        // sky light and the sky's reflection, from above and below, through the open part of the hemisphere;
         // a touch of contact shadow on the direct light too, so corners read even right under a lamp
-        const k = GD * (0.55 + 0.45 * ao), j = i * 3;
-        r = r * k + (ground.r + (sky.r - ground.r) * h) * aoA; g = g * k + (ground.g + (sky.g - ground.g) * h) * aoA; bl = bl * k + (ground.b + (sky.b - ground.b) * h) * aoA;
-        const sh = 0.35 + 0.65 * ao;
-        col[j] = (r * base.r + sky.r * ksC.r * sh) * (had ? had.getX(i) : 1); col[j + 1] = (g * base.g + sky.g * ksC.g * sh) * (had ? had.getY(i) : 1); col[j + 2] = (bl * base.b + sky.b * ksC.b * sh) * (had ? had.getZ(i) : 1);
+        const h = 0.5 + 0.5 * n.y, aoA = Math.pow(ao, AOP) * GE, k = GD * (0.55 + 0.45 * ao), j = i * 3;
+        E[j] = r * k + (ground.r + (sky.r - ground.r) * h) * aoA; E[j + 1] = g * k + (ground.g + (sky.g - ground.g) * h) * aoA; E[j + 2] = bl * k + (ground.b + (sky.b - ground.b) * h) * aoA;
       }
-      geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); verts += count;
+      return { e, o, fold, base, albedo, ksC, geo, count, E, AO, hits, surf };
+    });
+    /* global illumination, one bounce: every surface cell gives off its own colour times the light falling on it, and
+       each vertex gathers that from whatever its openness rays ran into, so a red wall warms the floor beside it */
+    const rad = new Float32Array(nx * ny * nz * 3), radN = new Uint16Array(nx * ny * nz);
+    for (const J of jobs) for (let i = 0; i < J.count; i++) { const c = J.surf[i]; if (c < 0) continue; const j = i * 3;
+      rad[c * 3] += J.E[j] * J.albedo.r; rad[c * 3 + 1] += J.E[j + 1] * J.albedo.g; rad[c * 3 + 2] += J.E[j + 2] * J.albedo.b; if (radN[c] < 65535) radN[c]++; }
+    for (const J of jobs) {
+      const { o, fold, base, ksC, geo, count, E, AO, hits } = J, col = new Float32Array(count * 3), had = geo.attributes.color, pos = geo.attributes.position, nor = geo.attributes.normal;
+      const uv = fold ? new Float32Array(count * 2) : null; tmpN.getNormalMatrix(J.e.m); const seed = (V.seed || 1) % 997;
+      for (let i = 0; i < count; i++) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(J.e.m); n.fromBufferAttribute(nor, i).applyMatrix3(tmpN).normalize();
+        // fine surface detail: a tiling grain-and-seams texture, laid flat on whichever way the face points
+        if (uv) { const ax = Math.abs(n.x), ay = Math.abs(n.y), az = Math.abs(n.z), q = 0.42;
+          if (ay >= ax && ay >= az) { uv[i * 2] = v.x * q; uv[i * 2 + 1] = v.z * q; } else if (ax >= az) { uv[i * 2] = v.z * q; uv[i * 2 + 1] = v.y * q; } else { uv[i * 2] = v.x * q; uv[i * 2 + 1] = v.y * q; } }
+        // grime: dirt in corners and creases, a dirty band along the bottom of walls, scuffs and stains on the floor,
+        // faint streaks down the walls
+        const vert = Math.abs(n.y) < 0.5, floorUp = n.y > 0.7;
+        let dirt = 0.22 * Math.pow(1 - AO[i], 1.4);
+        if (vert) dirt += 0.16 * Math.max(0, Math.min(1, 1 - (v.y - 0.02) / 0.9)) + 0.07 * Math.max(0, Math.min(1, (vnoise((v.x + v.z) * 0.55, v.y * 0.12, seed + 7) - 0.58) * 4));
+        if (floorUp && v.y < 0.4) dirt += 0.13 * Math.max(0, Math.min(1, (vnoise(v.x * 0.32, v.z * 0.32, seed) - 0.55) * 3.5)) + 0.05 * vnoise(v.x * 1.7, v.z * 1.7, seed + 3);
+        const gm = 1 - Math.min(0.42, dirt), gR = gm * (1 - dirt * 0.05), gB = gm * (1 - dirt * 0.18);   // dirt is a touch brown
+
+        let br = 0, bg = 0, bb = 0; for (let d = 0; d < ND; d++) { const c = hits[i * ND + d]; if (c < 0 || !radN[c]) continue; const w = 1 / radN[c]; br += rad[c * 3] * w; bg += rad[c * 3 + 1] * w; bb += rad[c * 3 + 2] * w; }
+        const j = i * 3, gk = GI_K / ND, r = E[j] + br * gk, g = E[j + 1] + bg * gk, bl = E[j + 2] + bb * gk, sh = 0.35 + 0.65 * AO[i];
+        col[j] = (r * base.r * gR + sky.r * ksC.r * sh * gm) * (had ? had.getX(i) : 1); col[j + 1] = (g * base.g * gm + sky.g * ksC.g * sh * gm) * (had ? had.getY(i) : 1); col[j + 2] = (bl * base.b * gB + sky.b * ksC.b * sh * gm) * (had ? had.getZ(i) : 1);
+      }
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); if (uv) geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); verts += count;
       if (o.geometry !== geo) { o.geometry.dispose(); o.geometry = geo; }
       o.material = Array.isArray(o.material) ? o.material.map(m => keepLive(m) ? m : basic(m, false)) : basic(o.material, fold);
       o.receiveShadow = false; o.userData.baked = true;
-    });
+    }
     return { meshes: meshes.length, verts, ms: Math.round(performance.now() - t0) };
   }
-  return { room };
+  /* procedural surface textures, made once */
+  let _detail = null, _nrm = null, _rough = null;
+  function noiseCanvas(S, seed, oct) { const cv = makeCanvas(S, S), x = cv.getContext('2d'), im = x.createImageData(S, S), r = mulberry32(seed), L = [];
+    for (let o = 0; o < oct; o++) { const n = 4 << o, g = new Float32Array((n + 1) * (n + 1)); for (let i = 0; i < g.length; i++) g[i] = r(); for (let i = 0; i <= n; i++) { g[i * (n + 1) + n] = g[i * (n + 1)]; g[n * (n + 1) + i] = g[i]; } L.push({ n, g }); }
+    const h = new Float32Array(S * S); for (let y = 0; y < S; y++) for (let xx = 0; xx < S; xx++) { let v = 0, a = 0.5, t = 0;
+      for (const { n, g } of L) { const fx = xx / S * n, fy = y / S * n, ix = Math.floor(fx), iy = Math.floor(fy), u = fx - ix, w = fy - iy, s = q => q * q * (3 - 2 * q), i0 = iy * (n + 1) + ix;
+        v += a * (g[i0] * (1 - s(u)) * (1 - s(w)) + g[i0 + 1] * s(u) * (1 - s(w)) + g[i0 + n + 1] * (1 - s(u)) * s(w) + g[i0 + n + 2] * s(u) * s(w)); t += a; a *= 0.5; }
+      h[y * S + xx] = v / t; } return { cv, x, im, h }; }
+  function detailTex() { if (_detail) return _detail; const S = 256, { cv, x, im, h } = noiseCanvas(S, 11, 5);
+    for (let i = 0; i < S * S; i++) { const px = i % S, py = (i / S) | 0, seam = (px % 128 < 2 || py % 128 < 2) ? 0.9 : 1, scratch = (Math.abs(((px * 0.37 + py * 0.91) % 41) - 20) < 0.5 && h[i] > 0.62) ? 0.94 : 1;
+      const v = Math.round(255 * Math.min(1, (0.9 + (h[i] - 0.5) * 0.2) * seam * scratch / 0.97)); im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; }
+    x.putImageData(im, 0, 0); _detail = new THREE.CanvasTexture(cv); _detail.wrapS = _detail.wrapT = THREE.RepeatWrapping; _detail.anisotropy = 4; return _detail; }
+  function normalTex() { if (_nrm) return _nrm; const S = 256, { cv, x, im, h } = noiseCanvas(S, 23, 6), k = 2.2;
+    for (let y = 0; y < S; y++) for (let xx = 0; xx < S; xx++) { const hx = h[y * S + (xx + 1) % S] - h[y * S + (xx + S - 1) % S], hy = h[((y + 1) % S) * S + xx] - h[((y + S - 1) % S) * S + xx];
+      const nx = -hx * k * 8, ny = -hy * k * 8, l = Math.hypot(nx, ny, 1), i = (y * S + xx) * 4; im.data[i] = (nx / l * 0.5 + 0.5) * 255; im.data[i + 1] = (ny / l * 0.5 + 0.5) * 255; im.data[i + 2] = (1 / l * 0.5 + 0.5) * 255; im.data[i + 3] = 255; }
+    x.putImageData(im, 0, 0); _nrm = new THREE.CanvasTexture(cv); _nrm.wrapS = _nrm.wrapT = THREE.RepeatWrapping; return _nrm; }
+  function roughTex() { if (_rough) return _rough; const S = 256, { cv, x, im, h } = noiseCanvas(S, 37, 5);
+    for (let i = 0; i < S * S; i++) { const v = Math.round(255 * (0.72 + h[i] * 0.28)); im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; }
+    x.putImageData(im, 0, 0); _rough = new THREE.CanvasTexture(cv); _rough.wrapS = _rough.wrapT = THREE.RepeatWrapping; return _rough; }
+  /* normal and roughness maps for the port's live surfaces outdoors: buildings, pads, terrain, parked ships. Characters
+     keep their smooth toy finish. */
+  function detailLive(scn) { const done = new Set(), isChar = o => { for (let p = o; p; p = p.parent) if (p.userData && p.userData.rig) return true; return false; };
+    scn.traverse(o => { if (!o.isMesh || o.userData.baked || o.userData.fx || !o.geometry.attributes.uv) return; for (const m of [].concat(o.material)) {
+        if (!m || !m.isMeshStandardMaterial || done.has(m) || m.normalMap || m.transparent || m.vertexColors && !m.map) continue; if (isChar(o)) continue;
+        done.add(m); m.normalMap = normalTex(); m.normalScale = new THREE.Vector2(0.35, 0.35); m.roughnessMap = roughTex(); m.needsUpdate = true; } }); }
+  /* decals on the shop floor: oil in the garage and shipyard, scuffs and tyre marks at the depot, drink rings in the cantina */
+  const _decalTex = {};
+  function decalTex(kind) { if (_decalTex[kind]) return _decalTex[kind]; const S = 128, cv = makeCanvas(S, S), x = cv.getContext('2d'), r = mulberry32(kind.length * 97);
+    if (kind === 'ring') { for (let k = 0; k < 2; k++) { x.strokeStyle = 'rgba(60,30,15,0.5)'; x.lineWidth = 6; x.beginPath(); x.arc(64 + (k ? 18 : -6), 64 + (k ? -10 : 4), 28 - k * 6, 0, 7); x.stroke(); } }
+    else if (kind === 'track') { x.fillStyle = 'rgba(20,20,20,0.5)'; for (let i = 0; i < 14; i++) x.fillRect(30, i * 9 + 2, 18, 5); for (let i = 0; i < 14; i++) x.fillRect(80, i * 9 + 6, 18, 5); }
+    else { for (let i = 0; i < 9; i++) { const g = x.createRadialGradient(64 + (r() - 0.5) * 50, 64 + (r() - 0.5) * 50, 2, 64, 64, 30 + r() * 30); g.addColorStop(0, kind === 'oil' ? 'rgba(10,12,16,0.55)' : 'rgba(40,32,24,0.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, S, S); } }
+    const t = new THREE.CanvasTexture(cv); return _decalTex[kind] = t; }
+  function decals(V) { const S = V.room; if (!S) return; const kinds = { garage: 'oil', yard: 'oil', depot: 'scuff', bar: 'ring' }, kind = kinds[V.k] || 'scuff', r = mulberry32((V.seed || 1) + 17), big = S.h > 20;
+    for (let i = 0; i < (big ? 14 : 7); i++) { let x = 0, z = 0, ok = false; for (let t = 0; t < 12 && !ok; t++) { x = S.x0 + 1.5 + r() * (S.x1 - S.x0 - 3); z = S.z0 + 1.5 + r() * (Math.min(S.z1, 9) - S.z0 - 3); ok = !(Math.abs(x) < 3.2 && Math.abs(z) < 1.6) && !(x < -2 && x > -7 && z > -2 && z < 0.5); }
+      if (!ok) continue; const sz = (kind === 'ring' ? 0.6 : kind === 'track' ? 2.2 : 1.6 + r() * 1.6) * (big ? 3 : 1);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(sz, kind === 'track' ? sz * 1.8 : sz), new THREE.MeshBasicMaterial({ map: decalTex(kind), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
+      m.rotation.set(-Math.PI / 2, 0, r() * 6.28); m.position.set(x, 0.01, z); m.renderOrder = 1; m.userData.fx = true; V.root.add(m); } }
+  /* floor reflections: a faint mirror image of the room on the shop floor, stronger at shallow angles like a polished
+     floor. It draws the room a second time, so it runs only on 'high' quality and only in the shop you are in. */
+  function floorMirror(V) { const S = V.room; if (!S || !THREE.Reflector) return;
+    const W = S.x1 - S.x0, D = S.z1 - S.z0, big = S.h > 20;
+    const shader = { uniforms: { color: { value: new THREE.Color(1, 1, 1) }, tDiffuse: { value: null }, textureMatrix: { value: null } },
+      vertexShader: 'uniform mat4 textureMatrix; varying vec4 vUv; varying float vF; void main(){ vUv=textureMatrix*vec4(position,1.0); vec4 w=modelMatrix*vec4(position,1.0); vec3 v=normalize(cameraPosition-w.xyz); vF=pow(1.0-abs(v.y),2.0); gl_Position=projectionMatrix*viewMatrix*w; }',
+      fragmentShader: 'uniform vec3 color; uniform sampler2D tDiffuse; varying vec4 vUv; varying float vF; void main(){ vec4 b=texture2DProj(tDiffuse,vUv); gl_FragColor=vec4(b.rgb*color,0.05+0.32*vF); }' };
+    const m = new THREE.Reflector(new THREE.PlaneGeometry(W, D), { textureWidth: big ? 512 : 384, textureHeight: big ? 512 : 384, clipBias: 0.003, shader });
+    m.material.transparent = true; m.material.depthWrite = false; m.rotation.x = -Math.PI / 2; m.position.set((S.x0 + S.x1) / 2, 0.006, (S.z0 + S.z1) / 2);
+    m.renderOrder = 0; m.visible = false; m.userData.fx = true; V.root.add(m); V.mirror = m; }
+  /* light and reflection probe: a small 360-degree picture of the finished room, taken from behind the counter, which the
+     shop's live things (keeper, crew, droid, crates, goods on the shelf, chrome) use for their reflections and soft fill
+     light, so they sit in the room's light instead of the open sky's */
+  function probe(V, scn) {
+    const r = typeof World !== 'undefined' && World.renderer; if (!r || !V.room) return null;
+    const rt = new THREE.WebGLCubeRenderTarget(64, { type: THREE.HalfFloatType, generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+    const cam = new THREE.CubeCamera(0.3, 400, rt); cam.position.copy(V.root.localToWorld(new THREE.Vector3(0, 2.2, -0.6)));
+    const hide = [V.keeper, V.A, V.B].filter(Boolean); hide.forEach(o => o.visible = false);
+    const prevTarget = r.getRenderTarget(), prevAuto = r.autoClear; r.autoClear = true;
+    scn.add(cam); cam.update(r, scn); scn.remove(cam); r.setRenderTarget(prevTarget); r.autoClear = prevAuto; hide.forEach(o => o.visible = true);
+    const pm = new THREE.PMREMGenerator(r), env = pm.fromCubemap(rt.texture).texture; pm.dispose(); rt.dispose();
+    V.env = env; useProbe(V, V.root, true); return env;
+  }
+  /* give a shop's live things its probe (call again for anything added to the shop later) */
+  function useProbe(V, obj, inRoomOnly) {
+    if (!V || !V.env) return; const S = V.room, inv = new THREE.Matrix4().copy(V.root.matrixWorld).invert(), c = new THREE.Vector3();
+    obj.traverse(o => { if (!o.isMesh || o.userData.baked) return;
+      if (inRoomOnly) { c.setFromMatrixPosition(o.matrixWorld).applyMatrix4(inv); if (c.x < S.x0 - 1 || c.x > S.x1 + 1 || c.z < (S.store ? -15.2 : S.z0) - 1 || c.z > S.z1 + 1 || c.y > S.h + 1) return; }
+      for (const m of [].concat(o.material)) if (m && m.isMeshStandardMaterial && m.envMap !== V.env) { m.envMap = V.env; m.needsUpdate = true; } });
+  }
+  /* volumetric light, faked with soft glowing volumes: sunbeams slanting in through each window the sun shines into, and a
+     cone of light hanging under each ceiling lamp. They brighten what's behind them, fading along their length and at
+     their edges, and never write depth, so they read as light in the air rather than as objects. */
+  let shaftMat = null;
+  function beamMaterial() { if (shaftMat) return shaftMat;
+    // each beam is a strip that turns about its own axis to face the camera, so it can never be seen edge-on
+    shaftMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+      vertexShader: 'attribute vec3 aStart; attribute vec3 aAxis; attribute vec2 aW; attribute vec2 aUV; attribute vec3 aCol; varying vec2 vUV; varying vec3 vCol;'
+        + 'void main(){ vUV=aUV; vCol=aCol; vec3 s=(modelMatrix*vec4(aStart,1.0)).xyz, ax=mat3(modelMatrix)*aAxis, p=s+ax*aUV.y;'
+        + ' vec3 side=normalize(cross(normalize(ax),normalize(cameraPosition-p))); float w=mix(aW.x,aW.y,aUV.y); gl_Position=projectionMatrix*viewMatrix*vec4(p+side*aUV.x*w,1.0); }',
+      fragmentShader: 'varying vec2 vUV; varying vec3 vCol; void main(){ float v=vUV.y, u=vUV.x; float a=pow(1.0-v,1.5)*smoothstep(0.0,0.15,v)*pow(max(0.0,1.0-u*u),1.6); gl_FragColor=vec4(vCol*a,1.0); }' });
+    return shaftMat; }
+  function beams(V, scn) {
+    const S = V.room; if (!S) return; const R = V.root, inv = new THREE.Matrix4().copy(R.matrixWorld).invert(), B = [];
+    let sun = null; scn.traverse(o => { if (o.isDirectionalLight && !sun) sun = { d: new THREE.Vector3().subVectors(o.position, o.target.position).normalize().transformDirection(inv), c: o.color.clone().multiplyScalar(o.intensity) }; });
+    R.traverse(o => { if (!o.isMesh || !o.material || o.userData.baked) return; const m = o.material;
+      // sunbeams through the windows (the hall only: in the small shops the camera stands too close to the windows)
+      if (sun && S.h > 20 && m.transparent && m.opacity < 0.3 && o.geometry.type === 'PlaneGeometry') { const p = o.geometry.parameters;
+        o.updateMatrixWorld(true); const M = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld), nIn = new THREE.Vector3(0, 0, 1).transformDirection(M), c = new THREE.Vector3().setFromMatrixPosition(M);
+        if ((c.x - (S.x0 + S.x1) / 2) * nIn.x + (c.z - (S.z0 + S.z1) / 2) * nIn.z > 0) nIn.negate();
+        const light = sun.d.clone().negate(); if (light.dot(nIn) < 0.12 || light.y > -0.3) return;
+        const len = Math.min(S.h * 2.2, (c.y + p.height / 2) / -light.y * 1.05), w = Math.max(p.width, p.height) * 0.5;
+        B.push({ s: c, ax: light.multiplyScalar(len), w0: w, w1: w * 1.15, col: sun.c.clone().multiplyScalar(0.07) }); }
+      // a cone of light under each ceiling lamp, towards the back of the shop
+      else if (m.isMeshBasicMaterial && o.geometry.type === 'BoxGeometry' && o.position.y > S.h - 0.4 && !m.transparent) { const p = o.geometry.parameters; if (p.height > 0.2) return;
+        o.updateMatrixWorld(true); const c = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld)); if (c.z > (S.h > 20 ? 10 : 1.5)) return;
+        const down = S.h * 0.66, w = Math.max(p.width, p.depth) * 0.5;
+        B.push({ s: c.clone().setY(c.y - 0.05), ax: new THREE.Vector3(0, -down, 0), w0: w * 0.9, w1: w + down * 0.32, col: m.color.clone().multiplyScalar(S.h > 20 ? 0.02 : 0.09) }); } });
+    if (!B.length) return; const n = B.length * 4, st = new Float32Array(n * 3), ax = new Float32Array(n * 3), ww = new Float32Array(n * 2), uv = new Float32Array(n * 2), cl = new Float32Array(n * 3), idx = [];
+    B.forEach((b, i) => { [[-1, 0], [1, 0], [1, 1], [-1, 1]].forEach(([u, t], k) => { const j = i * 4 + k; st.set([b.s.x, b.s.y, b.s.z], j * 3); ax.set([b.ax.x, b.ax.y, b.ax.z], j * 3); ww.set([b.w0, b.w1], j * 2); uv.set([u, t], j * 2); cl.set([b.col.r, b.col.g, b.col.b], j * 3); });
+      idx.push(i * 4, i * 4 + 1, i * 4 + 2, i * 4, i * 4 + 2, i * 4 + 3); });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('aStart', new THREE.BufferAttribute(st, 3)); g.setAttribute('aAxis', new THREE.BufferAttribute(ax, 3));
+    g.setAttribute('aW', new THREE.BufferAttribute(ww, 2)); g.setAttribute('aUV', new THREE.BufferAttribute(uv, 2)); g.setAttribute('aCol', new THREE.BufferAttribute(cl, 3)); g.setIndex(idx);
+    const mesh = new THREE.Mesh(g, beamMaterial()); mesh.renderOrder = 5; mesh.frustumCulled = false; mesh.userData.fx = true; R.add(mesh); V.beams = mesh; }
+  return { room, probe, useProbe, beams, decals, detailLive, floorMirror };
 })();
 /* ===================== CARGO HOLD, SCOOP, FLOATING CARGO, RADIO CALLS ===================== */
 
@@ -12022,7 +12267,7 @@ const UI = {
     const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
     b.onclick=()=>{ this.closeTicket(); if(j.kind==='contra'){ Customs.load(j,P); return; }
       if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100,story:j.story});
-      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story}); Venues.fetch(j.good); }
+      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story}); Venues.fetch(j.good,j); }
       G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
     r.appendChild(b); box.appendChild(r); Venues.hopShelf(j); if(Sfx.ok()) Sfx.click(); },
   closeTicket(){ this.ticket=null; const b=$('port-card'); if(b){ b.hidden=true; b.innerHTML=''; } },
@@ -12735,9 +12980,9 @@ const Game = {
     if(G.mode==='landing'||G.mode==='port'||G.mode==='takeoff'){ Cine.update(dt,t); if(G.mode!=='flight') fov=Cine.fovRaw||Cine.cam.fov; }
     World.update(dt,s.pos,fov);
     if(G.mode==='flight'||G.mode==='title'){
-      this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
+      this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uBlur',s.warpF*0.7+clamp((s.speed-900)/4000,0,0.3)); World.grade(null); World.dof=null; World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
       World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=Walk.on?0.35:0.75+s.warpF*0.7;
-    } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    } else { World.fx('uWarp',0); if(G.mode!=='port'&&G.mode!=='landing'&&G.mode!=='takeoff'){ World.fx('uBlur',0); World.grade(null); World.dof=null; } World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
     SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
@@ -12804,7 +13049,8 @@ const Game = {
         // the alien who was talking: tap them to hear them again
         const K=Venues.pickKeeper(nd(e)); if(K&&UI.hushed===K){ UI.hushed=null; if(Sfx.ok()) Sfx.click(); gl.style.cursor=''; } }); }
     window.addEventListener('blur',()=>{ G.keys={}; });
-    $('bubble').onclick=()=>UI.hush(); $('zone-badge').onclick=()=>Throttle.hideBanner(); $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
+    $('bubble').onclick=()=>UI.hush(); { const gb=$('gfx-toggle'), note=$('gfx-note'), show=()=>{ gb.textContent='Graphics: '+(GFX.high?'High':'Balanced'); note.textContent=GFX.high?'Reflections, depth of field and the smoothest edges. Switch to Balanced if the game feels slow.':'Faster, for iPads and older computers. Switch to High for reflections and depth of field.'; };
+      show(); gb.onclick=()=>{ GFX.set(!GFX.high); show(); Sfx.click(); UI.toast(GFX.high?'Graphics: High. Smoothest edges after a restart.':'Graphics: Balanced'); }; } $('zone-badge').onclick=()=>Throttle.hideBanner(); $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
       if(due.length&&!Dlg.open){ Dlg.show({icon:'📦',who:`${UI.P.port} · cargo depot`,text:`You still have ${due.length} deliver${due.length===1?'y':'ies'} for here. Leave without handing ${due.length===1?'it':'them'} over?`,
         opts:[{t:'Hand everything over first',fn:()=>{ UI.deliverAll(UI.P); }},{t:'Launch anyway',sub:'It stays in your hold',fn:()=>Cine.startTakeoff()}]}); return; }
       Cine.startTakeoff(); };

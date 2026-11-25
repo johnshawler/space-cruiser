@@ -48,3 +48,8 @@ The 50 designs are animated species in `src/species/<id>.js` (marked `cast:true`
 ## Shop lighting is baked
 
 `src/08h-bake.js` lights each shop room once, when a port is built, and paints the result into vertex colours: the room's lamps with shadows, sunlight through the windows, the sky light and ambient occlusion. Baked meshes switch to `MeshBasicMaterial` and no longer respond to live lights. Anything that moves, glows or reflects is left live: the keeper and crew, the droid, everything in the crew act's props (`V.g`), `V.spin`, glass, chrome (metalness > 0.6), lit signs and glowing lamps. A new prop that moves must be reachable from `V.g` (or added after the bake). Add `?nobake` to the page URL to see the live lighting for comparison.
+
+## Realism effects
+
+Besides the bake, `src/08h-bake.js` adds per shop: bounce light (global illumination) and grime in the bake, a light/reflection probe (`Bake.probe`, `Bake.useProbe` for things added later), camera-facing light beams (`Bake.beams`), floor decals and a floor mirror (`Bake.floorMirror`, high quality only). `Bake.detailLive` gives outdoor port surfaces normal and roughness maps. Characters get contact shadows and (living ones) a subsurface-scattering patch in `Folk.make`. The post shader (`GLSL.postFrag`) does colour grading (`World.grade`), motion blur (`uBlur`), vignette and grain; `World.render` adds depth of field in shop views (high quality only). `GFX.high` (06-world.js) is the graphics quality setting, switched on the help screen; touch devices start on Balanced.
+

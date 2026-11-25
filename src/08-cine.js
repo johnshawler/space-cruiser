@@ -22,7 +22,7 @@ const Cine = {
       this.surf.scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose()); } }); if(this.surf.env) this.surf.env.dispose(); }
     const S=P.surf, scn=new THREE.Scene(), seed=P.idx*977+5, rr=mulberry32(seed), cloud=!!S.cloudsea, deck=!!S.deck, spc=SPECIES[P.species];
     const sunDir=new V3(Math.cos(P.idx*1.7)*0.75,0.36+0.16*Math.sin(P.idx*2.3),Math.sin(P.idx*1.7)*0.75).normalize();
-    const skyU={cZen:{value:C(S.zen)},cHor:{value:C(S.hor)},uSun:{value:sunDir},cSun:{value:C('#fff0d8')},uStars:{value:deck||P.atm<0.75?1:0.15},uMax:{value:3},uCloud:{value:deck?0:1}};
+    const skyU={cZen:{value:C(S.zen)},cHor:{value:C(S.hor)},uSun:{value:sunDir},cSun:{value:C('#fff0d8')},uStars:{value:deck||P.atm<0.75?1:0.15},uMax:{value:3},uCloud:{value:deck?0:1},uAtmo:{value:deck?0:clamp(P.atm==null?1:P.atm,0,1)}};
     const skyMat=new THREE.ShaderMaterial({vertexShader:GLSL.skyVert,fragmentShader:GLSL.groundSkyFrag,uniforms:skyU,side:THREE.BackSide,depthWrite:false});
     const sky=new THREE.Mesh(new THREE.SphereGeometry(26000,48,32),skyMat); scn.add(sky);
     // reflection map: render the sky to a float cube first (a raw shader cannot be fed to PMREM's fromScene directly)
@@ -97,9 +97,13 @@ const Cine = {
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
     const dustMat=new THREE.PointsMaterial({map:softDotTex(),size:16,transparent:true,opacity:0,depthWrite:false,color:cloud?C('#ffffff'):C(S.g[1]).multiplyScalar(1.6),sizeAttenuation:true}); const dust=new THREE.Points(dg,dustMat); dust.frustumCulled=false; scn.add(dust);
     Crowd.build(scn,P,cloud,PADS,hAt,S.liquid?liq:null);
+    Bake.detailLive(scn);   // dents and grain on the port's buildings, pads and parked ships
     ResidentDistrict.populate(P,Venues.list);
     PortSites.populate(P,Venues.list,hAt,cloud,S.liquid?liq:null);
-    this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0};
+    // colour grade: each world's own mood, from its sky and ground (stations cooler and crisper)
+    const hor=C(deck?'#cfe0ff':S.hor), lum=Math.max(0.05,(hor.r+hor.g+hor.b)/3), gain=new THREE.Color(1,1,1).lerp(hor.clone().multiplyScalar(1/lum),deck?0.12:0.1), lift=C(deck?'#203048':S.g[0]).multiplyScalar(0.06);
+    const grade={sat:deck?1.04:1.1,con:1.06,gain,lift};
+    this.surf={scene:scn,env,sun,sunDir,lamps,beacon,parked,flyby,dust,dp,dseed,dn,dustMat,P,dustI:0,grade};
   },
   /* a research station's docking deck: a big round metal deck with lamps around its rim, open to space. The station's
      hub and habitat ring loom behind it, and a planet hangs in the sky (they're the system's, seen from very far off). */
@@ -194,7 +198,10 @@ const Cine = {
     b.style.left=x+'px'; b.style.top=y+'px'; },
   /* the price tags along the bottom of the screen; the scene is framed in the space above them */
   strip(){ const b=$('port-body'); return !b||$('port').hidden||b.classList.contains('empty')?0:b.offsetHeight; },
-  region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const s=this.strip();
+  /* the shop is always framed as if the price tags were showing, so the view doesn't zoom in when the counter is bare:
+     the last real height of the strip, or a typical one until a strip has been seen at this window size */
+  frameStrip(){ const s=this.strip(), H=World.h, guess=clamp(Math.round(H*0.26),160,260); if(!this.lastStrip||this.lastStrip.H!==H) this.lastStrip={s:guess,H}; this.lastStrip.s=Math.max(this.lastStrip.s,s); return this.lastStrip.s; },
+  region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const s=this.frameStrip();
     return {w:W,h:Math.max(1,H-s),ox:0,oy:s/2}; },
   update(dt, time){
     this.t+=dt; const t=this.t, P=this.P, s=G.ship, cam=this.cam, m=this.model; let fov=42; if(this.mode!=='port'&&cam.view&&cam.view.enabled) cam.clearViewOffset();
@@ -263,6 +270,10 @@ const Cine = {
     // near the ground the camera can see things a metre away; high above the port (take-off) the near plane moves out with
     // it, which keeps the depth buffer precise enough that the ground, pads and roofs don't flicker against each other
     const nearW=this.mode==='A'||this.mode==='B'?1:clamp(Math.abs(cam.position.y)*0.03,1,60);
+    // grade, depth of field and motion blur for the scene on screen
+    const onSurface=this.mode!=='A'&&this.mode!=='B'&&this.surf; World.grade(onSurface?this.surf.grade:null);
+    World.dof=this.mode==='port'&&this.surf&&!this.preview&&this.camL?{scene:this.surf.scene,camera:cam,focus:Math.max(3,cam.position.distanceTo(this.camL)-1.2)}:null;
+    World.fx('uBlur',this.mode==='T'?clamp((this.t-1.6)/4,0,0.55):0);
     this.fovRaw=fov; if(!this.fovFixed) fov=World.fit(fov); this.fovFixed=false; if(Math.abs(cam.fov-fov)>0.01||Math.abs(cam.near-nearW)>0.05){ cam.fov=fov; cam.near=nearW; cam.updateProjectionMatrix(); }
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },

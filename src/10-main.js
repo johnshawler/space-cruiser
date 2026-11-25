@@ -127,9 +127,9 @@ const Game = {
     if(G.mode==='landing'||G.mode==='port'||G.mode==='takeoff'){ Cine.update(dt,t); if(G.mode!=='flight') fov=Cine.fovRaw||Cine.cam.fov; }
     World.update(dt,s.pos,fov);
     if(G.mode==='flight'||G.mode==='title'){
-      this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
+      this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uBlur',s.warpF*0.7+clamp((s.speed-900)/4000,0,0.3)); World.grade(null); World.dof=null; World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
       World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=Walk.on?0.35:0.75+s.warpF*0.7;
-    } else { World.fx('uWarp',0); World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    } else { World.fx('uWarp',0); if(G.mode!=='port'&&G.mode!=='landing'&&G.mode!=='takeoff'){ World.fx('uBlur',0); World.grade(null); World.dof=null; } World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
     SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
@@ -196,7 +196,8 @@ const Game = {
         // the alien who was talking: tap them to hear them again
         const K=Venues.pickKeeper(nd(e)); if(K&&UI.hushed===K){ UI.hushed=null; if(Sfx.ok()) Sfx.click(); gl.style.cursor=''; } }); }
     window.addEventListener('blur',()=>{ G.keys={}; });
-    $('bubble').onclick=()=>UI.hush(); $('zone-badge').onclick=()=>Throttle.hideBanner(); $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
+    $('bubble').onclick=()=>UI.hush(); { const gb=$('gfx-toggle'), note=$('gfx-note'), show=()=>{ gb.textContent='Graphics: '+(GFX.high?'High':'Balanced'); note.textContent=GFX.high?'Reflections, depth of field and the smoothest edges. Switch to Balanced if the game feels slow.':'Faster, for iPads and older computers. Switch to High for reflections and depth of field.'; };
+      show(); gb.onclick=()=>{ GFX.set(!GFX.high); show(); Sfx.click(); UI.toast(GFX.high?'Graphics: High. Smoothest edges after a restart.':'Graphics: Balanced'); }; } $('zone-badge').onclick=()=>Throttle.hideBanner(); $('help-close').onclick=()=>{ help(false); $('gl').focus(); }; $('hold-close').onclick=()=>Hold.toggle(false); $('specs-close').onclick=()=>Specs.close(); $('specs').onclick=e=>{ if(e.target.id==='specs') Specs.close(); }; $('hold-scoop').onclick=()=>{ Scoop.toggle(); Hold.render(); }; $('skip').onclick=()=>Cine.skip(); $('launch').onclick=()=>{ if(G.mode!=='port') return; const due=UI.due(UI.P);
       if(due.length&&!Dlg.open){ Dlg.show({icon:'📦',who:`${UI.P.port} · cargo depot`,text:`You still have ${due.length} deliver${due.length===1?'y':'ies'} for here. Leave without handing ${due.length===1?'it':'them'} over?`,
         opts:[{t:'Hand everything over first',fn:()=>{ UI.deliverAll(UI.P); }},{t:'Launch anyway',sub:'It stays in your hold',fn:()=>Cine.startTakeoff()}]}); return; }
       Cine.startTakeoff(); };

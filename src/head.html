@@ -105,7 +105,9 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .tag.bad{border-color:var(--bad);color:var(--bad)}.tag.esc{border-color:var(--cyan);color:var(--cyan)}
 .tag.r2{border-color:#ff9a4a;color:#ff9a4a}.tag.r3{border-color:#ff5a5a;color:#fff;background:#8a1c1c}
 .risk{font-weight:700}.risk.r0{color:#7dffa8}.risk.r1{color:#ffd166}.risk.r2{color:#ff9a4a}.risk.r3{color:#ff6a6a}.warnf{color:#ff6a6a}
-#deep-badge{position:absolute;left:16px;top:16px;z-index:9;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid;padding:6px 16px;pointer-events:none;white-space:nowrap}
+/* the top-left alert stack: the deep-space zone, then the port approach speed limit underneath */
+#alerts{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(16px + env(safe-area-inset-top,0px));z-index:9;display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
+#deep-badge{position:relative;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid;padding:6px 16px;pointer-events:none;white-space:nowrap}
 #deep-badge.z1{color:#ffd166;border-color:#ffd166}#deep-badge.z2{color:#ff9a4a;border-color:#ff9a4a}#deep-badge.z3{color:#ff6a6a;border-color:#ff6a6a}
 #deep-badge.storm{color:#fff;background:#a8322a;border-color:#ff7a6a;animation:scoopPulse 1s ease-in-out infinite}
 @media (max-width:900px){ #deep-badge{font-size:16px} }
@@ -201,7 +203,7 @@ body.touch #title dl div{white-space:normal}
 }
 @media (max-height:520px) and (min-aspect-ratio:4/3){ #title .pitch{display:none}#title dl{grid-template-columns:repeat(2,max-content)} }
 .hrow small.due{color:#8fe3a8}.hrow small.late{color:var(--bad)}
-#zone-badge{position:absolute;left:50%;transform:translateX(-50%);top:calc(34% + 54px);z-index:9;font-family:var(--mono);font-size:24px;letter-spacing:.1em;text-transform:uppercase;color:#ffd166;background:var(--glass);border:1px solid #ffd166;padding:6px 16px;pointer-events:auto;cursor:pointer;white-space:nowrap}
+#zone-badge{position:relative;max-width:min(330px,42vw);white-space:normal!important;line-height:1.3;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:#ffd166;background:var(--glass);border:1px solid #ffd166;padding:6px 16px;pointer-events:auto;cursor:pointer;white-space:nowrap}
 #zone-badge.fast{color:#fff;background:#a8322a;border-color:#ff7a6a}
 #fault-badge{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:30%;z-index:9;font-family:var(--mono);font-size:22px;color:#ffb3a8;background:var(--glass);border:1px solid #ff7a6a;border-left:6px solid #ff5a4a;padding:8px 14px;pointer-events:none;max-width:44vw}
 #fault-badge div{padding:2px 0}#fault-badge span{color:var(--dim)}
@@ -280,4 +282,5 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port-card .big{padding:14px 30px}
 @media (max-width:700px){#port-bar{flex-wrap:wrap}#port .sub{display:none}#port-top{flex-wrap:wrap;margin-left:0;flex:1 1 100%}#port-top-btns{margin-left:auto}#port-tabs.dock{width:calc(100vw - 32px);grid-template-columns:1fr 1fr;column-gap:10px}#port-tabs.dock .arm{margin:0}#port-tabs.dock .arm{font-size:16px;padding:9px 22px 9px 12px}#port-tabs.dock .arm.l{padding:9px 12px 9px 22px}}
 @media (max-width:900px){#port-title{padding:8px 12px}#port h2{font-size:24px}#port .sub{font-size:14px}#port-foot .cr{font-size:22px}#port-foot{font-size:15px}#port-top{gap:8px;padding:8px}#port-top .btn{font-size:16px;padding:8px 10px}#port-top .big{font-size:18px;padding:10px 16px}#port .arm{font-size:17px}#port .card{width:250px}}
+#help .gfx-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0;font-size:20px;color:var(--dim)}#help .gfx-row .btn{font-size:20px}
 </style>

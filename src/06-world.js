@@ -6,6 +6,11 @@ ScenesPass.prototype.render=function(renderer, wb, rb){
   for(let i=0;i<this.list.length;i++){ if(i>0) renderer.clearDepth(); renderer.render(this.list[i].scene, this.list[i].camera); }
 };
 
+/* graphics quality: 'high' adds depth of field, floor reflections and multisample anti-aliasing; 'balanced' leaves them out.
+   Touch devices (iPad, phones) start on balanced, everything else on high; the choice is remembered. */
+const GFX = { high: (()=>{ try{ const v=localStorage.getItem('lh-gfx'); if(v) return v==='high'; }catch(e){} return !(window.matchMedia&&matchMedia('(pointer: coarse)').matches); })(),
+  set(high){ this.high=!!high; try{ localStorage.setItem('lh-gfx',high?'high':'balanced'); }catch(e){} } };
+
 const World = {
   dpr:1, frameMs:16, slowT:0, sunDir:new V3(1,0,0), time:0,
   init(canvas){
@@ -142,11 +147,17 @@ const World = {
   buildComposer(){
     const r=this.renderer; this.scenes=new ScenesPass();
     if(!THREE.EffectComposer || !THREE.UnrealBloomPass){ this.composer=null; r.toneMapping=THREE.ACESFilmicToneMapping; r.outputEncoding=THREE.sRGBEncoding; return; }
-    const rt=new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+    // multisample anti-aliasing on 'high' (WebGL 2): four samples per pixel smooth every edge before FXAA tidies the rest
+    const opts={type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter};
+    const msaa=GFX.high&&r.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget, rt=msaa?new THREE.WebGLMultisampleRenderTarget(4,4,opts):new THREE.WebGLRenderTarget(4,4,opts); if(msaa) rt.samples=4;
     this.composer=new THREE.EffectComposer(r,rt); this.composer.addPass(this.scenes);
+    // depth of field (off until a shop view turns it on)
+    this.dofRT=new THREE.WebGLRenderTarget(4,4,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter}); this.depthMat=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking});
+    this.dofPass=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},tDepth:{value:this.dofRT.texture},uNear:{value:1},uFar:{value:1000},uFocus:{value:10},uMax:{value:8},uPx:{value:new THREE.Vector2(1/1024,1/768)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.dofFrag});
+    this.dofPass.enabled=false; this.composer.addPass(this.dofPass);
     this.bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256),0.75,0.6,1.0);
     this.composer.addPass(this.bloom);
-    this.post=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uExposure:{value:1},uWarp:{value:0},uFade:{value:0},uFlash:{value:0},uFadeCol:{value:new THREE.Color(0,0,0)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.postFrag});
+    this.post=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uExposure:{value:1},uWarp:{value:0},uFade:{value:0},uFlash:{value:0},uFadeCol:{value:new THREE.Color(0,0,0)},uBlur:{value:0},uSat:{value:1},uContrast:{value:1},uLift:{value:new THREE.Color(0,0,0)},uGain:{value:new THREE.Color(1,1,1)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.postFrag});
     this.composer.addPass(this.post);
     if(THREE.FXAAShader){ this.fxaa=new THREE.ShaderPass(THREE.FXAAShader); this.composer.addPass(this.fxaa); }
   },
@@ -156,7 +167,7 @@ const World = {
     for(const c of [this.spaceCam,this.cockCam]){ c.aspect=w/h; c.updateProjectionMatrix(); }
     if(typeof Cine!=='undefined' && Cine.cam){ Cine.cam.aspect=w/h; Cine.cam.updateProjectionMatrix(); }
     const pw=Math.round(w*this.dpr), ph=Math.round(h*this.dpr);
-    if(this.composer){ this.composer.setSize(pw,ph); if(this.fxaa) this.fxaa.material.uniforms.resolution.value.set(1/pw,1/ph); }
+    if(this.composer){ this.composer.setSize(pw,ph); if(this.fxaa) this.fxaa.material.uniforms.resolution.value.set(1/pw,1/ph); this.dofRT.setSize(Math.max(2,pw>>1),Math.max(2,ph>>1)); this.dofPass.uniforms.uPx.value.set(1/pw,1/ph); }
     if(this.starMat) this.starMat.uniforms.uPx.value=this.dpr;
   },
   /* the cockpit was framed for a 16:10 window; on narrower screens (iPad, portrait) widen the vertical view so the sides still fit */
@@ -187,8 +198,18 @@ const World = {
     const now=performance.now(), raw=now-(this.lastNow||now); this.lastNow=now;
     if(raw>0&&raw<200&&!document.hidden){ this.frameMs=lerp(this.frameMs,raw,0.05); if(this.frameMs>24&&this.dpr>1){ this.slowT+=raw/1000; if(this.slowT>3){ this.dpr=Math.max(1,this.dpr-0.25); this.slowT=0; this.frameMs=16; this.resize(); } } else this.slowT=0; }
   },
-  render(){ if(this.composer) this.composer.render(); else { this.scenes.renderToScreen=true; this.scenes.render(this.renderer,null,null); } },
+  /* depth of field needs a picture of how far away everything is: when a shop view asks for it (this.dof = {scene,
+     camera, focus}), the scene is drawn once more, small, as depth only */
+  render(){ const D=this.dof, on=!!(D&&this.composer&&GFX.high); if(this.dofPass) this.dofPass.enabled=on;
+    if(on){ const r=this.renderer, sc=D.scene, cam=D.camera, hidden=[]; sc.traverse(o=>{ if(o.visible&&(o.userData.fx||o.isSprite||o.isPoints)){ o.visible=false; hidden.push(o); } });
+      const prev=sc.overrideMaterial, bg=sc.background, cc=r.getClearColor(new THREE.Color()), ca=r.getClearAlpha(), au=r.shadowMap.autoUpdate; r.shadowMap.autoUpdate=false; sc.overrideMaterial=this.depthMat; sc.background=null; r.setRenderTarget(this.dofRT); r.setClearColor(0xffffff,1); r.clear(true,true,true); r.render(sc,cam);
+      sc.overrideMaterial=prev; sc.background=bg; r.setClearColor(cc,ca); r.shadowMap.autoUpdate=au; r.setRenderTarget(null); hidden.forEach(o=>o.visible=true);
+      const u=this.dofPass.uniforms; u.uNear.value=cam.near; u.uFar.value=cam.far; u.uFocus.value=D.focus; }
+    if(this.composer) this.composer.render(); else { this.scenes.renderToScreen=true; this.scenes.render(this.renderer,null,null); } },
   /* set a post-processing uniform if the chain exists */
+  /* colour grade for the current scene (null = neutral, for space and the cockpit) */
+  grade(g){ if(!this.post) return; const u=this.post.uniforms; if(!g){ u.uSat.value=1; u.uContrast.value=1; u.uLift.value.setRGB(0,0,0); u.uGain.value.setRGB(1,1,1); return; }
+    u.uSat.value=g.sat; u.uContrast.value=g.con; u.uLift.value.copy(g.lift); u.uGain.value.copy(g.gain); },
   fx(name, v){ if(this.post){ const u=this.post.uniforms[name]; if(u.value && u.value.isColor) u.value.copy(v); else u.value=v; } },
 };
 

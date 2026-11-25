@@ -142,11 +142,28 @@ const Folk = (() => {
     const build=S.build||OriginalFolk[sp];
     build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
       glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
-    U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; }); mood(F,'neutral'); return F;
+    U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; });
+    // contact shadow: a soft dark patch on the ground under the feet, darkest where they touch, so nobody floats
+    { const b=new THREE.Box3().setFromObject(rig), w=Math.max(0.35,Math.max(b.max.x-b.min.x,b.max.z-b.min.z)/scale*0.62); const cs=new THREE.Mesh(contactGeo,contactMat());
+      cs.rotation.x=-Math.PI/2; cs.position.y=0.012; cs.scale.set(w,w*0.8,1); cs.renderOrder=-1; cs.userData.contact=true; F.add(cs); U.contact=cs; }
+    if(S.family!=='robot') sssSkin(F);
+    mood(F,'neutral'); return F;
   }
   /* attach a prop to the end of the right arm */
   /* the lowest point of a character, in world space, from its actual vertices (bounding boxes overstate a tilted body) */
-  function lowest(F){ F.updateMatrixWorld(true); let m=Infinity; F.traverse(o=>{ if(!o.isMesh||!o.visible) return; const a=o.geometry.attributes.position, e=o.matrixWorld.elements, st=a.count>400?2:1;
+  /* subsurface scattering, approximated: on living things light wraps a little past the edge of the lit side, warmed the
+     way light through skin or a leaf is, and glows through them when the light is behind them */
+  const SSS_CHUNK=THREE.ShaderChunk.lights_physical_pars_fragment.replace('vec3 irradiance = dotNL * directLight.color;',
+    'vec3 irradiance = dotNL * directLight.color;\n\t{ float nl = dot( geometry.normal, directLight.direction ); float wrapNL = saturate( ( nl + 0.5 ) / 1.5 ) - dotNL;'
+    +' float back = pow( saturate( dot( geometry.viewDir, -directLight.direction ) ), 4.0 ) * 0.3;'
+    +' reflectedLight.directDiffuse += ( wrapNL * vec3( 1.0, 0.55, 0.42 ) + back * vec3( 1.0, 0.72, 0.56 ) ) * directLight.color * material.diffuseColor; }');
+  function sssPatch(shader){ shader.fragmentShader=shader.fragmentShader.replace('#include <lights_physical_pars_fragment>',SSS_CHUNK); }
+  function sssSkin(F){ F.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial&&!m.userData.sss){ m.onBeforeCompile=sssPatch; m.userData.sss=true; m.needsUpdate=true; } }); }
+  const contactGeo=new THREE.PlaneGeometry(1,1); let _contactMat=null;
+  function contactMat(){ if(_contactMat) return _contactMat; const cv=makeCanvas(128,128), x=cv.getContext('2d'), g=x.createRadialGradient(64,64,4,64,64,62);
+    g.addColorStop(0,'rgba(0,0,0,0.62)'); g.addColorStop(0.35,'rgba(0,0,0,0.38)'); g.addColorStop(0.7,'rgba(0,0,0,0.12)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128);
+    return _contactMat=new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,toneMapped:false}); }
+  function lowest(F){ F.updateMatrixWorld(true); let m=Infinity; F.traverse(o=>{ if(!o.isMesh||!o.visible||o.userData.contact) return; const a=o.geometry.attributes.position, e=o.matrixWorld.elements, st=a.count>400?2:1;
       for(let i=0;i<a.count;i+=st){ const y=e[1]*a.getX(i)+e[5]*a.getY(i)+e[9]*a.getZ(i)+e[13]; if(y<m) m=y; } }); return m; }
   /* keep a character out of the floor at world height y: whenever a gag tips, flattens or sinks them, the lift layer raises
      them just enough that their lowest point rests on the floor (no lower than they stand normally). Upright poses cost nothing. */
@@ -189,7 +206,7 @@ const Portrait = (() => {
       const f=new THREE.DirectionalLight(0x9fd8ff,0.5); f.position.set(-2.5,0.6,1.5); scn.add(f); const rim=new THREE.DirectionalLight(0x8fe8ff,0.9); rim.position.set(-0.6,1.6,-3); scn.add(rim);
       cam=new THREE.PerspectiveCamera(26,1,0.05,50); }catch(e){ failed=true; } }
   function render(sp, seed){ if(!R) setup(); if(failed) return null;
-    const F=Folk.make(sp,seed,1); F.rotation.y=0.32; scn.add(F); F.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(F), sz=new THREE.Vector3(); b.getSize(sz);
+    const F=Folk.make(sp,seed,1); if(F.userData.contact) F.remove(F.userData.contact); F.rotation.y=0.32; scn.add(F); F.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(F), sz=new THREE.Vector3(); b.getSize(sz);
     // head and shoulders: the top of the model, as wide as it needs to be
     const vh=Math.max(Math.min(sz.y,sz.y*0.62+0.2),sz.x*0.95), cy=b.max.y-vh/2+0.02, d=vh*0.56/Math.tan(13*Math.PI/180);
     cam.position.set(0,cy+vh*0.08,d+b.max.z*0.5); cam.lookAt(0,cy,0);
@@ -229,6 +246,19 @@ const Venues = (() => {
     if(V.k!=='depot') for(let i=0;i<3;i++){ const c=bx(0.6,0.6,0.6,M(['#b07a3a','#9c6a30','#c48a48'][i],0.8,0.02),-5.6+i*0.15,0.3+i*0.6,1.2+(i%2)*0.1); c.rotation.y=i*0.3; R.add(c); }
   }
 
+  /* the location sign: a name plate on the front of the counter, right in view, with the port in big letters and the
+     planet (or the station and its risk) underneath */
+  function locationSign(V, P, pal){
+    const R=V.root, cv=makeCanvas(768,220), x=cv.getContext('2d');
+    x.fillStyle='#10161c'; x.fillRect(0,0,768,220); x.strokeStyle=pal[4]; x.lineWidth=12; x.strokeRect(8,8,752,204); x.textAlign='center'; x.textBaseline='middle';
+    const fit=(t,max,px,f)=>{ let s=px; do{ x.font=f.replace('#',s); s-=2; }while(x.measureText(t).width>max&&s>10); };
+    const port=P.port.toUpperCase(), where=(P.station?P.name+' · '+RISK[P.risk].name+' risk':P.name).toUpperCase();
+    x.fillStyle='#ffffff'; fit(port,700,92,`700 #px ${FONT_DISP}`); x.fillText(port,384,84);
+    x.fillStyle=pal[4]; fit(where,700,48,`600 #px ${FONT_DISP}`); x.fillText(where,384,165);
+    const t=canvasTex(cv), w=2.9, h=w*220/768;
+    const plate=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:t,emissive:C('#ffffff'),emissiveMap:t,emissiveIntensity:0.5,roughness:0.5}));
+    plate.position.set(0,0.52,0.47); R.add(plate); R.add(bx(w+0.1,h+0.1,0.05,M("#20242a",0.5,0.4),0,0.52,0.42));
+  }
   /* back-of-set scenery and props for each kind; returns the props its gag needs */
   const SETS = {
     depot(V,pal){ const R=V.root; for(const sx of [-1,1]){ R.add(cyl(0.12,0.12,4.6,M('#6a6f76',0.5,0.6),sx*5.8,2.3,-6.6,8)); R.add(cyl(0.12,0.12,4.6,M('#6a6f76',0.5,0.6),sx*5.8,2.3,-1.6,8)); }
@@ -348,7 +378,7 @@ const Venues = (() => {
     const S=V.room=roomSpec(k), R=V.root, g=new THREE.Group(); R.add(g);
     const W=S.x1-S.x0, D=S.z1-S.z0, cx=(S.x0+S.x1)/2, cz=(S.z0+S.z1)/2, H=S.h, big=H>20, T=big?1.2:0.4;
     const wallM=M(S.wall,0.88,0.06,S.splat?{map:splatTex(S.wall,rr),color:C('#ffffff')}:{}), trimM=M(S.trim,0.5,0.35), darkM=M('#2a2d32',0.7,0.4), floorM=M(S.floor,0.86,0.08), ceilM=M('#3a3d42',0.9,0.1), lampM=glow(S.lamp,1.5),
-      glassM=new THREE.MeshStandardMaterial({color:C('#bcd8ee'),roughness:0.05,metalness:0.5,transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide});
+      glassM=new THREE.MeshStandardMaterial({color:C('#bcd8ee'),roughness:0.05,metalness:0.5,transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide,emissive:C(cloud?'#e8f2ff':'#d8ecff'),emissiveIntensity:0.9});   // daylight glows in the panes
     const B=(w,h,d,m,x,y,z)=>{ const o=bx(w,h,d,m,x,y,z); g.add(o); return o; };
     // floor slab and what holds it up, then the roof
     B(W+T*2,0.3,D+T*2,floorM,cx,-0.15,cz);
@@ -448,7 +478,7 @@ const Venues = (() => {
   /* keep the shelf in step with the board: one model per contract, in board order */
   function syncShelf(jobs){ const V=api.list.find(v=>v.shelf); if(!V) return; const S=V.shelf, want=jobs.filter(j=>j.kind!=='escort').slice(0,SHELF.rows.length*SHELF.cols);
     for(const it of S.items.slice()) if(!want.includes(it.job)){ S.g.remove(it.o); S.items.splice(S.items.indexOf(it),1); }
-    want.forEach((j,i)=>{ let it=S.items.find(q=>q.job===j); if(!it){ const o=GoodsArt.build(j.good,j.kind==='contra'); o.scale.setScalar(1.45); o.traverse(q=>{ if(q.isMesh) q.userData.shelfJob=j; }); S.g.add(o); it={o,job:j,ph:Math.random()*6,hop:0}; S.items.push(it); }
+    want.forEach((j,i)=>{ let it=S.items.find(q=>q.job===j); if(!it){ const o=GoodsArt.build(j.good,j.kind==='contra'); o.scale.setScalar(1.45); Bake.useProbe(V,o,false); o.traverse(q=>{ if(q.isMesh) q.userData.shelfJob=j; }); S.g.add(o); it={o,job:j,ph:Math.random()*6,hop:0}; S.items.push(it); }
       const r=Math.floor(i/SHELF.cols), c=i%SHELF.cols, step=SHELF.w/SHELF.cols; it.o.position.set(-SHELF.w/2+step*(c+0.5),SHELF.rows[2-r]+0.0,0.05); it.base=it.o.position.y; }); }
   function stepShelf(V, dt, t){ const S=V.shelf; if(!S) return; for(const it of S.items){ const on=S.hover===it.job; it.hop=Math.max(0,it.hop-dt*2.2);
       it.o.rotation.y=Math.sin(t*0.6+it.ph)*0.35+(on?Math.sin(t*3)*0.25:0); const sc=1.45*(on?1.18:1); it.o.scale.lerp(new V3(sc,sc,sc),1-Math.exp(-dt*10));
@@ -471,9 +501,15 @@ const Venues = (() => {
     d.position.set(HOME[0],0,HOME[1]); V.root.add(d); return {grp:d,rig,head,eye,lift,q:[],cur:null,i:0,t:0,go:false,crate:null,slots:[null,null,null],n:0}; }
   function stepDroid(V, dt, t){
     const D=V.droid; if(!D) return; const g=D.grp, x0=STORE.dx; D.rig.position.y=0.05+Math.sin(t*3.1)*0.03; D.eye.position.x=Math.sin(t*1.3)*0.12;
-    if(!D.cur){ if(!D.q.length){ D.head.rotation.y=Math.sin(t*0.6)*0.5; return; } const name=D.q.shift(), slot=D.n++%3, sx=SLOTX[slot];
-      D.cur={slot,steps:[['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['grab'],['rev',x0,-11.4],['to',x0,-9.2],['to',x0,-2.3],['to',sx,-1.9],['face',0],['lift',1.14],['rev',sx,-0.85],['drop'],['rev',sx,-1.9],['lift',0.95],['to',HOME[0],HOME[1]],['face',0]]}; D.i=0; D.t=0;
-      const c=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(name)}),x0,0.93+0.31,-13.6); c.castShadow=true; V.root.add(c); D.crate=c; snd(V,()=>Sfx.beep(1320)); }
+    if(!D.cur){ if(!D.q.length){ D.head.rotation.y=Math.sin(t*0.6)*0.5; return; } const job=D.q.shift(), name=job.name||job, it=job.item, slot=D.n++%3, sx=SLOTX[slot];
+      const back=[['rev',x0,-11.4],['to',x0,-9.2],['to',x0,-2.3],['to',sx,-1.9],['face',0],['lift',1.14],['rev',sx,-0.85],['drop'],['rev',sx,-1.9],['lift',0.95],['to',HOME[0],HOME[1]],['face',0]];
+      if(it){ // the good's own model: round the front of the counter to the shelf, lift it off, take it to the bench in the stock room, crate it there, bring the crate out
+        const p=it.o.getWorldPosition(new V3()); V.root.worldToLocal(p); const ix=Math.min(-2.7,p.x);
+        D.cur={slot,name,it,iy:p.y,steps:[['to',3.4,1.5],['to',ix,1.5],['to',ix,0.55],['face',Math.PI],['liftTo',Math.max(0.6,p.y-0.04)],['take'],['liftTo',1.0],['rev',ix,1.5],['to',3.4,1.5],['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['liftTo',1.0],['pack'],...back]};
+      } else { // no model to hand (a long board): fetch a ready-made crate from the stock room as before
+        D.cur={slot,name,steps:[['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['grab'],...back]};
+        const c=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(name)}),x0,0.93+0.31,-13.6); c.castShadow=true; V.root.add(c); Bake.useProbe(V,c,false); D.crate=c; }
+      D.i=0; D.t=0; snd(V,()=>Sfx.beep(1320)); }
     D.head.rotation.y*=0.9; const s=D.cur.steps[D.i]; if(!s){ D.cur=null; return; } const k=s[0]; let done=false;
     const turn=a=>{ const d=((a-g.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; g.rotation.y+=Math.sign(d)*Math.min(Math.abs(d),dt*4.5); return Math.abs(d)<0.05; };
     const move=(x,z)=>{ const dx=x-g.position.x, dz=z-g.position.z, d=Math.hypot(dx,dz), st=Math.min(d,3.4*dt); if(d>1e-4){ g.position.x+=dx/d*st; g.position.z+=dz/d*st; } return d-st<0.01; };
@@ -481,6 +517,13 @@ const Venues = (() => {
     else if(k==='rev') done=move(s[1],s[2]);
     else if(k==='face') done=turn(s[1]);
     else if(k==='lift'){ const d=s[1]-D.lift.position.y; D.lift.position.y+=clamp(d,-dt*0.5,dt*0.5); done=Math.abs(d)<0.005; }
+    else if(k==='liftTo'){ const d=s[1]-D.lift.position.y; D.lift.position.y+=clamp(d,-dt*1.6,dt*1.6); done=Math.abs(d)<0.01; }
+    else if(k==='take'){ const c=D.cur, o=c.it.o; D.t+=dt; if(o.parent!==D.lift){ D.lift.attach(o); c.from=o.position.clone(); c.fromR=o.rotation.y; snd(V,()=>Sfx.click()); }
+      const u=clamp(D.t/0.6,0,1), e=u*u*(3-2*u); o.position.lerpVectors(c.from,new V3(0,0.06,0.62),e); o.rotation.set(0,c.fromR*(1-e),0); done=D.t>0.7; }
+    else if(k==='pack'){ const c=D.cur, o=c.it.o; D.t+=dt;   // at the bench the model is wrapped up into a labelled crate
+      if(!D.crate){ D.crate=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(c.name)}),0,0.335,0.6); D.crate.castShadow=true; D.crate.scale.setScalar(0.01); D.lift.add(D.crate); Bake.useProbe(V,D.crate,false); snd(V,()=>Sfx.hiss(0.5,0.15)); }
+      const u=clamp(D.t/1.1,0,1); o.scale.setScalar(Math.max(0.001,1.45*(1-u))); o.rotation.y+=dt*6; D.crate.scale.setScalar(Math.max(0.01,u<0.3?u/0.3*0.4:0.4+0.6*((u-0.3)/0.7)));
+      if(u>=1&&o.parent){ o.parent.remove(o); snd(V,()=>Sfx.thump(0.4)); } done=D.t>1.3; }
     else if(k==='grab'){ D.t+=dt; if(D.t>0.35&&D.crate&&D.crate.parent!==D.lift){ D.lift.add(D.crate); D.crate.position.set(0,0.335,0.6); D.crate.rotation.set(0,0,0); snd(V,()=>Sfx.clunk()); } D.lift.position.y=0.95+0.06*clamp((D.t-0.35)/0.3,0,1); done=D.t>0.8; }
     else if(k==='drop'){ D.t+=dt; if(D.t>0.25&&D.crate){ const old=D.slots[D.cur.slot]; if(old) V.root.remove(old); V.root.add(D.crate); D.crate.position.set(SLOTX[D.cur.slot],1.1+0.31,-0.05); D.crate.rotation.set(0,(Math.random()-0.5)*0.25,0); D.slots[D.cur.slot]=D.crate; D.crate=null; snd(V,()=>{ Sfx.thump(0.4); Sfx.beep(1760); }); } done=D.t>0.6; }
     if(done){ D.i++; D.t=0; }
@@ -664,11 +707,15 @@ const Venues = (() => {
         if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(4,8,600,12),padMat); py.position.set(0,-303,-6); root.add(py); }
         DISTRICT[d.k](root,pal,rr,V); lampPosts(root); room(V,d.k,pal,cloud,rr);
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
-        shell(V,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
+        shell(V,pal); locationSign(V,P,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
         V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,-0.85); root.add(V.keeper);
         const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
-        if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,scn,P);   // light the room once and paint it in (?nobake shows the live lighting)
+        if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,scn,P);
+        if(!/[?&]nobake\b/.test(location.search)) Bake.probe(V,scn);   // the room's own light for its live things
+        Bake.beams(V,scn);   // sunbeams through the windows and cones of light under the lamps
+        Bake.decals(V);   // oil, scuffs and drink rings on the floor
+        Bake.floorMirror(V);   // reflections on the floor (high quality only)   // light the room once and paint it in (?nobake shows the live lighting)
         this.list.push(V); });
       return this.list;
     },
@@ -695,11 +742,15 @@ const Venues = (() => {
     hoverShelf(j){ const V=this.list.find(v=>v.shelf); if(V) V.shelf.hover=j; },
     hopShelf(j){ const V=this.list.find(v=>v.shelf); const it=V&&V.shelf.items.find(i=>i.job===j); if(it) it.hop=1; },
     /* ask the depot's droid to bring a crate of this out to the counter */
-    fetch(name){ const V=this.list.find(v=>v.droid); if(!V) return; const q=V.droid.q; q.push(name); if(q.length>4) q.shift(); },
+    /* the stock droid fetches what you signed for: the good's model off the shelf if it's there (it is held back from
+       the shelf's tidy-up until the droid collects it), else a ready-made crate */
+    fetch(name, job){ const V=this.list.find(v=>v.droid); if(!V) return; const q=V.droid.q, S=V.shelf; let item=null;
+      if(S&&job){ const i=S.items.findIndex(it=>it.job===job); if(i>=0){ item=S.items[i]; S.items.splice(i,1); if(S.hover===job) S.hover=null; } }
+      q.push({name,item}); if(q.length>4){ const old=q.shift(); if(old.item&&old.item.o.parent) old.item.o.parent.remove(old.item.o); } },
     near(x,z,r){ return this.list.some(v=>Math.hypot(v.root.position.x-x,v.root.position.z-z)<r); },
     update(dt, t){
       const V=this.current(); if(V!==this.active){ this.prev=this.active; this.active=V; }
-      for(const v of this.list) v.root.visible=v===V||(this.moving&&v===this.prev); if(!V) return;
+      for(const v of this.list){ v.root.visible=v===V||(this.moving&&v===this.prev); if(v.mirror) v.mirror.visible=GFX.high&&v===V&&!this.moving&&G.mode==='port'; } if(!V) return;
       V.t+=dt; if(V.t>V.gag.dur) this.restart(V,0);
       V.gag.update(V,V.t,dt); stepFx(V,dt); for(const F of [V.A,V.B,V.keeper]) Folk.ground(F,V.root.position.y); stepDroid(V,dt,t); stepShelf(V,dt,t); if(V.spin) for(const o of V.spin) o.rotation.y+=dt*0.8;
       for(const F of [V.A,V.B,V.keeper]) Folk.blink(F,t);
