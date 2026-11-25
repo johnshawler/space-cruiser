@@ -149,7 +149,7 @@ const Cine = {
   /* ---------- sequences ---------- */
   ui(on, title, sub){ document.body.classList.toggle('cine',on); $('skip').hidden=!on; if(on) $('keys').hidden=true; if(title){ $('cine-h').textContent=title; $('cine-p').textContent=sub; } $('cine-title').classList.toggle('on',!!title); },
   startLanding(P){
-    Walk.exit(true); G.mode='landing'; this.mode='A'; $('deep-badge').hidden=true; Deep.storm=null; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
+    Walk.exit(true); G.mode='landing'; this.mode='A'; $('deep-badge').hidden=true; $('zone-badge').hidden=true; Deep.storm=null; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
     if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     this.buildSurface(P); World.space.add(this.model); this.model.visible=true; this.model.position.set(0,0,0); this.model.rotation.set(0,0,0); this.plasma.visible=false; this.setThrust(0,0);
     const s=G.ship, out=this.out=new V3().subVectors(s.pos,P.pos).normalize(); let up=new V3(0,1,0); if(Math.abs(out.y)>0.9) up.set(1,0,0);
@@ -171,7 +171,7 @@ const Cine = {
   dock(P){
     Loading.stop(); if(!this.surf||this.surf.P!==P) this.buildSurface(P); if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     if(this.mode!=='port') this.camInit=true; this.P=P; const m=this.model; this.surf.scene.add(m); m.visible=true; m.position.set(0,m.userData.gearH,0); m.rotation.set(0,0.6,0); this.plasma.visible=false; this.setThrust(0,0); this.surf.dustI=0;
-    this.mode='port'; this.fade=0; this.xf=null; this.shake=0; this.ui(false); World.scenes.list=[{scene:this.surf.scene,camera:this.cam}]; if(!this.landed){ this.landed=true; Game.onLanded(P); }
+    Venues.flush(); this.mode='port'; this.fade=0; this.xf=null; this.shake=0; this.ui(false); World.scenes.list=[{scene:this.surf.scene,camera:this.cam}]; if(!this.landed){ this.landed=true; Game.onLanded(P); }
   },
   skip(){ if(this.mode==='A'||this.mode==='B'||this.mode==='C'){ this.fadeCol.setRGB(0,0,0); this.dock(this.P); this.fade=1; } else if(this.mode==='L'){ Loading.stop(); this.liftoff(); this.t=99; } else if(this.mode==='T'){ this.t=99; } },
   /* previewed ships park on the shipyard's showroom pad, and the port camera swings over to it */
@@ -204,6 +204,7 @@ const Cine = {
   region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const s=this.frameStrip();
     return {w:W,h:Math.max(1,H-s),ox:0,oy:s/2}; },
   update(dt, time){
+    if(this.mode==='port') Venues.flush(); else Venues.tick();   // finish the port's shops a frame at a time on the way down
     this.t+=dt; const t=this.t, P=this.P, s=G.ship, cam=this.cam, m=this.model; let fov=42; if(this.mode!=='port'&&cam.view&&cam.view.enabled) cam.clearViewOffset();
     if(this.mode!=='port'&&this.surf&&this.surf.sun&&this.surf.sun.target.position.lengthSq()>1) this.sunAt(new V3());
     if(this.mode==='A'){
@@ -273,7 +274,7 @@ const Cine = {
     // grade, depth of field and motion blur for the scene on screen
     const onSurface=this.mode!=='A'&&this.mode!=='B'&&this.surf; World.grade(onSurface?this.surf.grade:null);
     World.dof=this.mode==='port'&&this.surf&&!this.preview&&this.camL?{scene:this.surf.scene,camera:cam,focus:Math.max(3,cam.position.distanceTo(this.camL)-1.2)}:null;
-    World.fx('uBlur',this.mode==='T'?clamp((this.t-1.6)/4,0,0.55):0);
+    World.fx('uBlur',0);   // no motion blur on the scenery, taking off or landing
     this.fovRaw=fov; if(!this.fovFixed) fov=World.fit(fov); this.fovFixed=false; if(Math.abs(cam.fov-fov)>0.01||Math.abs(cam.near-nearW)>0.05){ cam.fov=fov; cam.near=nearW; cam.updateProjectionMatrix(); }
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },

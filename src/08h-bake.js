@@ -230,10 +230,13 @@ const Bake = (() => {
   function beamMaterial() { if (shaftMat) return shaftMat;
     // each beam is a strip that turns about its own axis to face the camera, so it can never be seen edge-on
     shaftMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
-      vertexShader: 'attribute vec3 aStart; attribute vec3 aAxis; attribute vec2 aW; attribute vec2 aUV; attribute vec3 aCol; varying vec2 vUV; varying vec3 vCol;'
-        + 'void main(){ vUV=aUV; vCol=aCol; vec3 s=(modelMatrix*vec4(aStart,1.0)).xyz, ax=mat3(modelMatrix)*aAxis, p=s+ax*aUV.y;'
-        + ' vec3 side=normalize(cross(normalize(ax),normalize(cameraPosition-p))); float w=mix(aW.x,aW.y,aUV.y); gl_Position=projectionMatrix*viewMatrix*vec4(p+side*aUV.x*w,1.0); }',
-      fragmentShader: 'varying vec2 vUV; varying vec3 vCol; void main(){ float v=vUV.y, u=vUV.x; float a=pow(1.0-v,1.5)*smoothstep(0.0,0.15,v)*pow(max(0.0,1.0-u*u),1.6); gl_FragColor=vec4(vCol*a,1.0); }' });
+      // the strip is a trapezoid (wider at the bottom), so the across-the-beam fade is carried as (u*w, w) and divided out
+      // per pixel; interpolated plainly, its two triangles disagree and a dotted seam shows along the diagonal. v is clamped:
+      // at the very edge it can land a hair past 1, and pow() of a negative number is NaN, which bloom smears into dotted lines
+      vertexShader: 'attribute vec3 aStart; attribute vec3 aAxis; attribute vec2 aW; attribute vec2 aUV; attribute vec3 aCol; varying vec3 vQ; varying vec3 vCol;'
+        + 'void main(){ vCol=aCol; vec3 s=(modelMatrix*vec4(aStart,1.0)).xyz, ax=mat3(modelMatrix)*aAxis, p=s+ax*aUV.y;'
+        + ' vec3 side=normalize(cross(normalize(ax),normalize(cameraPosition-p))); float w=mix(aW.x,aW.y,aUV.y); vQ=vec3(aUV.x*w,aUV.y,w); gl_Position=projectionMatrix*viewMatrix*vec4(p+side*aUV.x*w,1.0); }',
+      fragmentShader: 'varying vec3 vQ; varying vec3 vCol; void main(){ float v=clamp(vQ.y,0.0,1.0), u=vQ.x/max(vQ.z,1e-4); float a=pow(1.0-v,1.5)*smoothstep(0.0,0.15,v)*pow(max(0.0,1.0-u*u),1.6); gl_FragColor=vec4(vCol*a,1.0); }' });
     return shaftMat; }
   function beams(V, scn) {
     const S = V.room; if (!S) return; const R = V.root, inv = new THREE.Matrix4().copy(R.matrixWorld).invert(), B = [];

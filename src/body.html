@@ -5,7 +5,7 @@
   <div id="cine-title"><h2 id="cine-h"></h2><p id="cine-p"></p></div>
   <button id="skip" hidden>Skip ▸ Space</button>
   <div id="tooltip" hidden></div>
-  <div id="keys" hidden><span class="kb-only">? Help · M Map · I Hold · B Scoop · L Walk</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
+  <div id="keys" hidden><span class="kb-only">? Help · M Map · I Hold · B Scoop · L Walk · P Autopilot</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
   <div id="caption" hidden aria-live="polite"></div>
 
   <div id="touch" aria-label="Touch controls">
@@ -85,14 +85,14 @@
 
   <section id="map" hidden aria-label="System map">
     <header><h2>System map</h2><div class="sub" id="map-sub"></div><button class="big ghost" id="map-close">Close · M</button></header>
-    <div id="map-main"><div id="map-view"><canvas id="map-cv"></canvas></div><aside id="map-list" aria-label="Worlds"></aside></div>
+    <div id="map-main"><div id="map-view"><canvas id="map-cv"></canvas></div><aside id="map-side"><input id="map-search" type="search" placeholder="Search worlds, ports, fields" aria-label="Search the map" autocomplete="off" spellcheck="false"><div id="map-list" aria-label="Worlds"></div></aside></div>
     <footer id="map-foot"></footer>
   </section>
 
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.38</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.39</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>

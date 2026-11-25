@@ -141,12 +141,12 @@ const Loading = (() => {
     // dockhands
     for(const c of S.crew){ const F=c.F; Folk.blink(F,time);
       if(c.act){ c.actT+=dt; const k=c.actT;
-        if(c.act==='gasp'){ Folk.walk(F,0,0); F.userData.rig.position.y=k<0.3?Math.sin(k/0.3*Math.PI)*0.35:0; Folk.arms(F,[0.4,1.9],[0.4,1.9]); if(k>1.3){ c.act=null; Folk.rest(F); } continue; }
+        if(c.act==='gasp'){ Folk.walk(F,0,0); F.userData.rig.rotation.x=k<0.6?-0.12*Math.sin(k/0.6*Math.PI):0; Folk.arms(F,[0.6,0.5],[0.6,0.5]); if(k>1.3){ c.act=null; Folk.rest(F); } continue; }
         if(c.act==='facepalm'){ Folk.walk(F,0,0); Folk.arms(F,[2.6,0.4],[k<1.1?2.6:0.2,0.4]); if(k>1.3){ c.act=null; Folk.rest(F); } continue; }
-        if(c.act==='cheer'){ F.userData.rig.position.y=Math.abs(Math.sin(k*7))*0.4; Folk.arms(F,[0.3,2.6],[0.3,2.6]); continue; }
+        if(c.act==='cheer'){ F.userData.head.rotation.x=k<1?0.22*Math.sin(k*Math.PI):0; Folk.arms(F,null,[0.7,0.25]); continue; }
         if(c.act==='mop'){ Folk.arms(F,null,[2.5,0.2+Math.sin(k*9)*0.25]); continue; }
         if(c.act==='shrug'){ Folk.arms(F,[0.5,1.1],[0.5,1.1]); F.userData.head.rotation.z=Math.sin(k*3)*0.15; continue; }
-        if(c.act==='wave'){ Folk.walk(F,0,0); Folk.arms(F,null,[0.2,2.4+Math.sin(k*9)*0.35]); continue; }
+        if(c.act==='wave'){ Folk.walk(F,0,0); Folk.arms(F,null,[0.9,0.3]); continue; }
         if(c.act==='pick'){ const u=E(P_(k,0,0.32)); c.crate.o.position.lerpVectors(c.from,carryPos(c),u); c.crate.o.rotation.set(0,lerp(c.crate.o.rotation.y,F.rotation.y,u),0); Folk.walk(F,0,0); Folk.arms(F,[1.35*u,0.1],[1.35*u,0.1]); F.userData.rig.rotation.x=Math.sin(u*Math.PI)*0.3;
           if(c.crate.bottom&&!S.toppled&&k>0.12) topple(c.crate);
           if(k>=0.32){ c.act=null; F.userData.rig.rotation.x=0; c.leg='up'; go(c,[S.ramp(L+0.3,-LANE).setY(0),S.ramp(L,-LANE),S.ramp(0.6,-LANE)]); } continue; }
@@ -192,8 +192,8 @@ const Loading = (() => {
   }
 
   /* the dockhands wave the ship off while it lifts */
-  function linger(dt, time){ if(!S) return; for(const c of S.crew){ if(c.act!=='wave'){ c.act='wave'; c.actT=Math.random(); Folk.rest(c.F); Folk.mood(c.F,'happy'); } c.actT+=dt; Folk.blink(c.F,time);
-    const k=c.actT; Folk.arms(c.F,k>2.2?[2.6,0.5]:null,[0.2,2.4+Math.sin(k*9)*0.35]); }
+  function linger(dt, time){ if(!S) return; for(const c of S.crew){ if(c.act!=='wave'){ c.act='wave'; c.actT=Math.random(); Folk.rest(c.F); Folk.mood(c.F,'neutral'); } c.actT+=dt; Folk.blink(c.F,time);
+    const k=c.actT; Folk.arms(c.F,null,[0.9,0.3]); c.F.userData.head.rotation.x=-0.15; }
     for(let i=S.parts.length-1;i>=0;i--){ const p=S.parts[i]; p.age+=dt; if(p.age>=p.life){ S.root.remove(p.o); S.parts.splice(i,1); continue; } p.o.position.addScaledVector(p.v,dt); p.o.material.opacity=0.6*(1-p.age/p.life); } }
 
   function cam(t){ const D=S.D, f=S.foot, R=S.root; R.updateMatrixWorld();

@@ -57,11 +57,11 @@ const Crowd = (() => {
         if(u>=1&&!pad.td){ pad.td=true; const v=loud(m.position,0.6); if(v>0.03) Sfx.thump(v); } if(pad.t>D+0.6){ thrust(pad,0,t); pad.td=false; pad.st='parked'; pad.t=0; pad.wait=14+Math.random()*24; } } }
 
     for(const a of L.folk){ const F=a.F; Folk.blink(F,t); if(F.userData.tent.length) Folk.ground(F,0);
-      if(a.kind==='marshal'){ const w=Math.sin(t*2.4+a.ph); Folk.arms(F,[0.25,1.5+w*0.9],[0.25,1.5+w*0.9]); F.userData.rig.position.y=Math.abs(Math.sin(t*2.4))*0.04; continue; }
+      if(a.kind==='marshal'){ const w=Math.sin(t*2.4+a.ph); Folk.arms(F,[0.25,1.3+w*0.5],[0.25,1.3+w*0.5]); continue; }
       if(a.kind==='chat'){ const me=a.mate, face=Math.atan2(me.F.position.x-F.position.x,me.F.position.z-F.position.z); F.rotation.y=ang(F.rotation.y,face,1-Math.exp(-dt*4));
         const turn=Math.floor((t+a.ph*0.1)/2.6)%2===(a.talk?0:1);
-        if(turn){ const g=Math.sin(t*5+a.ph); Folk.arms(F,[0.7+g*0.4,0.5+Math.max(0,g)*0.6],[0.5-g*0.3,0.3]); F.userData.head.rotation.x=Math.sin(t*6)*0.06; if(F.userData.mood==='neutral'||Math.random()<dt*0.3) Folk.mood(F,pick(['happy','shock','happy','worried'])); }
-        else { Folk.arms(F,[0.15,0.15],[0.15,0.15]); F.userData.head.rotation.x=Math.max(0,Math.sin(t*3))*0.15; if(F.userData.mood!=='neutral'&&Math.random()<dt*0.5) Folk.mood(F,Math.random()<0.5?'happy':'neutral'); }
+        if(turn){ const g=Math.sin(t*1.8+a.ph); Folk.arms(F,[0.45+g*0.15,0.25],[0.2,0.15]); F.userData.head.rotation.x=Math.sin(t*2)*0.04; if(Math.random()<dt*0.1) Folk.mood(F,Math.random()<0.6?'neutral':'happy'); }
+        else { Folk.arms(F,[0.15,0.15],[0.15,0.15]); F.userData.head.rotation.x=Math.max(0,Math.sin(t*1.2))*0.08; if(F.userData.mood!=='neutral'&&Math.random()<dt*0.5) Folk.mood(F,'neutral'); }
         continue; }
       // walkers and the cart pusher stroll between spots and pause to look around
       if(a.wait>0){ a.wait-=dt; Folk.walk(F,0,0); F.userData.head.rotation.y=Math.sin(t*0.7+a.ph)*0.5; if(a.cart) Folk.arms(F,[1.1,0.15],[1.1,0.15]); }
