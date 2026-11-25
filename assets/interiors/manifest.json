@@ -1,0 +1,1666 @@
+{
+  "rooms": [
+    {
+      "location": "amethyne",
+      "shop": "depot",
+      "name": "Bargain Roost Cargo Perch",
+      "file": "assets/interiors/amethyne/depot.glb",
+      "triangles": 21506,
+      "meshes": 37,
+      "materials": 11,
+      "bytes": 748044,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe1ad",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe1ad",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "amethyne",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "beacon-far-wink",
+      "shop": "cantina",
+      "name": "The Final Blink",
+      "file": "assets/interiors/beacon-far-wink/cantina.glb",
+      "triangles": 20294,
+      "meshes": 26,
+      "materials": 11,
+      "bytes": 643148,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd185",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd185",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "beacon-far-wink",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "beacon-far-wink",
+      "shop": "depot",
+      "name": "Last Light Freight Office",
+      "file": "assets/interiors/beacon-far-wink/depot.glb",
+      "triangles": 22658,
+      "meshes": 38,
+      "materials": 11,
+      "bytes": 804124,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd185",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd185",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "beacon-far-wink",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "beacon-far-wink",
+      "shop": "garage",
+      "name": "End of the Line Garage",
+      "file": "assets/interiors/beacon-far-wink/garage.glb",
+      "triangles": 20250,
+      "meshes": 27,
+      "materials": 10,
+      "bytes": 689192,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd185",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd185",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "beacon-far-wink",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "brrrindle",
+      "shop": "cantina",
+      "name": "The Warm Mitten",
+      "file": "assets/interiors/brrrindle/cantina.glb",
+      "triangles": 19950,
+      "meshes": 27,
+      "materials": 12,
+      "bytes": 654072,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffce82",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffce82",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "brrrindle",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "brrrindle",
+      "shop": "depot",
+      "name": "Fort Snuggle Cargo Hut",
+      "file": "assets/interiors/brrrindle/depot.glb",
+      "triangles": 22270,
+      "meshes": 36,
+      "materials": 10,
+      "bytes": 794996,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffce82",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffce82",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "brrrindle",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "brrrindle",
+      "shop": "garage",
+      "name": "Warm Wrench Garage",
+      "file": "assets/interiors/brrrindle/garage.glb",
+      "triangles": 19830,
+      "meshes": 28,
+      "materials": 11,
+      "bytes": 665508,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffce82",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffce82",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "brrrindle",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "calibration-spire",
+      "shop": "depot",
+      "name": "Precision Freight",
+      "file": "assets/interiors/calibration-spire/depot.glb",
+      "triangles": 23010,
+      "meshes": 37,
+      "materials": 11,
+      "bytes": 810504,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd899",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd899",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "calibration-spire",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "calibration-spire",
+      "shop": "garage",
+      "name": "Exactly Right Repairs",
+      "file": "assets/interiors/calibration-spire/garage.glb",
+      "triangles": 19198,
+      "meshes": 26,
+      "materials": 10,
+      "bytes": 628120,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd899",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffd899",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "calibration-spire",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "candara",
+      "shop": "cantina",
+      "name": "The Sunk Cost",
+      "file": "assets/interiors/candara/cantina.glb",
+      "triangles": 20846,
+      "meshes": 26,
+      "materials": 11,
+      "bytes": 666512,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe1b9",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe1b9",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "candara",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "candara",
+      "shop": "depot",
+      "name": "Port Lament Cargo Dock",
+      "file": "assets/interiors/candara/depot.glb",
+      "triangles": 23070,
+      "meshes": 36,
+      "materials": 11,
+      "bytes": 771224,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe1b9",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe1b9",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "candara",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "cryo-vault-rimeholm",
+      "shop": "depot",
+      "name": "Cold Storage Intake",
+      "file": "assets/interiors/cryo-vault-rimeholm/depot.glb",
+      "triangles": 24866,
+      "meshes": 37,
+      "materials": 11,
+      "bytes": 905980,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#b2e8f5",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#b2e8f5",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "cryo-vault-rimeholm",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "cryo-vault-rimeholm",
+      "shop": "garage",
+      "name": "Thaw & Patch",
+      "file": "assets/interiors/cryo-vault-rimeholm/garage.glb",
+      "triangles": 19438,
+      "meshes": 27,
+      "materials": 12,
+      "bytes": 628524,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#b2e8f5",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#b2e8f5",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "cryo-vault-rimeholm",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "dunemoor",
+      "shop": "cantina",
+      "name": "The Rubber Stamp",
+      "file": "assets/interiors/dunemoor/cantina.glb",
+      "triangles": 20390,
+      "meshes": 28,
+      "materials": 13,
+      "bytes": 669616,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffdb9b",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffdb9b",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "dunemoor",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "dunemoor",
+      "shop": "depot",
+      "name": "Form 27-B Cargo Office",
+      "file": "assets/interiors/dunemoor/depot.glb",
+      "triangles": 22894,
+      "meshes": 36,
+      "materials": 10,
+      "bytes": 818492,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffdb9b",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffdb9b",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "dunemoor",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "jovexa",
+      "shop": "depot",
+      "name": "Drift Cargo Bubble",
+      "file": "assets/interiors/jovexa/depot.glb",
+      "triangles": 23654,
+      "meshes": 34,
+      "materials": 10,
+      "bytes": 805484,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffde9c",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffde9c",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "jovexa",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "jovexa",
+      "shop": "garage",
+      "name": "Gentle Repairs",
+      "file": "assets/interiors/jovexa/garage.glb",
+      "triangles": 19702,
+      "meshes": 26,
+      "materials": 11,
+      "bytes": 622736,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffde9c",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffde9c",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "jovexa",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "listening-post-hush",
+      "shop": "cantina",
+      "name": "The Indoor Voice",
+      "file": "assets/interiors/listening-post-hush/cantina.glb",
+      "triangles": 20714,
+      "meshes": 27,
+      "materials": 11,
+      "bytes": 677248,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#e5ca9e",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#e5ca9e",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "listening-post-hush",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "listening-post-hush",
+      "shop": "depot",
+      "name": "Hush Receiving Bay",
+      "file": "assets/interiors/listening-post-hush/depot.glb",
+      "triangles": 22750,
+      "meshes": 36,
+      "materials": 12,
+      "bytes": 796860,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#e5ca9e",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#e5ca9e",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "listening-post-hush",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "listening-post-hush",
+      "shop": "garage",
+      "name": "Soft Landing Repairs",
+      "file": "assets/interiors/listening-post-hush/garage.glb",
+      "triangles": 18542,
+      "meshes": 26,
+      "materials": 9,
+      "bytes": 604696,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#e5ca9e",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#e5ca9e",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "listening-post-hush",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "scorchmaw",
+      "shop": "depot",
+      "name": "Gravel Freight Yard",
+      "file": "assets/interiors/scorchmaw/depot.glb",
+      "triangles": 22670,
+      "meshes": 37,
+      "materials": 11,
+      "bytes": 803492,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ff9a44",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ff9a44",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "scorchmaw",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "scorchmaw",
+      "shop": "garage",
+      "name": "Lava Lube & Patch",
+      "file": "assets/interiors/scorchmaw/garage.glb",
+      "triangles": 19378,
+      "meshes": 25,
+      "materials": 10,
+      "bytes": 650904,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ff9a44",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ff9a44",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "scorchmaw",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "sloshwell",
+      "shop": "cantina",
+      "name": "The Bottomless Bowl",
+      "file": "assets/interiors/sloshwell/cantina.glb",
+      "triangles": 20646,
+      "meshes": 25,
+      "materials": 11,
+      "bytes": 699708,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe0a0",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe0a0",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "sloshwell",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "sloshwell",
+      "shop": "depot",
+      "name": "Ladle Harbor Freight",
+      "file": "assets/interiors/sloshwell/depot.glb",
+      "triangles": 22950,
+      "meshes": 36,
+      "materials": 10,
+      "bytes": 832368,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe0a0",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#ffe0a0",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "sloshwell",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "toxibloom",
+      "shop": "cantina",
+      "name": "The Damp Log",
+      "file": "assets/interiors/toxibloom/cantina.glb",
+      "triangles": 19546,
+      "meshes": 27,
+      "materials": 13,
+      "bytes": 639284,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#c6ec89",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#c6ec89",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "toxibloom",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "toxibloom",
+      "shop": "depot",
+      "name": "Mellow Hollow Depot",
+      "file": "assets/interiors/toxibloom/depot.glb",
+      "triangles": 25170,
+      "meshes": 35,
+      "materials": 9,
+      "bytes": 854428,
+      "lights": [
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.25,
+            -13.1
+          ],
+          "color": "#ffe0ba",
+          "intensity": 0.9,
+          "distance": 15
+        },
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#c6ec89",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#c6ec89",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "toxibloom",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "toxibloom",
+      "shop": "garage",
+      "name": "Spore & Bolt",
+      "file": "assets/interiors/toxibloom/garage.glb",
+      "triangles": 19398,
+      "meshes": 26,
+      "materials": 10,
+      "bytes": 632856,
+      "lights": [
+        {
+          "name": "light_left",
+          "position": [
+            -7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#c6ec89",
+          "intensity": 1.12,
+          "distance": 24
+        },
+        {
+          "name": "light_soffit",
+          "position": [
+            0,
+            7.1,
+            -1
+          ],
+          "color": "#e5eafa",
+          "intensity": 1.05,
+          "distance": 28
+        },
+        {
+          "name": "light_right",
+          "position": [
+            7.55,
+            5.48,
+            -7.15
+          ],
+          "color": "#c6ec89",
+          "intensity": 0.85,
+          "distance": 20
+        }
+      ],
+      "finishProfile": "toxibloom",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "verdanthia",
+      "shop": "cantina",
+      "name": "The Coin Slot",
+      "file": "assets/interiors/verdanthia/cantina.glb",
+      "triangles": 28864,
+      "meshes": 35,
+      "materials": 11,
+      "bytes": 1112132,
+      "lights": [
+        {
+          "name": "light_reading",
+          "position": [
+            -6.4,
+            4.6,
+            -5.43
+          ],
+          "color": "#ffabb9",
+          "intensity": 1.1,
+          "distance": 19
+        },
+        {
+          "name": "light_spindle",
+          "position": [
+            1.2,
+            4.9,
+            -5.35
+          ],
+          "color": "#ffd9a0",
+          "intensity": 1,
+          "distance": 23
+        },
+        {
+          "name": "light_orchard",
+          "position": [
+            7.9,
+            6.8,
+            -1
+          ],
+          "color": "#ffe8bb",
+          "intensity": 0.95,
+          "distance": 24
+        }
+      ],
+      "finishProfile": "verdanthia",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "verdanthia",
+      "shop": "depot",
+      "name": "Dispatch Bay B4",
+      "file": "assets/interiors/verdanthia/depot.glb",
+      "triangles": 38034,
+      "meshes": 47,
+      "materials": 15,
+      "bytes": 1318144,
+      "lights": [
+        {
+          "name": "light_clock",
+          "position": [
+            1.25,
+            5.62,
+            -7.25
+          ],
+          "color": "#ffcc86",
+          "intensity": 0.8,
+          "distance": 14
+        },
+        {
+          "name": "light_glasshouse",
+          "position": [
+            -5.1,
+            7.4,
+            -3.6
+          ],
+          "color": "#d8efff",
+          "intensity": 1.3,
+          "distance": 29
+        },
+        {
+          "name": "light_packing",
+          "position": [
+            4.5,
+            4.15,
+            -13
+          ],
+          "color": "#ffcf94",
+          "intensity": 1.15,
+          "distance": 16
+        }
+      ],
+      "finishProfile": "verdanthia",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    },
+    {
+      "location": "verdanthia",
+      "shop": "garage",
+      "name": "Fix-O-Matic 3000",
+      "file": "assets/interiors/verdanthia/garage.glb",
+      "triangles": 27740,
+      "meshes": 39,
+      "materials": 12,
+      "bytes": 996076,
+      "lights": [
+        {
+          "name": "light_inspection_left",
+          "position": [
+            -5.72,
+            4.45,
+            -6.07
+          ],
+          "color": "#fff2cc",
+          "intensity": 1.15,
+          "distance": 22
+        },
+        {
+          "name": "light_inspection_right",
+          "position": [
+            5.72,
+            4.45,
+            -6.07
+          ],
+          "color": "#fff2cc",
+          "intensity": 1.15,
+          "distance": 22
+        },
+        {
+          "name": "light_workbay",
+          "position": [
+            0,
+            7.5,
+            -1.6
+          ],
+          "color": "#dbe7ff",
+          "intensity": 1.25,
+          "distance": 28
+        }
+      ],
+      "finishProfile": "verdanthia",
+      "probePosition": [
+        0,
+        2,
+        -2.6
+      ]
+    }
+  ]
+}
