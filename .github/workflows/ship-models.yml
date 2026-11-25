@@ -53,3 +53,24 @@ jobs:
             assets/ship-interiors
             docs/cockpits/${{ matrix.ship }}/*.png
             docs/ship-interiors/${{ matrix.ship }}/*.png
+  collection:
+    needs: fleet
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fleet-*
+          path: parts
+      - name: Verify and assemble the complete collection
+        run: python3 art/cockpits/package_outputs.py ships
+      - uses: actions/upload-artifact@v4
+        with:
+          name: long-haul-ships-complete
+          path: assembled/
+          retention-days: 30

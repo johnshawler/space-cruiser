@@ -220,3 +220,13 @@ Open `?gallery` and choose **Animated cast** to inspect the 50 articulated desig
 | Latch | A green lock body carries a silver U-shackle above brass-hub wheels. The axle turns as the shackle tests its travel twice. |
 | Plume | A blue sampler hovers below a crown of staggered intake tubes. Two jet pods vector in opposite directions to trim the climb. |
 | Prong | A yellow cargo tug has upright mast rails and two narrow lifting tines. Four wheels turn while the fork carriage takes up its slack. |
+
+## Bespoke cockpits
+
+[Cockpit renders](docs/cockpits/index.md) · [Walkable deck renders](docs/ship-interiors/index.md)
+
+- **Rustbucket Mk I** — Riveted salvage cab with a patched windscreen and exposed copper lines. The walkable deck adds exposed service lines, patched berths and a repair gantry.
+- **Dromedary 400** — Freight cab with yellow load rails and recessed drawer handles. The walkable deck adds industrial tie-down rails, stowage and a freight-handling spine.
+- **Stellar Stoat** — Close-fitting courier canopy with turquoise edging and shoulder bolsters. The walkable deck adds compact foldaway furnishings and a streamlined service tunnel.
+- **Opulent Manatee** — Walnut instrument cabinets and upholstered seating inside a bowed observation bay. The walkable deck adds upholstered berths, walnut cabinetry and a brass-trimmed passenger lounge.
+- **Quasar Empress** — Pale ceramic arches framing a panoramic bridge and a suspended pilot chair. The walkable deck adds illuminated structural arches and a ringed reactor gallery.

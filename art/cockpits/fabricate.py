@@ -263,7 +263,7 @@ class Ship(Room):
         stat=dict(ship=self.key,name=self.title,file=p.relative_to(self.root).as_posix(),triangles=tri,meshes=len(g['meshes']),materials=len(g['materials']),bytes=len(b),anchors=anchors)
         manifest=folder/'manifest.json';data=json.loads(manifest.read_text()) if manifest.exists() else {'ships':[]}
         data['ships']=[s for s in data['ships'] if s['ship']!=self.key]+[stat];manifest.write_text(json.dumps(data,indent=2)+'\n')
-        print('SHIP METRICS',json.dumps({k:v for k,v in stat.items() if k!='anchors'}))
+        print('SHIP METRICS',json.dumps(stat))
 def grade_ship(path,ship):
     from ship_finish import linear_srgb,srgb_linear
     # Store and interpolate a per-ship display-space LUT. The grain is fixed for stills.
