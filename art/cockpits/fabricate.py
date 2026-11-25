@@ -27,7 +27,8 @@ def palette(k):
         'Glow':('#'+glow,.3,0,None,2.6),'glass':('#c6e1e5',.15,.02,None,0,.085),
         'Diffuser':('#'+glow,.42,0,None,.34,1,.21),'Rubber':('#262c33',.84,0,'felt'),
         'Wood':('#805141',.52,0,'wood'),'Steel':('#73828b',.46,.55,'metal'),
-        'Wear':('#998875',.74,.12,'metal'),'Signal':('#b5372c',.6,.05,'felt')}
+        'Wear':('#998875',.74,.12,'metal'),'Signal':('#b5372c',.6,.05,'felt'),
+        'Paper':('#e6dcc3',.8,0,'felt'),'Moss':('#5d7a48',.8,0,'felt')}
 PANEL={
  'main':(.62,.34,(0,-.28,-1.04),-.38,0),'left':(.46,.34,(-.555,-.292,-.86),-.38,.64),
  'right':(.46,.34,(.555,-.292,-.86),-.38,-.64),'pedestal':(.24,.44,(0,-.55,-.90),-1.51,0),
@@ -264,10 +265,11 @@ class Ship(Room):
             bpy.context.view_layer.objects.active=parts[0]
             if len(parts)>1:bpy.ops.object.join()
             parts[0].name=label+' - '+material;export.append(parts[0])
+        if self.walk:self.bake_grime([o for o in export if o.type=='MESH' and o not in self.windows and o.name!='door'])
         bpy.ops.object.select_all(action='DESELECT')
         for ob in export:ob.select_set(True)
         folder=self.root/'assets'/self.group;folder.mkdir(parents=True,exist_ok=True);p=folder/(self.key+'.glb')
-        bpy.ops.export_scene.gltf(filepath=str(p),export_format='GLB',use_selection=True,export_extras=True,export_animations=False)
+        bpy.ops.export_scene.gltf(filepath=str(p),export_format='GLB',use_selection=True,export_extras=True,export_animations=False,**({'export_vertex_color':'ACTIVE','export_all_vertex_colors':False} if self.walk else {}))
         b=p.read_bytes();g=json.loads(b[20:20+struct.unpack_from('<I',b,12)[0]])
         tri=sum(g['accessors'][p['indices']]['count']//3 for m in g['meshes'] for p in m['primitives'])
         if not self.walk:
@@ -284,6 +286,28 @@ class Ship(Room):
         manifest=folder/'manifest.json';data=json.loads(manifest.read_text()) if manifest.exists() else {'ships':[]}
         data['ships']=[s for s in data['ships'] if s['ship']!=self.key]+[stat];manifest.write_text(json.dumps(data,indent=2)+'\n')
         print('SHIP METRICS',json.dumps(stat))
+def _bake_grime(self,meshes):
+    """Bake short-range ambient occlusion into vertex colours, so parts darken where they meet walls, floor and each other."""
+    scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=32;scene.cycles.use_denoising=False
+    scene.world.light_settings.distance=.7
+    for ob in scene.objects:
+        if ob.type in('MESH','CURVE','FONT') and ob not in meshes:ob.hide_render=True
+    bpy.ops.object.select_all(action='DESELECT')
+    lit=[]
+    for ob in meshes:
+        ob.hide_render=False;ob.data.color_attributes.new('Grime','BYTE_COLOR','CORNER')
+        ob.data.color_attributes.active_color=ob.data.color_attributes['Grime'];ob.data.color_attributes.render_color_index=0
+        if ob.data.materials[0].name in('Glow','Diffuser'):continue
+        ob.select_set(True);lit.append(ob)
+    bpy.context.view_layer.objects.active=lit[0]
+    bpy.ops.object.bake(type='AO',target='VERTEX_COLORS')
+    for ob in meshes:
+        att=ob.data.color_attributes['Grime'];n=len(att.data);c=np.ones(n*4,dtype=np.float32)
+        if ob in lit:
+            att.data.foreach_get('color',c);v=c.reshape(n,4)
+            f=np.clip(v[:,:1],0,1)**.8;v[:,:3]=.3+.7*f*np.array([1.,.985,.96])+(1-f)*np.array([.02,.0,-.02]);v[:,3]=1
+        att.data.foreach_set('color',c)
+Ship.bake_grime=_bake_grime
 def _lived_in(self,k,H,T,sw):
     """Fifteen years of use: tactile hardware, three visible repairs and the owner's clutter, per hull."""
     bx,rod,ball=self.box,self.rod,self.ball

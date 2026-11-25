@@ -3,6 +3,7 @@ import math,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'cockpits'))
 from fabricate import Ship,coord,camera,bpy
+from dress import dress
 
 ROOMS={'corridor':(-.9,.9,.70,7.20),'passenger cabin':(-4.4,-.9,1.4,5.8),
        'galley':(.9,4.,1.4,5.),'cargo hold':(-3.4,3.4,7.2,14.2),'engine room':(-2.4,2.4,14.2,19.),
@@ -130,6 +131,7 @@ def build(path):
         for z in [2.35,3.55,4.75]:bx(-4.28,z,.92,.08,.80,.06,'Glow')
         for h in [-.55,.38,.89]:
             r.wire([(.88*math.cos(a*math.pi/12),-16.6+.88*math.sin(a*math.pi/12),h) for a in range(25)],.037,'Pale',False)
+    dress(r,k,ROOMS)
     r.section('Deck wear')
     for i in range(6):bx(-.68+i*.045,6.12+i*.08,-.966,.11,.019,.004,'Wear',.001)
     for n,pt in FAULTS.items():r.anchor('fault_'+n,pt)

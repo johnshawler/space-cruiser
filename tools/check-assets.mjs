@@ -91,7 +91,7 @@ pass(`${CK.ships.length} cockpits with ${ANCH.length} anchors each`);
 const DK = JSON.parse(read('assets/ship-interiors/manifest.json'));
 for (const key of SHIPS) {
   const d = DK.ships.find(s => s.ship === key); if (!d) { fail(`deck ${key}: missing`); continue; }
-  const g = common(d, { tris: 60000, meshes: 120, materials: 16, bytes: 1.5e6 }); if (!g) continue;
+  const g = common(d, { tris: 60000, meshes: 120, materials: 16, bytes: 3e6 });   // room dressing and baked shading roughly quadrupled the bare decks if (!g) continue;
   for (const [id, pos] of Object.entries(faults)) if (!near(nodePos(g.j, 'fault_' + id), pos, 0.05)) fail(`deck ${key}: fault_${id} is not at the game's repair spot ${pos}`);
   for (let i = 0; i < 4; i++) if (!near(nodePos(g.j, 'passenger_' + (i + 1)), [-3.8, 0, 1.95 + i * 1.15], 0.05)) fail(`deck ${key}: passenger_${i + 1} is not at a passenger seat`);
   if (!near(nodePos(g.j, 'cockpit_door'), [0, -0.175, 0.68], 0.05)) fail(`deck ${key}: cockpit_door anchor is off the doorway`);

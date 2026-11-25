@@ -381,6 +381,25 @@ Today the game has six spots in five rooms: the engine room has two, and the two
 1. **Glow.** The current Stoat and Empress decks use lit edge strips and illuminated arches. These briefs swap them for shaded and lensed lamps. The cockpits keep their glow.
 2. **Fine clutter against low vision.** The game's rule is big readable shapes. The clutter here is written to be modelled chunky, and can be thinned to three items a room.
 3. **Films as mood only.** The "used-future" feel is kept. No prop, shape or name is taken from any film or series.
-4. **Built so far.** The walkable airlock, scrubber bay and service alleys, their doorways, and the seven repair spots are in the game and in all five deck models. The new airlock fault costs 20% of top speed until fixed. The room-by-room dressing in these briefs (the repairs, lamps and clutter) is not modelled yet: the new rooms have only their main fittings.
+4. **Built so far.** The walkable airlock, scrubber bay and service alleys, their doorways, and the seven repair spots are in the game and in all five deck models. The new airlock fault costs 20% of top speed until fixed.
 5. **Standing height.** The service alleys are modelled at the full 2.3 m, not the 1.9 m written above, with the pipe runs overhead.
 6. **Seats.** All five still use four passenger places, the known gap in PR #7.
+
+## What is built of the dressing
+
+All five decks are dressed by `art/ship-interiors/dress.py`, room by room, from the lists above.
+
+- **On every hull:** a hooded steel bezel at each of the seven repair spots, a wire cage on every working-room ceiling lamp and a fabric shade on the cabin and galley lamps, sliders parked open beside the cabin, galley, hold and engine room doorways, worn threshold plates, a console under the engine room dials, and a seat in the engine room.
+- **Per hull:** the hardware, most of the three repairs and three to five clutter items in each room.
+- **Lettered boards** are drawn by the game, not modelled, so the words stay sharp: four to six per hull, such as "DOOR STICKS, KICK HERE" and "THINGS TO FIX WHEN RICH". They are listed in `DECK_NOTES` in `src/09-walk.js`.
+- **Against the toy-block look:** every deck model carries baked shading, so parts darken where they meet walls, floor and each other, and the game lays a layer of streaks, blotches and scratches over every plain surface.
+
+Not built, or built differently:
+
+- **Lettering is smaller than the 0.25 m rule above.** Board lettering is about 0.12 to 0.2 m tall, the same as the game's own signs.
+- **Repairs at a repair spot sit beside it, not on it.** The game draws the fuse box, patch plate, seal valve and the other spots itself, so the bent fork, picture frame and similar touches are next to them.
+- **Things that needed floor you walk on are left out or shrunk:** the Manatee's tea trolley, raised plank floors, railed reactor pits, and full-size scrubber drums (the bay's fore wall leaves 0.18 m).
+- **Light and air effects are not built:** flicker, steam, haze, frost patterns and warmer or cooler lamps. The new rooms still borrow light from their neighbours.
+- **Small items left out:** most things under about 0.1 m, such as the pencil in the buckle and the tape labels on mugs.
+- **The engine room seat blocks walking** on every hull (one more entry in `Interior.OBST`).
+- **Each deck file is now 2.2 to 2.7 MB,** up from about 0.6 MB, so the deck size limit in `tools/check-assets.mjs` went from 1.5 MB to 3 MB.
