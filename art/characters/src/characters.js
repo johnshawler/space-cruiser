@@ -1,3 +1,4 @@
+import {applySurfaceFinishes} from './surface-materials.js';
 import {newCast} from './new-cast.js';
 import {neru,caelo,rusk,plover,fenn,koro,myrr,sarra,ilex,kepp,yarro,nacre,tacca,sova,pavo,kipp,marlo,aril,sura} from './outer-aliens.js';
 import {lyre,iris,crimp,relay,kiln,wick,fathom,dolly,orlo,chime,shuttle,cairn,pinion,tempo,glint,purl,latch,plume,prong} from './outer-robots.js';
@@ -23,7 +24,7 @@ const sculptors={orris,vela,obo,silt,mica,nim,tally,lichen,parallax,hush,rivet,s
 export function buildCharacter(id){
   const info=cast.find(c=>c.id===id);if(!info)throw new Error('Unknown character '+id);
   const root=new Group();root.name=info.name;root.userData={role:info.role};
-  const parts=new Group();parts.name=info.name+' sculpture';root.add(parts);sculptors[id](parts);
+  const parts=new Group();parts.name=info.name+' sculpture';root.add(parts);sculptors[id](parts);applySurfaceFinishes(parts,id);
   const bounds=new Box3().setFromObject(root,true),center=bounds.getCenter(new Vector3());
   // Ground the feet; retain the air gap on the hovering characters.
   const hover=['vela','parallax','rivet','fenn','sura','pinion','plume','shuttle'].includes(id)?.13:0;

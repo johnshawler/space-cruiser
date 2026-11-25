@@ -1,0 +1,58 @@
+name: Render the resident cast in Cycles
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'art/characters/blender/**'
+      - 'art/characters/src/surface*.js'
+      - '.github/workflows/cast-portraits.yml'
+permissions: {}
+jobs:
+  portraits:
+    permissions:
+      contents: read
+    if: github.event.pull_request.head.ref == 'alien-surface-finish' && github.event.pull_request.head.repo.full_name == github.repository
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        batch: [0,1,2,3,4,5,6,7,8,9]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Set up Blender 4.5 LTS
+        run: |
+          set -eu
+          cd "$RUNNER_TEMP"
+          release=https://download.blender.org/release/Blender4.5
+          archive=blender-4.5.3-linux-x64.tar.xz
+          for mirror in "$release" https://ftp.halifax.rwth-aachen.de/blender/release/Blender4.5 https://mirrors.ocf.berkeley.edu/blender/release/Blender4.5; do
+            curl -fsSL --retry 2 --output "$archive" "$mirror/$archive" && curl -fsSL --retry 2 --output checksums "$mirror/blender-4.5.3.sha256" && break
+          done
+          grep -F "$archive" checksums | sha256sum --check -
+          tar -xf "$archive"
+          echo "$RUNNER_TEMP/blender-4.5.3-linux-x64" >> "$GITHUB_PATH"
+      - name: Build and render
+        run: |
+          blender --version
+          mkdir -p "$RUNNER_TEMP/masters"
+          mapfile -t masters < <(find assets/characters -maxdepth 1 -name '*.glb' | sort)
+          for model in "${masters[@]:${{ matrix.batch }}*5:5}"; do
+            file="${model##*/}"
+            if ! node -e 'const b=require("fs").readFileSync(process.argv[1]);process.exit(JSON.parse(b.subarray(20,20+b.readUInt32LE(12))).asset.extras?.finishVersion===1?0:1)' "$model"; then
+              cp "$model" "$RUNNER_TEMP/masters/$file"
+              node art/characters/blender/finish-glb.mjs "$RUNNER_TEMP/masters/$file" "$model"
+            fi
+            blender -b -t 4 --factory-startup --python-exit-code 1 --python art/characters/blender/portrait.py -- "${file%.glb}"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cast-portraits-${{ matrix.batch }}
+          retention-days: 30
+          path: |
+            art/characters/blender/scenes/*.blend
+            docs/character-surfaces/*.png

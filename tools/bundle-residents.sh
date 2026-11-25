@@ -4,7 +4,7 @@
 set -eu
 printf '%s\n' 'const ResidentModels = (() => {'
 cat art/characters/game-compat.js
-for unit in sculpt anatomy aliens robots outer-aliens outer-robots new-cast characters residents; do
+for unit in finish surface-atlas surface-materials sculpt anatomy aliens robots outer-aliens outer-robots new-cast characters residents; do
   sed -e '/^import /d' -e 's/^export //' -e 's/SphereGeometry(1,24,16)/SphereGeometry(1,12,8)/' "art/characters/src/$unit.js"
 done
 printf '%s\n' 'return {cast,residents,homeworlds,buildCharacter};})();'
