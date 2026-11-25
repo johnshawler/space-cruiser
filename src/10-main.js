@@ -66,7 +66,7 @@ const Game = {
     const dir=T!==P?T.pos.clone().sub(P.pos).normalize():P.sunDir.clone().negate(), side=new V3().crossVectors(dir,up).normalize();
     s.pos.copy(P.pos).addScaledVector(dir,P.r*3.7).addScaledVector(side,P.r*0.4); s.quat.copy(lookQuat(dir.clone().applyAxisAngle(up,0.36).applyAxisAngle(side,0.1),up));
     s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; s.angVel.set(0,0,0); s.departed=P.idx; Npc.clear(); Distress.cur=null; Ev.hold=0; if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Customs.arm(); Escort.spawn(); Radio.cur=null; Radio.wait=10; Cine.mode=null; Walk.exit(true); Faults.badge(); Throttle.reset();
-    World.scenes.list=[{scene:World.space,camera:World.spaceCam},{scene:World.cock,camera:World.cockCam}]; Cockpit.zoomOut(); G.head.yaw=G.head.yawT; G.head.pitch=G.head.pitchT; G.head.pos.set(0,0,0);
+    World.scenes.list=[{scene:World.space,camera:World.spaceCam,fx:true,hud:true},{scene:World.cock,camera:World.cockCam}]; Cockpit.zoomOut(); G.head.yaw=G.head.yawT; G.head.pitch=G.head.pitchT; G.head.pos.set(0,0,0);
     this.fade=1; this.fadeCol.setRGB(launch?1:0,launch?1:0,launch?1:0); this.mk=0; this.syncCamera(0.016);
     UI.toast(launch?`Clear of ${P.name}. Destination: ${T.name}`:`Destination: ${T.name}`); this.save();
   },
@@ -127,9 +127,9 @@ const Game = {
     if(G.mode==='landing'||G.mode==='port'||G.mode==='takeoff'){ Cine.update(dt,t); if(G.mode!=='flight') fov=Cine.fovRaw||Cine.cam.fov; }
     World.update(dt,s.pos,fov);
     if(G.mode==='flight'||G.mode==='title'){
-      this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uBlur',s.warpF*0.7+clamp((s.speed-900)/4000,0,0.3)); World.grade(null); World.dof=null; World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
+      this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uBlur',0); World.layerFx.blur=s.warpF*0.7+clamp((s.speed-900)/4000,0,0.3); World.layerFx.warp=s.warpF; World.grade(null); World.dof=null; World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
       World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=Walk.on?0.35:0.75+s.warpF*0.7;
-    } else { World.fx('uWarp',0); if(G.mode!=='port'&&G.mode!=='landing'&&G.mode!=='takeoff'){ World.fx('uBlur',0); World.grade(null); World.dof=null; } World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    } else { World.fx('uWarp',0); World.layerFx.blur=World.layerFx.warp=0; if(G.mode!=='port'&&G.mode!=='landing'&&G.mode!=='takeoff'){ World.fx('uBlur',0); World.grade(null); World.dof=null; } World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
     SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
@@ -152,7 +152,7 @@ const Game = {
   setupTitle(){
     const P=PLANETS[0], s=G.ship, up=new V3(0,1,0), out=P.sunDir.clone().negate().applyAxisAngle(up,2.0); s.pos.copy(P.pos).addScaledVector(out,P.r*3.3).addScaledVector(up,P.r*0.5);
     const side=new V3().crossVectors(out,up).normalize(); s.quat.copy(lookQuat(P.pos.clone().addScaledVector(side,-P.r*1.5).addScaledVector(up,P.r*0.6).sub(s.pos).normalize(),up));
-    G.mode='title'; World.scenes.list=[{scene:World.space,camera:World.spaceCam},{scene:World.cock,camera:World.cockCam}];
+    G.mode='title'; World.scenes.list=[{scene:World.space,camera:World.spaceCam,fx:true,hud:true},{scene:World.cock,camera:World.cockCam}];
     const nb=$('btn-new'); nb.disabled=false; nb.textContent='New career'; nb.onclick=()=>this.newGame();
     if(this.load()){ const cb=$('btn-continue'); cb.hidden=false; cb.onclick=()=>this.continueGame(); }
   },

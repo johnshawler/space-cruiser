@@ -38,7 +38,7 @@ const Flotsam = {
     const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:softDotTex(),color:HDR(kind==='lost'?'#b89cff':'#ffb454',3),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); glow.scale.setScalar(140); g.add(glow); g.userData.glow=glow;
     return g; },
   marker(){ const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
-    sp.scale.set(0.24,0.15,1); sp.center.set(0.5,1-158/240); sp.renderOrder=21; World.universe.add(sp); return {cv,tex,sprite:sp,key:''}; },
+    sp.scale.set(0.24,0.15,1); sp.center.set(0.5,1-158/240); sp.renderOrder=21; World.universe.add(World.hud(sp)); return {cv,tex,sprite:sp,key:''}; },
   /* item: a cargo entry that goes into G.cargo when scooped. opts: {kind:'crate'|'lost', label, vel, quest} */
   spawn(item, pos, opts){ opts=opts||{}; const kind=opts.kind||'crate', m=this.mesh(kind); m.position.copy(pos); World.universe.add(m);
     const f={item,pos:pos.clone(),vel:(opts.vel||new V3()).clone(),m,mk:this.marker(),kind,label:opts.label||item.good,spin:new V3(Math.random(),Math.random(),Math.random()).multiplyScalar(0.4),dist:1e12,id:Math.random().toString(36).slice(2)};

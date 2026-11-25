@@ -1,9 +1,24 @@
 /* ===================== WORLD ===================== */
 function ScenesPass(){ this.enabled=true; this.needsSwap=false; this.clear=true; this.renderToScreen=false; this.list=[]; }
 ScenesPass.prototype.setSize=function(){};
+/* Each entry is drawn over the last. An entry marked fx (space, in flight) gets the speed streaks and warp colour fringes
+   on its own, so the cockpit stays sharp; one marked hud then has its labels (layer 1: planet names, distances, pilots,
+   waypoints) drawn on top of the streaks, crisp. */
 ScenesPass.prototype.render=function(renderer, wb, rb){
-  renderer.setRenderTarget(this.renderToScreen?null:rb); renderer.autoClear=false; renderer.clear(true,true,true);
-  for(let i=0;i<this.list.length;i++){ if(i>0) renderer.clearDepth(); renderer.render(this.list[i].scene, this.list[i].camera); }
+  const out=this.renderToScreen?null:rb, fx=World.layerFx; renderer.setRenderTarget(out); renderer.autoClear=false; renderer.clear(true,true,true);
+  for(let i=0;i<this.list.length;i++){ const L=this.list[i]; if(i>0) renderer.clearDepth();
+    if(L.fx&&rb&&fx&&(fx.blur>0.001||fx.warp>0.001)){
+      const w=rb.width, h=rb.height;
+      if(!this.tmp){ this.tmp=new THREE.WebGLRenderTarget(w,h,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+        this.streak=new THREE.ShaderMaterial({uniforms:{tDiffuse:{value:null},uBlur:{value:0},uWarp:{value:0}},vertexShader:GLSL.postVert,fragmentShader:GLSL.streakFrag,depthTest:false,depthWrite:false});
+        this.quad=new THREE.Scene(); this.quad.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),this.streak)); this.qcam=new THREE.OrthographicCamera(-1,1,1,-1,0,1); }
+      if(this.tmp.width!==w||this.tmp.height!==h) this.tmp.setSize(w,h);
+      renderer.setRenderTarget(this.tmp); renderer.clear(true,true,true); renderer.render(L.scene,L.camera);
+      const u=this.streak.uniforms; u.tDiffuse.value=this.tmp.texture; u.uBlur.value=fx.blur; u.uWarp.value=fx.warp;
+      renderer.setRenderTarget(out); renderer.render(this.quad,this.qcam);
+    } else renderer.render(L.scene,L.camera);
+    if(L.hud){ const bg=L.scene.background; L.scene.background=null; renderer.clearDepth(); L.camera.layers.set(1); renderer.render(L.scene,L.camera); L.camera.layers.set(0); L.scene.background=bg; }
+  }
 };
 
 /* graphics quality: 'high' adds depth of field, floor reflections and multisample anti-aliasing; 'balanced' leaves them out.
@@ -12,6 +27,9 @@ const GFX = { high: (()=>{ try{ const v=localStorage.getItem('lh-gfx'); if(v) re
   set(high){ this.high=!!high; try{ localStorage.setItem('lh-gfx',high?'high':'balanced'); }catch(e){} } };
 
 const World = {
+  layerFx:{blur:0,warp:0},
+  /* labels that float in space: drawn in their own sharp pass, after the speed streaks */
+  hud(o){ o.layers.set(1); return o; },
   dpr:1, frameMs:16, slowT:0, sunDir:new V3(1,0,0), time:0,
   init(canvas){
     const r=this.renderer=new THREE.WebGLRenderer({canvas, antialias:false, powerPreference:'high-performance'});
@@ -87,7 +105,7 @@ const World = {
   },
   /* HUD marker */
   marker(P){ P.mk={cv:makeCanvas(384,240)}; P.mk.tex=canvasTex(P.mk.cv); P.mk.sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:P.mk.tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
-    P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(P.mk.sprite); P.mk.key=''; },
+    P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(World.hud(P.mk.sprite)); P.mk.key=''; },
   /* a research station seen from space: a hub, a slowly turning ring on spokes, solar wings, blinking lights, and
      each one's speciality (a listening dish, frozen-sample tanks, a measuring spire, a lighthouse lamp) */
   buildStation(P, g){
@@ -224,7 +242,7 @@ const Npc = {
     const m=Models.build(idx,scheme); m.scale.setScalar(3); World.universe.add(m);
     const cv=makeCanvas(384,96), x=cv.getContext('2d'); x.strokeStyle=S.col; x.fillStyle=S.col; x.lineWidth=3; x.beginPath(); x.moveTo(192,8); x.lineTo(206,22); x.lineTo(192,36); x.lineTo(178,22); x.closePath(); x.stroke();
     x.font=`600 24px ${FONT_DISP}`; x.textAlign='center'; x.fillText(pl.ship.toUpperCase(),192,66); x.font=`18px ${FONT_MONO}`; x.globalAlpha=0.8; x.fillText(S.name+' · '+pl.name,192,88);
-    const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(cv),transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false})); mk.scale.set(0.4,0.1,1); mk.center.set(0.5,0.78); mk.renderOrder=21; World.universe.add(mk);
+    const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(cv),transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false})); mk.scale.set(0.4,0.1,1); mk.center.set(0.5,0.78); mk.renderOrder=21; World.universe.add(World.hud(mk));
     const n=Object.assign({m,mk,pos:pos.clone(),vel:vel.clone(),kind,pilot:pl,age:0,dist:0},extra||{}); this.list.push(n); return n;
   },
   label(n, l1, l2, col){ const S=SPECIES[n.pilot.sp], cv=n.mk.material.map.image, x=cv.getContext('2d'); col=col||S.col; x.clearRect(0,0,cv.width,cv.height); x.globalAlpha=1;

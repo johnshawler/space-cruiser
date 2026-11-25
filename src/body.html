@@ -4,7 +4,6 @@
   <div id="lb-top" class="lb"></div><div id="lb-bot" class="lb"></div>
   <div id="cine-title"><h2 id="cine-h"></h2><p id="cine-p"></p></div>
   <button id="skip" hidden>Skip ▸ Space</button>
-  <div id="toasts" aria-live="polite"></div>
   <div id="tooltip" hidden></div>
   <div id="keys" hidden><span class="kb-only">? Help · M Map · I Hold · B Scoop · L Walk</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
   <div id="caption" hidden aria-live="polite"></div>
@@ -55,15 +54,18 @@
     <div id="port-body" aria-label="At the counter"></div>
   </section>
 
-  <section id="dlg" hidden aria-label="Decision" aria-live="polite">
-    <canvas id="dlg-face" width="192" height="192"></canvas>
-    <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-hint"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
-    <div id="dlg-opts"></div>
-  </section>
 
-  <div id="scoop-badge" hidden>Cargo scoop open</div>
-  <div id="alerts"><div id="deep-badge" hidden></div><div id="zone-badge" hidden></div></div>
-  <div id="fault-badge" hidden></div>
+  <!-- in flight, every warning, call and notice stacks here in the top-left corner -->
+  <div id="alerts"><div id="deep-badge" hidden></div><div id="zone-badge" hidden></div>
+    <div id="fault-badge" hidden></div>
+    <div id="scoop-badge" hidden>Cargo scoop open</div>
+    <section id="dlg" hidden aria-label="Decision" aria-live="polite">
+      <canvas id="dlg-face" width="192" height="192"></canvas>
+      <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-hint"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
+      <div id="dlg-opts"></div>
+    </section>
+    <div id="toasts" aria-live="polite"></div>
+  </div>
   <div id="reticle" hidden></div>
   <div id="prompt" hidden></div>
   <section id="specs" hidden aria-label="Ship specs">
@@ -90,7 +92,7 @@
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.36</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.37</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>

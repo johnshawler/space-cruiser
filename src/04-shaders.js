@@ -232,6 +232,14 @@ void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
   col=clamp(col,vec3(0.0),vec3(uMax));
   gl_FragColor=vec4(col,1.0); }`;
 
+/* speed streaks and warp colour fringes, applied to the space layer only (see ScenesPass) */
+GLSL.streakFrag = `
+uniform sampler2D tDiffuse; uniform float uBlur,uWarp; varying vec2 vUv;
+void main(){
+  vec2 c=vUv-0.5; float r2=dot(c,c), ca=uWarp*0.02*r2;
+  vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-c*ca).b);
+  if(uBlur>0.001){ vec3 acc=col; float k=uBlur*sqrt(r2)*0.09; for(int i=1;i<7;i++){ acc+=texture2D(tDiffuse,vUv-c*k*float(i)).rgb; } col=acc/7.0; }
+  gl_FragColor=vec4(col,1.0); }`;
 GLSL.postVert = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.postFrag = `
 uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash,uBlur,uSat,uContrast; uniform vec3 uFadeCol,uLift,uGain;
@@ -240,7 +248,7 @@ vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0
 float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 void main(){
   vec2 c=vUv-0.5; float r2=dot(c,c);
-  float ca=(0.0035+uWarp*0.02)*r2;
+  float ca=0.0035*r2;
   vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-c*ca).b);
   // motion blur: at speed the picture streaks outwards from the middle, more towards the edges
   if(uBlur>0.001){ vec3 acc=col; float k=uBlur*sqrt(r2)*0.09; for(int i=1;i<7;i++){ acc+=texture2D(tDiffuse,vUv-c*k*float(i)).rgb; } col=acc/7.0; }

@@ -76,7 +76,7 @@ const Nav = {
   set(wp){
     this.clear(true); wp.isWp=true; wp.dist=wp.pos.distanceTo(G.ship.pos); wp.landR=0; wp.port=wp.port||wp.sub||'';
     const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
-    sp.scale.set(0.3,0.1875,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(wp.pos); World.universe.add(sp);
+    sp.scale.set(0.3,0.1875,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(wp.pos); World.universe.add(World.hud(sp));
     wp.mk={cv,tex,sprite:sp,key:''}; this.wp=wp; Game.mk=0; if(Sfx.ok()) Sfx.beep(990);
   },
   clear(silent){ const w=this.wp; if(!w) return; this.wp=null; World.universe.remove(w.mk.sprite); w.mk.tex.dispose(); w.mk.sprite.material.dispose(); if(!silent&&w.onCancel) w.onCancel(); },
@@ -96,7 +96,7 @@ const Dlg = {
   flush(){ const o=this.held; this.held=null; if(o&&!this.open&&G.mode==='flight') this.show(o); },
   show(o){
     if(Walk.on&&!o.onboard){ if(!this.held) this.held=o; return; }
-    Comms.close(true); if(SysMap.open) SysMap.close(); this.open=true; this.tone=o.tone||''; this.opts=o.opts||[{t:'OK'}]; this.timer=o.timeout||0; this.onTimeout=o.onTimeout||null; this.total=this.timer;
+    Comms.close(true); if(SysMap.open) SysMap.close(); this.open=true; this.last=o; this.tone=o.tone||''; this.opts=o.opts||[{t:'OK'}]; this.timer=o.timeout||0; this.onTimeout=o.onTimeout||null; this.total=this.timer;
     const box=$('dlg'); box.hidden=false; this.mini=!!o.mini; box.className=(o.tone||'')+(this.mini?' mini':''); box.onclick=()=>this.expand();
     $('dlg-hint').textContent='';
     const x=$('dlg-face').getContext('2d'); x.clearRect(0,0,192,192); if(o.sp) drawAlien(x,o.sp,o.seed||1,0,0,192); else { x.fillStyle='#1d2a3a'; x.fillRect(0,0,192,192); x.font='120px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(o.icon||'⚠',96,104); }
@@ -110,6 +110,8 @@ const Dlg = {
   expand(){ if(!this.open||!this.mini) return; this.mini=false; $('dlg').classList.remove('mini'); if(Sfx.ok()) Sfx.click(); },
   choose(i){ const op=this.opts[i]; if(!this.open||!op||op.disabled) return; Sfx.click(); this.close(); if(op.fn) op.fn(); },
   close(){ this.open=false; this.mini=false; this.timer=0; $('dlg').hidden=true; },
+  /* getting out of the seat with a call on screen: it waits, and comes back when you sit down again */
+  park(){ if(!this.open) return false; const o=this.last; this.close(); if(o&&!this.held) this.held=o; return true; },
   /* Escape on an incoming radio call: hang up, as if you'd let it ring out, and clear it off the cockpit screen */
   hangUp(){ if(!this.open||this.tone!=='radio') return false; const f=this.onTimeout; this.close(); if(f) f(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,4); if(Sfx.ok()) Sfx.click(); return true; },
   update(dt){ if(!this.open||!this.timer) return; this.timer-=dt; $('dlg-bar').style.width=Math.max(0,this.timer/this.total*100)+'%';
@@ -206,7 +208,7 @@ const Mining = {
       for(const k of F.rocks) this.place(F,k);
       im.instanceColor.needsUpdate=true;
       const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
-      sp.scale.set(0.22,0.1375,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(F.pos); World.universe.add(sp); F.mk={cv,tex,sprite:sp,key:''};
+      sp.scale.set(0.22,0.1375,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(F.pos); World.universe.add(World.hud(sp)); F.mk={cv,tex,sprite:sp,key:''};
     });
     this.fields=FIELDS;
     // the beam: a cone from just under the nose to the rock
@@ -216,7 +218,7 @@ const Mining = {
     this.spark=new THREE.Sprite(new THREE.SpriteMaterial({map:softDotTex(),color:HDR('#b8ffd0',4),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); this.spark.visible=false; World.space.add(this.spark);
     // rock sights
     const cv=makeCanvas(384,240); this.sightTex=canvasTex(cv); this.sightCv=cv; this.sight=new THREE.Sprite(new THREE.SpriteMaterial({map:this.sightTex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
-    this.sight.scale.set(0.26,0.1625,1); this.sight.center.set(0.5,1-158/240); this.sight.renderOrder=22; this.sight.visible=false; World.universe.add(this.sight); this.sightKey='';
+    this.sight.scale.set(0.26,0.1625,1); this.sight.center.set(0.5,1-158/240); this.sight.renderOrder=22; this.sight.visible=false; World.universe.add(World.hud(this.sight)); this.sightKey='';
   },
   place(F,k){ const s=k.ore>0?k.r:0.0001; this.q.setFromEuler(k.rot); this.sc.set(s,s,s); this.m4.compose(k.local,this.q,this.sc); F.im.setMatrixAt(k.i,this.m4); F.im.instanceMatrix.needsUpdate=true; },
   rate(){ return G.up.laser>1?1.25:0.7; },

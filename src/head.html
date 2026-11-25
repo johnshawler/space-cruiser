@@ -33,7 +33,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #cine-title p:empty{display:none}
 #skip{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(3% + env(safe-area-inset-bottom,0px));z-index:7;font-family:var(--mono);font-size:24px;letter-spacing:.2em;color:var(--dim);background:none;border:1px solid var(--line);padding:10px 20px;border-radius:2px}
 
-#toasts{position:absolute;top:calc(7% + env(safe-area-inset-top,0px));left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:8;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#toasts{position:fixed;top:calc(7% + env(safe-area-inset-top,0px));left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:8;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .toast{font-family:var(--mono);font-size:28px;letter-spacing:.1em;line-height:1.25;text-align:center;text-transform:uppercase;padding:12px 26px;background:var(--glass);border:1px solid var(--line);border-left:3px solid var(--cyan);color:var(--ink);animation:toast 5s forwards;max-width:100%}
 .toast.warn{border-left-color:var(--amber);color:var(--amber)}
 .toast.good{border-left-color:var(--good);color:var(--good)}
@@ -92,7 +92,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .opt:hover{border-color:var(--amber);color:var(--amber)}
 .opt b{color:var(--amber);font-weight:400;margin-right:6px}
 
-#dlg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(4% + env(safe-area-inset-bottom,0px));width:min(1180px,calc(100% - 32px));z-index:28;background:var(--glass);border:1px solid var(--line);border-top:3px solid var(--amber);padding:20px 22px;display:grid;grid-template-columns:160px 1fr;gap:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#dlg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(4% + env(safe-area-inset-bottom,0px));width:min(1180px,calc(100% - 32px));z-index:28;background:var(--glass);border:1px solid var(--line);border-top:3px solid var(--amber);padding:20px 22px;display:grid;grid-template-columns:160px 1fr;gap:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #dlg.alert{border-top-color:var(--bad)}
 #dlg-face{width:160px;height:160px;border:1px solid var(--line)}
 #dlg .who{font-family:var(--mono);font-size:24px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase}
@@ -106,7 +106,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .tag.r2{border-color:#ff9a4a;color:#ff9a4a}.tag.r3{border-color:#ff5a5a;color:#fff;background:#8a1c1c}
 .risk{font-weight:700}.risk.r0{color:#7dffa8}.risk.r1{color:#ffd166}.risk.r2{color:#ff9a4a}.risk.r3{color:#ff6a6a}.warnf{color:#ff6a6a}
 /* the top-left alert stack: the deep-space zone, then the port approach speed limit underneath */
-#alerts{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(16px + env(safe-area-inset-top,0px));z-index:9;display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
+#alerts{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(16px + env(safe-area-inset-top,0px));z-index:28;width:min(520px,calc(100vw - 32px));display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
 #deep-badge{position:relative;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid;padding:6px 16px;pointer-events:none;white-space:nowrap}
 #deep-badge.z1{color:#ffd166;border-color:#ffd166}#deep-badge.z2{color:#ff9a4a;border-color:#ff9a4a}#deep-badge.z3{color:#ff6a6a;border-color:#ff6a6a}
 #deep-badge.storm{color:#fff;background:#a8322a;border-color:#ff7a6a;animation:scoopPulse 1s ease-in-out infinite}
@@ -283,4 +283,18 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 @media (max-width:700px){#port-bar{flex-wrap:wrap}#port .sub{display:none}#port-top{flex-wrap:wrap;margin-left:0;flex:1 1 100%}#port-top-btns{margin-left:auto}#port-tabs.dock{width:calc(100vw - 32px);grid-template-columns:1fr 1fr;column-gap:10px}#port-tabs.dock .arm{margin:0}#port-tabs.dock .arm{font-size:16px;padding:9px 22px 9px 12px}#port-tabs.dock .arm.l{padding:9px 12px 9px 22px}}
 @media (max-width:900px){#port-title{padding:8px 12px}#port h2{font-size:24px}#port .sub{font-size:14px}#port-foot .cr{font-size:22px}#port-foot{font-size:15px}#port-top{gap:8px;padding:8px}#port-top .btn{font-size:16px;padding:8px 10px}#port-top .big{font-size:18px;padding:10px 16px}#port .arm{font-size:17px}#port .card{width:250px}}
 #help .gfx-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0;font-size:20px;color:var(--dim)}#help .gfx-row .btn{font-size:20px}
+/* In flight, warnings, calls and notices share one narrow column in the top-left corner, so the view ahead stays clear */
+#alerts>*{max-width:100%}
+#fault-badge,#scoop-badge{position:relative;left:auto;top:auto;transform:none}
+#scoop-badge{font-size:22px;padding:6px 14px}
+body.flying #toasts{position:static;padding:0;align-items:flex-start;gap:6px}
+body.flying .toast{font-size:22px;letter-spacing:.06em;text-align:left;padding:7px 14px}
+body.flying #dlg{position:relative;left:auto;bottom:auto;transform:none;width:100%;grid-template-columns:76px 1fr;gap:12px;padding:12px 14px}
+body.flying #dlg-face{width:76px;height:76px}
+body.flying #dlg .who{font-size:18px}
+body.flying #dlg-text{font-size:24px;line-height:1.25;margin-top:4px}
+body.flying #dlg-opts{gap:8px}
+body.flying #dlg .opt{font-size:20px;padding:8px 12px}
+body.flying #dlg .opt small{font-size:16px}
+#dlg{pointer-events:auto}
 </style>

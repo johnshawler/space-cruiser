@@ -247,12 +247,12 @@ const Venues = (() => {
   }
 
   /* the location sign: a name plate on the front of the counter, right in view, with the port in big letters and the
-     planet (or the station and its risk) underneath */
+     planet or station underneath (no risk level: that stays on the map and the job tickets) */
   function locationSign(V, P, pal){
     const R=V.root, cv=makeCanvas(768,220), x=cv.getContext('2d');
     x.fillStyle='#10161c'; x.fillRect(0,0,768,220); x.strokeStyle=pal[4]; x.lineWidth=12; x.strokeRect(8,8,752,204); x.textAlign='center'; x.textBaseline='middle';
     const fit=(t,max,px,f)=>{ let s=px; do{ x.font=f.replace('#',s); s-=2; }while(x.measureText(t).width>max&&s>10); };
-    const port=P.port.toUpperCase(), where=(P.station?P.name+' · '+RISK[P.risk].name+' risk':P.name).toUpperCase();
+    const port=P.port.toUpperCase(), where=P.name.toUpperCase();
     x.fillStyle='#ffffff'; fit(port,700,92,`700 #px ${FONT_DISP}`); x.fillText(port,384,84);
     x.fillStyle=pal[4]; fit(where,700,48,`600 #px ${FONT_DISP}`); x.fillText(where,384,165);
     const t=canvasTex(cv), w=2.9, h=w*220/768;

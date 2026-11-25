@@ -305,7 +305,11 @@ const Interior = {
   syncCargo(){
     const used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*28), key=n+'';
     if(key!==this.crateKey){ this.crateKey=key; if(this.crates) this.group.remove(this.crates); const cg=this.crates=new THREE.Group(); this.group.add(cg); let k=0;
-      const mats=['#b9823f','#9c6a30','#c98d47','#7d6a52'].map(c=>new THREE.MeshStandardMaterial({color:C(c),roughness:0.85}));
+      // plain wood crates: slats inside a darker frame. They take almost nothing from the bright sky map, which made them glow like lamps
+      if(!this.crateTex){ const S=256, cv=makeCanvas(S,S), x=cv.getContext('2d'); x.fillStyle='#d8d0c4'; x.fillRect(0,0,S,S);
+        for(let i=0;i<5;i++){ x.fillStyle=i%2?'#cfc6b8':'#e2dace'; x.fillRect(0,i*S/5,S,S/5-6); x.fillStyle='#5a4a38'; x.fillRect(0,(i+1)*S/5-6,S,6); }
+        x.strokeStyle='#4a3a2a'; x.lineWidth=30; x.strokeRect(15,15,S-30,S-30); x.lineWidth=22; x.beginPath(); x.moveTo(20,20); x.lineTo(S-20,S-20); x.stroke(); this.crateTex=canvasTex(cv); }
+      const mats=['#a8743a','#8c5e2a','#b98040','#7a6650'].map(c=>new THREE.MeshStandardMaterial({color:C(c),map:this.crateTex,roughness:0.9,metalness:0,envMapIntensity:0.12}));
       for(const sx of [-1,1]) for(let z=7.9;z<13.9&&k<n;z+=0.85) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.78,0.78,0.78),mats[(k*7)%4]); c.position.set(sx*(2.35+(lvl?0.05:0)),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
     const pax=Cargo.pax(), pk=pax.map(p=>p.kind==='escort'?p.vip.seed:p.seed).join(',');
     if(pk!==this.paxKey){ this.paxKey=pk; for(const F of this.pax) F.parent&&F.parent.remove(F); this.pax=[];
@@ -342,7 +346,7 @@ const Walk = {
   atDoor(){ return this.pos.z<2.1&&Math.abs(this.pos.x)<0.75; },
   toggle(){ if(!this.on){ this.enter(); return; } if(this.atDoor()) this.exit(); else { UI.toast(`Walk back to the cockpit door to sit down. It is at the front end of the corridor.`,'warn'); Sfx.deny(); } },
   enter(){
-    if(G.mode!=='flight'||this.on) return; if(Dlg.open){ UI.toast('Someone is waiting on the radio. Answer them before you get up.','warn'); Sfx.deny(); return; }
+    if(G.mode!=='flight'||this.on) return; const parked=Dlg.open&&Dlg.park(); if(parked) setTimeout(()=>UI.toast('The call will wait. It comes back when you sit down.'),400);
     if(!Interior.group||Interior.shipId!==G.shipId) Interior.build(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,6);
     Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
     this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;

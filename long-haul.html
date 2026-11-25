@@ -33,7 +33,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #cine-title p:empty{display:none}
 #skip{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(3% + env(safe-area-inset-bottom,0px));z-index:7;font-family:var(--mono);font-size:24px;letter-spacing:.2em;color:var(--dim);background:none;border:1px solid var(--line);padding:10px 20px;border-radius:2px}
 
-#toasts{position:absolute;top:calc(7% + env(safe-area-inset-top,0px));left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:8;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#toasts{position:fixed;top:calc(7% + env(safe-area-inset-top,0px));left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:8;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .toast{font-family:var(--mono);font-size:28px;letter-spacing:.1em;line-height:1.25;text-align:center;text-transform:uppercase;padding:12px 26px;background:var(--glass);border:1px solid var(--line);border-left:3px solid var(--cyan);color:var(--ink);animation:toast 5s forwards;max-width:100%}
 .toast.warn{border-left-color:var(--amber);color:var(--amber)}
 .toast.good{border-left-color:var(--good);color:var(--good)}
@@ -92,7 +92,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .opt:hover{border-color:var(--amber);color:var(--amber)}
 .opt b{color:var(--amber);font-weight:400;margin-right:6px}
 
-#dlg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(4% + env(safe-area-inset-bottom,0px));width:min(1180px,calc(100% - 32px));z-index:28;background:var(--glass);border:1px solid var(--line);border-top:3px solid var(--amber);padding:20px 22px;display:grid;grid-template-columns:160px 1fr;gap:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#dlg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(4% + env(safe-area-inset-bottom,0px));width:min(1180px,calc(100% - 32px));z-index:28;background:var(--glass);border:1px solid var(--line);border-top:3px solid var(--amber);padding:20px 22px;display:grid;grid-template-columns:160px 1fr;gap:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #dlg.alert{border-top-color:var(--bad)}
 #dlg-face{width:160px;height:160px;border:1px solid var(--line)}
 #dlg .who{font-family:var(--mono);font-size:24px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase}
@@ -106,7 +106,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .tag.r2{border-color:#ff9a4a;color:#ff9a4a}.tag.r3{border-color:#ff5a5a;color:#fff;background:#8a1c1c}
 .risk{font-weight:700}.risk.r0{color:#7dffa8}.risk.r1{color:#ffd166}.risk.r2{color:#ff9a4a}.risk.r3{color:#ff6a6a}.warnf{color:#ff6a6a}
 /* the top-left alert stack: the deep-space zone, then the port approach speed limit underneath */
-#alerts{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(16px + env(safe-area-inset-top,0px));z-index:9;display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
+#alerts{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(16px + env(safe-area-inset-top,0px));z-index:28;width:min(520px,calc(100vw - 32px));display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
 #deep-badge{position:relative;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;background:var(--glass);border:1px solid;padding:6px 16px;pointer-events:none;white-space:nowrap}
 #deep-badge.z1{color:#ffd166;border-color:#ffd166}#deep-badge.z2{color:#ff9a4a;border-color:#ff9a4a}#deep-badge.z3{color:#ff6a6a;border-color:#ff6a6a}
 #deep-badge.storm{color:#fff;background:#a8322a;border-color:#ff7a6a;animation:scoopPulse 1s ease-in-out infinite}
@@ -283,6 +283,20 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 @media (max-width:700px){#port-bar{flex-wrap:wrap}#port .sub{display:none}#port-top{flex-wrap:wrap;margin-left:0;flex:1 1 100%}#port-top-btns{margin-left:auto}#port-tabs.dock{width:calc(100vw - 32px);grid-template-columns:1fr 1fr;column-gap:10px}#port-tabs.dock .arm{margin:0}#port-tabs.dock .arm{font-size:16px;padding:9px 22px 9px 12px}#port-tabs.dock .arm.l{padding:9px 12px 9px 22px}}
 @media (max-width:900px){#port-title{padding:8px 12px}#port h2{font-size:24px}#port .sub{font-size:14px}#port-foot .cr{font-size:22px}#port-foot{font-size:15px}#port-top{gap:8px;padding:8px}#port-top .btn{font-size:16px;padding:8px 10px}#port-top .big{font-size:18px;padding:10px 16px}#port .arm{font-size:17px}#port .card{width:250px}}
 #help .gfx-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0;font-size:20px;color:var(--dim)}#help .gfx-row .btn{font-size:20px}
+/* In flight, warnings, calls and notices share one narrow column in the top-left corner, so the view ahead stays clear */
+#alerts>*{max-width:100%}
+#fault-badge,#scoop-badge{position:relative;left:auto;top:auto;transform:none}
+#scoop-badge{font-size:22px;padding:6px 14px}
+body.flying #toasts{position:static;padding:0;align-items:flex-start;gap:6px}
+body.flying .toast{font-size:22px;letter-spacing:.06em;text-align:left;padding:7px 14px}
+body.flying #dlg{position:relative;left:auto;bottom:auto;transform:none;width:100%;grid-template-columns:76px 1fr;gap:12px;padding:12px 14px}
+body.flying #dlg-face{width:76px;height:76px}
+body.flying #dlg .who{font-size:18px}
+body.flying #dlg-text{font-size:24px;line-height:1.25;margin-top:4px}
+body.flying #dlg-opts{gap:8px}
+body.flying #dlg .opt{font-size:20px;padding:8px 12px}
+body.flying #dlg .opt small{font-size:16px}
+#dlg{pointer-events:auto}
 </style>
 <div id="app">
   <canvas id="gl" tabindex="0" aria-label="Flight view"></canvas>
@@ -290,7 +304,6 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <div id="lb-top" class="lb"></div><div id="lb-bot" class="lb"></div>
   <div id="cine-title"><h2 id="cine-h"></h2><p id="cine-p"></p></div>
   <button id="skip" hidden>Skip ▸ Space</button>
-  <div id="toasts" aria-live="polite"></div>
   <div id="tooltip" hidden></div>
   <div id="keys" hidden><span class="kb-only">? Help · M Map · I Hold · B Scoop · L Walk</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
   <div id="caption" hidden aria-live="polite"></div>
@@ -341,15 +354,18 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
     <div id="port-body" aria-label="At the counter"></div>
   </section>
 
-  <section id="dlg" hidden aria-label="Decision" aria-live="polite">
-    <canvas id="dlg-face" width="192" height="192"></canvas>
-    <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-hint"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
-    <div id="dlg-opts"></div>
-  </section>
 
-  <div id="scoop-badge" hidden>Cargo scoop open</div>
-  <div id="alerts"><div id="deep-badge" hidden></div><div id="zone-badge" hidden></div></div>
-  <div id="fault-badge" hidden></div>
+  <!-- in flight, every warning, call and notice stacks here in the top-left corner -->
+  <div id="alerts"><div id="deep-badge" hidden></div><div id="zone-badge" hidden></div>
+    <div id="fault-badge" hidden></div>
+    <div id="scoop-badge" hidden>Cargo scoop open</div>
+    <section id="dlg" hidden aria-label="Decision" aria-live="polite">
+      <canvas id="dlg-face" width="192" height="192"></canvas>
+      <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-hint"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
+      <div id="dlg-opts"></div>
+    </section>
+    <div id="toasts" aria-live="polite"></div>
+  </div>
   <div id="reticle" hidden></div>
   <div id="prompt" hidden></div>
   <section id="specs" hidden aria-label="Ship specs">
@@ -376,7 +392,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.36</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.37</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -8048,6 +8064,14 @@ void main(){ vec3 d=normalize(vD); float h=max(d.y,0.0);
   col=clamp(col,vec3(0.0),vec3(uMax));
   gl_FragColor=vec4(col,1.0); }`;
 
+/* speed streaks and warp colour fringes, applied to the space layer only (see ScenesPass) */
+GLSL.streakFrag = `
+uniform sampler2D tDiffuse; uniform float uBlur,uWarp; varying vec2 vUv;
+void main(){
+  vec2 c=vUv-0.5; float r2=dot(c,c), ca=uWarp*0.02*r2;
+  vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-c*ca).b);
+  if(uBlur>0.001){ vec3 acc=col; float k=uBlur*sqrt(r2)*0.09; for(int i=1;i<7;i++){ acc+=texture2D(tDiffuse,vUv-c*k*float(i)).rgb; } col=acc/7.0; }
+  gl_FragColor=vec4(col,1.0); }`;
 GLSL.postVert = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.postFrag = `
 uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash,uBlur,uSat,uContrast; uniform vec3 uFadeCol,uLift,uGain;
@@ -8056,7 +8080,7 @@ vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0
 float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 void main(){
   vec2 c=vUv-0.5; float r2=dot(c,c);
-  float ca=(0.0035+uWarp*0.02)*r2;
+  float ca=0.0035*r2;
   vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-c*ca).b);
   // motion blur: at speed the picture streaks outwards from the middle, more towards the edges
   if(uBlur>0.001){ vec3 acc=col; float k=uBlur*sqrt(r2)*0.09; for(int i=1;i<7;i++){ acc+=texture2D(tDiffuse,vUv-c*k*float(i)).rgb; } col=acc/7.0; }
@@ -8240,9 +8264,24 @@ const Models = (() => {
 /* ===================== WORLD ===================== */
 function ScenesPass(){ this.enabled=true; this.needsSwap=false; this.clear=true; this.renderToScreen=false; this.list=[]; }
 ScenesPass.prototype.setSize=function(){};
+/* Each entry is drawn over the last. An entry marked fx (space, in flight) gets the speed streaks and warp colour fringes
+   on its own, so the cockpit stays sharp; one marked hud then has its labels (layer 1: planet names, distances, pilots,
+   waypoints) drawn on top of the streaks, crisp. */
 ScenesPass.prototype.render=function(renderer, wb, rb){
-  renderer.setRenderTarget(this.renderToScreen?null:rb); renderer.autoClear=false; renderer.clear(true,true,true);
-  for(let i=0;i<this.list.length;i++){ if(i>0) renderer.clearDepth(); renderer.render(this.list[i].scene, this.list[i].camera); }
+  const out=this.renderToScreen?null:rb, fx=World.layerFx; renderer.setRenderTarget(out); renderer.autoClear=false; renderer.clear(true,true,true);
+  for(let i=0;i<this.list.length;i++){ const L=this.list[i]; if(i>0) renderer.clearDepth();
+    if(L.fx&&rb&&fx&&(fx.blur>0.001||fx.warp>0.001)){
+      const w=rb.width, h=rb.height;
+      if(!this.tmp){ this.tmp=new THREE.WebGLRenderTarget(w,h,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+        this.streak=new THREE.ShaderMaterial({uniforms:{tDiffuse:{value:null},uBlur:{value:0},uWarp:{value:0}},vertexShader:GLSL.postVert,fragmentShader:GLSL.streakFrag,depthTest:false,depthWrite:false});
+        this.quad=new THREE.Scene(); this.quad.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),this.streak)); this.qcam=new THREE.OrthographicCamera(-1,1,1,-1,0,1); }
+      if(this.tmp.width!==w||this.tmp.height!==h) this.tmp.setSize(w,h);
+      renderer.setRenderTarget(this.tmp); renderer.clear(true,true,true); renderer.render(L.scene,L.camera);
+      const u=this.streak.uniforms; u.tDiffuse.value=this.tmp.texture; u.uBlur.value=fx.blur; u.uWarp.value=fx.warp;
+      renderer.setRenderTarget(out); renderer.render(this.quad,this.qcam);
+    } else renderer.render(L.scene,L.camera);
+    if(L.hud){ const bg=L.scene.background; L.scene.background=null; renderer.clearDepth(); L.camera.layers.set(1); renderer.render(L.scene,L.camera); L.camera.layers.set(0); L.scene.background=bg; }
+  }
 };
 
 /* graphics quality: 'high' adds depth of field, floor reflections and multisample anti-aliasing; 'balanced' leaves them out.
@@ -8251,6 +8290,9 @@ const GFX = { high: (()=>{ try{ const v=localStorage.getItem('lh-gfx'); if(v) re
   set(high){ this.high=!!high; try{ localStorage.setItem('lh-gfx',high?'high':'balanced'); }catch(e){} } };
 
 const World = {
+  layerFx:{blur:0,warp:0},
+  /* labels that float in space: drawn in their own sharp pass, after the speed streaks */
+  hud(o){ o.layers.set(1); return o; },
   dpr:1, frameMs:16, slowT:0, sunDir:new V3(1,0,0), time:0,
   init(canvas){
     const r=this.renderer=new THREE.WebGLRenderer({canvas, antialias:false, powerPreference:'high-performance'});
@@ -8326,7 +8368,7 @@ const World = {
   },
   /* HUD marker */
   marker(P){ P.mk={cv:makeCanvas(384,240)}; P.mk.tex=canvasTex(P.mk.cv); P.mk.sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:P.mk.tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
-    P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(P.mk.sprite); P.mk.key=''; },
+    P.mk.sprite.scale.set(0.24,0.15,1); P.mk.sprite.center.set(0.5,1-158/240); P.mk.sprite.renderOrder=20; P.mk.sprite.position.copy(P.pos); this.universe.add(World.hud(P.mk.sprite)); P.mk.key=''; },
   /* a research station seen from space: a hub, a slowly turning ring on spokes, solar wings, blinking lights, and
      each one's speciality (a listening dish, frozen-sample tanks, a measuring spire, a lighthouse lamp) */
   buildStation(P, g){
@@ -8463,7 +8505,7 @@ const Npc = {
     const m=Models.build(idx,scheme); m.scale.setScalar(3); World.universe.add(m);
     const cv=makeCanvas(384,96), x=cv.getContext('2d'); x.strokeStyle=S.col; x.fillStyle=S.col; x.lineWidth=3; x.beginPath(); x.moveTo(192,8); x.lineTo(206,22); x.lineTo(192,36); x.lineTo(178,22); x.closePath(); x.stroke();
     x.font=`600 24px ${FONT_DISP}`; x.textAlign='center'; x.fillText(pl.ship.toUpperCase(),192,66); x.font=`18px ${FONT_MONO}`; x.globalAlpha=0.8; x.fillText(S.name+' · '+pl.name,192,88);
-    const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(cv),transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false})); mk.scale.set(0.4,0.1,1); mk.center.set(0.5,0.78); mk.renderOrder=21; World.universe.add(mk);
+    const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(cv),transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false})); mk.scale.set(0.4,0.1,1); mk.center.set(0.5,0.78); mk.renderOrder=21; World.universe.add(World.hud(mk));
     const n=Object.assign({m,mk,pos:pos.clone(),vel:vel.clone(),kind,pilot:pl,age:0,dist:0},extra||{}); this.list.push(n); return n;
   },
   label(n, l1, l2, col){ const S=SPECIES[n.pilot.sp], cv=n.mk.material.map.image, x=cv.getContext('2d'); col=col||S.col; x.clearRect(0,0,cv.width,cv.height); x.globalAlpha=1;
@@ -9847,12 +9889,12 @@ const Venues = (() => {
   }
 
   /* the location sign: a name plate on the front of the counter, right in view, with the port in big letters and the
-     planet (or the station and its risk) underneath */
+     planet or station underneath (no risk level: that stays on the map and the job tickets) */
   function locationSign(V, P, pal){
     const R=V.root, cv=makeCanvas(768,220), x=cv.getContext('2d');
     x.fillStyle='#10161c'; x.fillRect(0,0,768,220); x.strokeStyle=pal[4]; x.lineWidth=12; x.strokeRect(8,8,752,204); x.textAlign='center'; x.textBaseline='middle';
     const fit=(t,max,px,f)=>{ let s=px; do{ x.font=f.replace('#',s); s-=2; }while(x.measureText(t).width>max&&s>10); };
-    const port=P.port.toUpperCase(), where=(P.station?P.name+' · '+RISK[P.risk].name+' risk':P.name).toUpperCase();
+    const port=P.port.toUpperCase(), where=P.name.toUpperCase();
     x.fillStyle='#ffffff'; fit(port,700,92,`700 #px ${FONT_DISP}`); x.fillText(port,384,84);
     x.fillStyle=pal[4]; fit(where,700,48,`600 #px ${FONT_DISP}`); x.fillText(where,384,165);
     const t=canvasTex(cv), w=2.9, h=w*220/768;
@@ -11189,7 +11231,7 @@ const Flotsam = {
     const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:softDotTex(),color:HDR(kind==='lost'?'#b89cff':'#ffb454',3),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); glow.scale.setScalar(140); g.add(glow); g.userData.glow=glow;
     return g; },
   marker(){ const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false}));
-    sp.scale.set(0.24,0.15,1); sp.center.set(0.5,1-158/240); sp.renderOrder=21; World.universe.add(sp); return {cv,tex,sprite:sp,key:''}; },
+    sp.scale.set(0.24,0.15,1); sp.center.set(0.5,1-158/240); sp.renderOrder=21; World.universe.add(World.hud(sp)); return {cv,tex,sprite:sp,key:''}; },
   /* item: a cargo entry that goes into G.cargo when scooped. opts: {kind:'crate'|'lost', label, vel, quest} */
   spawn(item, pos, opts){ opts=opts||{}; const kind=opts.kind||'crate', m=this.mesh(kind); m.position.copy(pos); World.universe.add(m);
     const f={item,pos:pos.clone(),vel:(opts.vel||new V3()).clone(),m,mk:this.marker(),kind,label:opts.label||item.good,spin:new V3(Math.random(),Math.random(),Math.random()).multiplyScalar(0.4),dist:1e12,id:Math.random().toString(36).slice(2)};
@@ -11510,7 +11552,7 @@ const Nav = {
   set(wp){
     this.clear(true); wp.isWp=true; wp.dist=wp.pos.distanceTo(G.ship.pos); wp.landR=0; wp.port=wp.port||wp.sub||'';
     const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
-    sp.scale.set(0.3,0.1875,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(wp.pos); World.universe.add(sp);
+    sp.scale.set(0.3,0.1875,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(wp.pos); World.universe.add(World.hud(sp));
     wp.mk={cv,tex,sprite:sp,key:''}; this.wp=wp; Game.mk=0; if(Sfx.ok()) Sfx.beep(990);
   },
   clear(silent){ const w=this.wp; if(!w) return; this.wp=null; World.universe.remove(w.mk.sprite); w.mk.tex.dispose(); w.mk.sprite.material.dispose(); if(!silent&&w.onCancel) w.onCancel(); },
@@ -11530,7 +11572,7 @@ const Dlg = {
   flush(){ const o=this.held; this.held=null; if(o&&!this.open&&G.mode==='flight') this.show(o); },
   show(o){
     if(Walk.on&&!o.onboard){ if(!this.held) this.held=o; return; }
-    Comms.close(true); if(SysMap.open) SysMap.close(); this.open=true; this.tone=o.tone||''; this.opts=o.opts||[{t:'OK'}]; this.timer=o.timeout||0; this.onTimeout=o.onTimeout||null; this.total=this.timer;
+    Comms.close(true); if(SysMap.open) SysMap.close(); this.open=true; this.last=o; this.tone=o.tone||''; this.opts=o.opts||[{t:'OK'}]; this.timer=o.timeout||0; this.onTimeout=o.onTimeout||null; this.total=this.timer;
     const box=$('dlg'); box.hidden=false; this.mini=!!o.mini; box.className=(o.tone||'')+(this.mini?' mini':''); box.onclick=()=>this.expand();
     $('dlg-hint').textContent='';
     const x=$('dlg-face').getContext('2d'); x.clearRect(0,0,192,192); if(o.sp) drawAlien(x,o.sp,o.seed||1,0,0,192); else { x.fillStyle='#1d2a3a'; x.fillRect(0,0,192,192); x.font='120px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(o.icon||'⚠',96,104); }
@@ -11544,6 +11586,8 @@ const Dlg = {
   expand(){ if(!this.open||!this.mini) return; this.mini=false; $('dlg').classList.remove('mini'); if(Sfx.ok()) Sfx.click(); },
   choose(i){ const op=this.opts[i]; if(!this.open||!op||op.disabled) return; Sfx.click(); this.close(); if(op.fn) op.fn(); },
   close(){ this.open=false; this.mini=false; this.timer=0; $('dlg').hidden=true; },
+  /* getting out of the seat with a call on screen: it waits, and comes back when you sit down again */
+  park(){ if(!this.open) return false; const o=this.last; this.close(); if(o&&!this.held) this.held=o; return true; },
   /* Escape on an incoming radio call: hang up, as if you'd let it ring out, and clear it off the cockpit screen */
   hangUp(){ if(!this.open||this.tone!=='radio') return false; const f=this.onTimeout; this.close(); if(f) f(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,4); if(Sfx.ok()) Sfx.click(); return true; },
   update(dt){ if(!this.open||!this.timer) return; this.timer-=dt; $('dlg-bar').style.width=Math.max(0,this.timer/this.total*100)+'%';
@@ -11640,7 +11684,7 @@ const Mining = {
       for(const k of F.rocks) this.place(F,k);
       im.instanceColor.needsUpdate=true;
       const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
-      sp.scale.set(0.22,0.1375,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(F.pos); World.universe.add(sp); F.mk={cv,tex,sprite:sp,key:''};
+      sp.scale.set(0.22,0.1375,1); sp.center.set(0.5,1-158/240); sp.renderOrder=20; sp.position.copy(F.pos); World.universe.add(World.hud(sp)); F.mk={cv,tex,sprite:sp,key:''};
     });
     this.fields=FIELDS;
     // the beam: a cone from just under the nose to the rock
@@ -11650,7 +11694,7 @@ const Mining = {
     this.spark=new THREE.Sprite(new THREE.SpriteMaterial({map:softDotTex(),color:HDR('#b8ffd0',4),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); this.spark.visible=false; World.space.add(this.spark);
     // rock sights
     const cv=makeCanvas(384,240); this.sightTex=canvasTex(cv); this.sightCv=cv; this.sight=new THREE.Sprite(new THREE.SpriteMaterial({map:this.sightTex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
-    this.sight.scale.set(0.26,0.1625,1); this.sight.center.set(0.5,1-158/240); this.sight.renderOrder=22; this.sight.visible=false; World.universe.add(this.sight); this.sightKey='';
+    this.sight.scale.set(0.26,0.1625,1); this.sight.center.set(0.5,1-158/240); this.sight.renderOrder=22; this.sight.visible=false; World.universe.add(World.hud(this.sight)); this.sightKey='';
   },
   place(F,k){ const s=k.ore>0?k.r:0.0001; this.q.setFromEuler(k.rot); this.sc.set(s,s,s); this.m4.compose(k.local,this.q,this.sc); F.im.setMatrixAt(k.i,this.m4); F.im.instanceMatrix.needsUpdate=true; },
   rate(){ return G.up.laser>1?1.25:0.7; },
@@ -12730,7 +12774,11 @@ const Interior = {
   syncCargo(){
     const used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*28), key=n+'';
     if(key!==this.crateKey){ this.crateKey=key; if(this.crates) this.group.remove(this.crates); const cg=this.crates=new THREE.Group(); this.group.add(cg); let k=0;
-      const mats=['#b9823f','#9c6a30','#c98d47','#7d6a52'].map(c=>new THREE.MeshStandardMaterial({color:C(c),roughness:0.85}));
+      // plain wood crates: slats inside a darker frame. They take almost nothing from the bright sky map, which made them glow like lamps
+      if(!this.crateTex){ const S=256, cv=makeCanvas(S,S), x=cv.getContext('2d'); x.fillStyle='#d8d0c4'; x.fillRect(0,0,S,S);
+        for(let i=0;i<5;i++){ x.fillStyle=i%2?'#cfc6b8':'#e2dace'; x.fillRect(0,i*S/5,S,S/5-6); x.fillStyle='#5a4a38'; x.fillRect(0,(i+1)*S/5-6,S,6); }
+        x.strokeStyle='#4a3a2a'; x.lineWidth=30; x.strokeRect(15,15,S-30,S-30); x.lineWidth=22; x.beginPath(); x.moveTo(20,20); x.lineTo(S-20,S-20); x.stroke(); this.crateTex=canvasTex(cv); }
+      const mats=['#a8743a','#8c5e2a','#b98040','#7a6650'].map(c=>new THREE.MeshStandardMaterial({color:C(c),map:this.crateTex,roughness:0.9,metalness:0,envMapIntensity:0.12}));
       for(const sx of [-1,1]) for(let z=7.9;z<13.9&&k<n;z+=0.85) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.78,0.78,0.78),mats[(k*7)%4]); c.position.set(sx*(2.35+(lvl?0.05:0)),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
     const pax=Cargo.pax(), pk=pax.map(p=>p.kind==='escort'?p.vip.seed:p.seed).join(',');
     if(pk!==this.paxKey){ this.paxKey=pk; for(const F of this.pax) F.parent&&F.parent.remove(F); this.pax=[];
@@ -12767,7 +12815,7 @@ const Walk = {
   atDoor(){ return this.pos.z<2.1&&Math.abs(this.pos.x)<0.75; },
   toggle(){ if(!this.on){ this.enter(); return; } if(this.atDoor()) this.exit(); else { UI.toast(`Walk back to the cockpit door to sit down. It is at the front end of the corridor.`,'warn'); Sfx.deny(); } },
   enter(){
-    if(G.mode!=='flight'||this.on) return; if(Dlg.open){ UI.toast('Someone is waiting on the radio. Answer them before you get up.','warn'); Sfx.deny(); return; }
+    if(G.mode!=='flight'||this.on) return; const parked=Dlg.open&&Dlg.park(); if(parked) setTimeout(()=>UI.toast('The call will wait. It comes back when you sit down.'),400);
     if(!Interior.group||Interior.shipId!==G.shipId) Interior.build(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,6);
     Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
     this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
@@ -12919,7 +12967,7 @@ const Game = {
     const dir=T!==P?T.pos.clone().sub(P.pos).normalize():P.sunDir.clone().negate(), side=new V3().crossVectors(dir,up).normalize();
     s.pos.copy(P.pos).addScaledVector(dir,P.r*3.7).addScaledVector(side,P.r*0.4); s.quat.copy(lookQuat(dir.clone().applyAxisAngle(up,0.36).applyAxisAngle(side,0.1),up));
     s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; s.angVel.set(0,0,0); s.departed=P.idx; Npc.clear(); Distress.cur=null; Ev.hold=0; if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Customs.arm(); Escort.spawn(); Radio.cur=null; Radio.wait=10; Cine.mode=null; Walk.exit(true); Faults.badge(); Throttle.reset();
-    World.scenes.list=[{scene:World.space,camera:World.spaceCam},{scene:World.cock,camera:World.cockCam}]; Cockpit.zoomOut(); G.head.yaw=G.head.yawT; G.head.pitch=G.head.pitchT; G.head.pos.set(0,0,0);
+    World.scenes.list=[{scene:World.space,camera:World.spaceCam,fx:true,hud:true},{scene:World.cock,camera:World.cockCam}]; Cockpit.zoomOut(); G.head.yaw=G.head.yawT; G.head.pitch=G.head.pitchT; G.head.pos.set(0,0,0);
     this.fade=1; this.fadeCol.setRGB(launch?1:0,launch?1:0,launch?1:0); this.mk=0; this.syncCamera(0.016);
     UI.toast(launch?`Clear of ${P.name}. Destination: ${T.name}`:`Destination: ${T.name}`); this.save();
   },
@@ -12980,9 +13028,9 @@ const Game = {
     if(G.mode==='landing'||G.mode==='port'||G.mode==='takeoff'){ Cine.update(dt,t); if(G.mode!=='flight') fov=Cine.fovRaw||Cine.cam.fov; }
     World.update(dt,s.pos,fov);
     if(G.mode==='flight'||G.mode==='title'){
-      this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uBlur',s.warpF*0.7+clamp((s.speed-900)/4000,0,0.3)); World.grade(null); World.dof=null; World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
+      this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uBlur',0); World.layerFx.blur=s.warpF*0.7+clamp((s.speed-900)/4000,0,0.3); World.layerFx.warp=s.warpF; World.grade(null); World.dof=null; World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
       World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=Walk.on?0.35:0.75+s.warpF*0.7;
-    } else { World.fx('uWarp',0); if(G.mode!=='port'&&G.mode!=='landing'&&G.mode!=='takeoff'){ World.fx('uBlur',0); World.grade(null); World.dof=null; } World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    } else { World.fx('uWarp',0); World.layerFx.blur=World.layerFx.warp=0; if(G.mode!=='port'&&G.mode!=='landing'&&G.mode!=='takeoff'){ World.fx('uBlur',0); World.grade(null); World.dof=null; } World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
     SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
@@ -13005,7 +13053,7 @@ const Game = {
   setupTitle(){
     const P=PLANETS[0], s=G.ship, up=new V3(0,1,0), out=P.sunDir.clone().negate().applyAxisAngle(up,2.0); s.pos.copy(P.pos).addScaledVector(out,P.r*3.3).addScaledVector(up,P.r*0.5);
     const side=new V3().crossVectors(out,up).normalize(); s.quat.copy(lookQuat(P.pos.clone().addScaledVector(side,-P.r*1.5).addScaledVector(up,P.r*0.6).sub(s.pos).normalize(),up));
-    G.mode='title'; World.scenes.list=[{scene:World.space,camera:World.spaceCam},{scene:World.cock,camera:World.cockCam}];
+    G.mode='title'; World.scenes.list=[{scene:World.space,camera:World.spaceCam,fx:true,hud:true},{scene:World.cock,camera:World.cockCam}];
     const nb=$('btn-new'); nb.disabled=false; nb.textContent='New career'; nb.onclick=()=>this.newGame();
     if(this.load()){ const cb=$('btn-continue'); cb.hidden=false; cb.onclick=()=>this.continueGame(); }
   },
