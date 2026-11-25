@@ -668,6 +668,7 @@ const Venues = (() => {
         V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,-0.85); root.add(V.keeper);
         const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
+        if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,scn,P);   // light the room once and paint it in (?nobake shows the live lighting)
         this.list.push(V); });
       return this.list;
     },

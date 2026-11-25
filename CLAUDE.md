@@ -44,3 +44,7 @@ Residents and landmarks are scenery and camera targets only. Jobs, risk, fuel, d
 ## The animated cast plays every alien
 
 The 50 designs are animated species in `src/species/<id>.js` (marked `cast:true`). `CAST_FOR` in `src/01-data.js` maps each of the 30 earlier species keys to the design that now plays it, by replacing `SPECIES[oldKey]` with the design's entry. Keep using the old keys in data (planets, venues, customs, lost property, saves): they resolve to the new models, names, voices and lines. The 20 designs not in `CAST_FOR` are added to `ALIEN_POOL`. Residents are built with `Folk.make(base, seed)` in `src/08f-residents.js`.
+
+## Shop lighting is baked
+
+`src/08h-bake.js` lights each shop room once, when a port is built, and paints the result into vertex colours: the room's lamps with shadows, sunlight through the windows, the sky light and ambient occlusion. Baked meshes switch to `MeshBasicMaterial` and no longer respond to live lights. Anything that moves, glows or reflects is left live: the keeper and crew, the droid, everything in the crew act's props (`V.g`), `V.spin`, glass, chrome (metalness > 0.6), lit signs and glowing lamps. A new prop that moves must be reachable from `V.g` (or added after the bake). Add `?nobake` to the page URL to see the live lighting for comparison.
