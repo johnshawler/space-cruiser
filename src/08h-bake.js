@@ -237,6 +237,10 @@ const Bake = (() => {
     return shaftMat; }
   function beams(V, scn) {
     const S = V.room; if (!S) return; const R = V.root, inv = new THREE.Matrix4().copy(R.matrixWorld).invert(), B = [];
+    if (V.beams) { R.remove(V.beams); V.beams.geometry.dispose(); V.beams = null; }   // built again when a bespoke room arrives
+    // a bespoke room's ceiling lamps (from its light markers)
+    for (const s of V.beamSpots || []) { const down = Math.min(S.h, s.y) * 0.66, w = 0.55;
+      B.push({ s: new THREE.Vector3(s.x, s.y - 0.3, s.z), ax: new THREE.Vector3(0, -down, 0), w0: w * 0.9, w1: w + down * 0.32, col: s.col.clone().multiplyScalar(0.07) }); }
     let sun = null; scn.traverse(o => { if (o.isDirectionalLight && !sun) sun = { d: new THREE.Vector3().subVectors(o.position, o.target.position).normalize().transformDirection(inv), c: o.color.clone().multiplyScalar(o.intensity) }; });
     R.traverse(o => { if (!o.isMesh || !o.material || o.userData.baked) return; const m = o.material;
       // sunbeams through the windows (the hall only: in the small shops the camera stands too close to the windows)

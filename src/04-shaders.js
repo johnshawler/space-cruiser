@@ -242,8 +242,11 @@ void main(){
   gl_FragColor=vec4(col,1.0); }`;
 GLSL.postVert = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 GLSL.postFrag = `
-uniform sampler2D tDiffuse; uniform float uTime,uExposure,uWarp,uFade,uFlash,uBlur,uSat,uContrast; uniform vec3 uFadeCol,uLift,uGain;
+uniform sampler2D tDiffuse, uLut; uniform float uTime,uExposure,uWarp,uFade,uFlash,uBlur,uSat,uContrast,uLutMix; uniform vec3 uFadeCol,uLift,uGain;
 varying vec2 vUv;
+// a place's own colour table: 16 slices of blue laid side by side in a 256x16 picture, red across and green down
+vec3 lutAt(vec3 c){ vec3 a=clamp(c,0.0,1.0)*15.0; float b=floor(a.b); vec2 lo=(vec2(b*16.0+a.r,a.g)+0.5)/vec2(256.0,16.0), hi=(vec2(min(15.0,b+1.0)*16.0+a.r,a.g)+0.5)/vec2(256.0,16.0);
+  return mix(texture2D(uLut,lo).rgb,texture2D(uLut,hi).rgb,fract(a.b)); }
 vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }
 float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 void main(){
@@ -259,6 +262,7 @@ void main(){
   col=pow(col,vec3(1.0/2.2));
   // colour grading: each planet's own mood (saturation, contrast, tinted shadows and highlights)
   float lum=dot(col,vec3(0.299,0.587,0.114)); col=mix(vec3(lum),col,uSat); col=(col-0.5)*uContrast+0.5; col=clamp(col,0.0,1.0)*uGain+uLift*(1.0-clamp(col,0.0,1.0));
+  if(uLutMix>0.001) col=mix(col,lutAt(col),uLutMix);
   col*=1.0-r2*0.75;
   col+=(h21(vUv*vec2(1920.0,1080.0)+fract(uTime)*91.7)-0.5)*0.03;
   col=mix(col,uFadeCol,uFade);

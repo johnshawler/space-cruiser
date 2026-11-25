@@ -130,6 +130,8 @@ const Game = {
       this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uBlur',0); World.layerFx.blur=s.warpF*0.7+clamp((s.speed-900)/4000,0,0.3); World.layerFx.warp=s.warpF; World.grade(null); World.dof=null; World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
       World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=Walk.on?0.35:0.75+s.warpF*0.7;
     } else { World.fx('uWarp',0); World.layerFx.blur=World.layerFx.warp=0; if(G.mode!=='port'&&G.mode!=='landing'&&G.mode!=='takeoff'){ World.fx('uBlur',0); World.grade(null); World.dof=null; } World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    // the colour grade of the bespoke place you're in: a shop room, the walkable deck or the cockpit
+    const VA=Venues.active; World.lut(G.mode==='port'&&VA&&!Venues.moving?VA.grade:G.mode==='flight'||G.mode==='title'?(Walk.on?Interior.grade:Cockpit.grade):null,dt);
     SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
