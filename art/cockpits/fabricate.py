@@ -27,7 +27,7 @@ def palette(k):
         'Glow':('#'+glow,.3,0,None,2.6),'glass':('#c6e1e5',.15,.02,None,0,.085),
         'Diffuser':('#'+glow,.42,0,None,.34,1,.21),'Rubber':('#262c33',.84,0,'felt'),
         'Wood':('#805141',.52,0,'wood'),'Steel':('#73828b',.46,.55,'metal'),
-        'Wear':('#998875',.74,.12,'metal')}
+        'Wear':('#998875',.74,.12,'metal'),'Signal':('#b5372c',.6,.05,'felt')}
 PANEL={
  'main':(.62,.34,(0,-.28,-1.04),-.38,0),'left':(.46,.34,(-.555,-.292,-.86),-.38,.64),
  'right':(.46,.34,(.555,-.292,-.86),-.38,-.64),'pedestal':(.24,.44,(0,-.55,-.90),-1.51,0),
@@ -64,6 +64,14 @@ class Ship(Room):
         for side in [-1,1]:
             local_box(key+' cheek',(side*(w+rail)/2,0,-.027),(rail,h+2*rail,.055),'Frame',.005)
             local_box(key+' lip',(0,side*(h+rail)/2,-.027),(w,rail,.055),'Trim',.004)
+        if key in ('left','right') and not self.walk:
+            # a hood over the tube and a strip of toggles and lit push-buttons under it
+            local_box(key+' hood',(0,h/2+rail+.007,.012),(w+2*rail+.012,.014,.105),'Panel',.005)
+            local_box(key+' switch strip',(0,-(h/2+rail+.034),-.03),(w+2*rail,.05,.03),'Panel',.006)
+            for i in range(6):
+                x=(i-2.5)*w/6.4
+                if i<4:local_box(key+' toggle',(x,-(h/2+rail+.034),.0),(.014,.014,.04),'Steel',.004)
+                else:local_box(key+' button',(x,-(h/2+rail+.034),-.008),(.032,.028,.018),'Glow',.006)
         proof=local_box('Proof face '+key,(0,0,-.003),(w-.008,h-.008,.004),'Steel',.001)
         proof['proof_only']=True;self.proofs.append(proof)
     def front(self):
@@ -122,6 +130,10 @@ class Ship(Room):
         for side in [-1,1]:
             self.box((side*(w/2+.014),-.07,-.64),(.052,.29,.069),'Upholstery',.023)
         self.signature(k,half)
+        first=len(self.items);self.lived_in(k,half,height,w)
+        # things on the aft bulkhead are hidden with it in the overview render
+        for ob in self.items[first:]:
+            if ob.location.y<-.59:ob['overview_cut']=True
         for key,defn in PANEL.items():self.mount(key,*defn)
         self.section('Accessory mounts')
         for name,pos in {'stick':(.77,-.407,-.53),'mug':(-.76,-.40,-.64),'clipboard':(-.79,-.415,-.31),
@@ -159,7 +171,13 @@ class Ship(Room):
             for s in [-1,1]:
                 self.wire([(s*.26,-.34,-.18),(s*.27,-.27,-.49),(s*.24,.13,-.69)],.046,'Upholstery')
                 self.wire([(s*.79,-.5,-.58),(s*.85,.02,-.45),(s*.72,.62,-.43)],.035,'Trim')
-                self.box((s*.83,.07,-.46),(.038,.44,.042),'Glow',.012)
+                self.box((s*.83,.07,-.46),(.06,.44,.042),'Panel',.012)
+                for i in range(6):
+                    y=-.10+i*.068;taped=(s<0 and i in (1,4))
+                    self.box((s*.83,y,-.425),(.014,.014,.04),'Steel',.004)
+                    if taped:self.box((s*.83,y+.022,-.437),(.05,.016,.004),'Pale',.001)
+                    else:
+                        for e in [-1,1]:self.box((s*.83+e*.02,y,-.42),(.006,.03,.05),'Trim',.002)
             self.disc(.73,-.58,-.17,.13,.06,'Steel',24)
         elif k=='manatee':
             for s in [-1,1]:
@@ -171,7 +189,9 @@ class Ship(Room):
         else:
             for side in [-1,1]:
                 self.wire([(side*.88,-.50,-.76),(side*.98,-.50,-.11),(side*.82,-.50,.48),(side*.54,-.50,.68)],.064,'Pale')
-                self.wire([(side*.76,-.49,-.70),(side*.85,-.49,-.12),(side*.70,-.49,.39)],.018,'Glow')
+                for q,(lx,lz) in enumerate([(.84,-.42),(.90,.02),(.74,.40)]):
+                    self.ball((side*lx,-.46,lz),(.052,.03,.052),'Diffuser' if not (side>0 and q==1) else 'Pale')
+                    self.rod((side*lx,-.475,lz),(side*lx,-.455,lz),.062,'Trim',n=20)
                 self.box((side*.22,-.36,-.23),(.14,.08,.49),'Pale',.037,rot=(0,side*.17,0))
             self.ring(-.75,.68,-.43,.12,.019,'Trim')
     def finish(self):
@@ -264,6 +284,136 @@ class Ship(Room):
         manifest=folder/'manifest.json';data=json.loads(manifest.read_text()) if manifest.exists() else {'ships':[]}
         data['ships']=[s for s in data['ships'] if s['ship']!=self.key]+[stat];manifest.write_text(json.dumps(data,indent=2)+'\n')
         print('SHIP METRICS',json.dumps(stat))
+def _lived_in(self,k,H,T,sw):
+    """Fifteen years of use: tactile hardware, three visible repairs and the owner's clutter, per hull."""
+    bx,rod,ball=self.box,self.rod,self.ball
+    def ringx(x,y,z,r,t,mat):
+        bpy.ops.mesh.primitive_torus_add(major_segments=28,minor_segments=6,location=(x,y,z),rotation=(0,math.pi/2,0),major_radius=r,minor_radius=t)
+        return self.put(bpy.context.object,mat)
+    def ringz(x,y,z,r,t,mat):
+        bpy.ops.mesh.primitive_torus_add(major_segments=28,minor_segments=6,location=(x,y,z),major_radius=r,minor_radius=t)
+        return self.put(bpy.context.object,mat)
+    def gauge(x,y,z,r,rim='Trim'):   # a round dial lying on a console top
+        rod((x,y,z),(x,y,z+.02),r,rim,n=24);rod((x,y,z+.02),(x,y,z+.026),r*.82,'Pale',n=24)
+        bx((x+r*.2,y+r*.2,z+.029),(.008,r*.8,.004),'Rubber',.001,rot=(0,0,-.7))
+    def walldial(x,z,r,rim='Trim'):  # a round dial on the back wall, facing the pilot
+        self.disc(x,-.655,z,r,.04,rim,24);self.disc(x,-.632,z,r*.82,.012,'Pale',24)
+        bx((x,-.622,z+r*.25),(.01,.004,r*.6),'Rubber',.001,rot=(0,.6,0))
+    def lever(x,y,z,l,mat='Steel',grip='Rubber',lean=.25):
+        rod((x,y,z),(x,y+lean*l,z+l),.014,mat);ball((x,y+lean*l,z+l),(.032,.032,.032),grip)
+    self.section('Wear and repairs')
+    # worn-through deck at the heels and the door track, a wiring bundle zip-tied along the port sill
+    bx((0,.5,-.966),(.5,.32,.006),'Wear',.002);bx((0,-.58,-.966),(.86,.14,.006),'Wear',.002)
+    self.wire([(-H+.035,-.6,-.31),(-H+.045,.2,-.30),(-H+.06,1.15,-.31)],.024,'Rubber')
+    for y in [-.4,-.05,.3,.65,1.0]:bx((-H+.05,y,-.305),(.064,.022,.064),'Pale',.004)
+    # the start-up checklist: a board by the door with one step rewritten
+    self.section('Owner clutter')
+    cx=.47+(H-.47)/2
+    o=.03 if k=='rustbucket' else 0   # stand clear of the rivet heads on the Rustbucket's bulkhead
+    bx((cx,-.655+o/2,.12),(.30,.02+o,.44),'Pale',.008)
+    for i in range(6):bx((cx-.01,-.642+o,.29-i*.065),(.21,.006,.024),'Signal' if i==3 else 'Rubber',.002)
+    bx((cx,-.645+o,.325),(.1,.02,.04),'Steel',.008)
+    if k=='rustbucket':
+        self.section('Wear and repairs')
+        # 1 an oversize collar on the copper line  2 a clamp holding the port instrument pan  3 a tin lid over a missing plate
+        rod((.89,-.02,-.507),(.89,.12,-.507),.05,'Steel');rod((.89,-.04,-.507),(.89,-.02,-.507),.062,'Steel');rod((.89,.12,-.507),(.89,.14,-.507),.062,'Steel')
+        bx((-.845,.80,-.30),(.03,.035,.2),'Steel',.006);bx((-.81,.80,-.21),(.1,.035,.03),'Steel',.006);bx((-.81,.80,-.39),(.1,.035,.03),'Steel',.006)
+        rod((-.79,.80,-.44),(-.79,.80,-.36),.012,'Trim');bx((-.79,.80,-.45),(.08,.014,.014),'Trim',.003)
+        self.disc(-cx,-.64,-.52,.15,.06,'Pale',24);self.disc(-cx,-.607,-.52,.11,.012,'Trim',24)
+        for a in range(4):ball((-cx+.125*math.cos(a*1.571+.5),-.61,-.52+.125*math.sin(a*1.571+.5)),(.014+.004*(a%2),.012,.014+.004*(a%2)),'Steel')
+        bx((-.3,.1,T-.035),(.34,.3,.006),'Rubber',.002,rot=(.071,0,.2))      # soot under the roof vent
+        self.section('Owner clutter')
+        # the knife switch for the main bus, and a two-lever throttle quadrant worn to bare metal
+        bx((-cx,-.64,-.05),(.2,.06,.34),'Wood',.01);rod((-cx,-.61,-.16),(-cx,-.5,.04),.012,'Trim');ball((-cx,-.49,.055),(.03,.03,.03),'Rubber')
+        for z in [-.16,.06]:bx((-cx,-.605,z),(.06,.03,.03),'Trim',.006)
+        bx((-.84,-.2,-.52),(.2,.3,.2),'Steel',.02)
+        for i,x in enumerate([-.89,-.79]):lever(x,-.26+i*.08,-.43,.24,'Wear','Wear')
+        rod((-.44,-.19,T-.21),(-.44,-.19,T-.1),.14,'Pale',r2=.07,n=20)       # a shade that belongs to a different lamp
+        bx((.34,-.22,T-.068),(.5,.4,.008),'Pale',.002,rot=(.071,0,-.12))       # paper star chart taped to the roof
+        bx((.3,-.22,T-.075),(.34,.012,.004),'Signal',.001,rot=(.071,0,.5))
+        for sx,sy in [(-1,-1),(1,-1),(-1,1),(1,1)]:bx((.34+sx*.23,-.22+sy*.18,T-.074),(.07,.03,.004),'Rubber',.001,rot=(.071,0,.6*sx*sy))
+        bx((0,-.375,-.17),(sw+.05,.15,.07),'Upholstery',.03);bx((.1,-.43,-.32),(sw*.6,.03,.28),'Upholstery',.012)   # cardigan over the seat back
+        rod((-.62,-.5,-.97),(-.62,-.5,-.8),.075,'Trim',n=20);rod((-.62,-.5,-.8),(-.62,-.42,-.68),.022,'Trim',r2=.008)  # oil can
+    elif k=='dromedary':
+        self.section('Wear and repairs')
+        # 1 a too-narrow replacement case shimmed with card  2 a yellow strap bracing a cracked window  3 a breaker taped on
+        bx((.845,.70,-.29),(.014,.1,.32),'Pale',.002,rot=(0,0,-.64))
+        bx((H-.012,.33,.22),(.012,.07,1.02),'Trim',.003,rot=(.62,0,0));bx((H-.03,.33,.22),(.04,.12,.09),'Steel',.012,rot=(.62,0,0))
+        bx((cx,-.645,-.36),(.4,.03,.14),'Panel',.008)
+        for i in range(5):
+            bx((cx-.14+i*.07,-.625,-.36),(.036,.03,.075),'Rubber',.006)
+        bx((cx-.07,-.607,-.345),(.07,.008,.14),'Pale',.002,rot=(0,.3,0))
+        self.section('Owner clutter')
+        # fourteen lit push-buttons, one for each hold unit; three are dark
+        bx((cx,-.648,-.62),(.4,.028,.2),'Panel',.008)
+        for i in range(14):bx((cx-.15+(i%7)*.05,-.63,-.575-(i//7)*.09),(.034,.02,.034),'Rubber' if i in (3,8,12) else 'Glow',.006)
+        lever(-.47,.36,-.97,.5,'Steel','Trim',.2);bx((-.47,.36,-.955),(.12,.12,.03),'Frame',.01)   # dead-man lever
+        bx((.5,.47,T-.1),(.3,.014,.17),'Wood',.004,rot=(-.62,0,0));bx((.5,.455,T-.045),(.08,.03,.03),'Steel',.006)   # a clipboard for a sun visor
+        for i in range(3):bx((-.74,-.46+i*.012,-.955+i*.028),(.24,.31,.026),'Pale',.004,rot=(0,0,.08*i))   # manifests under a wrench
+        bx((-.74,-.45,-.868),(.045,.25,.018),'Steel',.006,rot=(0,0,.5));bx((-.80,-.345,-.868),(.08,.06,.018),'Steel',.006,rot=(0,0,.5))
+        bx((.62,-.52,-.9),(.2,.14,.13),'Trim',.02,rot=(0,.35,0))                                        # wheel chock
+        rod((.93,-.3,-.97),(.93,-.3,-.68),.05,'Steel');rod((.93,-.3,-.68),(.93,-.3,-.62),.04,'Trim')     # thermos
+    elif k=='stoat':
+        self.section('Wear and repairs')
+        # 1 switch guards missing and taped (on the port bank)  2 the pocket door on one roller and a wedge  3 a patched cheek pane
+        ball((-.25,-.655,.615),(.035,.03,.035),'Steel');bx((.25,-.655,.6),(.03,.03,.07),'Steel',.006)
+        bx((.33,-.63,-.94),(.14,.07,.06),'Wood',.004,rot=(0,.3,0))
+        ringx(-H+.012,.42,.16,.13,.02,'Pale');bx((-H+.012,.42,.16),(.006,.03,.3),'Pale',.001,rot=(.5,0,0))
+        self.section('Owner clutter')
+        # a dinner-plate tachometer on the port sill and a gated throttle with a red lock-out collar
+        self.disc(-.62,1.13,-.1,.13,.05,'Trim',28);self.disc(-.62,1.1,-.1,.11,.012,'Pale',28)
+        bx((-.59,1.09,-.06),(.012,.004,.11),'Signal',.001,rot=(0,.7,0))
+        bx((-.86,-.26,-.5),(.16,.3,.12),'Panel',.02);bx((-.86,-.26,-.438),(.03,.22,.006),'Rubber',.001)
+        lever(-.86,-.3,-.44,.2,'Steel','Rubber',.3);rod((-.86,-.285,-.39),(-.86,-.27,-.34),.024,'Signal')
+        for lx in [-.44,.44]:bx((lx,-.19,T-.062),(.26,.2,.02),'Panel',.008)                       # shaded dome lamps
+        self.wire([(.25,.3,T-.03),(.25,.3,T-.2)],.004,'Rubber',False);self.disc(.25,.3,T-.24,.045,.016,'Steel',20)   # stopwatch on the roof bow
+        bx((cx,-.655,.47),(.36,.012,.15),'Trim',.004);bx((cx+.1,-.648,.47),(.06,.006,.15),'Pale',.001)          # a race pennant
+        ball((.8,-.3,-.425),(.06,.1,.03),'Leather')                                                # one driving glove
+        ball((-.72,-.46,-.83),(.14,.15,.14),'Pale');bx((-.72,-.34,-.82),(.2,.04,.07),'Rubber',.015)  # helmet
+        for i in range(3):bx((-.80,.05+i*.05,-.437),(.09,.006,.004),'Pale',.001)                    # lap times in grease pencil
+    elif k=='manatee':
+        self.section('Wear and repairs')
+        # 1 a plywood panel in the walnut  2 a curtain ring for a lost gauge bezel  3 a household switch for the seat heater
+        bx((-.667,-.22,-.59),(.012,.32,.2),'Pale',.003)
+        for a in range(4):ball((-.66,-.22+(.13 if a%2 else -.13),-.59+(.07 if a<2 else -.07)),(.012,.012,.012),'Steel')
+        ringz(-.83,-.36,-.425,.068,.014,'Wood')
+        bx((.667,.1,-.56),(.012,.085,.125),'Pale',.004);bx((.658,.1,-.55),(.02,.03,.045),'Pale',.004,rot=(.3,0,0))
+        self.section('Owner clutter')
+        # brass-rimmed gauges set into the port cabinet, levers with turned grips on the starboard one, a speaking tube
+        for i,y in enumerate([-.36,-.21,-.06]):gauge(-.83,y,-.437,.055,'Trim' if i else 'Panel')
+        for i in range(2):lever(.78+i*.1,-.33,-.437,.2,'Steel','Wood',.2)
+        bx((.83,-.3,-.432),(.26,.16,.012),'Trim',.004)
+        self.wire([(.62,-.66,.34),(.6,-.52,.3),(.58,-.44,.2)],.022,'Trim');rod((.58,-.44,.2),(.575,-.41,.14),.024,'Trim',r2=.055)
+        self.wire([(.6,-.5,.28),(.66,-.5,.1),(.68,-.5,.02)],.004,'Rubber');ball((.68,-.5,0),(.03,.03,.035),'Wood')
+        walldial(-cx,.2,.12);rod((-cx,-.66,.34),(-cx,-.66,.4),.01,'Trim')                           # barometer
+        for lx in [-.44,.44]:rod((lx,-.19,T-.22),(lx,-.19,T-.11),.14,'Upholstery',r2=.08,n=20)       # fringed shades
+        bx((sw/2+.014,-.07,-.6),(.056,.12,.012),'Pale',.003)                                        # a darned arm
+        bx((-.5,.82,-.87),(.32,.27,.16),'Leather',.05)                                               # footstool
+        for sx in [-1,1]:
+            for sy in [-1,1]:rod((-.5+sx*.12,.82+sy*.1,-.97),(-.5+sx*.12,.82+sy*.1,-.94),.022,'Wood')
+    else:
+        self.section('Wear and repairs')
+        # 1 a scaffold tube for a lost pearl support  2 dark push-buttons, the live ones dotted with varnish  3 a grey primer plate
+        for name,(ax,ay) in {'mug':(-.76,.64),'clipboard':(-.79,.31)}.items():rod((ax,ay,-.97),(ax,ay,-.44),.028,'Pale')
+        rod((.77,.53,-.97),(.77,.53,-.45),.036,'Steel');bx((.77,.53,-.6),(.11,.09,.05),'Steel',.01);bx((.77,.53,-.9),(.11,.09,.05),'Steel',.01)
+        bx((cx,-.655,.22),(.44,.02,.5),'Steel',.006)
+        for sx in [-1,1]:
+            for sz in [-1,1]:ball((cx+sx*.19,-.642,.22+sz*.22),(.016,.012,.016),'Rubber')
+        self.section('Owner clutter')
+        # a bank of lit push-buttons, a two-handed warp lever in a pearl gate, and the ring-brake handwheel
+        rod((-.9,-.02,-.97),(-.9,-.02,-.47),.03,'Pale');bx((-.9,-.02,-.45),(.2,.5,.035),'Panel',.01)
+        for i in range(12):
+            bx((-.94+(i%2)*.08,-.21+(i//2)*.075,-.428),(.045,.045,.02),'Rubber' if i in (1,2,5,6,9,10) else 'Glow',.008)
+            if i in (0,3,4,7,8,11):ball((-.94+(i%2)*.08+.036,-.21+(i//2)*.075+.03,-.43),(.008,.008,.006),'Signal')
+        bx((.92,-.24,-.5),(.18,.3,.14),'Pale',.03)
+        for i in [-1,1]:rod((.92+i*.04,-.26,-.44),(.92+i*.04,-.2,-.22),.012,'Steel')
+        rod((.82,-.2,-.22),(1.02,-.2,-.22),.022,'Pale')
+        self.ring(-cx,-.63,-.12,.13,.016,'Trim');self.disc(-cx,-.64,-.12,.035,.05,'Steel',16)
+        for a in range(3):bx((-cx,-.632,-.12),(.25,.012,.02),'Steel',.003,rot=(0,a*1.047,0))
+        bx((0,-.02,-.69),(.4,.4,.06),'Signal',.028)                                                  # a cushion that does not match
+        bx((0,-.375,-.17),(sw+.05,.15,.07),'Upholstery',.03);bx((-.1,-.43,-.34),(sw*.7,.03,.3),'Upholstery',.012)   # a blanket
+        bx((-.7,1.22,-.238),(.2,.14,.006),'Pale',.001,rot=(0,0,.3));bx((-.7,1.22,-.234),(.06,.03,.004),'Rubber',.001,rot=(0,0,.3))   # the list
+Ship.lived_in=_lived_in
 def grade_ship(path,ship):
     from ship_finish import linear_srgb,srgb_linear
     # Store and interpolate a per-ship display-space LUT. The grain is fixed for stills.

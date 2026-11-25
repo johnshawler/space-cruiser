@@ -1,6 +1,6 @@
 # Cockpit renders
 
-The lived-in redesign of each cockpit is described in [the lived-in cockpit briefs](lived-in-briefs.md). Those models are not built yet.
+The lived-in redesign of each cockpit is described in [the lived-in cockpit briefs](lived-in-briefs.md).
 
 The complete fleet archive includes the native Blender scenes, game models, ship manifests and full-size views. Open `gallery.html` after extraction.
 

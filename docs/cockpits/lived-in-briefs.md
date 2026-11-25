@@ -1,6 +1,6 @@
 # Long Haul: lived-in cockpit briefs for the five ships
 
-A redesign of the five cockpits under the same rules as [the deck briefs](../ship-interiors/briefs.md): tactile controls only, fifteen years of hard use, every surface doing a job. The [first cockpit briefs](briefs.md) describe the models that are in the game today. This page describes what they should become.
+A redesign of the five cockpits under the same rules as [the deck briefs](../ship-interiors/briefs.md): tactile controls only, fifteen years of hard use, every surface doing a job. The [first cockpit briefs](briefs.md) describe the shells, windows and seats, which are unchanged. This page describes what was added on top.
 
 ## What every cockpit keeps
 
@@ -82,6 +82,16 @@ The game hangs its fittings on fixed anchors, so these stay where they are on al
 - **Maintenance access.** Every instrument case comes off its bracket or rail from the front. Pipe and cable runs are exposed along the sills.
 - **Nothing factory-fresh.** Each cockpit has three visible repairs and wear at the grips, the heel rest and the door track.
 
-## What this needs before it is in the game
+## What is built
 
-These are briefs only. The five cockpit models have not been rebuilt. Rebuilding them means new Blender models on the same anchors, new renders, and a check that the six live faces, the lever sweeps and the windshield still fit.
+All five cockpit models are rebuilt on the same anchors, by `lived_in` in `art/cockpits/fabricate.py`.
+
+- **On every hull:** hoods and a strip of toggles and lit push-buttons on the left and right instrument faces, worn deck at the heels and door track, a zip-tied wiring bundle along the port sill, and the checklist board by the door.
+- **Per hull:** the hardware, the three repairs and most of the clutter listed above.
+- **Glow strips removed:** the Stoat's edge lamps are now guarded switch banks, and the Empress's glowing trim is now lensed lamps on the arch.
+
+Not modelled:
+
+- The main, pedestal, overhead and radio faces have no hoods, to keep the forward view and the lever sweeps clear.
+- Some small items are left out: the mugs (the game supplies its own), the Rustbucket's chain-hung pan (it is clamped instead), the Dromedary's pencil buckle and the Empress's "PAINT ME" lettering.
+- The first briefs page still describes the earlier models.
