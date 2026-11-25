@@ -125,7 +125,7 @@ const Bake = (() => {
       // the sky's sheen on it: white on plastic and paint, tinted by the metal's own colour on metal
       const rgh = fold ? (M0.roughness ?? 1) : 1, mtl = fold ? (M0.metalness || 0) : 0, gloss = 0.04 + 0.22 * Math.pow(1 - rgh, 2);
       const ksC = fold ? new THREE.Color(gloss, gloss, gloss).lerp(M0.color.clone().multiplyScalar(0.25 + 0.45 * (1 - rgh)), mtl).multiplyScalar(GS) : new THREE.Color(0, 0, 0);
-      const geo = o.userData.triVox ? tessellate(o.geometry, 0.9) : subdivide(o.geometry, big ? 2.5 : 0.5); geo.computeVertexNormals && !geo.attributes.normal && geo.computeVertexNormals();
+      const geo = o.userData.triVox ? tessellate(o.geometry, 1.25) : subdivide(o.geometry, big ? 2.5 : 0.5); geo.computeVertexNormals && !geo.attributes.normal && geo.computeVertexNormals();
       const pos = geo.attributes.position, nor = geo.attributes.normal, count = pos.count;
       const E = new Float32Array(count * 3), AO = new Float32Array(count), hits = new Int32Array(count * ND), surf = new Int32Array(count);
       tmpN.getNormalMatrix(e.m); const self = id + 1;

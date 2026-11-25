@@ -186,6 +186,8 @@ const Radio = {
   update(dt){
     // away from the cockpit you hear nothing from the radio; only a passenger you are talking to shows up
     if(Walk.on){ if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6) this.cur=null; } return; }
+    // at warp the radio is silent: nothing new comes in and whatever was playing drops out
+    if(G.ship.warp||G.ship.warpF>0.05){ if(this.cur&&!(Dlg.open&&Dlg.mini)) this.cur=null; this.wait=Math.max(this.wait,4); return; }
     if(Comms.open){ if(this.cur) this.cur.t+=dt; return; } this.wait-=dt; if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6&&!(Dlg.open&&Dlg.mini)) this.cur=null; return; }
     if(!G.sys.power||Dlg.open||Faults.has('fuse')) return; if(this.wait<=0) this.next();
   },

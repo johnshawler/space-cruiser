@@ -735,20 +735,26 @@ const Venues = (() => {
     const B=V.bespoke, port=V.P; { if(!Venues.list.includes(V)) return;   // the port was left before it arrived
       const R=V.root, room=src.clone(true); room.name='bespoke '+B.location+' '+B.shop; Assets.prepare(room,env);
       const out=o=>{ if(!o) return; if(o.parent) o.parent.remove(o); o.traverse(q=>{ if(q.geometry) q.geometry.dispose(); }); };
+      const stockLights=V.roomG?V.roomG.children.filter(o=>o.isPointLight).length:2;
       out(V.roomG); out(V.shellG); (V.fit||[]).forEach(out); if(V.shelf) V.shelf.frame.forEach(out);
       // the shop's name sign hangs from the room's own ceiling
       const box=new THREE.Box3().setFromObject(room), top=clamp(box.max.y,6.6,12); V.room.h=Math.max(V.room.h,Math.min(12,top));
       for(const h of V.signHang||[]){ h.geometry.dispose(); h.geometry=new THREE.CylinderGeometry(0.04,0.04,Math.max(0.1,top-6.4),6); h.position.y=(top+6.4)/2; }
       // its lamps become real lights; the room is closed in, so they stand in for the sky light the stock rooms got through
       // their windows, and are a bit brighter than in Blender (whose area lights spread wider)
-      V.beamSpots=[]; for(const L of B.lights||[]){ const p=L.position, l=new THREE.PointLight(C(L.color),L.intensity*1.7,(L.distance||20)*1.25,1); l.position.set(p[0],p[1],p[2]); room.add(l);
+      // All of them light the bake; afterwards only the two strongest stay as live lights for the keeper and crew, the same
+      // number as the stock room had, because a change in the scene's light count recompiles every material in the port.
+      V.beamSpots=[]; const bakeLights=[]; for(const L of B.lights||[]){ const p=L.position, l=new THREE.PointLight(C(L.color),L.intensity*1.7,(L.distance||20)*1.25,1); l.position.set(p[0],p[1],p[2]); room.add(l); bakeLights.push(l);
         if(p[1]>3&&p[2]<1.5) V.beamSpots.push({x:p[0],y:p[1],z:p[2],col:C(L.color)}); }
+      const liveN=stockLights;
       room.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; o.userData.triVox=true; } }); R.add(room); V.bespokeRoom=room; V.grade=lut; V.roomEnv=env;
       R.updateMatrixWorld(true);
-      if(!/[?&]nobake\b/.test(location.search)){ V.bake=Bake.room(V,V.scn,port); Bake.probe(V,V.scn); }
+      if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,V.scn,port);
+      bakeLights.sort((p,q)=>q.intensity-p.intensity).slice(liveN).forEach(l=>room.remove(l)); for(const l of bakeLights.slice(0,liveN)) l.intensity*=0.6;
+      if(!/[?&]nobake\b/.test(location.search)) Bake.probe(V,V.scn);
       // the room's own glass, metal and lamps reflect its sky; the keeper, crew, droid and goods take the probe of the finished room
       if(env) room.traverse(o=>{ if(o.isMesh&&!o.userData.baked) for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial){ m.envMap=env; m.needsUpdate=true; } });
-      Bake.beams(V,V.scn);
+      Bake.beams(V,V.scn); if(!V.mirror) Bake.floorMirror(V);
       // its materials are new: compile them now rather than the first time the shop comes into view
       const vis=V.root.visible; V.root.visible=true; try{ World.renderer.compile(V.scn,Cine.cam); }catch(e){} V.root.visible=vis;
     }

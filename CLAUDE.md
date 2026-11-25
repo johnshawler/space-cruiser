@@ -53,3 +53,12 @@ The 50 designs are animated species in `src/species/<id>.js` (marked `cast:true`
 
 Besides the bake, `src/08h-bake.js` adds per shop: bounce light (global illumination) and grime in the bake, a light/reflection probe (`Bake.probe`, `Bake.useProbe` for things added later), camera-facing light beams (`Bake.beams`), floor decals and a floor mirror (`Bake.floorMirror`, high quality only). `Bake.detailLive` gives outdoor port surfaces normal and roughness maps. Characters get contact shadows and (living ones) a subsurface-scattering patch in `Folk.make`. The post shader (`GLSL.postFrag`) does colour grading (`World.grade`), motion blur (`uBlur`), vignette and grain; `World.render` adds depth of field in shop views (high quality only). `GFX.high` (06-world.js) is the graphics quality setting, switched on the help screen; touch devices start on Balanced.
 
+
+## Bespoke rooms, cockpits and decks
+
+Each depot, garage and cantina, each ship's cockpit and each walkable deck has a Blender model (GLB) with its own sky (HDR) and colour grade (a 256×16 LUT), listed in `assets/interiors/manifest.json`, `assets/cockpits/manifest.json` and `assets/ship-interiors/manifest.json`. `build.sh` embeds the manifests as `ASSET_MANIFESTS`; `src/02b-assets.js` (`Assets`) fetches models when first needed. Assets load from next to the page; if they aren't there (the johnshawler.com Worker serves only the page) they come from GitHub Pages, and `?assets=<url>` or `?noassets` override that. Until a model arrives, or if it fails, the stock procedural version stays.
+
+- Shops: `Venues` swaps in the room (`swapRoom`) from the per-frame queue, keeps the shelf goods, droid, keeper, crew, name plate, signpost and shop sign, bakes it with its light markers (then keeps only as many live lights as the stock room had: a change in light count recompiles every material in the port) and uses its grade while you're in it.
+- Cockpits: `Cockpit.bespoke` moves the six panels and the fittings onto the model's anchors and uses its windshield and door.
+- Decks: `Interior.bespoke` keeps the repair spots, passenger places, crates and signs; the walking bounds are unchanged.
+- `node tools/check-assets.mjs` checks the manifests against the files and the game's own shops, repair spots and seats.
