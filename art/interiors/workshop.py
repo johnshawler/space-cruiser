@@ -55,7 +55,7 @@ class Room:
         if bevel:
             mod = ob.modifiers.new('Rounded edges', 'BEVEL')
             mod.width = min(bevel, min(size) * .44)
-            mod.segments = 3
+            mod.segments = 2
             mod.harden_normals = True
             ob.modifiers.new('Face normals', 'WEIGHTED_NORMAL')
         return self.put(ob, mat, name)
@@ -101,7 +101,7 @@ class Room:
         self.box((0,-3.4,-.15),(19.2,.13,.3),trim,.04)
 
     def ball(self,pos,scale,mat,rot=None):
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=16,ring_count=8,radius=1,location=pos)
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=12,ring_count=6,radius=1,location=pos)
         o=bpy.context.object
         o.scale=scale
         if rot: o.rotation_euler=rot
@@ -121,9 +121,9 @@ class Room:
     def wire(self, pts, radius, mat, smooth=True):
         cu=bpy.data.curves.new(self.part,'CURVE')
         cu.dimensions='3D'
-        cu.resolution_u=6
+        cu.resolution_u=4
         cu.bevel_depth=radius
-        cu.bevel_resolution=2
+        cu.bevel_resolution=1
         cu.use_fill_caps=True
         if smooth:
             sp=cu.splines.new('BEZIER'); sp.bezier_points.add(len(pts)-1)
@@ -140,14 +140,14 @@ class Room:
         return self.rod((x,y+depth/2,h),(x,y-depth/2,h),r,mat,n=n)
 
     def ring(self,x,y,h,r,t,mat):
-        bpy.ops.mesh.primitive_torus_add(major_segments=48,minor_segments=8,location=(x,y,h),
+        bpy.ops.mesh.primitive_torus_add(major_segments=36,minor_segments=6,location=(x,y,h),
                                         rotation=(math.pi/2,0,0),major_radius=r,minor_radius=t)
         return self.put(bpy.context.object,mat)
 
     def label(self,text,pos,height,mat,align='CENTER'):
         cu=bpy.data.curves.new(text,'FONT'); cu.body=text
         cu.align_x=align; cu.align_y='CENTER'; cu.size=1
-        cu.extrude=.008; cu.resolution_u=3
+        cu.extrude=.003; cu.resolution_u=2
         o=bpy.data.objects.new(text,cu); self.coll.objects.link(o)
         o.location=pos; o.rotation_euler.x=math.pi/2
         bpy.context.view_layer.update()
