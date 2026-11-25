@@ -47,12 +47,15 @@ jobs:
               cp "$model" "$RUNNER_TEMP/masters/$file"
               node art/characters/blender/finish-glb.mjs "$RUNNER_TEMP/masters/$file" "$model"
             fi
+            mkdir -p package/assets/characters
+            cp "$model" package/assets/characters/
             blender -b -t 4 --factory-startup --python-exit-code 1 --python art/characters/blender/portrait.py -- "${file%.glb}"
           done
+          mkdir -p package/art/characters/blender package/docs
+          cp -R art/characters/blender/scenes package/art/characters/blender/
+          cp -R docs/character-surfaces package/docs/
       - uses: actions/upload-artifact@v4
         with:
           name: cast-portraits-${{ matrix.batch }}
           retention-days: 30
-          path: |
-            art/characters/blender/scenes/*.blend
-            docs/character-surfaces/*.png
+          path: package/

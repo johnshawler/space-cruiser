@@ -13,14 +13,15 @@ function getTiles(role){
   const tiles={color:texture(p.color,true),normal:texture(p.normal,false),orm:texture(p.orm,false)};
   surfaceTiles.set(role,tiles);return tiles;
 }
-function roleMaterial(source,role){
+export function roleMaterial(source,role){
   if(!role)return source;
   let map=surfaceClones.get(source);if(!map){map=new Map();surfaceClones.set(source,map);}
   if(map.has(role))return map.get(role);
   const m=source.clone(),[rough,metal,strength,sss]=surfaceProperties[role],tiles=getTiles(role);
   m.map=tiles.color;m.normalMap=tiles.normal;m.normalScale.setScalar(strength);
+  m.aoMap=tiles.orm;m.aoMapIntensity=.65;
   m.roughness=rough;m.metalness=metal;m.roughnessMap=m.metalnessMap=tiles.orm;
-  m.userData.surfaceRole=role;m.userData.subsurfaceWeight=sss;m.name=source.name+' '+role;
+  m.userData.basePaint=source.name;m.userData.surfaceRole=role;m.userData.subsurfaceWeight=sss;m.name=source.name+' '+role;
   map.set(role,m);return m;
 }
 export function applySurfaceFinishes(root,id){
@@ -28,6 +29,7 @@ export function applySurfaceFinishes(root,id){
   for(const o of meshes){
     const role=surfaceRole(id,o.name,o.parent.name,o.material.name||'');if(!role)continue;
     o.material=roleMaterial(o.material,role);
+    const uv=o.geometry.attributes.uv;if(uv&&!o.geometry.attributes.uv2)o.geometry.setAttribute('uv2',uv);
     const coat=groomKind(o.name);if(!coat)continue;
     const key=id+coat;
     if(!groomGeometry.has(key)){

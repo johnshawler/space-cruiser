@@ -29,7 +29,8 @@ for mat in bpy.data.materials:
         bs.inputs['Sheen Weight'].default_value=.39 if role=='fur' else .23
         bs.inputs['Sheen Roughness'].default_value=.62
     if role=='feather':
-        bs.inputs['Iridescence Weight'].default_value=.13 if species=='pavo' else .025
+        bs.inputs['Thin Film Thickness'].default_value=410 if species=='pavo' else 85
+        bs.inputs['Thin Film IOR'].default_value=1.38
     if role in ('pitted','alloy'):
         bs.inputs['Coat Weight'].default_value=.10 if role=='pitted' else .19
 pts=[o.matrix_world@Vector(v) for o in subjects for v in o.bound_box]
