@@ -133,7 +133,9 @@ def prepare_finish(room):
     (directory/'environment.hdr').write_bytes(Path(bpy.path.abspath(sky.filepath_raw)).read_bytes())
     lut=rgba_image('grade',grade_table(room.place))
     (directory/'grade.png').write_bytes(Path(bpy.path.abspath(lut.filepath_raw)).read_bytes())
-    world=bpy.data.worlds.new('Verdanthia orchard daylight'); scene.world=world; world.use_nodes=True
+    probe=bpy.data.lightprobes.new(room.title+' reflections','SPHERE');obj=bpy.data.objects.new(probe.name,probe);scene.collection.objects.link(obj);obj.location=(0,2.6,2)
+    scene.eevee.use_raytracing=True;scene.eevee.ray_tracing_method='SCREEN'
+    world=bpy.data.worlds.new(room.title+' environment'); scene.world=world; world.use_nodes=True
     n=world.node_tree.nodes.new('ShaderNodeTexEnvironment');n.image=sky
     bg=world.node_tree.nodes['Background']; bg.inputs['Strength'].default_value=.48
     world.node_tree.links.new(n.outputs['Color'],bg.inputs[0])

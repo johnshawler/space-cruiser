@@ -29,8 +29,9 @@ jobs:
           cd "$RUNNER_TEMP"
           release=https://download.blender.org/release/Blender4.5
           archive=blender-4.5.3-linux-x64.tar.xz
-          curl --fail --location --retry 3 --output "$archive" "$release/$archive"
-          curl --fail --location --retry 3 --output checksums "$release/blender-4.5.3.sha256"
+          for mirror in "$release" https://ftp.halifax.rwth-aachen.de/blender/release/Blender4.5 https://mirrors.ocf.berkeley.edu/blender/release/Blender4.5; do
+            curl -fsSL --retry 2 --output "$archive" "$mirror/$archive" && curl -fsSL --retry 2 --output checksums "$mirror/blender-4.5.3.sha256" && break
+          done
           grep -F "$archive" checksums | sha256sum --check -
           tar -xf "$archive"
           echo "$RUNNER_TEMP/blender-4.5.3-linux-x64" >> "$GITHUB_PATH"
@@ -43,7 +44,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: interiors-${{ matrix.location }}
-          retention-days: 5
+          retention-days: 30
           path: |
             art/interiors/${{ matrix.location }}/*.blend
             assets/interiors
