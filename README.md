@@ -220,3 +220,38 @@ Open `?gallery` and choose **Animated cast** to inspect the 50 articulated desig
 | Latch | A green lock body carries a silver U-shackle above brass-hub wheels. The axle turns as the shackle tests its travel twice. |
 | Plume | A blue sampler hovers below a crown of staggered intake tubes. Two jet pods vector in opposite directions to trim the climb. |
 | Prong | A yellow cargo tug has upright mast rails and two narrow lifting tines. Four wheels turn while the fork carriage takes up its slack. |
+
+## Bespoke interiors
+
+[Shop render gallery](docs/interiors/index.md) · [Model and light manifest](assets/interiors/manifest.json)
+
+- **Dispatch Bay B4** (Verdanthia) — Potting shed with a freight clock.
+- **Fix-O-Matic 3000** (Verdanthia) — Unfolded vending-machine service cabinet.
+- **The Coin Slot** (Verdanthia) — Orchard listening pavilion.
+- **Gravel Freight Yard** (Scorchmaw) — Basalt quarry under a weighbridge.
+- **Lava Lube & Patch** (Scorchmaw) — Ceramic heat shield curled around a forge.
+- **Form 27-B Cargo Office** (Dunemoor) — A civic archive cut into canyon strata.
+- **The Rubber Stamp** (Dunemoor) — Three ink-pad booths in a desert cellar.
+- **Ladle Harbor Freight** (Sloshwell) — A tide lock with a floating freight gauge.
+- **The Bottomless Bowl** (Sloshwell) — A tasting room inside a double-walled tureen.
+- **Bargain Roost Cargo Perch** (Amethyne) — A cantilevered crystal auction balcony.
+- **Mellow Hollow Depot** (Toxibloom) — A freight basket caught between mangrove roots.
+- **Spore & Bolt** (Toxibloom) — A workshop under one bracket fungus.
+- **The Damp Log** (Toxibloom) — A taproom in the split seam of a fallen trunk.
+- **Port Lament Cargo Dock** (Candara) — A flying dock under a slack sail.
+- **The Sunk Cost** (Candara) — The listing saloon of a failed cloud ferry.
+- **Drift Cargo Bubble** (Jovexa) — An inflated freight envelope tied to a rigid deck.
+- **Gentle Repairs** (Jovexa) — A hull cradle suspended in a cloud veranda.
+- **Fort Snuggle Cargo Hut** (Brrrindle) — A scarf-bound emergency A-frame.
+- **Warm Wrench Garage** (Brrrindle) — A thaw shed built around a radiator.
+- **The Warm Mitten** (Brrrindle) — A cocoa parlour tucked into a snowbank.
+- **Hush Receiving Bay** (Listening Post Hush) — A loading lock hung inside a second hull.
+- **Soft Landing Repairs** (Listening Post Hush) — An acoustic test chamber with a wall of dent casts.
+- **The Indoor Voice** (Listening Post Hush) — A quilted whispering gallery.
+- **Cold Storage Intake** (Cryo Vault Rimeholm) — A rolling specimen archive in a freezer lock.
+- **Thaw & Patch** (Cryo Vault Rimeholm) — A defrost tunnel lined with split heater collars.
+- **Precision Freight** (Calibration Spire) — A cargo hall inside a square measuring jig.
+- **Exactly Right Repairs** (Calibration Spire) — A torque laboratory built like a dial.
+- **Last Light Freight Office** (Beacon Far Wink) — A signal box astride a freight airlock.
+- **End of the Line Garage** (Beacon Far Wink) — A dead-end rail shed on the lamp service deck.
+- **The Final Blink** (Beacon Far Wink) — The lighthouse lantern room after hours.

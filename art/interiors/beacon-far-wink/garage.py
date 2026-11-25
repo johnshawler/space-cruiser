@@ -1,0 +1,7 @@
+"""End of the Line Garage, beacon-far-wink. Build with Blender 4.5 LTS."""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from ports import make, buffer
+
+make(__file__, 'End of the Line Garage', buffer)
