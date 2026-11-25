@@ -64,6 +64,8 @@ const Econ = {
   /* a short line for the job board: the risk tier, its pay bonus, and how much of a tank it takes */
   line(A, B){ const k=routeRisk(A,B), R=RISK[k], f=this.fuel(A,B), tank=SHIPS[G.shipId].fuel, pct=Math.round(f/tank*100);
     return `<span class="risk r${k}">${R.name} risk${R.mul>1?' · pays ×'+R.mul:''}</span> · ${pct>100?'<b class="warnf">more than a full tank</b>':'about '+pct+'% of a tank'}`; },
+  /* just the risk, without the fuel estimate (used on job tickets) */
+  riskLine(A, B){ const k=routeRisk(A,B), R=RISK[k]; return `<span class="risk r${k}">${R.name} risk${R.mul>1?' · pays ×'+R.mul:''}</span>`; },
   fuelPrice(P){ return P&&P.station?6:3; },
 };
 

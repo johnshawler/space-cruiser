@@ -54,6 +54,10 @@ const Cine = {
     for(let i=0;i<24;i++){ const a=i/24*6.283; px.save(); px.translate(256+Math.cos(a)*238,256+Math.sin(a)*238); px.rotate(a); px.fillStyle=i%2?'#e8b820':'#1a1a1a'; px.fillRect(-10,-16,20,32); px.restore(); }
     drawGlyphs(px,P.port.slice(0,3),190,210,90,P.species,'#f2f2f2',200);
     const padTop=new THREE.MeshStandardMaterial({map:canvasTex(pcv),roughness:0.85,metalness:0.1}), padSide=new THREE.MeshStandardMaterial({color:C('#2a2c30'),roughness:0.8,metalness:0.3});
+    // the pad's top is level with the flattened ground (and with a station's deck), so it is nudged forward in depth to
+    // win over them instead of flickering; the neighbours' pads get the same treatment
+    padTop.polygonOffset=true; padTop.polygonOffsetFactor=-1; padTop.polygonOffsetUnits=-4;
+    const padNbTop=padSide.clone(); padNbTop.polygonOffset=true; padNbTop.polygonOffsetFactor=-1; padNbTop.polygonOffsetUnits=-4; const padNb=[padSide,padNbTop,padSide];
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(50,54,5,56),[padSide,padTop,padSide]); pad.position.y=-2.5; pad.receiveShadow=true; scn.add(pad);
     if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(9,16,900,20),padSide); py.position.y=-455; scn.add(py); const rg=new THREE.Mesh(new THREE.TorusGeometry(58,3,10,48),padSide); rg.rotation.x=Math.PI/2; rg.position.y=-6; scn.add(rg); }
     const lamps=[]; for(let i=0;i<20;i++){ const a=i/20*6.283, lm=new THREE.Mesh(new THREE.SphereGeometry(0.45,8,6),new THREE.MeshBasicMaterial({color:0xffffff})); lm.position.set(Math.cos(a)*47,0.35,Math.sin(a)*47); scn.add(lm); lamps.push(lm); }
@@ -85,7 +89,7 @@ const Cine = {
     const beacon=mk(new THREE.SphereGeometry(1.4,10,8),new THREE.MeshBasicMaterial({color:HDR('#ff3020',6)}),0,76,0); tw.add(beacon); tw.position.set(-96,cloud?-3:0,-70); scn.add(tw);
     // neighbours parked nearby
     const PADS=[[118,74,2.2],[-60,128,-0.6],[40,-138,1.1],[-136,-12,0.4]], parked=[];
-    for(const [x,z] of PADS){ const pp=mk(new THREE.CylinderGeometry(30,32,3,32),padSide,x,-1.35,z); pp.castShadow=false; scn.add(pp); if(cloud) scn.add(mk(new THREE.CylinderGeometry(5,9,700,10),padSide,x,-353,z));
+    for(const [x,z] of PADS){ const pp=mk(new THREE.CylinderGeometry(30,32,3,32),padNb,x,-1.35,z); pp.castShadow=false; scn.add(pp); if(cloud) scn.add(mk(new THREE.CylinderGeometry(5,9,700,10),padSide,x,-353,z));
       const ring=new THREE.Mesh(new THREE.TorusGeometry(26,0.6,6,40),new THREE.MeshBasicMaterial({color:HDR('#e8b820',1.2)})); ring.rotation.x=Math.PI/2; ring.position.set(x,0.2,z); scn.add(ring); }
     const flyby=Models.build(Math.floor(rr()*5)); flyby.scale.setScalar(1.5); scn.add(flyby);
     // dust
@@ -256,7 +260,10 @@ const Cine = {
     }
     if(this.mode!=='A'&&this.mode!=='B') this.updateSurface(dt,time);
     if(this.shake>0){ cam.position.x+=(Math.random()-0.5)*this.shake; cam.position.y+=(Math.random()-0.5)*this.shake; cam.rotateZ((Math.random()-0.5)*this.shake*0.012); }
-    this.fovRaw=fov; if(!this.fovFixed) fov=World.fit(fov); this.fovFixed=false; if(Math.abs(cam.fov-fov)>0.01){ cam.fov=fov; cam.updateProjectionMatrix(); }
+    // near the ground the camera can see things a metre away; high above the port (take-off) the near plane moves out with
+    // it, which keeps the depth buffer precise enough that the ground, pads and roofs don't flicker against each other
+    const nearW=this.mode==='A'||this.mode==='B'?1:clamp(Math.abs(cam.position.y)*0.03,1,60);
+    this.fovRaw=fov; if(!this.fovFixed) fov=World.fit(fov); this.fovFixed=false; if(Math.abs(cam.fov-fov)>0.01||Math.abs(cam.near-nearW)>0.05){ cam.fov=fov; cam.near=nearW; cam.updateProjectionMatrix(); }
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },
 };

@@ -56,9 +56,9 @@ const UI = {
   openTicket(j){ const P=this.P; if(!P||G.jobs.indexOf(j)<0) return; this.ticket=j; const box=$('port-card'); box.innerHTML=''; box.hidden=false; box.className='ticket'+(j.kind==='contra'?' shady':'');
     const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos), rk=Econ.risk(P,T), rtag=rk>=2?`<span class="tag r${rk}">${RISK[rk].name.toUpperCase()} RISK</span>`:'';
     let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty);
-    if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.line(P,T)} · needs a free seat`; }
-    else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.line(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
-    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.line(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
+    if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · needs a free seat`; }
+    else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.riskLine(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
+    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
     const x=el('button','close','✕'); x.setAttribute('aria-label','Close'); x.onclick=()=>{ Sfx.click(); this.closeTicket(); }; box.appendChild(x);
     box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div><p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
     const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat;

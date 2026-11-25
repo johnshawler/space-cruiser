@@ -375,7 +375,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.33</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.34</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -2688,7 +2688,7 @@ SPECIES_EXTRA.lichen = {
       footColor: '#d9ccb1',
       omit: /^(Ceramic foot|Porcelain palm|Finger|Fingertip)$/,
       signal: '#efc66b',
-      face: { eyes: [[0.17, 2.106, 0.157, 0.069]], mouth: [0.17, 2.002, 0.15, 0.45] },
+      face: { eyes: [[0.17, 2.071, 0.15, 0.069]], mouth: [0.17, 2.002, 0.15, 0.45] }, // the eye sits in the centre of the mask's dark face socket
       joints: [['fern', [-0.29, 1.72, 0.008], /^Fern (rachis|pinna)$/]],
       gait(n, p, a) {
         CastRig.steps(n, p, a, 0.54, 0.017, 0.032);
@@ -8929,6 +8929,10 @@ const Cine = {
     for(let i=0;i<24;i++){ const a=i/24*6.283; px.save(); px.translate(256+Math.cos(a)*238,256+Math.sin(a)*238); px.rotate(a); px.fillStyle=i%2?'#e8b820':'#1a1a1a'; px.fillRect(-10,-16,20,32); px.restore(); }
     drawGlyphs(px,P.port.slice(0,3),190,210,90,P.species,'#f2f2f2',200);
     const padTop=new THREE.MeshStandardMaterial({map:canvasTex(pcv),roughness:0.85,metalness:0.1}), padSide=new THREE.MeshStandardMaterial({color:C('#2a2c30'),roughness:0.8,metalness:0.3});
+    // the pad's top is level with the flattened ground (and with a station's deck), so it is nudged forward in depth to
+    // win over them instead of flickering; the neighbours' pads get the same treatment
+    padTop.polygonOffset=true; padTop.polygonOffsetFactor=-1; padTop.polygonOffsetUnits=-4;
+    const padNbTop=padSide.clone(); padNbTop.polygonOffset=true; padNbTop.polygonOffsetFactor=-1; padNbTop.polygonOffsetUnits=-4; const padNb=[padSide,padNbTop,padSide];
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(50,54,5,56),[padSide,padTop,padSide]); pad.position.y=-2.5; pad.receiveShadow=true; scn.add(pad);
     if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(9,16,900,20),padSide); py.position.y=-455; scn.add(py); const rg=new THREE.Mesh(new THREE.TorusGeometry(58,3,10,48),padSide); rg.rotation.x=Math.PI/2; rg.position.y=-6; scn.add(rg); }
     const lamps=[]; for(let i=0;i<20;i++){ const a=i/20*6.283, lm=new THREE.Mesh(new THREE.SphereGeometry(0.45,8,6),new THREE.MeshBasicMaterial({color:0xffffff})); lm.position.set(Math.cos(a)*47,0.35,Math.sin(a)*47); scn.add(lm); lamps.push(lm); }
@@ -8960,7 +8964,7 @@ const Cine = {
     const beacon=mk(new THREE.SphereGeometry(1.4,10,8),new THREE.MeshBasicMaterial({color:HDR('#ff3020',6)}),0,76,0); tw.add(beacon); tw.position.set(-96,cloud?-3:0,-70); scn.add(tw);
     // neighbours parked nearby
     const PADS=[[118,74,2.2],[-60,128,-0.6],[40,-138,1.1],[-136,-12,0.4]], parked=[];
-    for(const [x,z] of PADS){ const pp=mk(new THREE.CylinderGeometry(30,32,3,32),padSide,x,-1.35,z); pp.castShadow=false; scn.add(pp); if(cloud) scn.add(mk(new THREE.CylinderGeometry(5,9,700,10),padSide,x,-353,z));
+    for(const [x,z] of PADS){ const pp=mk(new THREE.CylinderGeometry(30,32,3,32),padNb,x,-1.35,z); pp.castShadow=false; scn.add(pp); if(cloud) scn.add(mk(new THREE.CylinderGeometry(5,9,700,10),padSide,x,-353,z));
       const ring=new THREE.Mesh(new THREE.TorusGeometry(26,0.6,6,40),new THREE.MeshBasicMaterial({color:HDR('#e8b820',1.2)})); ring.rotation.x=Math.PI/2; ring.position.set(x,0.2,z); scn.add(ring); }
     const flyby=Models.build(Math.floor(rr()*5)); flyby.scale.setScalar(1.5); scn.add(flyby);
     // dust
@@ -9131,7 +9135,10 @@ const Cine = {
     }
     if(this.mode!=='A'&&this.mode!=='B') this.updateSurface(dt,time);
     if(this.shake>0){ cam.position.x+=(Math.random()-0.5)*this.shake; cam.position.y+=(Math.random()-0.5)*this.shake; cam.rotateZ((Math.random()-0.5)*this.shake*0.012); }
-    this.fovRaw=fov; if(!this.fovFixed) fov=World.fit(fov); this.fovFixed=false; if(Math.abs(cam.fov-fov)>0.01){ cam.fov=fov; cam.updateProjectionMatrix(); }
+    // near the ground the camera can see things a metre away; high above the port (take-off) the near plane moves out with
+    // it, which keeps the depth buffer precise enough that the ground, pads and roofs don't flicker against each other
+    const nearW=this.mode==='A'||this.mode==='B'?1:clamp(Math.abs(cam.position.y)*0.03,1,60);
+    this.fovRaw=fov; if(!this.fovFixed) fov=World.fit(fov); this.fovFixed=false; if(Math.abs(cam.fov-fov)>0.01||Math.abs(cam.near-nearW)>0.05){ cam.fov=fov; cam.near=nearW; cam.updateProjectionMatrix(); }
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },
 };
@@ -10047,7 +10054,7 @@ const Venues = (() => {
        gets back up, picks up every box one at a time, restacks them and carries on into the stock room anyway. Then A
        comes back out for the next lot, which has turned up on the pile in the meantime. */
     stack:{ dur:120, PILE:[-4.45,-3.6], HOME:[-3.6,-3.6], SPILL:[0.6,-3.6], ROUTE:[[2.8,-5.3],[4.3,-7.0],[4.3,-10.3]], BACK:[[4.3,-7.0],[1.4,-4.6],[-3.6,-3.6]], DROP:[3.4,-10.0],
-      reset(V){ const {A,B}=V, g=V.g, Q=this; A.position.set(Q.HOME[0],0,Q.HOME[1]); A.rotation.y=-Math.PI/2; B.position.set(6.2,0,-6.9); B.rotation.y=-Math.PI/2;
+      reset(V){ const {A,B}=V, g=V.g, Q=this; A.position.set(Q.HOME[0],0,Q.HOME[1]); A.rotation.y=-Math.PI/2; B.position.set(2.2,0,-7.5); B.rotation.y=Math.PI/2;
         g.crates.forEach((c,i)=>{ c.visible=true; c.scale.setScalar(1); c.rotation.set(0,0,0); c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); });
         g.held=[]; g.st='lift'; g.sT=0; g.wp=0; g.ph=0; g.spilt=false; },
       update(V,t,dt){ const {A,B}=V, g=V.g, Q=this, U=A.userData, r=U.rig; g.sT+=dt; const s=g.st, T=g.sT;
@@ -11119,6 +11126,8 @@ const Econ = {
   /* a short line for the job board: the risk tier, its pay bonus, and how much of a tank it takes */
   line(A, B){ const k=routeRisk(A,B), R=RISK[k], f=this.fuel(A,B), tank=SHIPS[G.shipId].fuel, pct=Math.round(f/tank*100);
     return `<span class="risk r${k}">${R.name} risk${R.mul>1?' · pays ×'+R.mul:''}</span> · ${pct>100?'<b class="warnf">more than a full tank</b>':'about '+pct+'% of a tank'}`; },
+  /* just the risk, without the fuel estimate (used on job tickets) */
+  riskLine(A, B){ const k=routeRisk(A,B), R=RISK[k]; return `<span class="risk r${k}">${R.name} risk${R.mul>1?' · pays ×'+R.mul:''}</span>`; },
   fuelPrice(P){ return P&&P.station?6:3; },
 };
 
@@ -11877,9 +11886,9 @@ const UI = {
   openTicket(j){ const P=this.P; if(!P||G.jobs.indexOf(j)<0) return; this.ticket=j; const box=$('port-card'); box.innerHTML=''; box.hidden=false; box.className='ticket'+(j.kind==='contra'?' shady':'');
     const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos), rk=Econ.risk(P,T), rtag=rk>=2?`<span class="tag r${rk}">${RISK[rk].name.toUpperCase()} RISK</span>`:'';
     let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty);
-    if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.line(P,T)} · needs a free seat`; }
-    else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.line(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
-    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.line(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
+    if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · needs a free seat`; }
+    else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.riskLine(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
+    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
     const x=el('button','close','✕'); x.setAttribute('aria-label','Close'); x.onclick=()=>{ Sfx.click(); this.closeTicket(); }; box.appendChild(x);
     box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div><p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
     const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat;

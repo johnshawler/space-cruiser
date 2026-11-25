@@ -58,7 +58,7 @@ SPECIES_EXTRA.lichen = {
       footColor: '#d9ccb1',
       omit: /^(Ceramic foot|Porcelain palm|Finger|Fingertip)$/,
       signal: '#efc66b',
-      face: { eyes: [[0.17, 2.106, 0.157, 0.069]], mouth: [0.17, 2.002, 0.15, 0.45] },
+      face: { eyes: [[0.17, 2.071, 0.15, 0.069]], mouth: [0.17, 2.002, 0.15, 0.45] }, // the eye sits in the centre of the mask's dark face socket
       joints: [['fern', [-0.29, 1.72, 0.008], /^Fern (rachis|pinna)$/]],
       gait(n, p, a) {
         CastRig.steps(n, p, a, 0.54, 0.017, 0.032);

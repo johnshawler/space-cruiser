@@ -513,7 +513,7 @@ const Venues = (() => {
        gets back up, picks up every box one at a time, restacks them and carries on into the stock room anyway. Then A
        comes back out for the next lot, which has turned up on the pile in the meantime. */
     stack:{ dur:120, PILE:[-4.45,-3.6], HOME:[-3.6,-3.6], SPILL:[0.6,-3.6], ROUTE:[[2.8,-5.3],[4.3,-7.0],[4.3,-10.3]], BACK:[[4.3,-7.0],[1.4,-4.6],[-3.6,-3.6]], DROP:[3.4,-10.0],
-      reset(V){ const {A,B}=V, g=V.g, Q=this; A.position.set(Q.HOME[0],0,Q.HOME[1]); A.rotation.y=-Math.PI/2; B.position.set(6.2,0,-6.9); B.rotation.y=-Math.PI/2;
+      reset(V){ const {A,B}=V, g=V.g, Q=this; A.position.set(Q.HOME[0],0,Q.HOME[1]); A.rotation.y=-Math.PI/2; B.position.set(2.2,0,-7.5); B.rotation.y=Math.PI/2;
         g.crates.forEach((c,i)=>{ c.visible=true; c.scale.setScalar(1); c.rotation.set(0,0,0); c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); });
         g.held=[]; g.st='lift'; g.sT=0; g.wp=0; g.ph=0; g.spilt=false; },
       update(V,t,dt){ const {A,B}=V, g=V.g, Q=this, U=A.userData, r=U.rig; g.sT+=dt; const s=g.st, T=g.sT;
