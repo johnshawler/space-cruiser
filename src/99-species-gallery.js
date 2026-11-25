@@ -65,6 +65,7 @@
   const get = sel => root.querySelector(sel);
   const page = get('.page'), catalog = get('#catalog'), stage = get('.stage');
   const seeds = [26, 9, 25];
+  let sceneFinish;
   let seedIndex = 0, key, figure, prop, renderer, scene, camera, ruler;
   let selectedCard, scrollTop = 0, frame, lastTime, elapsed, angle;
   let expression, walking, waving, seated, holding, rotating, silhouette;
@@ -126,6 +127,7 @@
   function setupScene() {
     if (renderer) return;
     renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -136,8 +138,11 @@
     for (const [color, strength, x, y, z] of [[0xffefd5,1.45,2,4,3],[0xb0e9ff,.8,-2,1,2],[0x9affdf,.9,0,2,-3]]) {
       const light = new THREE.DirectionalLight(color,strength);
       light.position.set(x,y,z);
+      if(x===2){light.castShadow=true;light.shadow.mapSize.set(1024,1024);Object.assign(light.shadow.camera,{left:-2,right:2,top:2,bottom:-2,near:.15,far:12});light.shadow.normalBias=.012;}
       scene.add(light);
     }
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(26,26),new THREE.MeshStandardMaterial({color:0x23383f,roughness:.39,metalness:.21}));
+    floor.rotation.x=-Math.PI/2;floor.position.y=-.006;floor.receiveShadow=true;scene.add(floor);
     scene.add(new THREE.GridHelper(8,32,0x739997,0x38575a));
     const points = [-.78,0,0,-.78,1,0];
     for (let i=0; i<=10; i++) points.push(-.78,i/10,0, i%5 ? -.735 : -.68,i/10,0);
@@ -152,12 +157,14 @@
     const marker = new THREE.Sprite(new THREE.SpriteMaterial({map:ruler,depthTest:false}));
     marker.scale.set(.34,.15,1); marker.position.set(-.74,1.11,0); scene.add(marker);
     camera = new THREE.PerspectiveCamera(32,1,.05,30);
+    if(GFX.high)sceneFinish=BespokeFinish.create(renderer,scene,camera,{reflectors:[floor],haze:0x273b40,density:.022});
     fit();
   }
   function fit() {
     if (!renderer || stage.clientWidth < 1 || stage.clientHeight < 1) return;
     const w=stage.clientWidth, h=stage.clientHeight;
     renderer.setSize(w,h,false);
+    if(sceneFinish)sceneFinish.setSize(w,h);
     camera.aspect=w/h;
     camera.position.set(0,1.26,Math.max(4.95,3.55/camera.aspect));
     camera.lookAt(0,1.03,0);
@@ -244,7 +251,7 @@
       if (leg.userData.foot) leg.userData.foot.rotation.x=0;
     }
     Folk.blink(figure,elapsed);
-    renderer.render(scene,camera);
+    if(sceneFinish)sceneFinish.render(elapsed);else renderer.render(scene,camera);
     frame=requestAnimationFrame(draw);
   }
   function updateControls() {

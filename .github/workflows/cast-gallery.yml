@@ -1,0 +1,36 @@
+name: Check the live cast gallery
+on:
+  pull_request:
+    paths:
+      - 'art/scene-finish.js'
+      - 'art/characters/src/**'
+      - 'art/characters/blender/check-gallery.cjs'
+      - 'src/99-species-gallery.js'
+      - 'src/species/aril.js'
+      - '.github/workflows/cast-gallery.yml'
+permissions: {}
+jobs:
+  gallery:
+    if: github.event.pull_request.head.ref == 'alien-surface-finish' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Build and check the three material families
+        run: |
+          bash build.sh
+          npm install --prefix "$RUNNER_TEMP/gallery-tools" --ignore-scripts three@0.128.0 playwright-core@1.54.2
+          NODE_PATH="$RUNNER_TEMP/gallery-tools/node_modules" node art/characters/blender/check-gallery.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: live-cast-gallery
+          retention-days: 30
+          path: |
+            gallery-*.png
+            index.html
+            long-haul.html
