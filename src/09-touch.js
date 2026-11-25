@@ -58,7 +58,7 @@ const TouchUI = {
   },
   /* big readable subtitle for radio chatter, shown when the glare-shield text would be small */
   caption(c){
-    const box=$('caption'), want=!!c&&G.sys.power&&!G.head.zoomed&&!Comms.open&&(!Dlg.open||Dlg.mini)&&(this.on||innerWidth<1280);
+    const box=$('caption'), want=!!c&&G.sys.power&&!G.head.zoomed&&!Comms.open&&(!Dlg.open||Dlg.mini)&&(this.on||innerWidth<1280||Walk.on);   // walking, the translator screen is out of sight: a passenger's reply shows here
     if(!want){ if(!box.hidden){ box.hidden=true; this.capKey=''; $('toasts').style.top=''; document.body.classList.remove('cap'); } return; }
     const sp=SPECIES[c.sp], frac=clamp(c.t/Math.max(0.5,c.dur*0.8),0,1), on=G.sys.translator;
     const body=on?c.english.slice(0,Math.ceil(c.english.length*frac)):'Translator off · '+c.alien.slice(0,Math.ceil(c.alien.length*frac));

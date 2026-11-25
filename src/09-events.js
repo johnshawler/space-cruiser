@@ -351,7 +351,7 @@ const Escort = {
     if(k==='pirates'){ const fwd=new V3(0,0,-1).applyQuaternion(s.quat), ps=[0,1].map(()=>Ev.npc('pirate',s.pos.clone().addScaledVector(fwd,rnd(900,1500)).add(Ev.around(new V3(),rnd(300,700))),{sp:pick(['grondar','vrell','blorpax']),name:'Pirate',ship:shipName(Math.floor(Math.random()*1e9))}));
       this.hazard={kind:'pirates',t:20,ps,nag:t=>`Pirates are buzzing your ship and ${c.vip.title} is terrified! Sound the horn (${TouchUI.on?'HORN':'G'}) to scare them off. ${t}s`,fail:()=>{ ps.forEach(p=>Ev.dismiss(p)); this.hurt(30,'The pirates rattled the VIP badly'); }};
       UI.toast(this.hazard.nag(20),'warn'); Sfx.deny(); }
-    else if(k==='debris'){ this.hazard={kind:'debris',t:22,ok:0,nag:t=>`Debris ahead! Throttle 4 or lower, no warp, for 8 seconds. ${t}s`,fail:()=>this.hurt(20,`${c.vip.title}'s ship took a beating in the debris`)};
+    else if(k==='debris'){ this.hazard={kind:'debris',t:22,ok:0,nag:()=>'Debris ahead! Throttle 4 or lower, and no warp, until you are through.',fail:()=>this.hurt(20,`${c.vip.title}'s ship took a beating in the debris`)};
       if(s.warp) Game.dropWarp('Debris ahead! Warp disengaged','warn',true); UI.toast(this.hazard.nag(22),'warn'); }
     else if(Walk.on&&!Dlg.open){ this.hT=8; }
     else this.panic(c);

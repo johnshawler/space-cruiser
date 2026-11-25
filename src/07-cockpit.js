@@ -24,6 +24,7 @@ const Cockpit = {
     const cylZ=(rt,rb,h,seg=28)=>{ const q=new THREE.CylinderGeometry(rt,rb,h,seg); q.rotateX(Math.PI/2); return q; };
 
     /* ---- shell ---- */
+    const shell0=g.children.length;   // everything from here to the panels is the stock shell, which a bespoke cockpit replaces
     bx(2.1,0.04,2.2,M.panel,0,-0.97,-0.38); bx(0.05,0.74,2.1,M.frame,-1.0,-0.62,-0.38); bx(0.05,0.74,2.1,M.frame,1.0,-0.62,-0.38);
     bx(2.1,0.78,0.05,M.frame,0,-0.62,-1.43); bx(0.63,1.8,0.05,M.frame,-0.735,-0.1,0.68); bx(0.63,1.8,0.05,M.frame,0.735,-0.1,0.68); bx(0.84,0.18,0.05,M.frame,0,0.71,0.68); bx(2.0,0.03,0.62,M.rubber,0,-0.238,-1.12);
     this.door=bx(0.84,1.59,0.035,M.panel,0,-0.175,0.665); this.doorT=0; for(const yy of [-0.6,0.2]) bx(0.5,0.04,0.012,M.trim,0,yy,0.645,this.door).position.set(0,yy+0.175,-0.02);
@@ -45,7 +46,7 @@ const Cockpit = {
     for(let i=0;i<900;i++){ dx.fillStyle=`rgba(255,240,220,${dr()*0.5})`; dx.beginPath(); dx.arc(dr()*1024,dr()*512,dr()*2.2+0.3,0,7); dx.fill(); }
     for(let i=0;i<40;i++){ const px=dr()*1024, py=dr()*512; const gr=dx.createRadialGradient(px,py,0,px,py,40+dr()*90); gr.addColorStop(0,`rgba(255,235,210,${0.1+dr()*0.14})`); gr.addColorStop(1,'rgba(255,235,210,0)'); dx.fillStyle=gr; dx.fillRect(px-140,py-140,280,280); }
     this.dirtMat=new THREE.MeshBasicMaterial({map:canvasTex(dcv),transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide});
-    const v1=new THREE.Mesh(wq,this.visorMat), v2=new THREE.Mesh(wq,this.dirtMat), v3=new THREE.Mesh(wq,M.canopy); v1.renderOrder=1; v2.renderOrder=2; v3.renderOrder=3; v3.userData.glass=true; g.add(v1,v2,v3);
+    const v1=new THREE.Mesh(wq,this.visorMat), v2=new THREE.Mesh(wq,this.dirtMat), v3=new THREE.Mesh(wq,M.canopy); v1.renderOrder=1; v2.renderOrder=2; v3.renderOrder=3; v3.userData.glass=true; g.add(v1,v2,v3); this.wsLayers=[v1,v2];
     // seat + consoles
     bx(0.52,0.1,0.5,M.leather,0,-0.76,0.06); bx(0.5,0.95,0.1,M.leather,0,-0.3,0.36); bx(0.3,0.2,0.08,M.leather,0,0.26,0.33);
     for(const s of [-1,1]){ bx(0.34,0.52,1.25,M.frame,s*0.81,-0.69,-0.3); bx(0.35,0.012,1.26,M.panel,s*0.81,-0.424,-0.3); bx(0.02,0.012,1.26,M.trim,s*0.635,-0.42,-0.3); }
@@ -60,6 +61,9 @@ const Cockpit = {
     const mug=new THREE.Mesh(new THREE.CylinderGeometry(0.036,0.032,0.085,24,1,true),std('#d8d2c4',0.4,0,{side:THREE.DoubleSide})); mug.position.set(-0.74,-0.375,-0.66); add(mug);
     const coffee=new THREE.Mesh(new THREE.CircleGeometry(0.034,24),std('#1c0f08',0.15,0)); coffee.rotation.x=-Math.PI/2; coffee.position.set(-0.74,-0.345,-0.66); g.add(coffee);
     const hd=new THREE.Mesh(new THREE.TorusGeometry(0.024,0.006,8,16,Math.PI),mug.material); hd.rotation.z=-Math.PI/2; hd.position.set(-0.704,-0.375,-0.66); g.add(hd);
+    // what is shell and what moves with the bespoke cockpit's anchors
+    const keep=new Set([this.stick,stickBase,mug,coffee,hd,this.door,v1,v2]); this.shellParts=g.children.slice(shell0).filter(o=>!keep.has(o));
+    this.fit={ stick:{home:new V3(0.74,-0.39,-0.5),parts:[this.stick,stickBase]}, mug:{home:new V3(-0.74,-0.375,-0.66),parts:[mug,coffee,hd]} };
 
     /* ---- panel + control factories ---- */
     const panel=(w,h)=>{
@@ -205,7 +209,7 @@ const Cockpit = {
     PO.done();
     // dome lamps
     this.lampMat=new THREE.MeshBasicMaterial({color:0xffffff});
-    for(const s of [-1,1]){ const lm=new THREE.Mesh(new THREE.CircleGeometry(0.04,20),this.lampMat); lm.rotation.x=Math.PI/2; lm.position.set(s*0.38,0.638,0.05); g.add(lm); }
+    this.lampMeshes=[]; for(const s of [-1,1]){ const lm=new THREE.Mesh(new THREE.CircleGeometry(0.04,20),this.lampMat); lm.rotation.x=Math.PI/2; lm.position.set(s*0.38,0.638,0.05); g.add(lm); this.lampMeshes.push(lm); }
     this.cabinLights=[-1,1].map(s=>{ const l=new THREE.PointLight(C('#ffd9b0'),0,3.2,1.6); l.position.set(s*0.38,0.56,0.02); g.add(l); return l; });
     this.glowLight=new THREE.PointLight(C(ck.glow),0,1.8,1.5); this.glowLight.position.set(0,-0.22,-0.55); g.add(this.glowLight);
 
@@ -216,30 +220,68 @@ const Cockpit = {
     reg({id:'xlcall',type:'screen',label:'Incoming call',tip:'click to answer',when:()=>Dlg.open&&Dlg.mini,press:()=>Dlg.expand()},[this.screens.xl.mesh]);
 
     /* ---- manifest clipboard ---- */
-    { const cv=makeCanvas(400,560); const tex=canvasTex(cv); const board=new THREE.Group(); board.position.set(-0.81,-0.412,-0.32); board.rotation.y=0.18; g.add(board);
+    { const cv=makeCanvas(400,560); const tex=canvasTex(cv); const board=new THREE.Group(); board.position.set(-0.81,-0.412,-0.32); board.rotation.y=0.18; g.add(board); this.clipboard=board;
       bx(0.2,0.008,0.28,std('#5a4026',0.8,0),0,0,0,board); const pm=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.252),new THREE.MeshStandardMaterial({map:tex,roughness:0.9,metalness:0})); pm.rotation.x=-Math.PI/2; pm.position.y=0.0046; pm.receiveShadow=true; board.add(pm);
       bx(0.07,0.012,0.02,M.alu,0,0.008,-0.125,board); this.screens.manifest={cv,ctx:cv.getContext('2d'),tex,w:400,h:560}; }
 
     /* ---- wipers ---- */
     { const base=new V3(0,-0.23,-1.41), top=new V3(0,0.64,-0.45), u=top.clone().sub(base).normalize(), rgt=new V3(1,0,0), nn=new V3().crossVectors(rgt,u);
-      const q=new Q4().setFromRotationMatrix(new THREE.Matrix4().makeBasis(rgt,u,nn)); this.wipers=[];
+      const q=new Q4().setFromRotationMatrix(new THREE.Matrix4().makeBasis(rgt,u,nn)); this.wipers=[]; this.wiperUp=u; this.wiperN=nn;
       for(const s of [-0.42,0.12]){ const w=new THREE.Group(); w.position.copy(base).addScaledVector(u,0.035).addScaledVector(nn,0.014).addScaledVector(rgt,s); w.quaternion.copy(q); g.add(w);
         const piv=new THREE.Group(); w.add(piv); bx(0.012,0.5,0.008,M.knob,0,0.25,0,piv); bx(0.02,0.4,0.006,M.rubber,0,0.3,-0.005,piv); piv.rotation.z=-1.47; this.wipers.push(piv); } this.wipePh=0; }
 
     /* ---- dashboard mascot ---- */
-    { const b=new THREE.Group(); b.position.set(0.5,-0.2,-0.84); g.add(b); const gm=std('#58d058',0.35,0); const body=new THREE.Mesh(new THREE.SphereGeometry(0.022,14,10),gm); body.scale.y=1.2; body.position.y=0.022; add(body,true,b);
+    { const b=new THREE.Group(); b.position.set(0.5,-0.2,-0.84); g.add(b); this.mascot=b; const gm=std('#58d058',0.35,0); const body=new THREE.Mesh(new THREE.SphereGeometry(0.022,14,10),gm); body.scale.y=1.2; body.position.y=0.022; add(body,true,b);
       const head=new THREE.Group(); head.position.y=0.05; b.add(head); const hm=new THREE.Mesh(new THREE.SphereGeometry(0.024,16,12),gm); hm.position.y=0.02; add(hm,true,head);
       for(const s of [-1,0,1]){ const e=new THREE.Mesh(new THREE.SphereGeometry(0.0065,8,6),std('#ffffff',0.2,0)); e.position.set(s*0.012,0.026+(s?0:0.008),0.02); head.add(e); const p=new THREE.Mesh(new THREE.SphereGeometry(0.003,6,6),std('#000000',0.2,0)); p.position.set(s*0.012,0.026+(s?0:0.008),0.0255); head.add(p); }
       this.bobble=head; this.bobV=new THREE.Vector2(); this.bobA=new THREE.Vector2(); }
 
-    this.drawManifest(); this.frame=0;
+    this.panels={panel_main:PC.g,panel_left:PL.g,panel_right:PR.g,panel_pedestal:PP.g,panel_overhead:PO.g,panel_radio:PT.g};
+    this.drawManifest(); this.frame=0; this.grade=null; this.doorX0=0;
+    const id=SHIPS.indexOf(def), own=Assets.cockpit(id); if(own) this.bespoke(own,g);
+    const dk=Assets.deck(id); if(dk) Assets.glb(dk.file).catch(()=>{});   // fetch the walkable deck now, so it's there when you get up
+  },
+
+  /* ---------- the ship's own cockpit ----------
+     Each hull has a cockpit modelled in Blender in this same frame (eye at the origin, looking down -z). When it has
+     loaded it replaces the stock shell, canopy frame, seat and consoles; the six working panels, the stick, mug,
+     clipboard, mascot, wipers, dome lamps and instrument glow move onto its named anchors, its windshield carries the
+     visor tint and grime, and its door slides. Its own sky lights its metal and glass and its colour grade is used in
+     flight. If it can't be loaded, the stock cockpit stays. */
+  bespoke(B, g){
+    Promise.all([Assets.glb(B.file), Assets.env(`assets/cockpits/finish/${B.ship}/space.hdr`).catch(()=>null), Assets.lut(`assets/cockpits/finish/${B.ship}/grade.png`).catch(()=>null)]).then(([src,env,lut])=>{
+      if(this.group!==g) return;   // a different ship was fitted meanwhile
+      const room=src.clone(true); room.name='bespoke cockpit '+B.ship; Assets.prepare(room,env); const A=Assets.anchors(room);
+      const glass=this.M.canopy;
+      room.traverse(o=>{ if(!o.isMesh) return; const m=o.material;
+        if(o.name==='windshield'||/^canopy_/.test(o.name)||(m&&m.name==='glass')){ o.material=glass; o.renderOrder=3; o.userData.glass=true; o.castShadow=false; }
+        else if(m&&m.isMeshStandardMaterial&&/glow/i.test(m.name)) this.glowMats.push(m); });
+      // the stock shell goes; the bespoke one comes in
+      for(const o of this.shellParts){ g.remove(o); if(o.geometry) o.geometry.dispose(); } this.shellParts=[]; this.strips=[];
+      g.add(room); this.bespokeRoom=room;
+      // panels and fittings onto their anchors
+      for(const k in this.panels){ const a=A[k]; if(!a) continue; const pg=this.panels[k]; pg.position.copy(a.position); pg.quaternion.copy(a.quaternion); }
+      for(const k in this.fit){ const a=A[k]; if(!a) continue; const d=a.position.clone().sub(this.fit[k].home); for(const o of this.fit[k].parts) o.position.add(d); this.fit[k].home.copy(a.position); }
+      if(A.clipboard&&this.clipboard) this.clipboard.position.copy(A.clipboard.position);
+      if(A.mascot&&this.mascot) this.mascot.position.copy(A.mascot.position);
+      // wipers ride the windshield's plane as before, from their own pivots
+      for(const [i,k] of [[0,'wiper_left'],[1,'wiper_right']]){ const a=A[k], w=this.wipers[i]&&this.wipers[i].parent; if(a&&w) w.position.copy(a.position).addScaledVector(this.wiperUp,0.035).addScaledVector(this.wiperN,0.014); }
+      for(const [i,k] of [[0,'lamp_port'],[1,'lamp_starboard']]){ const a=A[k]; if(!a) continue; if(this.lampMeshes[i]) this.lampMeshes[i].position.copy(a.position).add(new V3(0,-0.002,0)); if(this.cabinLights[i]) this.cabinLights[i].position.copy(a.position).add(new V3(0,-0.08,-0.03)); }
+      if(A.glow) this.glowLight.position.copy(A.glow.position);
+      // the windshield's tint and grime layers take its shape
+      const ws=room.getObjectByName('windshield'); if(ws){ room.updateMatrixWorld(true); const m=new THREE.Matrix4().copy(g.matrixWorld).invert().multiply(ws.matrixWorld);
+        for(const L of this.wsLayers){ L.geometry=ws.geometry; L.matrixAutoUpdate=false; L.matrix.copy(m); } }
+      // the door: its own panel slides instead of the stock one
+      const door=room.getObjectByName('door'); if(door){ if(this.door){ g.remove(this.door); this.door.geometry.dispose(); } this.door=door; this.doorX0=door.position.x; }
+      this.grade=lut;
+    }).catch(()=>{});
   },
 
   /* ---------- per-frame ---------- */
   setDoor(v){ this.doorT=v; if(Sfx.ok()) Sfx.hiss(0.4,0.08); },
   update(dt, t){
     const s=G.ship, sys=G.sys, pw=sys.power?1:0, def=SHIPS[G.shipId]; this.frame++;
-    if(this.door) this.door.position.x=damp(this.door.position.x,this.doorT?0.86:0,9,dt);
+    if(this.door) this.door.position.x=damp(this.door.position.x,(this.doorX0||0)+(this.doorT?0.86:0),9,dt);
     for(const id in this.ctrls){ const c=this.ctrls[id];
       if(c.type==='knob'){ let a=-c.angle(c.get()), d=a-c.cur; if(c.wrap){ d=((d+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; } c.cur+=d*(1-Math.exp(-dt*16)); c.rot.rotation.z=c.cur; }
       else if(c.type==='switch'){ const on=c.get(), amp=c.amp||0.5; c.piv.rotation.x=damp(c.piv.rotation.x,on?-amp:amp,18,dt); if(c.ledOn){ c.led.material.color.copy(c.ledOn).multiplyScalar(on?(0.7+0.3*Math.sin(t*9)):s.warpF>0?0.3:(Game.canWarp()===true?0.25+0.12*Math.sin(t*3):0.02)); } else c.led.material.color.setRGB(on&&pw?0.3:0.02,on&&pw?2.2:0.03,on&&pw?0.5:0.02); }

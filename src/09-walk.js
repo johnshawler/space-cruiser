@@ -137,7 +137,31 @@ const Interior = {
     // fault props, hidden until something breaks
     for(const id in FAULT_DEFS) this.fx[id]=this.faultFx(id);
     g.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
-    this.syncFaults();
+    this.syncFaults(); this.grade=null;
+    const own=Assets.deck(G.shipId); if(own) this.bespoke(own,g);
+  },
+  /* ---------- the ship's own deck ----------
+     Each hull's walkable deck is modelled in Blender on the same plan as the stock one (same rooms, doorways, seats and
+     repair spots), so the walking bounds stay. When it has loaded it replaces the stock walls, floors, ceilings and
+     furniture; the six repair spots, the passengers' places, the crates in the hold and the signs stay, the ceiling
+     lamps move to its light markers, and its own sky and colour grade come with it. */
+  bespoke(B, g){
+    const dir=`assets/ship-interiors/finish/${B.ship}/`;
+    Promise.all([Assets.glb(B.file), Assets.env(dir+'space.hdr').catch(()=>null), Assets.lut(dir+'grade.png').catch(()=>null)]).then(([src,env,lut])=>{
+      if(this.group!==g) return;
+      const deck=src.clone(true); deck.name='bespoke deck '+B.ship; Assets.prepare(deck,env); const A=Assets.anchors(deck);
+      deck.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false; if(o.material&&o.material.name==='glass'){ o.renderOrder=5; } });
+      const keep=new Set([...Object.values(this.fx).map(f=>f.grp),...this.seats,this.crates].filter(Boolean));
+      for(const o of g.children.slice()){ if(keep.has(o)||o.isHemisphereLight) continue;
+        if(o.isMesh&&[].concat(o.material).some(m=>m&&m.userData.label)) continue;
+        if(o===this.core){ o.visible=false; continue; }
+        g.remove(o); if(o.geometry&&o!==this.core) o.geometry.dispose(); }
+      // the stock seats go too (the deck has its own); the places where passengers sit stay
+      for(const S of this.seats) for(const c of S.children.slice()) if(!this.pax.includes(c)) S.remove(c);
+      this.lights=[]; for(const k in A){ if(!/^lamp_/.test(k)) continue; const L=new THREE.PointLight(C('#ffe2c0'),1.8,10,1.5); L.position.copy(A[k].position).add(new V3(0,-0.2,0)); g.add(L); this.lights.push(L); }
+      if(A.reactor){ const L=new THREE.PointLight(C('#6fd6ff'),2.2,8,1.5); L.position.copy(A.reactor.position).add(new V3(0,0.15,0)); g.add(L); this.lights.push(L); }
+      g.add(deck); this.bespokeDeck=deck; this.grade=lut;
+    }).catch(()=>{});
   },
   /* a cushioned passenger seat on a pedestal, with armrests, a headrest and a harness; local +x faces into the cabin */
   seat(sg,M,i){ const rb=Folk.rbox, add=(o,rz)=>{ if(rz) o.rotation.z=rz; sg.add(o); return o; };
@@ -150,7 +174,7 @@ const Interior = {
     add(Folk.bx(0.03,0.08,0.12,M.chrome,-0.15,FLOOR+0.7,0)); },
   /* signs, posters, rails, furniture and clutter, room by room */
   decor(g,M,bx,cyl,nSeats){
-    const ry90=Math.PI/2, add=o=>{ g.add(o); return o; };
+    const ry90=Math.PI/2, add=o=>{ g.add(o); return o; }, label=m=>{ m.userData.label=true; return m; };   // signs, posters and dials stay on a bespoke deck
     const plane=(w,h,m,x,y,z,ry)=>{ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m); o.position.set(x,y,z); o.rotation.y=ry; return add(o); };
     const fitFont=(c,txt,max,px,font)=>{ let s=px; do { c.font=font.replace('#',s); s-=2; } while(c.measureText(txt).width>max&&s>8); };
     const sign=(title,sub,w,h,x,y,z,ry,col)=>{ const W=768, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d'); col=col||'#f2c14e';
@@ -160,7 +184,7 @@ const Interior = {
       // mounted on a short stand-off, clear of the wall ribs and rails, and kept below the ceiling beams and pipes
       const top=CEIL-0.12; if(y+h/2>top) y=top-h/2; const nx=Math.sin(ry), nz=Math.cos(ry), off=0.07;
       const back=bx(w+0.04,h+0.04,0.05,M.dark,x+nx*(off-0.03),y,z+nz*(off-0.03)); back.rotation.y=ry;
-      return plane(w,h,new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)}),x+nx*off,y,z+nz*off,ry); };
+      return plane(w,h,label(new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)})),x+nx*off,y,z+nz*off,ry); };
     const poster=(title,body,col,w,h,x,y,z,ry)=>{ const W=512, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d');
       c.fillStyle='#ebe5d6'; c.fillRect(0,0,W,Hh); c.fillStyle=col; c.fillRect(0,0,W,Hh*0.22); c.fillStyle='#ffffff'; c.textAlign='center'; c.textBaseline='middle';
       fitFont(c,title,W-40,Math.round(Hh*0.1),`700 #px ${FONT_DISP}`); c.fillText(title,W/2,Hh*0.11);
@@ -168,7 +192,7 @@ const Interior = {
       for(const wd of body.split(' ')){ const t=line?line+' '+wd:wd; if(c.measureText(t).width>W-56){ c.fillText(line,W/2,yy); yy+=lh; line=wd; } else line=t; } c.fillText(line,W/2,yy);
       c.fillStyle=col; c.fillRect(W*0.3,Hh-26,W*0.4,8);
       const off=0.06; x+=Math.sin(ry)*off; z+=Math.cos(ry)*off; // proud of the wall ribs
-      const fr=bx(w+0.05,h+0.05,0.02,M.frame,x,y,z); fr.rotation.y=ry; const o=plane(w,h,new THREE.MeshStandardMaterial({map:canvasTex(cv),roughness:0.8}),x+Math.sin(ry)*0.012,y,z+Math.cos(ry)*0.012,ry); return o; };
+      const fr=bx(w+0.05,h+0.05,0.02,M.frame,x,y,z); fr.rotation.y=ry; const o=plane(w,h,label(new THREE.MeshStandardMaterial({map:canvasTex(cv),roughness:0.8})),x+Math.sin(ry)*0.012,y,z+Math.cos(ry)*0.012,ry); return o; };
     /* ---- corridor ---- */
     for(const [sx,spans] of [[-1,[[0.75,3.0],[4.2,7.15]]],[1,[[0.75,2.5],[3.7,7.15]]]]) for(const [a,b] of spans){
       const r=cyl(0.024,0.024,b-a-0.2,M.chrome,sx*0.77,0.08,(a+b)/2,12); r.rotation.x=ry90;
@@ -218,7 +242,7 @@ const Interior = {
       c.strokeStyle='#202428'; c.lineWidth=5; for(let k=0;k<=8;k++){ const a=Math.PI*0.75+k/8*Math.PI*1.5; c.beginPath(); c.moveTo(S/2+Math.cos(a)*(S/2-20),S/2+Math.sin(a)*(S/2-20)); c.lineTo(S/2+Math.cos(a)*(S/2-42),S/2+Math.sin(a)*(S/2-42)); c.stroke(); }
       c.fillStyle='#202428'; c.font=`700 40px ${FONT_DISP}`; c.textAlign='center'; c.fillText(lbl,S/2,S*0.8);
       const a=Math.PI*0.75+v*Math.PI*1.5; c.strokeStyle='#c0392b'; c.lineWidth=8; c.beginPath(); c.moveTo(S/2,S/2); c.lineTo(S/2+Math.cos(a)*(S/2-34),S/2+Math.sin(a)*(S/2-34)); c.stroke(); c.fillStyle='#202428'; c.beginPath(); c.arc(S/2,S/2,12,0,7); c.fill();
-      return new THREE.MeshBasicMaterial({map:canvasTex(cv),color:0xcccccc}); };
+      return label(new THREE.MeshBasicMaterial({map:canvasTex(cv),color:0xcccccc})); };
     [[0.4,0.35,'TEMP'],[1.0,0.62,'PRESS'],[1.6,0.9,'VIBES']].forEach(([x,v,l])=>{ const d=new THREE.Mesh(new THREE.CircleGeometry(0.13,32),dial(v,l)); d.position.set(x,-0.4,18.444); d.rotation.y=Math.PI; add(d); cyl(0.145,0.145,0.02,M.chrome,x,-0.4,18.452,24).rotation.x=ry90; });
     cyl(0.02,0.02,0.32,M.chrome,1.95,0.08,18.6,8).rotation.x=-0.4; add(Folk.sph(0.045,M.red,1.95,0.23,18.54));
     poster('REACTOR NOTICE','Glowing is normal. Humming is normal. If it starts singing, leave quietly and do not join in.','#c0392b',0.55,0.74,-1.45,0.5,18.955,Math.PI);

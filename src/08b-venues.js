@@ -703,10 +703,11 @@ const Venues = (() => {
       // the shop's name sign hangs from the room's own ceiling
       const box=new THREE.Box3().setFromObject(room), top=clamp(box.max.y,6.6,12); V.room.h=Math.max(V.room.h,Math.min(12,top));
       for(const h of V.signHang||[]){ h.geometry.dispose(); h.geometry=new THREE.CylinderGeometry(0.04,0.04,Math.max(0.1,top-6.4),6); h.position.y=(top+6.4)/2; }
-      // its lamps become real lights (dimmer than in Blender: the bake adds their bounce)
-      V.beamSpots=[]; for(const L of B.lights||[]){ const p=L.position, l=new THREE.PointLight(C(L.color),L.intensity*0.75,L.distance||20,1.5); l.position.set(p[0],p[1],p[2]); room.add(l);
+      // its lamps become real lights; the room is closed in, so they stand in for the sky light the stock rooms got through
+      // their windows, and are a bit brighter than in Blender (whose area lights spread wider)
+      V.beamSpots=[]; for(const L of B.lights||[]){ const p=L.position, l=new THREE.PointLight(C(L.color),L.intensity*1.7,(L.distance||20)*1.25,1); l.position.set(p[0],p[1],p[2]); room.add(l);
         if(p[1]>3&&p[2]<1.5) V.beamSpots.push({x:p[0],y:p[1],z:p[2],col:C(L.color)}); }
-      room.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } }); R.add(room); V.bespokeRoom=room; V.grade=lut; V.roomEnv=env;
+      room.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; o.userData.triVox=true; } }); R.add(room); V.bespokeRoom=room; V.grade=lut; V.roomEnv=env;
       R.updateMatrixWorld(true);
       if(!/[?&]nobake\b/.test(location.search)){ Bake.room(V,V.scn,port); Bake.probe(V,V.scn); }
       // the room's own glass, metal and lamps reflect its sky; the keeper, crew, droid and goods take the probe of the finished room
