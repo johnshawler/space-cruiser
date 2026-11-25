@@ -1,5 +1,7 @@
 # Walkable ship interiors
 
+The lived-in redesign of each deck is described in [the deck briefs](briefs.md).
+
 The complete fleet archive includes the native Blender scenes, game models, ship manifests and full-size views. Open `gallery.html` after extraction.
 
 ## Rustbucket Mk I
