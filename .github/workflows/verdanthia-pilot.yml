@@ -1,0 +1,44 @@
+name: Bake Verdanthia pilot
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'art/interiors/**.py'
+      - '.github/workflows/verdanthia-pilot.yml'
+permissions:
+  contents: read
+jobs:
+  pilot:
+    if: github.event.pull_request.head.ref == 'bespoke-interiors' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Set up Blender 4.5 LTS
+        run: |
+          set -eu
+          cd "$RUNNER_TEMP"
+          release=https://download.blender.org/release/Blender4.5
+          archive=blender-4.5.3-linux-x64.tar.xz
+          curl --fail --location --retry 3 --output "$archive" "$release/$archive"
+          curl --fail --location --retry 3 --output checksums "$release/blender-4.5.3.sha256"
+          grep -F "$archive" checksums | sha256sum --check -
+          tar -xf "$archive"
+          echo "$RUNNER_TEMP/blender-4.5.3-linux-x64" >> "$GITHUB_PATH"
+      - name: Build and render
+        run: |
+          blender --version
+          for shop in depot garage cantina; do
+            blender -b -t 4 --factory-startup --python-exit-code 1 --python "art/interiors/verdanthia/$shop.py"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verdanthia-rooms
+          retention-days: 3
+          path: |
+            art/interiors/verdanthia/*.blend
+            assets/interiors
+            docs/interiors/verdanthia/*.png
