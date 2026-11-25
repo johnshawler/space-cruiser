@@ -397,7 +397,7 @@ body.flying #dlg .opt small{font-size:16px}
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.39</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.40</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -12495,6 +12495,8 @@ const Radio = {
   update(dt){
     // away from the cockpit you hear nothing from the radio; only a passenger you are talking to shows up
     if(Walk.on){ if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6) this.cur=null; } return; }
+    // at warp the radio is silent: nothing new comes in and whatever was playing drops out
+    if(G.ship.warp||G.ship.warpF>0.05){ if(this.cur&&!(Dlg.open&&Dlg.mini)) this.cur=null; this.wait=Math.max(this.wait,4); return; }
     if(Comms.open){ if(this.cur) this.cur.t+=dt; return; } this.wait-=dt; if(this.cur){ this.cur.t+=dt; if(this.cur.t>this.cur.dur+2.6&&!(Dlg.open&&Dlg.mini)) this.cur=null; return; }
     if(!G.sys.power||Dlg.open||Faults.has('fuse')) return; if(this.wait<=0) this.next();
   },
