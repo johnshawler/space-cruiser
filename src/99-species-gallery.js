@@ -297,7 +297,7 @@
   host.addEventListener('cancel',e=>{e.preventDefault(); if(key) back(); else close();});
   // The game has window-level flight controls, including Space and the arrow keys.
   for (const type of ['keydown','keyup','keypress']) host.addEventListener(type,e=>e.stopPropagation());
-  const cast = SPECIES_EXTRA_KEYS.filter(k=>SPECIES[k].cast);
+  const cast = ResidentModels.cast.map(design=>design.id).filter(id=>SPECIES[id]?.cast);
   const collections = {
     crew: ['Original crew', [['Original crew', SPECIES_KEYS]]],
     pack: ['Species pack', [['Species pack', SPECIES_EXTRA_KEYS.filter(k=>!SPECIES[k].cast)]]],
