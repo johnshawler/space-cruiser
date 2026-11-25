@@ -35,9 +35,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -86,9 +86,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -148,9 +148,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -199,9 +199,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -250,9 +250,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -312,9 +312,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -363,9 +363,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -425,9 +425,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -476,9 +476,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -527,9 +527,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -589,9 +589,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -651,9 +651,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -702,9 +702,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -753,9 +753,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -815,9 +815,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -877,9 +877,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -928,9 +928,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -979,9 +979,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1041,9 +1041,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1092,9 +1092,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1154,9 +1154,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1205,9 +1205,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1256,9 +1256,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1318,9 +1318,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1369,9 +1369,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1431,9 +1431,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1482,9 +1482,9 @@
         {
           "name": "light_soffit",
           "position": [
-            0,
+            0.0,
             7.1,
-            -1
+            -1.0
           ],
           "color": "#e5eafa",
           "intensity": 1.05,
@@ -1538,7 +1538,7 @@
             -5.35
           ],
           "color": "#ffd9a0",
-          "intensity": 1,
+          "intensity": 1.0,
           "distance": 23
         },
         {
@@ -1546,7 +1546,7 @@
           "position": [
             7.9,
             6.8,
-            -1
+            -1.0
           ],
           "color": "#ffe8bb",
           "intensity": 0.95,
@@ -1597,7 +1597,7 @@
           "position": [
             4.5,
             4.15,
-            -13
+            -13.0
           ],
           "color": "#ffcf94",
           "intensity": 1.15,
@@ -1646,7 +1646,7 @@
         {
           "name": "light_workbay",
           "position": [
-            0,
+            0.0,
             7.5,
             -1.6
           ],
