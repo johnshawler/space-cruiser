@@ -55,7 +55,7 @@ class Room:
         if bevel:
             mod = ob.modifiers.new('Rounded edges', 'BEVEL')
             mod.width = min(bevel, min(size) * .44)
-            mod.segments = 2
+            mod.segments = 1 if mod.width < .045 else 2
             mod.harden_normals = True
             ob.modifiers.new('Face normals', 'WEIGHTED_NORMAL')
         return self.put(ob, mat, name)
@@ -207,13 +207,16 @@ class Room:
             mesh=bpy.data.meshes.new_from_object(target,depsgraph=deps)
             mesh.transform(ob.matrix_world)
             # Metre-scale planar UVs also cover lettering and curved primitives.
-            uv=mesh.uv_layers.active or mesh.uv_layers.new(name='Surface')
-            for p in mesh.polygons:
-                axis=max(range(3),key=lambda i:abs(p.normal[i]))
-                axes=((1,2),(0,2),(0,1))[axis]
-                for li in p.loop_indices:
-                    v=mesh.vertices[mesh.loops[li].vertex_index].co
-                    uv.data[li].uv=(v[axes[0]]*.55,v[axes[1]]*.55)
+            if any(n.type=='TEX_IMAGE' for n in ob.data.materials[0].node_tree.nodes):
+                uv=mesh.uv_layers.active or mesh.uv_layers.new(name='Surface')
+                for p in mesh.polygons:
+                    axis=max(range(3),key=lambda i:abs(p.normal[i]))
+                    axes=((1,2),(0,2),(0,1))[axis]
+                    for li in p.loop_indices:
+                        v=mesh.vertices[mesh.loops[li].vertex_index].co
+                        uv.data[li].uv=(v[axes[0]]*.55,v[axes[1]]*.55)
+            else:
+                while mesh.uv_layers:mesh.uv_layers.remove(mesh.uv_layers[0])
             copy=bpy.data.objects.new('Export part',mesh); self.coll.objects.link(copy)
             mat=ob.data.materials[0]
             group=ob['assembly']

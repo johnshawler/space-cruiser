@@ -1,4 +1,4 @@
-name: Bake Verdanthia pilot
+name: Build port interiors
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -11,6 +11,11 @@ jobs:
     permissions:
       contents: read
     if: github.event.pull_request.head.ref == 'bespoke-interiors' && github.event.pull_request.head.repo.full_name == github.repository
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        location: [verdanthia, scorchmaw, dunemoor, sloshwell, amethyne, toxibloom, candara, jovexa, brrrindle, listening-post-hush, cryo-vault-rimeholm, calibration-spire, beacon-far-wink]
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -32,14 +37,14 @@ jobs:
       - name: Build and render
         run: |
           blender --version
-          for shop in depot garage cantina; do
-            blender -b -t 4 --factory-startup --python-exit-code 1 --python "art/interiors/verdanthia/$shop.py"
+          for script in art/interiors/${{ matrix.location }}/*.py; do
+            blender -b -t 4 --factory-startup --python-exit-code 1 --python "$script"
           done
       - uses: actions/upload-artifact@v4
         with:
-          name: verdanthia-rooms
+          name: interiors-${{ matrix.location }}
           retention-days: 5
           path: |
-            art/interiors/verdanthia/*.blend
+            art/interiors/${{ matrix.location }}/*.blend
             assets/interiors
-            docs/interiors/verdanthia/*.png
+            docs/interiors/${{ matrix.location }}/*.png

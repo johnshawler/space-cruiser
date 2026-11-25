@@ -84,7 +84,7 @@ def area(scene,name,pos,target,color,watts,size):
     obj.location=pos; obj.rotation_euler=(Vector(target)-Vector(pos)).to_track_quat('-Z','Y').to_euler()
     return obj
 
-def sky_image():
+def sky_image(place):
     # Sky radiance with a Rayleigh-blue zenith, warm Mie horizon and a compact sun.
     h,w=128,256
     az=np.arange(w)[None,:]*2*math.pi/w
@@ -96,15 +96,32 @@ def sky_image():
     sky+=np.maximum(mu,0)[:,:,None]**32*np.array([.91,.65,.4])
     sky+=np.maximum(mu,0)[:,:,None]**2400*np.array([45.,33.,18.])
     sky[z<0]=[.19,.26,.13]
-    return rgba_image('orchard-sky',sky,False,True)
+    if place!='verdanthia':
+        from ports import COLOURS, STATIONS
+        from workshop import rgb
+        horizon_colour=np.array(rgb(COLOURS[place][6]))
+        if place in STATIONS:
+            sky[:]=[.008,.011,.022]
+            rng=np.random.default_rng(814)
+            for j in range(170):
+                iy,ix=rng.integers(h),rng.integers(w)
+                sky[iy,ix]=np.array([.85,.91,1.0])*rng.uniform(.6,4)
+            sky[z<-.67]=[.035,.039,.052]
+        else:
+            sky*=.35+.95*horizon_colour
+    return rgba_image('environment',sky,False,True)
 
-def grade_table():
+def grade_table(place):
     # 16 blue slices across a 256 x 16 strip. Green increases bottom to top.
     g,x=np.mgrid[:16,:256]
     col=np.stack([x%16,g,x//16],axis=-1)/15
     lum=(col*np.array([.2126,.7152,.0722])).sum(axis=-1,keepdims=True)
     graded=lum+(col-lum)*.98
     graded+= (1-lum)*lum*np.array([.065,.022,-.045])
+    if place!='verdanthia':
+        from ports import COLOURS
+        from workshop import rgb
+        tint=np.array(rgb(COLOURS[place][5]));graded+=lum*(1-lum)*(tint-tint.mean())*.12
     return np.clip(graded,0,1)
 
 def prepare_finish(room):
@@ -112,10 +129,10 @@ def prepare_finish(room):
     # Separate source lights, large emitters and physically shaded surfaces give
     # Cycles colour bounce, occlusion, soft penumbrae and grounding contact.
     directory=room.root/'assets/interiors'/room.place;directory.mkdir(parents=True,exist_ok=True)
-    sky=sky_image()
-    (directory/'orchard-sky.hdr').write_bytes(Path(bpy.path.abspath(sky.filepath_raw)).read_bytes())
-    lut=rgba_image('orchard-grade',grade_table())
-    (directory/'orchard-grade.png').write_bytes(Path(bpy.path.abspath(lut.filepath_raw)).read_bytes())
+    sky=sky_image(room.place)
+    (directory/'environment.hdr').write_bytes(Path(bpy.path.abspath(sky.filepath_raw)).read_bytes())
+    lut=rgba_image('grade',grade_table(room.place))
+    (directory/'grade.png').write_bytes(Path(bpy.path.abspath(lut.filepath_raw)).read_bytes())
     world=bpy.data.worlds.new('Verdanthia orchard daylight'); scene.world=world; world.use_nodes=True
     n=world.node_tree.nodes.new('ShaderNodeTexEnvironment');n.image=sky
     bg=world.node_tree.nodes['Background']; bg.inputs['Strength'].default_value=.48
@@ -154,12 +171,12 @@ def prepare_finish(room):
     scene.camera=game
     room.game_camera,room.overview_camera=game,overview
 
-def grade_png(path):
+def grade_png(path,place):
     im=bpy.data.images.load(str(path),check_existing=False);w,h=im.size
     pixels=np.empty(w*h*4,dtype=np.float32);im.pixels.foreach_get(pixels)
     p=pixels.reshape(h,w,4); c=np.clip(linear_srgb(p[:,:,:3]),0,1)*15
     low=np.minimum(c.astype(int),14); f=c-low
-    lut=grade_table(); result=np.zeros_like(c)
+    lut=grade_table(place); result=np.zeros_like(c)
     for dr in (0,1):
         for dg in (0,1):
             for db in (0,1):
@@ -182,7 +199,7 @@ def render_views(room):
             bpy.data.objects['Preview | interior air'].hide_render=True
         path=save/(room.key+'-'+key+'.png');scene.render.filepath=str(path)
         bpy.ops.render.render(write_still=True)
-        grade_png(path)
+        grade_png(path,room.place)
     for ob in room.items:ob.hide_render=False
     scene.camera=room.game_camera
 
