@@ -5,10 +5,11 @@ on:
     paths:
       - 'art/interiors/**.py'
       - '.github/workflows/verdanthia-pilot.yml'
-permissions:
-  contents: read
+permissions: {}
 jobs:
   pilot:
+    permissions:
+      contents: read
     if: github.event.pull_request.head.ref == 'bespoke-interiors' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -37,7 +38,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verdanthia-rooms
-          retention-days: 3
+          retention-days: 5
           path: |
             art/interiors/verdanthia/*.blend
             assets/interiors
