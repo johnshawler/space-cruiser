@@ -356,9 +356,9 @@ const Interior = {
     const me=Walk.pos;
     for(const F of this.pax){ Folk.blink(F,t); const S=F.parent, wp=new V3().setFromMatrixPosition(S.matrix), d=Math.hypot(me.x-wp.x,me.z-wp.z), U=F.userData;
       const want=d<3.5?clamp(Math.atan2(me.x-wp.x,me.z-wp.z)-Math.PI/2,-0.9,0.9):Math.sin(t*0.3+U.ph)*0.3; U.head.rotation.y=lerp(U.head.rotation.y,want,1-Math.exp(-dt*4));
-      // breathe; wave hello when you first come over, and again if you come back after a while
+      // breathe; nod when you first come over, and again if you come back after a while
       U.rig.scale.y=1+Math.sin(t*1.6+U.ph)*0.012; if(d<2.6&&!U.waved){ U.waved=true; U.wave=1.8; } if(d>4.5) U.waved=false;
-      if(U.wave>0){ U.wave-=dt; Folk.arms(F,[0.55,0.28],[2.7,0.35+Math.sin(t*14)*0.35]); if(U.wave<=0) Folk.arms(F,[0.55,0.28],[0.55,0.28]); }
+      if(U.wave>0){ U.wave-=dt; U.head.rotation.x=0.2*Math.sin(clamp((1.8-U.wave)/0.9,0,1)*Math.PI); if(U.wave<=0) U.head.rotation.x=0; }
       const c=U.cargo, f=c.kind==='escort'?(c.hp>70?1:c.hp>40?0.7:0.4):Cargo.factor(c), m=Escort.hazard&&c.kind==='escort'?'shock':f>=1?(Faults.has('scrubber')?'worried':d<2.2?'happy':'neutral'):f>0.65?'worried':'sad'; if(U.mood!==m) Folk.mood(F,m); }
   },
 };
@@ -374,7 +374,7 @@ const Walk = {
     if(!Interior.group||Interior.shipId!==G.shipId) Interior.build(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,6);
     Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
     this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
-    Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); $('reticle').hidden=false; Sfx.clunk();
+    Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); Sfx.clunk();
     if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat at the cockpit door to sit down.':'Walking. W A S D to move, Q and E to turn, drag to look, hold F to fix things, L at the cockpit door to sit down.','good'); }
     TouchUI.sync&&TouchUI.sync(true); },
   exit(instant){

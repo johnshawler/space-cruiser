@@ -187,7 +187,7 @@ const Folk = (() => {
     for(const tn of U.tent){ if(U.arms.includes(tn)) continue; tn.rotation.x=Math.sin(tn.userData.a)*0.35+Math.sin(t*2.2+tn.userData.a*3)*0.12; } }
   /* A model can animate its own geometry after the shared stride. Zero amount restores its rest pose. */
   function walk(F, ph, amt){ const U=F.userData, s=Math.sin(ph)*amt; if(U.legs[0]){ U.legs[0].rotation.x=s*0.7; U.legs[1].rotation.x=-s*0.7; for(const l of U.legs) if(l.userData.foot) l.userData.foot.rotation.x=-l.rotation.x; } if(U.arms[0]){ U.arms[0].rotation.x=-s*0.5; U.arms[1].rotation.x=s*0.5; }
-    U.rig.position.y=Math.abs(Math.sin(ph))*0.07*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; if(U.gait) U.gait(ph,amt); }
+    U.rig.position.y=Math.abs(Math.sin(ph))*0.025*amt; U.rig.rotation.z=Math.sin(ph)*0.05*amt; if(U.gait) U.gait(ph,amt); }
   function rest(F){ const U=F.userData; if(U.gait) walk(F,0,0); U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
@@ -551,6 +551,30 @@ const Venues = (() => {
 
   /* ---------- the gags: each has a length, a reset and an update ---------- */
   const once=(V,k)=>{ if(V.fired[k]) return false; V.fired[k]=1; return true; };
+  const ang=(a,b,k)=>{ let d=((b-a+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; return a+d*k; };
+  /* walk F towards (x, z) in the shop's frame; true once there */
+  function stroll(F, x, z, dt, sp=1.5){ const d=new V3(x-F.position.x,0,z-F.position.z), L=d.length(); if(L<0.06){ Folk.walk(F,0,0); return true; }
+    F.rotation.y=ang(F.rotation.y,Math.atan2(d.x,d.z),1-Math.exp(-dt*8)); F.position.addScaledVector(d.normalize(),Math.min(L,sp*dt)); F.userData.wph=(F.userData.wph||0)+dt*9; Folk.walk(F,F.userData.wph,1); return false; }
+  function face(F, a, dt){ F.rotation.y=ang(F.rotation.y,a,1-Math.exp(-dt*6)); }
+  /* the garage's bad day, part two: A walks round the front of the engine to where the nozzle landed, bends and picks it
+     up, carries it back, lines it up and pushes it home (clunk), then goes back to the bench */
+  function fixNozzle(V, t, dt){ const {A}=V, g=V.g, U=A.userData; let f=g.fix;
+    if(!f){ if(V.phys.some(p=>p.o===g.nz&&(p.hit<2||p.v.lengthSq()>0.05))) return;   // still bouncing
+      V.phys=V.phys.filter(p=>p.o!==g.nz); const n=g.nz.position; f=g.fix={st:'go',T:0,n:n.clone(),route:[[-0.4,-3.0],[n.x-Math.sign(n.x-1)*0.2,n.z+0.85]]}; Folk.rest(A); }
+    f.T+=dt; const MOUNT=[2.75,-3.25];
+    if(f.st==='go'){ const w=f.route[0]; if(stroll(A,w[0],w[1],dt)){ f.route.shift(); if(!f.route.length){ f.st='bend'; f.T=0; } } }
+    else if(f.st==='bend'){ face(A,Math.atan2(f.n.x-A.position.x,f.n.z-A.position.z),dt); const k=P_(f.T,0,0.5); U.rig.rotation.x=0.55*Math.sin(Math.min(1,f.T/1.0)*Math.PI); Folk.arms(A,[1.2*k,0.1],[1.2*k,0.1]);
+      if(f.T>0.5&&g.nz.parent===V.root){ Folk.hold(A,g.nz); g.nz.position.set(0,-(A.userData.arms[1].userData.len||0.4)-0.1,0.35); g.nz.rotation.set(0,0,Math.PI/2); snd(V,()=>Sfx.clunk()); }
+      if(f.T>1.0){ U.rig.rotation.x=0; f.st='carry'; f.T=0; } }
+    else if(f.st==='carry'){ const there=stroll(A,MOUNT[0],MOUNT[1],dt,1.1); Folk.arms(A,[1.2,0.1],[1.2,0.1]); if(there){ f.st='fit'; f.T=0;
+        // from now on the nozzle is the engine's again, eased from the hands onto its mount
+        const wp=g.nz.getWorldPosition(new V3()), wq=g.nz.getWorldQuaternion(new THREE.Quaternion()); g.core.add(g.nz); g.core.worldToLocal(wp); g.nz.position.copy(wp);
+        g.nz.quaternion.copy(g.core.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(wq)); f.p0=g.nz.position.clone(); f.q0=g.nz.quaternion.clone(); U.held=false; } }
+    else if(f.st==='fit'){ face(A,Math.atan2(1.85-A.position.x,-4.2-A.position.z),dt); const k=E(P_(f.T,0,0.8)); g.nz.position.lerpVectors(f.p0,new V3(0.85,0,0),k); g.nz.quaternion.copy(f.q0).slerp(new THREE.Quaternion(),k);
+      Folk.arms(A,[1.2-0.2*k,0.1],[1.2-0.2*k,0.1]); if(f.T>=0.8&&once(V,'fit')){ snd(V,()=>Sfx.clunk()); g.core.userData.sh=0.2; }
+      if(f.T>1.5){ Folk.arms(A,[0,0],[0,0]); f.st='home'; f.T=0; f.route=[[-0.4,-3.0],[-0.4,-4.0]]; } }
+    else if(f.st==='home'){ const w=f.route[0]; if(stroll(A,w[0],w[1],dt)){ f.route.shift(); if(!f.route.length){ f.st='done'; f.T=0; } } }
+    else if(f.st==='done'){ face(A,Math.PI/2,dt); if(f.T>0.6) V.gagDur=Math.min(V.gagDur,t+0.5); } }
   const snd=(V,f)=>{ if(V===api.active&&G.mode==='port'&&!api.moving) f(); };
   const GAGS = {
     /* the depot: A picks up a stack of crates from the pile on the left and carries it through the doorway into the stock
@@ -573,7 +597,7 @@ const Venues = (() => {
         const bend=(u)=>{ r.rotation.x=0.55*Math.sin(Math.PI*u); r.position.y=-0.08*Math.sin(Math.PI*u); };
         // B by the stock-room door: beckons while A is on the way, hands on head when it all goes over
         B.rotation.y=Math.atan2(A.position.x-B.position.x,A.position.z-B.position.z);
-        if(s==='spill'||s==='down') Folk.arms(B,[2.7,0.3],[2.7,0.3]); else if(g.held.length&&s!=='gather'&&s!=='pick') Folk.arms(B,null,[0.3,2.3+Math.sin(t*8)*0.4]); else Folk.arms(B,[0.1,0.1],[0.1,0.1]);
+        if(s==='spill'||s==='down') Folk.arms(B,[2.7,0.3],[2.7,0.3]); else if(g.held.length&&s!=='gather'&&s!=='pick') Folk.arms(B,null,[1.1,0.4]); else Folk.arms(B,[0.1,0.1],[0.1,0.1]);
         if(s==='lift'){ face(Q.PILE[0],Q.PILE[1]); const u=P_(T,0,0.9); bend(u); if(T>0.45&&!g.held.length){ g.held=g.crates.slice(); snd(V,()=>Sfx.clunk()); } carry(0); if(T>0.9){ r.rotation.x=0; r.position.y=0; go('out'); } }
         else if(s==='out'){ // across the back of the shop; on a bad day it all goes over halfway
           const dest=Q.ROUTE[g.wp]; if(!V.ok&&!g.spilt&&g.wp===0&&A.position.x>Q.SPILL[0]-0.05){ go('wobble'); return; }
@@ -615,11 +639,12 @@ const Venues = (() => {
         const sq=V.squash?Math.min(1,(V.squash+=dt*6)-1):0; const br=B.userData.rig; if(V.squash&&t<10.6){ br.scale.set(1+0.6*sq,1-0.7*sq,1+0.6*sq); } else if(t>=10.6){ br.scale.lerp(new V3(1,1,1),1-Math.exp(-dt*8)); if(V.squash&&once(V,'pop')) snd(V,()=>Sfx.boing()); }
         if(!ok&&t>5.9&&t<9) Folk.arms(A,[2.8,0.4],[2.8,0.4]);
         if(ok){ if(t>=6&&once(V,'clunk')) snd(V,()=>Sfx.clunk()); if(t>6.1&&t<8.4){ B.position.x=lerp(B.position.x,3.0,1-Math.exp(-dt*3)); Folk.arms(B,null,[1.4+Math.sin(t*20)*0.08,0]); if(Math.random()<0.6) puff(V,B.localToWorld(new V3(0,1.0,0.7)).sub(V.root.position).applyQuaternion(V.root.quaternion.clone().invert()),'#ffb040',2,2.6,0.03,0.5,{add:true,hdr:4,g:9,dir:new V3(rnd(-1,1),0.6,0.4)}); if(once(V,'hiss')) snd(V,()=>Sfx.hiss(2.2,0.1)); }
-          if(t>=8.6&&once(V,'win')){ void 0; api.react('clap'); } if(t>8.6&&t<10){ for(const F of [A,B]){ F.userData.rig.position.y=Math.abs(Math.sin((t-8.6)*7))*0.3; } Folk.arms(B,[0.3,2.6],[0.3,2.6]); } else if(t>=10){ A.userData.rig.position.y=B.userData.rig.position.y=0; B.position.x=lerp(B.position.x,3.3,1-Math.exp(-dt*2)); Folk.arms(B,[0,0],[0,0]); } }
+          if(t>=8.6&&once(V,'win')){ void 0; api.react('clap'); } if(t>8.6&&t<10){ for(const F of [A,B]){ F.userData.head.rotation.x=0.22*Math.sin(P_(t,8.6,9.6)*Math.PI); } Folk.arms(B,null,[0.7,0.25]); } else if(t>=10){ A.userData.rig.position.y=B.userData.rig.position.y=0; B.position.x=lerp(B.position.x,3.3,1-Math.exp(-dt*2)); Folk.arms(B,[0,0],[0,0]); } }
         if(t>10.2) g.pod.scale.setScalar(Math.max(0.001,1-P_(t,10.2,11)));
         if(t>11.2&&g.pod.scale.x<0.01){ V.phys.length=0; }
       } },
-    engine:{ dur:11, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.4,0,-4.0); A.rotation.y=Math.PI/2; B.position.set(3.3,0,-3.8); B.rotation.y=-Math.PI/2; g.flame.visible=false; g.glow.material.color.copy(HDR('#ff9040',0.3)); g.nz.position.set(0.85,0,0); g.nz.rotation.set(0,0,0); g.stick.visible=false; g.mm.material.color.copy(C('#f8f4ec')); },
+    engine:{ dur:11, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.4,0,-4.0); A.rotation.y=Math.PI/2; B.position.set(3.3,0,-3.8); B.rotation.y=-Math.PI/2; g.flame.visible=false; g.glow.material.color.copy(HDR('#ff9040',0.3)); if(g.nz.parent!==g.core) g.core.add(g.nz); g.nz.position.set(0.85,0,0); g.nz.rotation.set(0,0,0); g.stick.visible=false; g.mm.material.color.copy(C('#f8f4ec'));
+        A.userData.held=false; g.fix=null; V.gagDur=V.ok?11:22; },
       update(V,t,dt){ const {A,B}=V, g=V.g, ok=V.ok, ar=A.userData.arms[1];
         if(t<3){ const ph=(t%1)/1; ar.rotation.x=ph<0.7?lerp(0,2.2,ph/0.7):lerp(2.2,-1.0,(ph-0.7)/0.3); if(ph>0.93&&once(V,'w'+Math.floor(t))){ snd(V,()=>Sfx.clunk()); g.core.userData.sh=0.25; } }
         g.core.userData.sh=Math.max(0,(g.core.userData.sh||0)-dt); const sh=g.core.userData.sh+(t>3&&t<4.2?0.12:0); g.core.position.set(rnd(-1,1)*sh*0.15,1.28+rnd(-1,1)*sh*0.15,0);
@@ -631,7 +656,9 @@ const Venues = (() => {
         else { if(t>=4.2&&once(V,'roar')){ snd(V,()=>Sfx.roar(3,0.22)); g.flame.visible=true; } if(t>4.2&&t<9.4){ g.glow.material.color.copy(HDR('#8fd0ff',4)); g.flame.scale.set(1,0.9+Math.sin(t*40)*0.1,1); g.stick.visible=true;
             if(!g.stick.parent||g.stick.parent===V.root) Folk.hold(B,g.stick); const k=P_(t,5,7.5); g.mm.material.color.copy(C('#f8f4ec')).lerp(C('#c98a3a'),k); Folk.arms(B,null,[t<7.8?1.5:2.6,0]); Folk.arms(A,null,[0.5,2.4]);
             if(t>8&&once(V,'win')){ void 0; api.react('clap'); } } if(t>=9.4){ g.flame.visible=false; g.glow.material.color.copy(HDR('#ff9040',0.3)); g.stick.visible=false; Folk.arms(B,[0,0],[0,0]); Folk.arms(A,[0,0],[0,0]); } }
-        if(t>9.6&&!ok){ B.userData.body.color.copy(B.userData.base).lerp(C('#26262a'),1-P_(t,9.6,10.6)); if(g.nz.parent!==g.core){ g.core.add(g.nz); g.nz.position.set(0.85,0,0); g.nz.rotation.set(0,0,0); V.phys.length=0; } }
+        if(t>9.6&&!ok) B.userData.body.color.copy(B.userData.base).lerp(C('#26262a'),1-P_(t,9.6,10.6));
+        // on a bad day A goes and gets the nozzle, carries it back and fits it on
+        if(!ok&&t>8.2) fixNozzle(V,t,dt);
       } },
     spray:{ dur:10, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.25,0,-4.0); A.rotation.y=Math.PI/2; B.position.set(3.35,0,-3.9); B.rotation.y=-Math.PI/2; V.col=pick(['#ff6b6b','#5c7cfa','#ffd43b','#51cf66','#cc5de8','#ff922b']); g.stripeM.color.copy(C(V.col)); g.stripe.scale.x=0.001; },
       update(V,t,dt){ const {A,B}=V, g=V.g, ok=V.ok; Folk.arms(A,null,[1.45,0]); Folk.arms(B,[0.6,0.2],null);
@@ -641,7 +668,7 @@ const Venues = (() => {
           if(t>3.2) B.userData.body.color.copy(B.userData.base).lerp(C(V.col),E(P_(t,3.2,4.0))*(1-P_(t,8.4,9.4)));
           if(t>=4.4&&t<7.5){ A.rotation.y=lerp(A.rotation.y,Math.PI/2,1-Math.exp(-dt*3)); A.userData.rig.rotation.z=Math.sin(t*5)*0.15; if(once(V,'wah')) void 0; Folk.arms(B,[0.2,1.3],[0.2,1.3]); } else if(t>=7.5) A.userData.rig.rotation.z=0; }
         else { if(t>=4.1&&once(V,'win')){ void 0; api.react('clap'); } if(t>4.1&&t<6.6){ if(Math.random()<0.5) puff(V,new V3(1.75+rnd(-1,1),1.45+rnd(-0.6,0.6),-4.3),'#ffffff',1,0.2,0.05,0.5,{add:true,hdr:3});
-            A.userData.rig.rotation.x=-0.45*Math.sin(P_(t,4.3,5.6)*Math.PI); Folk.arms(B,[1.2,0.3+Math.abs(Math.sin(t*12))*0.4],[1.2,0.3+Math.abs(Math.sin(t*12))*0.4]); } }
+            A.userData.rig.rotation.x=-0.45*Math.sin(P_(t,4.3,5.6)*Math.PI); Folk.arms(B,[0.9,0.3],[0.9,0.3]); } }
         if(t>8.4) g.stripe.scale.x=Math.max(0.001,g.stripe.scale.x*(1-dt*3));
       } },
     gadget:{ dur:10, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.2,0,-3.9); A.rotation.y=Math.PI/2; B.position.set(3.0,0,-3.6); B.rotation.y=-Math.PI/2; g.lidP.rotation.set(0,0,0); g.lidP.add(g.lid); g.lid.position.set(0,0.04,0.4); g.lid.rotation.set(0,0,0); g.spring.visible=false; g.spring.scale.y=0.01; g.gadget.visible=false; g.box.rotation.set(0,0,0); if(!g.board.parent||g.board.parent===V.root) Folk.hold(B,g.board,0); },
@@ -654,7 +681,7 @@ const Venues = (() => {
           if(t>2.8){ const s=P_(t,2.8,6), k=1+Math.sin(s*30)*Math.exp(-s*4)*0.6; g.spring.scale.y=Math.min(1,P_(t,2.8,2.95))*k; const r=A.userData.rig; r.rotation.x=t<4.1?-(t-2.8)*5:Math.max(0.0,1.5*(1-P_(t,7.2,7.9))); if(t>=4.1&&t<7.2) r.rotation.x=1.5; }
           if(t>7.9&&A.position.y<0.01){ V.phys.length=0; A.position.x=lerp(A.position.x,-0.2,1-Math.exp(-dt*2)); Folk.walk(A,t*9,t<9.4?1:0); } }
         else { if(t>=2.8&&once(V,'pop')){ void 0; api.react('clap'); for(let i=0;i<5;i++) puff(V,new V3(0.9,0.9,-3.9),pick(['#ff6b6b','#fcc419','#51cf66','#4dabf7','#cc5de8']),6,4,0.08,2.2,{box:true,g:7,dir:new V3(0,1,0),spread:0.9}); g.gadget.visible=true; }
-          if(t>2.8){ g.lidP.rotation.x=-2.0*E(P_(t,2.8,3.1)); g.gadget.position.y=lerp(0.6,1.9,E(P_(t,2.8,3.8))); g.gadget.rotation.y+=dt*3; } if(t>3.2&&t<5.4){ for(const F of [A,B]) F.userData.rig.position.y=Math.abs(Math.sin((t-3.2)*7))*0.3; Folk.arms(A,[0.3,2.6],[0.3,2.6]); } else if(t>=5.4){ A.userData.rig.position.y=B.userData.rig.position.y=0; Folk.arms(A,[0,0],[0,0]); }
+          if(t>2.8){ g.lidP.rotation.x=-2.0*E(P_(t,2.8,3.1)); g.gadget.position.y=lerp(0.6,1.9,E(P_(t,2.8,3.8))); g.gadget.rotation.y+=dt*3; } if(t>3.2&&t<5.4){ for(const F of [A,B]) F.userData.head.rotation.x=0.22*Math.sin(P_(t,3.2,4.2)*Math.PI); Folk.arms(A,null,[0.7,0.25]); } else if(t>=5.4){ A.userData.rig.position.y=B.userData.rig.position.y=0; Folk.arms(A,[0,0],[0,0]); }
           if(t>8.6) g.gadget.scale.setScalar(Math.max(0.001,1-P_(t,8.6,9.4))); }
       } },
     rock:{ dur:10, reset(V){ const {A,B}=V, g=V.g; A.position.set(0.0,0,-4.0); A.rotation.y=Math.PI/2; B.position.set(3.2,0,-3.7); B.rotation.y=-Math.PI/2; g.hl.position.set(-0.16,0,0); g.hr.position.set(0.16,0,0); g.hl.rotation.set(0,0,0); g.hr.rotation.set(0,0,0); g.gem.visible=false; g.gem.position.y=0; g.gem.scale.setScalar(1); g.stars.visible=false;
@@ -668,7 +695,7 @@ const Venues = (() => {
             if(t>3.2&&once(V,'wah')) void 0; } }
         else { if(t>2.3){ const k=E(P_(t,2.3,2.9)); g.hl.position.x=-0.16-0.32*k; g.hr.position.x=0.16+0.32*k; g.hl.rotation.z=0.5*k; g.hr.rotation.z=-0.5*k; g.gem.visible=true; g.gem.position.y=0.75*E(P_(t,2.5,3.6)); g.gem.rotation.y+=dt*2.5; ar.rotation.x=lerp(ar.rotation.x,0,1-Math.exp(-dt*3));
             if(t>3&&t<6&&Math.random()<0.4) puff(V,new V3(1.3+rnd(-0.4,0.4),1.95+rnd(-0.3,0.3),-4+rnd(-0.3,0.3)),'#e5b8ff',1,0.3,0.05,0.6,{add:true,hdr:3}); }
-          if(t>=2.6&&once(V,'win')){ void 0; api.react('cash'); } if(t>3.4&&t<5.4){ B.userData.rig.position.y=Math.abs(Math.sin((t-3.4)*7))*0.32; } else B.userData.rig.position.y=0;
+          if(t>=2.6&&once(V,'win')){ void 0; api.react('cash'); } if(t>3.4&&t<5.4){ B.userData.head.rotation.x=0.22*Math.sin(P_(t,3.4,4.4)*Math.PI); } else B.userData.rig.position.y=0;
           if(t>8.6) g.gem.scale.setScalar(Math.max(0.001,1-P_(t,8.6,9.4))); }
       } },
     juggle:{ dur:11, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.55,0,-3.6); A.rotation.y=Math.PI/2; B.position.set(2.35,0,-3.6); B.rotation.y=-Math.PI/2; g.mugs.forEach(m=>{ m.visible=true; m.scale.setScalar(1); m.rotation.set(0,0,0); if(m.parent!==V.root) V.root.add(m); }); },
@@ -686,6 +713,12 @@ const Venues = (() => {
       } },
   };
 
+  /* how far back the shopkeeper stands: just behind the counter (its back face is at z=-0.4), measured from the front of
+     their own body at rest (and a hand's width of reach), so a deep design isn't standing in the counter */
+  function keeperZ(K){ K.updateMatrixWorld(true); const b=new THREE.Box3(), bb=new THREE.Box3();
+    K.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; o.geometry.computeBoundingBox(); bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); b.union(bb); });
+    const front=b.isEmpty()?0.45:b.max.z-K.position.z; return Math.min(-0.85,-0.46-front-0.08); }
+
   /* ---------- bespoke rooms ----------
      Every depot, garage and cantina has a room of its own, modelled in Blender in the shop's frame (counter at the origin,
      camera towards +z) around the same fixed spots: the keeper, the crew's stage, the signpost, the goods shelf, the stock
@@ -696,7 +729,10 @@ const Venues = (() => {
   function bespoke(V){
     const B=V.bespoke, port=V.P;
     Promise.all([Assets.glb(B.file), Assets.env(B.file.replace(/[^/]+$/,'environment.hdr')).catch(()=>null), Assets.lut(B.file.replace(/[^/]+$/,'grade.png')).catch(()=>null)]).then(([src,env,lut])=>{
-      if(!Venues.list.includes(V)) return;   // the port was left before it arrived
+      if(Venues.list.includes(V)) Venues.pending.push(()=>swapRoom(V,src,env,lut)); }).catch(()=>{});   // one frame of its own, in the queue (it bakes)
+  }
+  function swapRoom(V, src, env, lut){
+    const B=V.bespoke, port=V.P; { if(!Venues.list.includes(V)) return;   // the port was left before it arrived
       const R=V.root, room=src.clone(true); room.name='bespoke '+B.location+' '+B.shop; Assets.prepare(room,env);
       const out=o=>{ if(!o) return; if(o.parent) o.parent.remove(o); o.traverse(q=>{ if(q.geometry) q.geometry.dispose(); }); };
       out(V.roomG); out(V.shellG); (V.fit||[]).forEach(out); if(V.shelf) V.shelf.frame.forEach(out);
@@ -709,11 +745,13 @@ const Venues = (() => {
         if(p[1]>3&&p[2]<1.5) V.beamSpots.push({x:p[0],y:p[1],z:p[2],col:C(L.color)}); }
       room.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; o.userData.triVox=true; } }); R.add(room); V.bespokeRoom=room; V.grade=lut; V.roomEnv=env;
       R.updateMatrixWorld(true);
-      if(!/[?&]nobake\b/.test(location.search)){ Bake.room(V,V.scn,port); Bake.probe(V,V.scn); }
+      if(!/[?&]nobake\b/.test(location.search)){ V.bake=Bake.room(V,V.scn,port); Bake.probe(V,V.scn); }
       // the room's own glass, metal and lamps reflect its sky; the keeper, crew, droid and goods take the probe of the finished room
       if(env) room.traverse(o=>{ if(o.isMesh&&!o.userData.baked) for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial){ m.envMap=env; m.needsUpdate=true; } });
       Bake.beams(V,V.scn);
-    }).catch(()=>{});
+      // its materials are new: compile them now rather than the first time the shop comes into view
+      const vis=V.root.visible; V.root.visible=true; try{ World.renderer.compile(V.scn,Cine.cam); }catch(e){} V.root.visible=vis;
+    }
   }
 
   const api = {
@@ -727,7 +765,7 @@ const Venues = (() => {
     /* each place gets its own spot somewhere around the port, a few hundred metres from the pad and from each other,
        on a terrace cut into the ground (or a platform on a cloud world) with its own neighbourhood behind it */
     build(scn, P, cloud, padMat, hAt, liq){
-      this.list=[]; this.active=null; const defs=this.defs(P), n=defs.length, r0=mulberry32(P.idx*313+7), base=r0()*6.283;
+      this.list=[]; this.active=null; this.pending=[]; const defs=this.defs(P), n=defs.length, r0=mulberry32(P.idx*313+7), base=r0()*6.283;
       defs.forEach((d,i)=>{ const a=base+i/n*6.283+(r0()-0.5)*0.3, rad=d.k==='depot'?240:300+((i*2)%3)*130+r0()*60;
         const root=new THREE.Group(), pos=new V3(Math.cos(a)*rad,0,Math.sin(a)*rad), dir=pos.clone().normalize().negate(); root.rotation.y=Math.atan2(dir.x,dir.z)+(r0()-0.5)*0.5;
         // sit the terrace on the highest ground it covers so nothing pokes through; the showroom pad counts too
@@ -740,19 +778,31 @@ const Venues = (() => {
         DISTRICT[d.k](root,pal,rr,V); lampPosts(root); room(V,d.k,pal,cloud,rr);
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
         shell(V,pal); locationSign(V,P,pal); V.g=SETS[d.k](V,pal); { const n0=root.children.length; FIT[d.k](V,pal,rr); V.fit=root.children.slice(n0); } if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
-        V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,-0.85); root.add(V.keeper);
+        V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,keeperZ(V.keeper)); root.add(V.keeper);
         const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
-        if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,scn,P);
-        if(!/[?&]nobake\b/.test(location.search)) Bake.probe(V,scn);   // the room's own light for its live things
-        Bake.beams(V,scn);   // sunbeams through the windows and cones of light under the lamps
-        Bake.decals(V);   // oil, scuffs and drink rings on the floor
-        Bake.floorMirror(V);   // reflections on the floor (high quality only)   // light the room once and paint it in (?nobake shows the live lighting)
+        // the finishing is the slow part (a fifth of a second a shop), so it is queued and done one shop per frame while
+        // the ship is still out in space on the approach (see tick); a straight dock does it all at once behind the fade
+        this.pending.push(()=>{ if(V.bespokeRoom) return;   // its own room arrived first and was finished with it
+          if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,scn,P); });   // light the room once and paint it in (?nobake shows the live lighting)
+        this.pending.push(()=>{ if(V.bespokeRoom) return;
+          if(!/[?&]nobake\b/.test(location.search)) Bake.probe(V,scn);   // the room's own light for its live things
+          Bake.beams(V,scn);   // sunbeams through the windows and cones of light under the lamps
+          Bake.decals(V);   // oil, scuffs and drink rings on the floor
+          Bake.floorMirror(V); });   // reflections on the floor (high quality only)
         V.P=P; V.scn=scn; V.bespoke=Assets.room(P,d.k); if(V.bespoke) bespoke(V);   // this port's own room, modelled in Blender, replaces the stock one when it arrives
         this.list.push(V); });
+      // last of all, every material in the port is compiled in one go, with all the shops showing: otherwise each one
+      // compiles the first time it comes into view, which stutters the descent and again the takeoff
+      this.pending.push(()=>{ const r=World.renderer, cam=Cine.cam; if(!r||!cam) return; const vis=this.list.map(v=>v.root.visible); this.list.forEach(v=>v.root.visible=true);
+        try{ r.compile(scn,cam); }catch(e){} this.list.forEach((v,i)=>v.root.visible=vis[i]); });
       return this.list;
     },
-    restart(V, t0){ clearFx(V); V.fired={}; V.squash=0; V.flyer=null; V.t=t0||0; V.ok=Math.random()<0.38; for(const F of [V.A,V.B]){ Folk.rest(F); F.position.y=0; } V.gag.reset(V); },
+    pending:[],
+    /* one queued finishing job per frame (approach); all of them at once (docking straight in) */
+    tick(){ const f=this.pending.shift(); if(f) f(); },
+    flush(){ while(this.pending.length) this.pending.shift()(); },
+    restart(V, t0){ V.gagDur=0; clearFx(V); V.fired={}; V.squash=0; V.flyer=null; V.t=t0||0; V.ok=Math.random()<0.38; for(const F of [V.A,V.B]){ Folk.rest(F); F.position.y=0; } V.gag.reset(V); },
     current(){ if(G.mode!=='port'||!this.list.length) return null; const k=UI.tab; if(k==='stations'&&PortSites.selected)return PortSites.selected.venue; if(k==='residents'&&ResidentDistrict.selected)return ResidentDistrict.selected.venue; return this.list.find(v=>v.k===k)||this.list[0]; },
     keeperHeadY(V){ const U=V.keeper.userData; return (U.head.position.y+0.62)*1.4; },
     react(kind, delay){ const V=this.current(); if(!V) return; setTimeout(()=>{ V.kr={kind,t:0};
@@ -784,15 +834,15 @@ const Venues = (() => {
     update(dt, t){
       const V=this.current(); if(V!==this.active){ this.prev=this.active; this.active=V; }
       for(const v of this.list){ v.root.visible=v===V||(this.moving&&v===this.prev); if(v.mirror) v.mirror.visible=GFX.high&&v===V&&!this.moving&&G.mode==='port'; } if(!V) return;
-      V.t+=dt; if(V.t>V.gag.dur) this.restart(V,0);
+      V.t+=dt; if(V.t>(V.gagDur||V.gag.dur)) this.restart(V,0);
       V.gag.update(V,V.t,dt); stepFx(V,dt); for(const F of [V.A,V.B,V.keeper]) Folk.ground(F,V.root.position.y); stepDroid(V,dt,t); stepShelf(V,dt,t); if(V.spin) for(const o of V.spin) o.rotation.y+=dt*0.8;
       for(const F of [V.A,V.B,V.keeper]) Folk.blink(F,t);
       // shopkeeper: breathes, glances at the crew, reacts to how it goes
       const K=V.keeper, U=K.userData; K.position.y=(1+Math.sin(t*1.8))*0.01; U.head.rotation.y=Math.sin(t*0.4)*0.25+(V.t>V.gag.dur*0.4&&V.t<V.gag.dur*0.6?0.5*Math.sign(Math.sin(V.seed)):0)*0.6;
       const r=V.kr; if(r){ r.t+=dt; const k=Math.sin(Math.min(1,r.t/0.25)*Math.PI/2);
         if(r.kind==='facepalm'){ Folk.arms(K,[0.2,0.15],[2.5*k,0.35*k]); U.head.rotation.x=0.25*k; if(r.t>2.2) V.kr=null; }
-        else if(r.kind==='clap'){ const c=Math.abs(Math.sin(r.t*14)); Folk.arms(K,[1.3*k,0.15+c*0.35],[1.3*k,0.15+c*0.35]); K.position.y+=Math.abs(Math.sin(r.t*7))*0.08; if(r.t>1.8) V.kr=null; }
-        else { Folk.arms(K,[0.3,2.6*k],[0.3,2.6*k]); K.position.y+=Math.abs(Math.sin(r.t*8))*0.15; if(r.t>1.4) V.kr=null; }
+        else if(r.kind==='clap'){ U.head.rotation.x=0.2*Math.sin(Math.min(1,r.t/0.9)*Math.PI); Folk.arms(K,[0.45*k,0.12],[0.45*k,0.12]); if(r.t>1.4) V.kr=null; }
+        else { U.head.rotation.x=0.24*Math.sin(Math.min(1,r.t/0.9)*Math.PI); Folk.arms(K,null,[0.8*k,0.2]); if(r.t>1.4) V.kr=null; }
         if(!V.kr){ Folk.arms(K,[0,0],[0,0]); U.head.rotation.x=0; Folk.mood(K,'neutral'); } }
       else Folk.arms(K,[0.25+Math.sin(t*0.9)*0.05,0.1],[0.25+Math.sin(t*0.9+1)*0.05,0.1]);
     },

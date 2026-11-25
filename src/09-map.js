@@ -37,6 +37,10 @@ const SysMap = {
     cv.addEventListener('click',e=>{ if(this.dragged){ this.dragged=false; return; } const h=at(e); if(h>=0) this.pick(h); });
     $('map-list').addEventListener('click',e=>{ const b=e.target.closest('[data-i]'); if(b) this.pick(+b.dataset.i); });
     $('map-close').onclick=()=>this.close();
+    const sb=$('map-search'); sb.addEventListener('input',()=>this.list());
+    sb.addEventListener('keydown',e=>{ e.stopPropagation();
+      if(e.key==='Enter'&&this.first!=null){ this.pick(this.first); e.preventDefault(); }
+      else if(e.key==='Escape'){ if(sb.value){ sb.value=''; this.list(); } else { sb.blur(); this.close(); } e.preventDefault(); } });
     /* zoom: mouse wheel (toward the pointer), pinch on a touch screen; drag to pan; double-click to reset */
     const zoomAt=(f,mx,my)=>{ const r=cv.getBoundingClientRect(), w=r.width, h=r.height, k0=this.base*this.zoom, wx=this.ox+(mx-w/2)/k0, wz=this.oz+(my-h/2)/k0;
       this.zoom=clamp(this.zoom*f,this.MINZ,14); const k1=this.base*this.zoom; this.ox=wx-(mx-w/2)/k1; this.oz=wz-(my-h/2)/k1; if(this.zoom<=1.001){ this.ox=0; this.oz=0; } this.draw(Game.time); };
@@ -68,7 +72,10 @@ const SysMap = {
       return `<button class="mrow${P.idx===G.target&&!Nav.wp?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})${P.station?';border-radius:30%':''}"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${P.station?'research station · <b class="risk r'+P.risk+'">'+RISK[P.risk].name+' risk</b>':esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
     });
     FIELDS.forEach(F=>{ const tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx; rows.push(`<button class="mrow${tg?' tg':''}" data-i="${100+F.idx}"><i style="background:radial-gradient(circle at 35% 35%,#e8dcc8,${F.col} 60%,#3a3040);border-radius:30%"></i><span class="n">${esc(F.name)}</span><span class="d">${fmtDist(Math.max(0,F.pos.distanceTo(G.ship.pos)-F.R))}</span><span class="p">Asteroid field · ${esc(F.ore)}</span>${tg?'<span class="b"><em class="t">Waypoint</em></span>':''}</button>`); });
-    $('map-list').innerHTML=rows.join('');
+    // the search box keeps the rows whose name, port, kind or tags match every word typed (Enter flies to the first)
+    const q=($('map-search').value||'').toLowerCase().split(/\s+/).filter(Boolean), txt=r=>r.replace(/<[^>]*>/g,' ').toLowerCase();
+    const shown=q.length?rows.filter(r=>{ const t=txt(r); return q.every(w=>t.includes(w)); }):rows; this.first=shown.length?+shown[0].match(/data-i="(\d+)"/)[1]:null;
+    $('map-list').innerHTML=shown.length?shown.join(''):'<div class="none">Nothing out here by that name.</div>';
     const nT=G.mode==='flight'?Npc.list.length:0;
     $('map-foot').textContent=(G.mode==='port'?'Docked at '+PLANETS[G.docked>=0?G.docked:G.target].port:nT+' ship'+(nT===1?'':'s')+' on local scan')+(TouchUI.on?' · Tap a world or field to set your course · pinch to zoom, drag to pan':' · Click a world or field to set your course · scroll to zoom (out for deep space), drag to pan, double-click to reset · M or Esc to close');
   },
