@@ -115,7 +115,7 @@ r.section('Goods shelf')
 for x in [-6.49,-2.41]:
     for y in [.51,1.29]:r.box((x,y,2.20),(.12,.12,4.4),'Bottle enamel',.025)
 for top in [1,2.15,3.3]:r.box((-4.45,.9,top-.06),(4.2,.9,.12),'Pale limestone',.025)
-r.box((-4.45,1.27,4.30),(4.2,.14,.20),'Bottle enamel',.035)
+r.box((-4.45,1.27,4.36),(4.2,.14,.08),'Bottle enamel',.035)
 r.counter('Terracotta','Porcelain','Spruce','Brass')
 r.section('Tile wear')
 for x,y in [(-8.35,3.2),(6.78,4.7),(5.9,1.5)]:
