@@ -9,7 +9,7 @@ ScenesPass.prototype.render=function(renderer, wb, rb){
   for(let i=0;i<this.list.length;i++){ const L=this.list[i]; if(i>0) renderer.clearDepth();
     if(L.fx&&rb&&fx&&(fx.blur>0.001||fx.warp>0.001)){
       const w=rb.width, h=rb.height;
-      if(!this.tmp){ this.tmp=new THREE.WebGLRenderTarget(w,h,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+      if(!this.tmp){ this.tmp=new THREE.WebGLRenderTarget(w,h,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,stencilBuffer:true});
         this.streak=new THREE.ShaderMaterial({uniforms:{tDiffuse:{value:null},uBlur:{value:0},uWarp:{value:0}},vertexShader:GLSL.postVert,fragmentShader:GLSL.streakFrag,depthTest:false,depthWrite:false});
         this.quad=new THREE.Scene(); this.quad.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),this.streak)); this.qcam=new THREE.OrthographicCamera(-1,1,1,-1,0,1); }
       if(this.tmp.width!==w||this.tmp.height!==h) this.tmp.setSize(w,h);
@@ -166,7 +166,9 @@ const World = {
     const r=this.renderer; this.scenes=new ScenesPass();
     if(!THREE.EffectComposer || !THREE.UnrealBloomPass){ this.composer=null; r.toneMapping=THREE.ACESFilmicToneMapping; r.outputEncoding=THREE.sRGBEncoding; return; }
     // multisample anti-aliasing on 'high' (WebGL 2): four samples per pixel smooth every edge before FXAA tidies the rest
-    const opts={type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter};
+    // stencilBuffer: in this three.js a target without one gets a 16-bit depth buffer, too coarse for a station's
+    // 2 km flat deck seen from the approach (the pad, roads and terraces flickered into it); with one it gets 24 bits
+    const opts={type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,stencilBuffer:true};
     const msaa=GFX.high&&r.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget, rt=msaa?new THREE.WebGLMultisampleRenderTarget(4,4,opts):new THREE.WebGLRenderTarget(4,4,opts); if(msaa) rt.samples=4;
     this.composer=new THREE.EffectComposer(r,rt); this.composer.addPass(this.scenes);
     // depth of field (off until a shop view turns it on)
