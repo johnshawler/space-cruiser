@@ -17821,8 +17821,9 @@ const Interior = {
     for(const id in B.repairs){ const d=B.repairs[id], f=this.fx[id]; if(!f) continue; const grp=new THREE.Group(); grp.position.set(...d.pos); grp.rotation.y=d.yaw||0; g.add(grp); const R=this.repairs[id]={grp,models:{}};
       // the game's own stand-in fitting goes; its particles stay
       const face=f.scr.parent, keep=new Set(f.parts.map(p=>p.m)); f.grp.traverse(o=>{ if(!o.isMesh||keep.has(o)) return; for(let q=o;q;q=q.parent) if(q===face) return; o.visible=false; }); if(f.fan) f.fan.visible=false;
+      // the fittings are live-lit; they are dimmed to sit back against the baked walls
       for(const st in d.models) Assets.glb(d.models[st]).then(src=>{ if(this.group!==g) return; const m=src.clone(true); m.visible=false; m.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false;
-          for(const mt of [].concat(o.material)) if(mt&&mt.isMeshStandardMaterial){ mt.envMapIntensity=0.12; this.indoor(mt); } }); grp.add(m); R.models[st]=m; this.syncRepairs(); }).catch(()=>{}); } },
+          for(const mt of [].concat(o.material)) if(mt&&mt.isMeshStandardMaterial){ mt.envMapIntensity=0.12; this.indoor(mt,0.45); } }); grp.add(m); R.models[st]=m; this.syncRepairs(); }).catch(()=>{}); } },
   /* crates in the hold match how full it is; passengers sit in the cabin */
   syncCargo(){
     const P0=this.plan(), room=P0&&P0.crates?P0.crates.length*2:28, used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*room), key=n+'';
