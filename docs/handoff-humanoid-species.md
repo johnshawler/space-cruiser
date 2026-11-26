@@ -1,8 +1,8 @@
 # Sixteen humanoid species for Long Haul
 
-The Blender master contains the sixteen new species commissioned from the original humanoid proof sheet. Open the file in Blender 4.5 LTS and use the Scene selector to choose a species. Each scene contains one editable character collection marked as an asset. The reference, profile and rear three-quarter cameras show the same meshes. All images used by the materials are packed.
+Open the master in Blender 4.5 LTS and choose a species in the Scene selector. Each scene contains one rigged character collection marked as an asset, three studio cameras and packed materials. The file opens with all sixteen rigs in their original neutral positions.
 
-[Blender master](../art/characters/humanoid-species/Long-Haul-Humanoid-Species.blend) · [Original concept](../art/characters/humanoid-species/reference/Original-concept.png) · [Front proof](../art/characters/humanoid-species/proofs/Long-Haul-Species-Front.jpg) · [Turnaround proof](../art/characters/humanoid-species/proofs/Long-Haul-Species-Turnarounds.jpg) · [Species catalog and individual renders](../art/characters/humanoid-species/catalog.json)
+[Blender master](../art/characters/humanoid-species/Long-Haul-Humanoid-Species.blend) · [Rig pose sheet](../art/characters/humanoid-species/proofs/Long-Haul-Species-Rig-Poses.jpg) · [Original concept](../art/characters/humanoid-species/reference/Original-concept.png) · [Original front proof](../art/characters/humanoid-species/proofs/Long-Haul-Species-Front.jpg) · [Original turnaround proof](../art/characters/humanoid-species/proofs/Long-Haul-Species-Turnarounds.jpg) · [Species catalog and individual renders](../art/characters/humanoid-species/catalog.json)
 
 ## Cast
 
@@ -13,21 +13,30 @@ The Blender master contains the sixteen new species commissioned from the origin
 | 3 | Pelrin, Zhavet, Koruun, Eskel |
 | 4 | Rhovi, Nemeya, Dathri, Ulnor |
 
+## Posing a species
+
+1. Select the object named for the species, such as **Taluun | Rig**, and enter Pose Mode. Rotate the spine, arm or leg bones for forward kinematics. Use **Root** to move the whole character and **Pelvis** to move the body relative to the limb targets. The source uses metres, Z-up, with the character facing negative Y. Left and right refer to the character.
+2. To plant a foot or position a hand, show **IK** under Armature Data Properties → Bone Collections. In Object Properties → Custom Properties, set the corresponding switch to **1**. There are four independent switches named `IK_Arm_L`, `IK_Arm_R`, `IK_Leg_L` and `IK_Leg_R`. Move or rotate the box named `IK.Hand.L` or `IK.Foot.L` (or its right-side counterpart). Move the diamond pole to aim the elbow or knee. At **0**, the limb uses forward kinematics. When switching during animation, align the two sets of controls first and key the switch.
+3. Show the **Fingers**, **Face** or **Species** bone collection for fine posing. The controls follow the sculpt. Taluun’s eyes ride their stalks. Pelrin has two ear pivots. Dathri has a hinged right pincer. Mothren’s combs follow its antennae. Rhovi and Ulnor have a curl control for each solid palm. Separate modeled fingers have two joints each.
+4. For a starting pose, open the Asset Browser, select **Current File**, and find the species name. Select its rig in Pose Mode, set all four IK switches to **0**, select the pose bones to affect, and apply **Stride**, **Seat** or **Reach**. Each asset is a single pose with its own rendered thumbnail. Clear the transforms with Alt-G, Alt-R and Alt-S if you want to return to neutral after applying a pose.
+
 ## Using the source in the game
 
-These are static art masters with 1,397 editable mesh objects and 1,045,126 polygon faces across the set. Blender uses metres and Z-up. Species IDs, collection names, dimensions, polygon counts, and links to the 48 transparent PNG renders are recorded in the catalog.
+Append the species' character collection to retain the armature, meshes, weights, constraints and materials. Append its three actions separately if you want the pose assets in another Blender file. The [catalog](../art/characters/humanoid-species/catalog.json) records scene, collection, rig, action names, dimensions and polygon counts for all sixteen species.
 
-For game integration, duplicate the character collection and work from that copy. Bake the complete Blender material graphs to ordinary game textures before glTF export. The reference-facing pigmentation uses a mesh attribute and registered UVs combined with procedural materials on the sides and back. A plain image-texture export loses that blend. The reference records one angle per species. The hidden surfaces and physical proportions were designed to complete each figure in three dimensions.
+For a game export, duplicate the collection and preserve the bone names and skin weights as you reduce geometry and draw calls. Bake the Blender materials to game textures. The registered concept pigmentation blends with procedural skin, cloth and metal, and masked areas reveal the underlying fabric as a limb moves. For IK-driven motion, bake the evaluated deform-bone transforms to sampled animation before export. The three starting poses can be used to author walking, seated and gesture clips. Runtime registration and animation playback are separate integration work.
 
-Reduce geometry and draw calls for the intended viewing distance, keep separate parts needed for expression and motion, and rig the game copy for walking, sitting, gestures and facial actions as needed. Compare its front and reverse renders against the proofs under neutral lighting. The existing cast and encounter registrations can be reviewed separately when deciding where each new species appears.
+The original reference provides one angle per species. The three-dimensional anatomy on the sides and back was interpreted for the Blender master. The reference, profile and rear three-quarter cameras remain available for comparison.
 
 ## Verification
 
-The saved master was reopened in Blender. All sixteen species had three working cameras, packed image textures, valid mesh data, closed mesh edges, and no zero-area polygons. The part-contact check placed every species in one connected assembly of overlapping or nested parts. Front, profile and rear views were rendered from the reopened file. File digests are in [SHA256SUMS](../art/characters/humanoid-species/SHA256SUMS).
+The reopened rigged file contains 16 armatures, 844 bones and 1,397 character meshes with 994,132 weighted vertices and 1,045,126 faces. Each vertex has one to four normalized deform-bone weights. Verification measures neutral positions, moves each of the 64 IK targets, individually rotates all 364 finger, face and species controls, and applies all 48 saved poses. The pose proof was rendered with the rigs driving the meshes. The original sculpt checks also covered closed mesh edges, zero-area faces, packed textures and contact between parts in neutral.
+
+[Per-file digests](../art/characters/humanoid-species/SHA256SUMS)
 
 ## Rebuilding the editable source
 
-The checked-in master opens directly. To regenerate it, run the following from the species directory using Python with Pillow and NumPy and a Blender 4.5 executable on your path. The scripts write the regenerated project and intermediate textures in the authoring directory. The published master stays available for comparison.
+From the species directory, use Python with Pillow and NumPy, and Blender 4.5 on the executable path. The first five commands build the static sculpt. The remaining commands fit the rigs, render the 48 pose previews, pack the previews into a neutral copy, and verify that copy.
 
 ```sh
 python3 authoring/maketex.py
@@ -35,4 +44,7 @@ python3 authoring/surfaces.py
 blender -b --factory-startup --python-exit-code 1 -P authoring/engine.py
 blender -b authoring/Rebuilt-Humanoid-Species.blend --python-exit-code 1 -P authoring/seat.py
 blender -b authoring/Rebuilt-Humanoid-Species.blend --python-exit-code 1 -P authoring/profile_sculpt.py
+blender -b authoring/Rebuilt-Humanoid-Species.blend --python-exit-code 1 -P authoring/rig_species.py -- --output authoring/Rigged.blend
+blender -b authoring/Rigged.blend --python-exit-code 1 -P authoring/publish_poses.py -- --renders authoring/pose-renders --output authoring/Rebuilt-Rigged-Humanoid-Species.blend
+blender -b authoring/Rebuilt-Rigged-Humanoid-Species.blend --python-exit-code 1 -P authoring/verify_rig.py -- --report authoring/rig-verification.json --require-previews
 ```

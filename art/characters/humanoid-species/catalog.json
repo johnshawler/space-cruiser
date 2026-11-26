@@ -1,7 +1,7 @@
 {
   "blenderVersion": "4.5.16",
   "source": "Long-Haul-Humanoid-Species.blend",
-  "status": "static authoring masters",
+  "status": "rigged Blender authoring masters",
   "characterCount": 16,
   "species": [
     {
@@ -19,6 +19,15 @@
         "front": "renders/taluun/front.png",
         "profile": "renders/taluun/profile.png",
         "rear": "renders/taluun/rear.png"
+      },
+      "rig": {
+        "object": "Taluun | Rig",
+        "bones": 59,
+        "poseAssets": [
+          "Taluun | Stride",
+          "Taluun | Seat",
+          "Taluun | Reach"
+        ]
       }
     },
     {
@@ -36,6 +45,15 @@
         "front": "renders/orrek/front.png",
         "profile": "renders/orrek/profile.png",
         "rear": "renders/orrek/rear.png"
+      },
+      "rig": {
+        "object": "Orrek | Rig",
+        "bones": 54,
+        "poseAssets": [
+          "Orrek | Stride",
+          "Orrek | Seat",
+          "Orrek | Reach"
+        ]
       }
     },
     {
@@ -53,6 +71,15 @@
         "front": "renders/vessari/front.png",
         "profile": "renders/vessari/profile.png",
         "rear": "renders/vessari/rear.png"
+      },
+      "rig": {
+        "object": "Vessari | Rig",
+        "bones": 57,
+        "poseAssets": [
+          "Vessari | Stride",
+          "Vessari | Seat",
+          "Vessari | Reach"
+        ]
       }
     },
     {
@@ -70,6 +97,15 @@
         "front": "renders/mothren/front.png",
         "profile": "renders/mothren/profile.png",
         "rear": "renders/mothren/rear.png"
+      },
+      "rig": {
+        "object": "Mothren | Rig",
+        "bones": 60,
+        "poseAssets": [
+          "Mothren | Stride",
+          "Mothren | Seat",
+          "Mothren | Reach"
+        ]
       }
     },
     {
@@ -87,6 +123,15 @@
         "front": "renders/ureth/front.png",
         "profile": "renders/ureth/profile.png",
         "rear": "renders/ureth/rear.png"
+      },
+      "rig": {
+        "object": "Ureth | Rig",
+        "bones": 55,
+        "poseAssets": [
+          "Ureth | Stride",
+          "Ureth | Seat",
+          "Ureth | Reach"
+        ]
       }
     },
     {
@@ -104,6 +149,15 @@
         "front": "renders/keld/front.png",
         "profile": "renders/keld/profile.png",
         "rear": "renders/keld/rear.png"
+      },
+      "rig": {
+        "object": "Keld | Rig",
+        "bones": 51,
+        "poseAssets": [
+          "Keld | Stride",
+          "Keld | Seat",
+          "Keld | Reach"
+        ]
       }
     },
     {
@@ -121,6 +175,15 @@
         "front": "renders/sovai/front.png",
         "profile": "renders/sovai/profile.png",
         "rear": "renders/sovai/rear.png"
+      },
+      "rig": {
+        "object": "Sovai | Rig",
+        "bones": 59,
+        "poseAssets": [
+          "Sovai | Stride",
+          "Sovai | Seat",
+          "Sovai | Reach"
+        ]
       }
     },
     {
@@ -138,6 +201,15 @@
         "front": "renders/brunn/front.png",
         "profile": "renders/brunn/profile.png",
         "rear": "renders/brunn/rear.png"
+      },
+      "rig": {
+        "object": "Brunn | Rig",
+        "bones": 57,
+        "poseAssets": [
+          "Brunn | Stride",
+          "Brunn | Seat",
+          "Brunn | Reach"
+        ]
       }
     },
     {
@@ -155,6 +227,15 @@
         "front": "renders/pelrin/front.png",
         "profile": "renders/pelrin/profile.png",
         "rear": "renders/pelrin/rear.png"
+      },
+      "rig": {
+        "object": "Pelrin | Rig",
+        "bones": 59,
+        "poseAssets": [
+          "Pelrin | Stride",
+          "Pelrin | Seat",
+          "Pelrin | Reach"
+        ]
       }
     },
     {
@@ -172,6 +253,15 @@
         "front": "renders/zhavet/front.png",
         "profile": "renders/zhavet/profile.png",
         "rear": "renders/zhavet/rear.png"
+      },
+      "rig": {
+        "object": "Zhavet | Rig",
+        "bones": 52,
+        "poseAssets": [
+          "Zhavet | Stride",
+          "Zhavet | Seat",
+          "Zhavet | Reach"
+        ]
       }
     },
     {
@@ -189,6 +279,15 @@
         "front": "renders/koruun/front.png",
         "profile": "renders/koruun/profile.png",
         "rear": "renders/koruun/rear.png"
+      },
+      "rig": {
+        "object": "Koruun | Rig",
+        "bones": 57,
+        "poseAssets": [
+          "Koruun | Stride",
+          "Koruun | Seat",
+          "Koruun | Reach"
+        ]
       }
     },
     {
@@ -206,6 +305,15 @@
         "front": "renders/eskel/front.png",
         "profile": "renders/eskel/profile.png",
         "rear": "renders/eskel/rear.png"
+      },
+      "rig": {
+        "object": "Eskel | Rig",
+        "bones": 51,
+        "poseAssets": [
+          "Eskel | Stride",
+          "Eskel | Seat",
+          "Eskel | Reach"
+        ]
       }
     },
     {
@@ -223,6 +331,15 @@
         "front": "renders/rhovi/front.png",
         "profile": "renders/rhovi/profile.png",
         "rear": "renders/rhovi/rear.png"
+      },
+      "rig": {
+        "object": "Rhovi | Rig",
+        "bones": 40,
+        "poseAssets": [
+          "Rhovi | Stride",
+          "Rhovi | Seat",
+          "Rhovi | Reach"
+        ]
       }
     },
     {
@@ -240,6 +357,15 @@
         "front": "renders/nemeya/front.png",
         "profile": "renders/nemeya/profile.png",
         "rear": "renders/nemeya/rear.png"
+      },
+      "rig": {
+        "object": "Nemeya | Rig",
+        "bones": 45,
+        "poseAssets": [
+          "Nemeya | Stride",
+          "Nemeya | Seat",
+          "Nemeya | Reach"
+        ]
       }
     },
     {
@@ -257,6 +383,15 @@
         "front": "renders/dathri/front.png",
         "profile": "renders/dathri/profile.png",
         "rear": "renders/dathri/rear.png"
+      },
+      "rig": {
+        "object": "Dathri | Rig",
+        "bones": 49,
+        "poseAssets": [
+          "Dathri | Stride",
+          "Dathri | Seat",
+          "Dathri | Reach"
+        ]
       }
     },
     {
@@ -274,7 +409,17 @@
         "front": "renders/ulnor/front.png",
         "profile": "renders/ulnor/profile.png",
         "rear": "renders/ulnor/rear.png"
+      },
+      "rig": {
+        "object": "Ulnor | Rig",
+        "bones": 39,
+        "poseAssets": [
+          "Ulnor | Stride",
+          "Ulnor | Seat",
+          "Ulnor | Reach"
+        ]
       }
     }
-  ]
+  ],
+  "poseProof": "proofs/Long-Haul-Species-Rig-Poses.jpg"
 }
