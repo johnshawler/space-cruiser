@@ -39,6 +39,7 @@ class Ship(Room):
         super().__init__(path,FLEET[key][0],palette(key))
         self.anchors=[];self.windows=[];self.proofs=[];self.cams={};self.walk=walk
         self.group='ship-interiors' if walk else 'cockpits'
+        self.lampspots=[]      # (game position, colour, watts) of every modelled lamp, for the light bake
     def anchor(self,name,pos,tilt=(0,0)):
         ob=bpy.data.objects.new(name,None);self.coll.objects.link(ob)
         ob.empty_display_type='ARROWS';ob.empty_display_size=.066
@@ -251,12 +252,14 @@ class Ship(Room):
             if ob in self.windows or ob.name=='door':
                 export.append(ob);continue
             mesh=bpy.data.meshes.new_from_object(ob.evaluated_get(deps),depsgraph=deps);mesh.transform(ob.matrix_world)
-            if not mesh.uv_layers.active:
-                uv=mesh.uv_layers.new(name='Metre projection')
+            rich=self.walk and self.key in LIT      # one metre of surface to one tile, on every part alike
+            if rich or not mesh.uv_layers.active:
+                while len(mesh.uv_layers)>1:mesh.uv_layers.remove(mesh.uv_layers[-1])
+                uv=mesh.uv_layers.active or mesh.uv_layers.new(name='Metre projection');uv.name='Metre projection';k2=1 if rich else 2
                 for face in mesh.polygons:
                     axis=max(range(3),key=lambda i:abs(face.normal[i]));a,b=((1,2),(0,2),(0,1))[axis]
                     for li in face.loop_indices:
-                        co=mesh.vertices[mesh.loops[li].vertex_index].co;uv.data[li].uv=(co[a]*2,co[b]*2)
+                        co=mesh.vertices[mesh.loops[li].vertex_index].co;uv.data[li].uv=(co[a]*k2,co[b]*k2)
             copy=bpy.data.objects.new('Export',mesh);self.coll.objects.link(copy)
             batches.setdefault((ob['assembly'],ob.data.materials[0].name),[]).append(copy)
         for (label,material),parts in batches.items():
@@ -265,11 +268,14 @@ class Ship(Room):
             bpy.context.view_layer.objects.active=parts[0]
             if len(parts)>1:bpy.ops.object.join()
             parts[0].name=label+' - '+material;export.append(parts[0])
-        if self.walk:self.bake_grime([o for o in export if o.type=='MESH' and o not in self.windows and o.name!='door'])
+        solid=[o for o in export if o.type=='MESH' and o not in self.windows and o.name!='door']
+        lit=self.walk and self.key in LIT
+        if lit:deck=self.bake_light(solid);export=[o for o in export if o not in solid]+[deck]
+        elif self.walk:self.bake_grime(solid)
         bpy.ops.object.select_all(action='DESELECT')
         for ob in export:ob.select_set(True)
         folder=self.root/'assets'/self.group;folder.mkdir(parents=True,exist_ok=True);p=folder/(self.key+'.glb')
-        bpy.ops.export_scene.gltf(filepath=str(p),export_format='GLB',use_selection=True,export_extras=True,export_animations=False,**({'export_vertex_color':'ACTIVE','export_all_vertex_colors':False} if self.walk else {}))
+        bpy.ops.export_scene.gltf(filepath=str(p),export_format='GLB',use_selection=True,export_extras=True,export_animations=False,**({'export_vertex_color':'NONE','export_image_format':'JPEG','export_image_quality':82} if lit else {'export_vertex_color':'ACTIVE','export_all_vertex_colors':False} if self.walk else {}))
         b=p.read_bytes();g=json.loads(b[20:20+struct.unpack_from('<I',b,12)[0]])
         tri=sum(g['accessors'][p['indices']]['count']//3 for m in g['meshes'] for p in m['primitives'])
         if not self.walk:
@@ -283,9 +289,92 @@ class Ship(Room):
             if ob.name.startswith('panel_'):
                 assert math.dist(anchors[ob.name]['position'],[0,0,0])<=1.1
         stat=dict(ship=self.key,name=self.title,file=p.relative_to(self.root).as_posix(),triangles=tri,meshes=len(g['meshes']),materials=len(g['materials']),bytes=len(b),anchors=anchors)
+        if lit:stat['light']='assets/'+self.group+'/finish/'+self.key+'/light.jpg'
         manifest=folder/'manifest.json';data=json.loads(manifest.read_text()) if manifest.exists() else {'ships':[]}
         data['ships']=[s for s in data['ships'] if s['ship']!=self.key]+[stat];manifest.write_text(json.dumps(data,indent=2)+'\n')
         print('SHIP METRICS',json.dumps(stat))
+LIT=set()     # generated decks to finish with a baked light map instead of vertex shading (none now: the Rustbucket is hand-built, see art/ship-interiors/import_deck.py)
+def _bake_light(self,meshes):
+    """Join the deck into one mesh, unwrap it into one atlas and bake the light of every lamp into it: pools of
+    light, shadow, dirt in the corners and wear on exposed edges. The game adds the atlas as a light map."""
+    S=2048;scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=96;scene.cycles.use_denoising=True
+    bpy.ops.object.select_all(action='DESELECT')
+    for o in meshes:o.hide_render=False;o.select_set(True)
+    bpy.context.view_layer.objects.active=meshes[0];bpy.ops.object.join();deck=meshes[0];deck.name='Deck'
+    uv=deck.data.uv_layers.new(name='Light');deck.data.uv_layers.active=uv
+    bpy.ops.object.mode_set(mode='EDIT');bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60),island_margin=.0012,area_weight=0,correct_aspect=True,scale_to_bounds=False)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for ob in scene.objects:
+        if ob is not deck and (ob.type in('MESH','CURVE','FONT') or ob.name.startswith('Skylight')):ob.hide_render=True
+    glow='#ffd9ae'      # lamp light a little warm of white, so the paint keeps its own colour
+    for ob in scene.objects:
+        if ob.type=='LIGHT' and ob.name.startswith('Preview'):ob.data.color=rgb('#ffe2c2');ob.data.energy=62
+    for i,(pos,col,watts) in enumerate(self.lampspots):
+        lamp=bpy.data.lights.new('Bake lamp',('POINT'));lamp.energy=watts;lamp.color=rgb(col or glow);lamp.shadow_soft_size=.06
+        ob=bpy.data.objects.new('Bake lamp '+str(i),lamp);scene.collection.objects.link(ob);ob.location=coord(*pos)
+    img=bpy.data.images.new('Light bake',S,S,alpha=False,float_buffer=True);nodes=[]
+    for m in deck.data.materials:
+        n=m.node_tree.nodes.new('ShaderNodeTexImage');n.image=img;m.node_tree.nodes.active=n;nodes.append((m,n))
+    bpy.ops.object.select_all(action='DESELECT');deck.select_set(True);bpy.context.view_layer.objects.active=deck
+    scene.render.bake.margin=6
+    def grab():
+        a=np.empty(S*S*4,dtype=np.float32);img.pixels.foreach_get(a);return a.reshape(S,S,4)[:,:,:3].copy()
+    bpy.ops.object.bake(type='DIFFUSE',pass_filter={'DIRECT','INDIRECT'});light=grab()
+    scene.cycles.use_denoising=False;scene.cycles.samples=48;scene.world.light_settings.distance=.45
+    bpy.ops.object.bake(type='AO');ao=grab()[:,:,:1]
+    def emit(make,samples):
+        """Bake a value computed in the shader: swap every material's surface for an emission of it, bake, swap back."""
+        swaps=[]
+        for m,n in nodes:
+            nt=m.node_tree;out=next(x for x in nt.nodes if x.type=='OUTPUT_MATERIAL');old=out.inputs['Surface'].links[0].from_socket
+            e=nt.nodes.new('ShaderNodeEmission');extra=make(nt,e)+[e];nt.links.new(e.outputs[0],out.inputs['Surface']);swaps.append((nt,out,old,extra))
+        scene.cycles.samples=samples;bpy.ops.object.bake(type='EMIT');a=grab()
+        for nt,out,old,extra in swaps:
+            nt.links.new(old,out.inputs['Surface'])
+            for x in extra:nt.nodes.remove(x)
+        return a
+    def edge_nodes(nt,e):      # exposed edges: where the surface normal and a rounded-off normal disagree
+        g=nt.nodes.new('ShaderNodeNewGeometry');bv=nt.nodes.new('ShaderNodeBevel');bv.samples=6;bv.inputs['Radius'].default_value=.022
+        d=nt.nodes.new('ShaderNodeVectorMath');d.operation='DOT_PRODUCT'
+        nt.links.new(g.outputs['Normal'],d.inputs[0]);nt.links.new(bv.outputs['Normal'],d.inputs[1]);nt.links.new(d.outputs['Value'],e.inputs['Color']);return [g,bv,d]
+    def place_nodes(pick):
+        def make(nt,e):        # where each texel is in the ship, or which way it faces, packed into 0..1
+            g=nt.nodes.new('ShaderNodeNewGeometry');sc=nt.nodes.new('ShaderNodeVectorMath');sc.operation='SCALE';sc.inputs['Scale'].default_value=pick[1]
+            ad=nt.nodes.new('ShaderNodeVectorMath');ad.operation='ADD';ad.inputs[1].default_value=(.5,.5,.5)
+            nt.links.new(g.outputs[pick[0]],sc.inputs[0]);nt.links.new(sc.outputs[0],ad.inputs[0]);nt.links.new(ad.outputs[0],e.inputs['Color']);return [g,sc,ad]
+        return make
+    edge=np.clip((1-emit(edge_nodes,12)[:,:,:1])*5,0,1)
+    P=(emit(place_nodes(('Position',.02)),1)-.5)/.02;up=(emit(place_nodes(('True Normal',.5)),1)[:,:,2:3]-.5)*2
+    for m,n in nodes:m.node_tree.nodes.remove(n)
+    def step(a,b,x):t=np.clip((x-a)/(b-a),0,1);return t*t*(3-2*t)
+    def noise(freq,seed):      # value noise through the ship, so every stain belongs to one place
+        Q=P*np.array(freq,dtype=np.float32);i=np.floor(Q).astype(np.int64);f=Q-i;f=f*f*(3-2*f);out=0
+        for dx in(0,1):
+            for dy in(0,1):
+                for dz in(0,1):
+                    h=((i[:,:,0]+dx)*374761393+(i[:,:,1]+dy)*668265263+(i[:,:,2]+dz)*1274126177+seed*144665)&0xffffffff
+                    h=((h^(h>>13))*1103515245)&0xffffffff;h=((h^(h>>16))&0xffff)/65535.
+                    out=out+h*(f[:,:,0] if dx else 1-f[:,:,0])*(f[:,:,1] if dy else 1-f[:,:,1])*(f[:,:,2] if dz else 1-f[:,:,2])
+        return out[:,:,None]
+    lum=light.mean(axis=2);ref=np.percentile(lum[lum>1e-5],93)
+    wall=(np.abs(up)<.5).astype(np.float32);hgt=P[:,:,2:3]
+    wear=edge*np.clip((ao-.55)/.3,0,1)                              # only edges that stand proud; inside corners take dirt
+    streak=step(.56,.8,noise((13,13,.8),1))*wall                    # runs down the walls
+    damp=np.exp(-(hgt+.97)/.22)*(.4+.6*noise((1.7,1.7,1.7),2))*wall  # dirt climbing from the deck
+    blot=.6*noise((1.1,1.1,1.1),3)+.4*noise((3.7,3.7,3.7),4)        # big uneven patches
+    rust=step(.62,.84,.7*noise((2.3,2.3,1.2),5)+.5*(1-ao))          # rust where it is cornered or damp
+    chips=wear*step(.4,.6,noise((55,55,55),6))                      # paint knocked off the edges
+    shade=(1-.3*streak)*(1-.45*damp)*(.76+.42*blot)*(.4+.6*ao**1.2)*(1+1.3*chips+.25*wear)
+    tint=(1-.55*rust)+.55*rust*np.array([1.25,.72,.42],dtype=np.float32)
+    out=np.clip(light/ref*.5,0,4)*shade*tint+.008
+    out=np.clip(out,0,1);srgb=np.where(out<=.0031308,12.92*out,1.055*out**(1/2.4)-.055)
+    final=bpy.data.images.new('Light map',S,S,alpha=False);final.pixels.foreach_set(np.dstack((srgb,np.ones((S,S,1)))).astype(np.float32).ravel())
+    path=self.root/'assets'/self.group/'finish'/self.key/'light.jpg';scene.render.image_settings.file_format='JPEG';scene.render.image_settings.quality=90
+    final.filepath_raw=str(path);final.file_format='JPEG';final.save()
+    print('LIGHT MAP',path,round(float(ref),4),round(float(ao.mean()),3),round(float(edge.mean()),4))
+    return deck
+Ship.bake_light=_bake_light
 def _bake_grime(self,meshes):
     """Bake short-range ambient occlusion into vertex colours, so parts darken where they meet walls, floor and each other."""
     scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=32;scene.cycles.use_denoising=False

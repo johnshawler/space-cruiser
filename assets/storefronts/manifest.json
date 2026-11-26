@@ -1,0 +1,1361 @@
+{
+  "units": "metres",
+  "up": "+Y",
+  "front": "+Z",
+  "venues": {
+    "verdanthia": {
+      "depot": {
+        "name": "Dispatch Bay B4",
+        "file": "verdanthia-depot.glb",
+        "triangles": 39196,
+        "port": "Vendorhaven",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -3.6,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.2,
+            0,
+            -7.5
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ],
+          "shelf": [
+            -4.45,
+            0,
+            -0.9
+          ],
+          "stock_door": [
+            4.5,
+            0,
+            -8.2
+          ],
+          "packing_bench": [
+            4.5,
+            1.25,
+            -13.6
+          ],
+          "droid_home": [
+            3.6,
+            0,
+            -1.4
+          ],
+          "goods_01": [
+            -6.025,
+            3.3,
+            -0.85
+          ],
+          "goods_02": [
+            -4.9750000000000005,
+            3.3,
+            -0.85
+          ],
+          "goods_03": [
+            -3.9250000000000007,
+            3.3,
+            -0.85
+          ],
+          "goods_04": [
+            -2.8750000000000004,
+            3.3,
+            -0.85
+          ],
+          "goods_05": [
+            -6.025,
+            2.15,
+            -0.85
+          ],
+          "goods_06": [
+            -4.9750000000000005,
+            2.15,
+            -0.85
+          ],
+          "goods_07": [
+            -3.9250000000000007,
+            2.15,
+            -0.85
+          ],
+          "goods_08": [
+            -2.8750000000000004,
+            2.15,
+            -0.85
+          ],
+          "goods_09": [
+            -6.025,
+            1.0,
+            -0.85
+          ],
+          "goods_10": [
+            -4.9750000000000005,
+            1.0,
+            -0.85
+          ],
+          "goods_11": [
+            -3.9250000000000007,
+            1.0,
+            -0.85
+          ],
+          "goods_12": [
+            -2.8750000000000004,
+            1.0,
+            -0.85
+          ]
+        }
+      }
+    },
+    "dunemoor": {
+      "depot": {
+        "name": "Form 27-B Cargo Office",
+        "file": "dunemoor-depot.glb",
+        "triangles": 30052,
+        "port": "Bureau Nine",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -3.6,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.2,
+            0,
+            -7.5
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ],
+          "shelf": [
+            -4.45,
+            0,
+            -0.9
+          ],
+          "stock_door": [
+            4.5,
+            0,
+            -8.2
+          ],
+          "packing_bench": [
+            4.5,
+            1.25,
+            -13.6
+          ],
+          "droid_home": [
+            3.6,
+            0,
+            -1.4
+          ],
+          "goods_01": [
+            -6.025,
+            3.3,
+            -0.85
+          ],
+          "goods_02": [
+            -4.9750000000000005,
+            3.3,
+            -0.85
+          ],
+          "goods_03": [
+            -3.9250000000000007,
+            3.3,
+            -0.85
+          ],
+          "goods_04": [
+            -2.8750000000000004,
+            3.3,
+            -0.85
+          ],
+          "goods_05": [
+            -6.025,
+            2.15,
+            -0.85
+          ],
+          "goods_06": [
+            -4.9750000000000005,
+            2.15,
+            -0.85
+          ],
+          "goods_07": [
+            -3.9250000000000007,
+            2.15,
+            -0.85
+          ],
+          "goods_08": [
+            -2.8750000000000004,
+            2.15,
+            -0.85
+          ],
+          "goods_09": [
+            -6.025,
+            1.0,
+            -0.85
+          ],
+          "goods_10": [
+            -4.9750000000000005,
+            1.0,
+            -0.85
+          ],
+          "goods_11": [
+            -3.9250000000000007,
+            1.0,
+            -0.85
+          ],
+          "goods_12": [
+            -2.8750000000000004,
+            1.0,
+            -0.85
+          ]
+        }
+      },
+      "livery": {
+        "name": "Department of Approved Colours",
+        "file": "dunemoor-livery.glb",
+        "triangles": 29992,
+        "port": "Bureau Nine",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.25,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.35,
+            0,
+            -3.9
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "cryo-vault-rimeholm": {
+      "depot": {
+        "name": "Cold Storage Intake",
+        "file": "cryo-vault-rimeholm-depot.glb",
+        "triangles": 35804,
+        "port": "The Freezer Aisle",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -3.6,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.2,
+            0,
+            -7.5
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ],
+          "shelf": [
+            -4.45,
+            0,
+            -0.9
+          ],
+          "stock_door": [
+            4.5,
+            0,
+            -8.2
+          ],
+          "packing_bench": [
+            4.5,
+            1.25,
+            -13.6
+          ],
+          "droid_home": [
+            3.6,
+            0,
+            -1.4
+          ],
+          "goods_01": [
+            -6.025,
+            3.3,
+            -0.85
+          ],
+          "goods_02": [
+            -4.9750000000000005,
+            3.3,
+            -0.85
+          ],
+          "goods_03": [
+            -3.9250000000000007,
+            3.3,
+            -0.85
+          ],
+          "goods_04": [
+            -2.8750000000000004,
+            3.3,
+            -0.85
+          ],
+          "goods_05": [
+            -6.025,
+            2.15,
+            -0.85
+          ],
+          "goods_06": [
+            -4.9750000000000005,
+            2.15,
+            -0.85
+          ],
+          "goods_07": [
+            -3.9250000000000007,
+            2.15,
+            -0.85
+          ],
+          "goods_08": [
+            -2.8750000000000004,
+            2.15,
+            -0.85
+          ],
+          "goods_09": [
+            -6.025,
+            1.0,
+            -0.85
+          ],
+          "goods_10": [
+            -4.9750000000000005,
+            1.0,
+            -0.85
+          ],
+          "goods_11": [
+            -3.9250000000000007,
+            1.0,
+            -0.85
+          ],
+          "goods_12": [
+            -2.8750000000000004,
+            1.0,
+            -0.85
+          ]
+        }
+      }
+    },
+    "sloshwell": {
+      "yard": {
+        "name": "Big Bowl Boatworks",
+        "file": "sloshwell-yard.glb",
+        "triangles": 24284,
+        "port": "Ladle Harbor",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.6,
+            0,
+            -3
+          ],
+          "crew_b": [
+            3.3,
+            0,
+            -3
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "jovexa": {
+      "yard": {
+        "name": "Current Affairs Shipwrights",
+        "file": "jovexa-yard.glb",
+        "triangles": 20958,
+        "port": "The Drift",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.6,
+            0,
+            -3
+          ],
+          "crew_b": [
+            3.3,
+            0,
+            -3
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "scorchmaw": {
+      "garage": {
+        "name": "Lava Lube & Patch",
+        "file": "scorchmaw-garage.glb",
+        "triangles": 32764,
+        "port": "Port Gneiss",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.4,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.3,
+            0,
+            -3.8
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "assay": {
+        "name": "Gneiss Assay & Smelt",
+        "file": "scorchmaw-assay.glb",
+        "triangles": 27578,
+        "port": "Port Gneiss",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            0,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.2,
+            0,
+            -3.7
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "toxibloom": {
+      "garage": {
+        "name": "Spore & Bolt",
+        "file": "toxibloom-garage.glb",
+        "triangles": 47888,
+        "port": "Mellow Hollow",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.4,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.3,
+            0,
+            -3.8
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "listening-post-hush": {
+      "garage": {
+        "name": "Soft Landing Repairs",
+        "file": "listening-post-hush-garage.glb",
+        "triangles": 28556,
+        "port": "The Quiet Ear",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.4,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.3,
+            0,
+            -3.8
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "bar": {
+        "name": "The Indoor Voice",
+        "file": "listening-post-hush-bar.glb",
+        "triangles": 22436,
+        "port": "The Quiet Ear",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.55,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.35,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "amethyne": {
+      "livery": {
+        "name": "Plumage Paint & Polish",
+        "file": "amethyne-livery.glb",
+        "triangles": 28564,
+        "port": "Bargain Roost",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.25,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.35,
+            0,
+            -3.9
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "candara": {
+      "outfit": {
+        "name": "Nothing To See Here Supplies",
+        "file": "candara-outfit.glb",
+        "triangles": 20782,
+        "port": "Port Lament",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.2,
+            0,
+            -3.9
+          ],
+          "crew_b": [
+            3,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "calibration-spire": {
+      "outfit": {
+        "name": "Fine Margins Outfitters",
+        "file": "calibration-spire-outfit.glb",
+        "triangles": 31122,
+        "port": "Tolerance Station",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.2,
+            0,
+            -3.9
+          ],
+          "crew_b": [
+            3,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "beacon-far-wink": {
+      "assay": {
+        "name": "Far Field Assay",
+        "file": "beacon-far-wink-assay.glb",
+        "triangles": 28626,
+        "port": "The Last Light",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            0,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.2,
+            0,
+            -3.7
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    },
+    "brrrindle": {
+      "bar": {
+        "name": "The Warm Mitten",
+        "file": "brrrindle-bar.glb",
+        "triangles": 21360,
+        "port": "Fort Snuggle",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.55,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.35,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      }
+    }
+  }
+}

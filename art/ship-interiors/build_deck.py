@@ -2,7 +2,9 @@
 import math,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'cockpits'))
-from fabricate import Ship,coord,camera,bpy
+from fabricate import Ship,coord,camera,bpy,LIT
+from ship_finish import make_material
+import surfaces
 from dress import dress
 
 ROOMS={'corridor':(-.9,.9,.70,7.20),'passenger cabin':(-4.4,-.9,1.4,5.8),
@@ -14,18 +16,84 @@ UNLIT={'scrubber bay','airlock','port alley','starboard alley'}
 FAULTS={'coolant':(-3.,-.35,1.55),'thruster':(1.3,.35,18.85),'fuse':(2.45,.45,1.46),
         'scrubber':(-3.,.95,5.86),'crack':(-.86,.55,5.15),'strap':(1.55,.1,10.6),'seal':(2.82,.45,5.32)}
 def build(path):
-    r=Ship(path,True);k=r.key
+    r=Ship(path,True);k=r.key;rich=k in LIT
+    if rich:       # the full finish: drab painted steel, tread plate underfoot, surfaces with real wear
+        r.materials['Deck']=make_material('Deck','#34352f',.6,.55,'metal')
+        for name,kind,colour,bump in [('Frame','paint','#5b6148',1.),('Panel','paint2','#3d4334',1.),('Deck','plate',None,1.),('Trim','bare','#8d5a30',.8),
+            ('Steel','bare','#5a625f',.8),('Wear','paint','#8f7d5c',1.),('Leather','leather','#4a3426',1.),('Upholstery','cloth','#6e4d40',1.),
+            ('Moss','cloth','#5d6f45',1.),('Signal','cloth','#8a342b',.9),('Paper','cloth','#d9cfb6',.5),('Rubber','rubber','#262a2c',1.),
+            ('Wood','wood','#80573c',1.),('Pale','enamel','#b9b49c',.7)]:surfaces.finish(r.materials[name],kind,colour,bump)
+    def hsh(i):return (math.sin(i*12.9898)*43758.5453)%1
+    def keep(fn):
+        def run(*a):
+            if not rich:return
+            was=r.part,r.cut;fn(*a);r.section(*was)
+        return run
+    def onwall(axis,c,u,y,wu,h,t,m):return r.box(((c,-u,y) if axis=='x' else (u,-c,y)),((t,wu,h) if axis=='x' else (wu,t,h)),m,0)
+    @keep
+    def wallkit(axis,c,u0,u1,full=True):
+        """What a welded steel bulkhead is made of: a kick strip, a stringer, a cove, and riveted straps over the plate joints."""
+        L=u1-u0;r.section('Wall structure')
+        if L<.12:return
+        onwall(axis,c,(u0+u1)/2,-.9,L,.14,.036,'Panel')
+        if not full:return
+        onwall(axis,c,(u0+u1)/2,1.29,L,.08,.03,'Frame');onwall(axis,c,(u0+u1)/2,-.42,L,.05,.02,'Frame')
+        n=round(L/1.1)
+        for i in range(n if L>.8 else 0):
+            u=u0+L*(i+.5+(hsh(c*7.3+u0*3.1+i)-.5)*.34)/n
+            onwall(axis,c,u,.18,.07,2.3,.014,'Frame')
+            for y in(-.78,-.22,.34,.9,1.2):
+                p=(c,-u,y) if axis=='x' else (u,-c,y);d=(.011,0,0) if axis=='x' else (0,.011,0)
+                r.rod(tuple(a-b for a,b in zip(p,d)),tuple(a+b for a,b in zip(p,d)),.016,'Steel',n=6)
+    @keep
+    def doorkit(axis,c,u0,u1,top):
+        """A heavy steel frame round a doorway."""
+        r.section('Wall structure')
+        for u in(u0,u1):
+            onwall(axis,c,u,(top-.97)/2,.1,top+.97,.1,'Panel')
+            for y in(-.6,0,.6):
+                p=(c,-u,y) if axis=='x' else (u,-c,y);d=(.056,0,0) if axis=='x' else (0,.056,0)
+                r.rod(tuple(a-b for a,b in zip(p,d)),tuple(a+b for a,b in zip(p,d)),.02,'Steel',n=6)
+        onwall(axis,c,(u0+u1)/2,top+.05,u1-u0+.2,.1,.1,'Panel')
+    @keep
+    def floorkit(a,b,c,d):
+        """Deck plates: weld seams in a broken bond, and the odd plate that was replaced with whatever was to hand."""
+        r.section('Deck plates');rows=max(1,round((d-c)/1.05));cols=max(1,round((b-a)/1.2))
+        for j in range(rows):
+            z0=c+(d-c)*j/rows;z1=c+(d-c)*(j+1)/rows
+            if j:r.box(((a+b)/2,-z0,-.968),(b-a,.016,.004),'Panel',0)
+            off=(j%2)*.5
+            for i in range(cols+1):
+                x=a+(b-a)*(i+off)/cols
+                if a+.1<x<b-.1:r.box((x,-(z0+z1)/2,-.968),(.016,z1-z0,.004),'Panel',0)
+                if hsh(a*5+c*3+i*7+j*13)>.86 and i<cols and x+(b-a)/cols<b+.01 and x>a-.01:
+                    r.box((x+(b-a)/cols/2,-(z0+z1)/2,-.9685),((b-a)/cols-.05,z1-z0-.05,.003),'Frame' if hsh(i+j)>.5 else 'Panel',0)
+    @keep
+    def roofkit(a,b,c,d,spine=True):
+        """Roof beams across the room, a conduit down it and a cable slung beside that."""
+        r.section('Roof structure',True);cz=(c+d)/2;n=max(1,round((d-c)/1.15));zs=[c+(d-c)*(i+.5)/n for i in range(n)]
+        for z in zs:
+            if abs(z-cz)>.3:r.box(((a+b)/2,-z,1.285),(b-a,.09,.09),'Frame',0)
+        if spine and b-a>1.2:
+            x=a+(b-a)*.28;r.rod((x,-c-.02,1.215),(x,-d+.02,1.215),.022,'Steel',n=8)
+            for z in zs:r.box((x,-z,1.215),(.08,.1,.07),'Panel',0)
+            x=a+(b-a)*.74;pts=[]
+            for i,z in enumerate(zs):
+                pts.append((x,-z,1.23))
+                if i<len(zs)-1:pts.append((x+.03*(hsh(z)-.5),-(z+zs[i+1])/2,1.12+.05*hsh(z*3)))
+            if len(pts)>2:r.wire(pts,.014,'Rubber')
     face='Wood' if k=='manatee' else 'Pale' if k=='empress' else 'Frame'
     def bx(x,z,y,w,d,h,m,bev=.035):return r.box((x,-z,y),(w,d,h),m,bev)
     def pipe(p,q,rad,m):return r.rod(coord(*p),coord(*q),rad,m)
     for name,(a,b,c,d) in ROOMS.items():
-        r.section(name+' deck');r.quad((a,-d,-.97),(b,-d,-.97),(b,-c,-.97),(a,-c,-.97),'Leather' if k=='manatee' and name=='passenger cabin' else 'Panel')
+        r.section(name+' deck');r.quad((a,-d,-.97),(b,-d,-.97),(b,-c,-.97),(a,-c,-.97),'Leather' if k=='manatee' and name=='passenger cabin' else 'Deck' if rich else 'Panel')
         r.section(name+' roof',True);r.quad((a,-c,1.33),(b,-c,1.33),(b,-d,1.33),(a,-d,1.33),face)
         cx=(a+b)/2;cz=(c+d)/2
         # 'fill_' markers light the preview renders only; the game makes lights from 'lamp_' markers
         r.anchor(('fill_' if name in UNLIT else 'lamp_')+name.replace(' ','_'),(cx,1.18,cz))
         bx(cx,cz,1.28,min(1.1,(b-a)*.6),.20,.065,'Diffuser')
         bx(cx,cz,1.24,min(.83,(b-a)*.4),.10,.03,'Glow')
+        floorkit(a,b,c,d);roofkit(a,b,c,d,name!='corridor')
     def lengthwall(x,z0,z1,gaps=(),portholes=()):
         edges=sorted({z0,z1,*[q for ab in gaps for q in ab],*[q for a,b in portholes for q in (a,b)]})
         for za,zb in zip(edges,edges[1:]):
@@ -38,11 +106,14 @@ def build(path):
                 for y in [.015,.86]:bx(x,mid,y,.065,zb-za,.061,'Trim',.012)
             else:low=-.97
             r.side(x,-zb,-za,low,1.33,face)
+            if low==.97:doorkit('x',x,za,zb,.97)
+            else:wallkit('x',x,za,zb,low==-.97)
     def endwall(z,a,b,gap=None):
         if gap:
             r.back_panel(a,gap[0],-.97,1.33,-z,face);r.back_panel(gap[1],b,-.97,1.33,-z,face)
             r.back_panel(gap[0],gap[1],gap[2],1.33,-z,face)
-        else:r.back_panel(a,b,-.97,1.33,-z,face)
+            wallkit('z',z,a,gap[0]);wallkit('z',z,gap[1],b);doorkit('z',z,gap[0],gap[1],gap[2])
+        else:r.back_panel(a,b,-.97,1.33,-z,face);wallkit('z',z,a,b)
     r.section('Hall bulkheads')
     lengthwall(-.9,.7,7.2,[(3.,4.2),(6.,7.)]);lengthwall(.9,.7,7.2,[(2.5,3.7),(5.6,6.6)])
     endwall(.70,-.9,.9,(-.42,.42,.62))
@@ -131,7 +202,7 @@ def build(path):
         for z in [2.35,3.55,4.75]:bx(-4.28,z,.92,.08,.80,.06,'Glow')
         for h in [-.55,.38,.89]:
             r.wire([(.88*math.cos(a*math.pi/12),-16.6+.88*math.sin(a*math.pi/12),h) for a in range(25)],.037,'Pale',False)
-    dress(r,k,ROOMS)
+    dress(r,k,ROOMS,rich)
     r.section('Deck wear')
     for i in range(6):bx(-.68+i*.045,6.12+i*.08,-.966,.11,.019,.004,'Wear',.001)
     for n,pt in FAULTS.items():r.anchor('fault_'+n,pt)

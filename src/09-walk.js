@@ -82,10 +82,16 @@ const Interior = {
     [-1.25,-0.5,6.2,6.8],[-3.1,-1.15,6.1,6.9],[0.5,1.25,5.85,6.35],[1.15,2.65,5.3,6.9],[2.5,3.3,5.85,6.35],[3.15,3.7,5.3,6.9],
     [-2.8,-2.0,14.8,15.4],[-3.1,-2.7,14.5,18.1],[2.0,2.8,14.8,15.4],[2.7,3.1,14.5,18.1]],
   OBST:[[0,16.6,1.25],[-1.42,1.55,0.3],[-1.55,18.2,0.45]],   // reactor, the cabin's fore-wall fixture, the engine room seat
-  inside(x,z){ for(const r of this.RECTS) if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3]){ for(const o of this.OBST) if(Math.hypot(x-o[0],z-o[1])<o[2]) return false; return true; } return false; },
+  /* A hand-built deck brings its own map of where you can stand (the rectangles, less whatever the model puts in the way)
+     and its own free places for crates; both are worked out from the model by art/ship-interiors/import_deck.py */
+  plan(){ const B=Assets.deck(G.shipId); if(!B||!B.walk) return null; if(B._grid) return B;
+    const w=B.walk, raw=atob(w.bits), bits=new Uint8Array(raw.length); for(let i=0;i<raw.length;i++) bits[i]=raw.charCodeAt(i); B._grid=bits; return B; },
+  inside(x,z){ const P=this.plan();
+    if(P){ const w=P.walk, i=Math.floor((x-w.x0)/w.cell), j=Math.floor((z-w.z0)/w.cell); if(i<0||j<0||i>=w.nx||j>=w.nz) return false; const k=j*w.nx+i; return !!(P._grid[k>>3]&(128>>(k&7))); }
+    for(const r of this.RECTS) if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3]){ for(const o of this.OBST) if(Math.hypot(x-o[0],z-o[1])<o[2]) return false; return true; } return false; },
   build(){
     if(this.group){ World.cock.remove(this.group); this.group.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
-    const g=this.group=new THREE.Group(); g.visible=false; World.cock.add(g); this.shipId=G.shipId; this.fx={}; this.seats=[]; this.pax=[]; this.crates=null; this.crateKey=''; this.paxKey='';
+    const g=this.group=new THREE.Group(); g.visible=false; World.cock.add(g); this.shipId=G.shipId; this.lit=false; this.fx={}; this.seats=[]; this.pax=[]; this.crates=null; this.crateKey=''; this.paxKey='';
     const ck=SHIPS[G.shipId].ck, bump=panelBumpTex(), std=(hex,r,m,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:r,metalness:m},ex||{}));
     const M={ wall:std(ck.panel,0.75,0.25,{bumpMap:bump,bumpScale:0.002}), frame:std(ck.frame,0.55,0.55), floor:std('#3a3e44',0.6,0.7,{bumpMap:bump,bumpScale:0.004}), ceil:std('#2a2d32',0.8,0.3),
       trim:std(ck.trim,0.35,0.85), dark:std('#16181c',0.7,0.4), seat:std(ck.leather,0.6,0.05), hazard:std('#ffffff',0.7,0.2,{map:(()=>{ const cv=makeCanvas(256,32), x=cv.getContext('2d'); for(let i=0;i<16;i++){ x.fillStyle=i%2?'#f2c14e':'#1c1c1e'; x.beginPath(); x.moveTo(i*16,0); x.lineTo(i*16+16,0); x.lineTo(i*16,32); x.lineTo(i*16-16,32); x.fill(); } const t=canvasTex(cv); t.wrapS=THREE.RepeatWrapping; t.repeat.set(4,1); return t; })()}),
@@ -178,6 +184,7 @@ const Interior = {
     Promise.all([Assets.glb(B.file), Assets.env(dir+'space.hdr').catch(()=>null), Assets.lut(dir+'grade.png').catch(()=>null)]).then(([src,env,lut])=>{
       if(this.group!==g) return;
       const deck=src.clone(true); deck.name='bespoke deck '+B.ship; Assets.prepare(deck,env); const A=Assets.anchors(deck);
+      if(B.baked) return this.bakedDeck(B,deck,g,A);
       const grime=this.grimeTex();   // dirt, streaks and scratches over every plain surface, so no wall is one flat colour
       deck.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false; if(o.material&&o.material.name==='glass'){ o.renderOrder=5; }
         for(const m of [].concat(o.material)){ if(!m||!m.isMeshStandardMaterial||m.transparent||m.map) continue; if(m.emissive&&m.emissive.r+m.emissive.g+m.emissive.b>0.01) continue; m.map=grime; m.needsUpdate=true; } });
@@ -191,6 +198,7 @@ const Interior = {
       this.lights=[]; for(const k in A){ if(!/^lamp_/.test(k)) continue; const L=new THREE.PointLight(C('#ffe2c0'),1.8,10,1.5); L.position.copy(A[k].position).add(new V3(0,-0.2,0)); g.add(L); this.lights.push(L); }
       if(A.reactor){ const L=new THREE.PointLight(C('#6fd6ff'),2.2,8,1.5); L.position.copy(A.reactor.position).add(new V3(0,0.15,0)); g.add(L); this.lights.push(L); }
       g.add(deck); this.bespokeDeck=deck; this.grade=lut;
+      if(B.light) this.lightMapped(B,deck,g);
     }).catch(()=>{});
   },
   /* a cushioned passenger seat on a pedestal, with armrests, a headrest and a harness; local +x faces into the cabin */
@@ -202,6 +210,53 @@ const Interior = {
     for(const s of [-1,1]){ add(Folk.bx(0.05,0.2,0.05,M.chrome,0.2,FLOOR+0.55,s*0.38)); add(rb(0.48,0.07,0.08,0.03,M.frame,0.03,FLOOR+0.66,s*0.38)); add(rb(0.42,0.04,0.09,0.02,M.cushion,0.03,FLOOR+0.71,s*0.38));
       add(Folk.bx(0.02,0.6,0.07,M.accent,-0.19,FLOOR+1.0,s*0.15),0.12); }
     add(Folk.bx(0.03,0.08,0.12,M.chrome,-0.15,FLOOR+0.7,0)); },
+  /* A hand-built deck whose every surface is baked to image maps, one per room: it is drawn unlit, exactly as it was lit
+     in Blender. The stock deck and all the game's own signs go; the repair props, crates and passengers stay, lit by the
+     lamps only */
+  bakedDeck(B,deck,g,A){
+    const keep=new Set([...Object.values(this.fx).map(f=>f.grp),...this.seats,this.crates].filter(Boolean));
+    for(const o of g.children.slice()){ if(keep.has(o)||o.isHemisphereLight) continue; if(o===this.core){ o.visible=false; continue; } g.remove(o); if(o.geometry) o.geometry.dispose(); }
+    for(const S of this.seats) for(const c of S.children.slice()) if(!this.pax.includes(c)) S.remove(c);
+    const key=n=>String(n).toLowerCase().replace(/[^a-z]+/g,'-').replace(/^-|-$/g,''), maps={}; for(const k in B.baked) maps[key(k)]=B.baked[k];
+    Assets.base().then(b=>deck.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false; const m=new THREE.MeshBasicMaterial({color:0x101210}); o.material=m; const url=maps[key(o.name)]; if(!url) return;
+      new THREE.TextureLoader().load(b+url,t=>{ t.flipY=false; t.encoding=THREE.sRGBEncoding; t.anisotropy=8; m.map=t; m.color.set(0xffffff); m.needsUpdate=true; }); }));
+    this.lights=[]; for(const k in A){ if(!/^lamp_/.test(k)) continue; const L=new THREE.PointLight(C('#ffe2c0'),0.75,9,1.5); L.position.copy(A[k].position).add(new V3(0,-0.2,0)); g.add(L); this.lights.push(L); }
+    for(const o of g.children) if(o.isHemisphereLight) o.intensity=0.1;
+    g.add(deck); this.bespokeDeck=deck; this.grade=null; this.lit=true; const grime=this.grimeTex();
+    if(this.crates) this.crates.traverse(o=>{ if(o.isMesh) this.indoor(o.material,0.5); });
+    for(const f of Object.values(this.fx)) f.grp.traverse(o=>{ if(!o.isMesh) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial){ if(!m.map&&!m.transparent) m.map=grime; m.envMapIntensity=(m.envMapIntensity==null?1:m.envMapIntensity)*0.25; this.indoor(m); } });
+    // where the model already draws the working fitting (the scrubber's fans, the straps on the cargo cases), the game's own
+    // working version is left out: only its status screen and what shows when it breaks remain
+    for(const [id,body] of [['strap',false],['scrubber',true]]){ const f=this.fx[id]; if(!f) continue; f.ok.traverse(o=>{ if(o.isMesh) o.visible=false; });
+      if(body){ for(const c of f.grp.children) if(c.isMesh) c.visible=false; if(f.fan) f.fan.visible=false; } }
+  },
+  /* A deck with a baked light map: the lamps' light, shadow, dirt and edge wear all come from the map. The live lights
+     (the sun included, which otherwise shines straight through the hull) are switched off for the deck's own surfaces,
+     bar a little of their shine; they still light the crates, passengers and repair props */
+  lightMapped(B,deck,g){
+    Assets.base().then(b=>new THREE.TextureLoader().load(b+B.light,tex=>{ if(this.bespokeDeck!==deck) return; tex.flipY=false; tex.encoding=THREE.sRGBEncoding; tex.anisotropy=4;
+      const baked=sh=>{ sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin+'\n irradiance*=0.0; reflectedLight.directDiffuse*=0.0; reflectedLight.directSpecular*=0.3;\n'); };
+      deck.traverse(o=>{ if(!o.isMesh||!o.geometry.attributes.uv2) return; for(const m of [].concat(o.material)){ if(!m||!m.isMeshStandardMaterial||m.transparent) continue;
+        m.lightMap=tex; m.lightMapIntensity=this.LIGHT_GAIN; m.envMapIntensity*=0.4; m.onBeforeCompile=baked; m.needsUpdate=true; } });
+      for(const o of g.children) if(o.isMesh) for(const m of [].concat(o.material)) if(m&&m.userData.label&&m.color) m.color.multiplyScalar(0.62);   // signs sit in the same dim light
+      // the crates and repair props are not in the map: they keep the lamps' live light, lose the sun, and take the grime layer
+      this.lit=true; for(const L of this.lights) L.intensity*=0.4; const grime=this.grimeTex(); if(this.crates) this.crates.traverse(o=>{ if(o.isMesh) this.indoor(o.material,0.5); });
+      for(const f of Object.values(this.fx)) f.grp.traverse(o=>{ if(!o.isMesh) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial){ if(!m.map&&!m.transparent) m.map=grime; this.indoor(m); } });
+    })); },
+  LIGHT_GAIN:2.6,
+  /* a live-lit thing aboard a light-mapped deck: lamps only, no sun through the hull, a little ambient */
+  indoor(m,dim){ if(!m||!m.isMeshStandardMaterial||m.userData.indoor) return; m.userData.indoor=true; if(dim) m.color.multiplyScalar(dim);
+    m.onBeforeCompile=sh=>{ sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace(/NUM_DIR_LIGHTS > 0/g,'NUM_DIR_LIGHTS > 99')+'\n irradiance*=0.35;\n'); }; m.needsUpdate=true; },
+  /* a cargo crate: a box with a frame of battens and a diagonal brace on each side, so it is not just a cube */
+  crateGeo(){ if(this._crate) return this._crate; const U=THREE.BufferGeometryUtils, parts=[], S=0.74, T=0.03, W=0.09;
+    const add=(w,h,d,x,y,z,rx,ry,rz)=>{ const g=new THREE.BoxGeometry(w,h,d); if(rz) g.rotateZ(rz); if(rx) g.rotateX(rx); if(ry) g.rotateY(ry); g.translate(x,y,z); parts.push(g); };
+    add(S,S,S,0,0,0);
+    for(let k=0;k<4;k++){ const ry=k*Math.PI/2, c=Math.cos(ry), s=Math.sin(ry), o=S/2+T/2, P=(lx,ly)=>[lx*c+o*s,ly,-lx*s+o*c];
+      for(const sy of [-1,1]){ const p=P(0,sy*(S/2-W/2)); add(S+2*T,W,T,p[0],p[1],p[2],0,ry,0); }
+      for(const sx of [-1,1]){ const p=P(sx*(S/2-W/2+T),0); add(W,S-2*W,T,p[0],p[1],p[2],0,ry,0); }
+      const p=P(0,0); add(W,(S-2*W)*1.36,T*0.8,p[0],p[1],p[2],0,ry,(k%2?1:-1)*Math.PI/4); }
+    for(const sz of [-1,1]) add(S+2*T,T,W,0,S/2+T/2,sz*(S/2-W/2)); add(W,T,S,0,S/2+T/2,0);
+    return this._crate=U&&U.mergeBufferGeometries?U.mergeBufferGeometries(parts):new THREE.BoxGeometry(0.78,0.78,0.78); },
   /* a tiling layer of grime for the modelled decks: blotches, streaks that run down, scratches and specks. One tile covers 2 m */
   grimeTex(){ if(this._grime) return this._grime; const S=512, cv=makeCanvas(S,S), c=cv.getContext('2d'); let s=11; const R=()=>(s=s*16807%2147483647)/2147483647;
     const wrap=(x,y,f)=>{ for(const dx of [-S,0,S]) for(const dy of [-S,0,S]) f(x+dx,y+dy); };
@@ -385,14 +440,15 @@ const Interior = {
   syncFaults(){ if(!this.group) return; for(const id in this.fx){ const f=this.fx[id], has=Faults.has(id); if(f.broken!==has){ f.broken=has; f.bad.visible=has; f.ok.visible=!has; this.drawSpot(f,has); } } },
   /* crates in the hold match how full it is; passengers sit in the cabin */
   syncCargo(){
-    const used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*28), key=n+'';
+    const P0=this.plan(), room=P0&&P0.crates?P0.crates.length*2:28, used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*room), key=n+'';
     if(key!==this.crateKey){ this.crateKey=key; if(this.crates) this.group.remove(this.crates); const cg=this.crates=new THREE.Group(); this.group.add(cg); let k=0;
       // plain wood crates: slats inside a darker frame. They take almost nothing from the bright sky map, which made them glow like lamps
       if(!this.crateTex){ const S=256, cv=makeCanvas(S,S), x=cv.getContext('2d'); x.fillStyle='#d8d0c4'; x.fillRect(0,0,S,S);
         for(let i=0;i<5;i++){ x.fillStyle=i%2?'#cfc6b8':'#e2dace'; x.fillRect(0,i*S/5,S,S/5-6); x.fillStyle='#5a4a38'; x.fillRect(0,(i+1)*S/5-6,S,6); }
-        x.strokeStyle='#4a3a2a'; x.lineWidth=30; x.strokeRect(15,15,S-30,S-30); x.lineWidth=22; x.beginPath(); x.moveTo(20,20); x.lineTo(S-20,S-20); x.stroke(); this.crateTex=canvasTex(cv); }
+        for(let i=0;i<260;i++){ const yy=(i*97)%S, xx=(i*53)%S; x.fillStyle=`rgba(${i%3?'60,44,30':'255,244,220'},${0.05+(i%5)*0.02})`; x.fillRect(xx,yy,30+(i*7)%120,1+(i%2)); } for(let i=0;i<5;i++){ x.fillStyle='rgba(40,28,18,0.5)'; x.beginPath(); x.ellipse((i*83+40)%S,(i*131+30)%S,7,4,0,0,7); x.fill(); } this.crateTex=canvasTex(cv); }
       const mats=['#a8743a','#8c5e2a','#b98040','#7a6650'].map(c=>new THREE.MeshStandardMaterial({color:C(c),map:this.crateTex,roughness:0.9,metalness:0,envMapIntensity:0.12}));
-      for(const sx of [-1,1]) for(let z=7.9;z<13.9&&k<n;z+=0.85) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.78,0.78,0.78),mats[(k*7)%4]); c.position.set(sx*(2.35+(lvl?0.05:0)),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
+      const P=this.plan(), slots=[]; if(P&&P.crates) for(const [x,z] of P.crates) slots.push([x,z]); else for(const sx of [-1,1]) for(let z=7.9;z<13.9;z+=0.85) slots.push([sx*2.35,z]);
+      for(const [sx0,z] of slots) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(this.crateGeo(),mats[(k*7)%4]); if(this.lit) this.indoor(c.material,0.5); c.position.set(sx0+Math.sign(sx0)*(lvl?0.05:0),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
     const pax=Cargo.pax(), pk=pax.map(p=>p.kind==='escort'?p.vip.seed:p.seed).join(',');
     if(pk!==this.paxKey){ this.paxKey=pk; for(const F of this.pax) F.parent&&F.parent.remove(F); this.pax=[];
       pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.66), S=this.seats[i], U=F.userData;

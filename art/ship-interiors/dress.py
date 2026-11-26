@@ -4,6 +4,7 @@ Everything is placed in game coordinates (x right, y up, z aft) and kept out of 
 src/09-walk.js, off the seven repair spots and their status screens, and off the signs the game hangs itself.
 Hand-lettered boards are drawn by the game (DECK_NOTES in src/09-walk.js), not modelled here."""
 import math,bpy
+from mathutils import Vector
 F=-.97
 # a wall face: (axis it is square to, where it stands, which way is into the room)
 CP=('x',-.9,1);CS=('x',.9,-1)                                             # corridor, port and starboard
@@ -14,7 +15,7 @@ AL=('z',5.26,1);AA=('z',7.2,-1);AI=('x',.9,1);AP=('x',2.9,-1);AQ=('x',2.9,1);AO=
 HF=('z',7.2,1);HA=('z',14.2,-1);HP=('x',-3.4,1);HS=('x',3.4,-1)           # hold
 EF=('z',14.2,1);EA=('z',19.,-1);EP=('x',-2.4,1);ES=('x',2.4,-1)           # engine room
 LO=('x',-3.4,1);RO=('x',3.4,-1)                                           # service alleys, outer walls
-def dress(r,k,ROOMS):
+def dress(r,k,ROOMS,rich=False):
     G=lambda x,y,z:(x,-z,y)
     def low():r.section('Dressing')
     def top():r.section('Overhead dressing',True)
@@ -28,8 +29,49 @@ def dress(r,k,ROOMS):
         bpy.ops.mesh.primitive_torus_add(major_segments=seg,minor_segments=5,location=G(*p),rotation=rot,major_radius=R,minor_radius=t)
         return r.put(bpy.context.object,m)
     def wire(pts,rad,m,smooth=True):return r.wire([G(*p) for p in pts],rad,m,smooth)
+    # ---- shape tools, so props are turned and draped instead of stacked from blocks
+    def turn(x,y,z,prof,m,n=14):
+        """Turn a profile [(radius,height),...] round an upright axis. Smooth sides, flat ends; a profile that
+        comes back down the inside makes a hollow vessel."""
+        vs=[];fs=[];rings=[]
+        for r_,h in prof:
+            rings.append(len(vs))
+            for i in range(n):a=2*math.pi*i/n;vs.append(G(x+r_*math.cos(a),y+h,z+r_*math.sin(a)))
+        for j in range(len(prof)-1):
+            if prof[j]==prof[j+1]:continue
+            for i in range(n):a=rings[j]+i;c=rings[j]+(i+1)%n;fs.append((a,a+n,c+n,c))
+        for j,rev in((0,False),(len(prof)-1,True)):
+            s0=len(vs);vs.extend(vs[rings[j]:rings[j]+n]);idx=list(range(s0,s0+n));fs.append(tuple(idx[::-1] if rev else idx))
+        return r.mesh(vs,fs,m,smooth=True)
+    def sheet(rows,m,face):
+        """A smooth sheet through a grid of points, facing the given direction."""
+        nr=len(rows);nc=len(rows[0]);vs=[G(*p) for row in rows for p in row]
+        fs=[(j*nc+i,j*nc+i+1,(j+1)*nc+i+1,(j+1)*nc+i) for j in range(nr-1) for i in range(nc-1)]
+        k0=(nr//2-1)*nc+nc//2-1;a,c,d=Vector(vs[k0]),Vector(vs[k0+1]),Vector(vs[k0+nc])
+        if (c-a).cross(d-a).dot(Vector(G(*face)))<0:fs=[f[::-1] for f in fs]
+        return r.mesh(vs,fs,m,smooth=True)
+    def lump(x,z,w,h,d,m,y=F,ripple=.03,n=9):
+        """Cloth lying over something: a soft-topped mound with steep sides and a few wrinkles."""
+        rows=[]
+        for j in range(n):
+            v=j/(n-1)*2-1;row=[]
+            for i in range(n):
+                u_=i/(n-1)*2-1;q=(max(0,1-u_**4)*max(0,1-v**4))**.5
+                row.append((x+u_*w/2,y+(h+ripple*math.sin(5*u_+3*v))*q,z+v*d/2))
+            rows.append(row)
+        return sheet(rows,m,(0,1,0))
     # ---- things fixed to a wall face: u runs along the wall, o is the stand-off from it
     def wp(f,u,y,o):a,c,s=f;return (c+s*o,y,u) if a=='x' else (u,y,c+s*o)
+    def drape(f,u,y,w,h,m,folds=3,dep=.05,o=.012,nc=13,nr=6):
+        """Cloth hanging on a wall from a line at height y: gathered at the top, folds deepening toward the hem."""
+        rows=[]
+        for j in range(nr):
+            t=j/(nr-1);row=[]
+            for i in range(nc):
+                q=i/(nc-1);edge=math.sin(math.pi*q)**.35
+                row.append(wp(f,u+(q-.5)*w*(.86+.14*t),y-t*h,edge*(o+dep*(.35+.65*t)*(.55+.45*math.sin(folds*2*math.pi*q+1.3*t)))))
+            rows.append(row)
+        return sheet(rows,m,(f[2],0,0) if f[0]=='x' else (0,0,f[2]))
     def wb(f,u,y,o,wu,h,dep,m,bev=.008):
         x,yy,z=wp(f,u,y,o+dep/2)
         return b(x,yy,z,dep if f[0]=='x' else wu,h,wu if f[0]=='x' else dep,m,bev)
@@ -43,12 +85,15 @@ def dress(r,k,ROOMS):
     def hood(f,u,y,dep=.14,lid=True):      # the steel bezel round a repair spot's status screen
         wb(f,u,y+(.17 if lid else -.17),0,.82,.024,dep,'Steel',.004)
         for d in(-.4,.4):wb(f,u+d,y,0,.024,.34,dep-.02,'Steel',.004)
+    def spot(p,m,watts):
+        if m in('Glow','Diffuser','Signal'):r.lampspots.append((p,'#ff3a24' if m=='Signal' else None,watts*(.4 if m=='Signal' else 1)))
     def cage(f,u,y,m='Glow'):              # a caged work lamp
+        spot(wp(f,u,y,.24),m,9)
         wb(f,u,y,0,.17,.17,.025,'Panel',.006);wr(f,u,y,.025,.15,.05,m,10)
         wring(f,u,y,.16,.07,.007,'Steel',10);wring(f,u,y,.09,.07,.007,'Steel',10)
         for du,dy in((.07,0),(-.07,0),(0,.07),(0,-.07)):wr(f,u+du,y+dy,.02,.165,.006,'Steel',4)
     def shade(f,u,y,m,arm='Trim'):         # a shaded wall lamp
-        wr(f,u,y,0,.15,.012,arm,6);x,yy,z=wp(f,u,y,.15)
+        wr(f,u,y,0,.15,.012,arm,6);x,yy,z=wp(f,u,y,.15);spot((x,yy-.12,z),'Glow',7)
         rod((x,yy-.05,z),(x,yy+.1,z),.12,m,12,.05);ball((x,yy-.03,z),(.045,.045,.045),'Glow')
     def dial(f,u,y,R=.1,rim='Trim',o=0,face='Pale'):
         wr(f,u,y,o,o+.03,R,rim,16);wr(f,u,y,o+.03,o+.036,R*.82,face,16)
@@ -64,18 +109,19 @@ def dress(r,k,ROOMS):
         for d in(-1,1):wb(f,u+d*(w/2-.05),y-.06,0,.02,.1,dep*.8,'Steel',0)
     def hook(f,u,y):wr(f,u,y,0,.07,.012,'Steel',6)
     def coat(f,u,y,m,w=.34,h=.8):
-        hook(f,u,y)                         # three hanging folds and a collar, not a slab
-        for i,du in enumerate((-.3,0,.3)):
-            sc=(w*.24,h/2-.03*(i%2),.05+.012*(i%2));ball(wp(f,u+du*w,y-h/2-.02,.06),(sc[2],sc[1],sc[0]) if f[0]=='x' else sc,m)
-        sc=(w*.3,.07,.06);ball(wp(f,u,y-.05,.07),(sc[2],sc[1],sc[0]) if f[0]=='x' else sc,m)
+        e=lambda sx,sy,sz:(sz,sy,sx) if f[0]=='x' else (sx,sy,sz)
+        hook(f,u,y);drape(f,u,y-.05,w,h,m,2,.075);ball(wp(f,u,y-.06,.06),e(w*.32,.06,.055),m)
     def picture(f,u,y,w,h,frame='Wood',inner='Paper',o=0):
         wb(f,u,y,o,w,h,.025,frame,.006);wb(f,u,y,o+.025,w-.08,h-.08,.004,inner,0)
-    def suit(f,u,y,m,knees=None,w=.5):     # an empty pressure suit hung flat on a wall, collar at y
-        wb(f,u,y-.35,.01,w,.62,.14,m,.06)
+    def suit(f,u,y,m,knees=None,w=.5):     # an empty pressure suit hung on a wall, collar at y: rounded limbs, gloves and boots
+        e=lambda sx,sy,sz:(sz,sy,sx) if f[0]=='x' else (sx,sy,sz)
+        ball(wp(f,u,y-.33,.08),e(w*.5,.34,.085),m);ball(wp(f,u,y-.6,.08),e(w*.46,.14,.08),m)
         for d in(-1,1):
-            wb(f,u+d*(w/2+.07),y-.4,.01,.13,.6,.12,m,.05);wb(f,u+d*.13,y-1.02,.01,.19,.78,.13,m,.05)
-            if knees:wb(f,u+d*.13,y-.98,.14,.16,.16,.012,knees,.004)
-        wring(f,u,y-.03,.08,.13,.02,'Steel',12);wr(f,u,y+.02,0,.09,.012,'Steel',6)
+            ball(wp(f,u+d*w*.42,y-.12,.08),e(.08,.08,.07),m)
+            rod(wp(f,u+d*w*.42,y-.12,.08),wp(f,u+d*(w*.5+.1),y-.62,.07),.065,m,8,.05);ball(wp(f,u+d*(w*.5+.1),y-.66,.07),e(.055,.07,.05),'Rubber')
+            rod(wp(f,u+d*.12,y-.62,.08),wp(f,u+d*.14,y-1.32,.08),.09,m,8,.075);ball(wp(f,u+d*.14,y-1.36,.1),e(.08,.06,.11),'Rubber')
+            if knees:ball(wp(f,u+d*.13,y-.98,.13),e(.07,.08,.04),knees)
+        wring(f,u,y-.02,.08,.12,.022,'Steel',12);wr(f,u,y+.02,0,.09,.012,'Steel',6)
     def ladder(f,u,y0,y1,o=.03,w=.36):
         for d in(-1,1):wl(f,u+d*w/2,y0,u+d*w/2,y1,o,.018,'Steel')
         for i in range(1,int((y1-y0)/.28)+1):wl(f,u-w/2,y0+i*.28,u+w/2,y0+i*.28,o,.013,'Steel')
@@ -96,10 +142,11 @@ def dress(r,k,ROOMS):
             if across:wl(KA,-3.33,.95+t*.38,-2.67,.95+t*.38,.02,.008,bars,4)
             else:wl(KA,-3.+t*.66,.77,-3.+t*.66,1.13,.02,.008,bars,4)
     # ---- things that stand on the floor or on a surface at height y
-    def mug(x,y,z,m='Pale'):rod((x,y,z),(x,y+.1,z),.045,m,10);b(x+.055,y+.05,z,.03,.06,.015,m,0)
+    def mug(x,y,z,m='Pale'):turn(x,y,z,[(.036,0),(.045,.012),(.045,.1),(.037,.1),(.035,.02)],m,10);ring((x+.052,y+.052,z),.028,.008,m,'z',8)
     def bucket(x,z,m='Steel',fill=None,y=F):
-        rod((x,y,z),(x,y+.28,z),.11,m,12,.15)
-        if fill:rod((x,y+.24,z),(x,y+.27,z),.135,fill,12)
+        turn(x,y,z,[(.1,0),(.15,.28),(.135,.28),(.135,.25)] if fill else [(.1,0),(.15,.28),(.135,.28),(.09,.02)],m,12)
+        if fill:turn(x,y,z,[(.134,.2),(.134,.25)],fill,12)
+        wire([(x-.15,y+.27,z),(x-.1,y+.36,z+.02),(x+.1,y+.36,z+.02),(x+.15,y+.27,z)],.006,'Steel')
     def books(x,y,z,n=4,along='x'):
         cols=['Signal','Moss','Paper','Upholstery','Trim']
         for i in range(n):
@@ -107,26 +154,34 @@ def dress(r,k,ROOMS):
             else:b(x,y+.09+.01*(i%2),z+i*.05,.12,.17+.02*(i%2),.04,cols[i%5],.004)
     def stack(x,y,z,n,w,d,t,mats,jit=.02):
         for i in range(n):b(x+jit*((i*7)%3-1),y+t*(i+.5),z+jit*((i*5)%3-1),w,t*.9,d,mats[i%len(mats)],.004)
-    def crate(x,z,w,h,d,m='Wood',y=F,trim='Steel'):
+    def crate(x,z,w,h,d,m='Wood',y=F,trim='Steel'):   # battens on the faces that look into the room
         b(x,y+h/2,z,w,h,d,m,.015)
+        for sx in(-1,1):
+            for sz in(-1,1):b(x+sx*(w/2+.005),y+h/2,z+sz*(d/2-.04),.014,h-.02,.07,'Wear',0)
+            b(x+sx*(w/2+.004),y+h/2,z,.012,.07,d*1.25,'Wear',0,rx=sx*math.atan2(h-.1,d-.1))
         if trim:b(x,y+h-.03,z,w+.02,.04,d+.02,trim,.004)
     def rug(x,z,w,d,m,edge=None):
         if edge:b(x,F+.004,z,w,.008,d,edge,0);b(x,F+.008,z,w-.16,.008,d-.16,m,0)
         else:b(x,F+.005,z,w,.01,d,m,0)
     def stool(x,z,m='Leather',leg='Steel',h=.45):
-        rod((x,F,z),(x,F+h,z),.03,leg,6);rod((x,F,z),(x,F+.03,z),.16,leg,10);rod((x,F+h,z),(x,F+h+.06,z),.17,m,12)
-    def plant(x,y,z,pot='Trim'):rod((x,y,z),(x,y+.16,z),.08,pot,10,.11);ball((x,y+.3,z),(.17,.17,.17),'Moss')
+        turn(x,F,z,[(.17,0),(.15,.025),(.035,.045),(.03,h)],leg,10);turn(x,F+h,z,[(.15,0),(.18,.02),(.18,.05),(.13,.08),(.03,.085)],m,14)
+    def plant(x,y,z,pot='Trim'):
+        turn(x,y,z,[(.07,0),(.11,.16),(.095,.16),(.09,.13)],pot,12)
+        for dx,dy,dz,rr in((0,.3,0,.15),(.08,.24,.05,.1),(-.07,.26,-.06,.11),(.02,.4,-.03,.09)):ball((x+dx,y+dy,z+dz),(rr,rr*.9,rr),'Moss')
     def helmet(x,y,z,m='Pale',visor='Rubber',fx=0,fz=-1):
-        ball((x,y+.15,z),(.16,.16,.16),m);ball((x+fx*.07,y+.16,z+fz*.07),(.12,.09,.12),visor)
+        ball((x,y+.15,z),(.16,.16,.16),m);ball((x+fx*.07,y+.16,z+fz*.07),(.12,.09,.12),visor);ring((x,y+.03,z),.11,.022,'Steel','y',12)
     def boots(x,y,z,m='Rubber'):
-        for d in(-.09,.09):b(x+d,y+.13,z,.11,.26,.13,m,.03);b(x+d,y+.05,z-.08,.11,.1,.14,m,.03)
-    def tarp(x,z,w,h,d,m='Upholstery'):b(x,F+h/2,z,w,h,d,m,min(w,h,d)*.4);b(x,F+.012,z,w+.12,.02,d+.12,m,.008)
+        for d in(-.09,.09):turn(x+d,y,z,[(.05,.05),(.058,.26),(.046,.26),(.044,.2)],m,10);ball((x+d,y+.05,z-.05),(.058,.05,.11),m)
+    def tarp(x,z,w,h,d,m='Upholstery'):lump(x,z,w+.14,h,d+.16,m,ripple=.04)
     def pendant(x,z,y,m):                  # a shaded lamp hanging from the ceiling, rim at y
+        spot((x,y-.08,z),'Glow',12)
         rod((x,1.33,z),(x,y+.14,z),.008,'Rubber',4);rod((x,y,z),(x,y+.15,z),.15,m,12,.04);ball((x,y+.03,z),(.05,.05,.05),'Glow')
     def flamp(x,z,m,h=1.45):               # a standing lamp
+        spot((x,F+h-.1,z),'Glow',10)
         rod((x,F,z),(x,F+.03,z),.13,'Trim',10);rod((x,F,z),(x,F+h,z),.015,'Trim',6)
         rod((x,F+h-.02,z),(x,F+h+.2,z),.17,m,12,.09);ball((x,F+h+.02,z),(.05,.05,.05),'Glow')
     def tlamp(x,y,z,m):                    # a table lamp
+        spot((x,y+.12,z),'Glow',5)
         ball((x,y+.05,z),(.06,.05,.06),'Trim');rod((x,y+.05,z),(x,y+.2,z),.012,'Trim',6)
         rod((x,y+.17,z),(x,y+.32,z),.12,m,12,.06);ball((x,y+.2,z),(.04,.04,.04),'Glow')
     def htruck(x,z,m='Signal',odd=None):   # a hand truck leaning aft
@@ -179,13 +234,30 @@ def dress(r,k,ROOMS):
                 x=cx-w/2-.03+i*(w+.06)/4;b(x,1.2,cz,.012,.012,.24,'Steel',0)
                 for dz in(-.12,.12):b(x,1.26,cz+dz,.012,.13,.012,'Steel',0)
     low()
-    door={'rustbucket':'Steel','dromedary':'Panel','stoat':'Panel','manatee':'Wood','empress':'Pale'}[k]
+    door={'rustbucket':'Panel' if rich else 'Steel','dromedary':'Panel','stoat':'Panel','manatee':'Wood','empress':'Pale'}[k]
     slab(KI,4.83,1.15,m=door,latch=-1);slab(GI,4.3,1.1,m=door,latch=-1)
     for s in(-1,1):slab(HF,s*1.4,.95,1.95,door,latch=-s)
     slab(EF,1.55,1.4,m=door,latch=-1)
     for x,z,w,d in [(-.9,3.6,.3,1.1),(.9,3.1,.3,1.1),(0,7.2,1.7,.3),(0,14.2,1.5,.3),(-.9,6.5,.3,.9),(.9,6.1,.3,.9),(-2.4,15.1,.3,.9),(2.4,15.1,.3,.9)]:
-        b(x,F+.004,z,w,.008,d,'Frame',0)
+        b(x,F+.004,z,w,.008,d,'Panel' if rich else 'Frame',0)
     for u in(5.2,6.2):wr(AO,6.1+(u-5.7)*.5,(u-5.7)*.4,.15,.158,.11,'Pale',8)   # frost or damp on the outer hatch
+
+    if rich:
+        # A steel backing with stand-offs behind every sign and poster the game hangs, so none of them floats.
+        # (width, height, x, y, z, quarter turns), as in Interior.decor in src/09-walk.js
+        signs=[(.95,.28,.855,1.14,6.1,-1),(.95,.28,-.855,1.14,6.5,1),(.95,.28,2.355,1.14,15.1,-1),(.95,.28,-2.355,1.14,15.1,1),(.5,.3,-.805,.5,1.5,1),
+               (1.3,.42,0,1.06,.745,0),(1.1,.32,-.855,1.14,3.6,1),(1.1,.32,.855,1.14,3.1,-1),(1.7,.3,0,1.165,7.155,2),(1.7,.3,0,1.165,7.245,0),
+               (1.5,.34,0,1.14,14.155,2),(1.5,.34,0,1.14,14.245,0),(1.1,.32,-.945,1.14,3.6,-1),(1.1,.32,.945,1.14,3.1,1)]
+        signs+=[(.34,.13,-3.862,1.16,1.95+i*1.15,1) for i in range(4)]
+        for w,h,x,y,z,q in signs:
+            y=min(y,1.21-h/2);nx,nz=((0,1),(1,0),(0,-1),(-1,0))[q%4];t=.03
+            b(x+nx*.05,y,z+nz*.05,(w+.07) if nz else t,h+.07,t if nz else (w+.07),'Panel',0)
+            for d in(-1,1):
+                px=x+(d*(w/2-.08) if nz else 0);pz=z+(d*(w/2-.08) if nx else 0)
+                if abs(x)>3:rod((px,y+h/2,pz+.0),(px,1.33,pz),.008,'Steel',4)      # the seat numbers hang from the roof
+                else:rod((px,y,pz),(px+nx*.05,y,pz+nz*.05),.014,'Steel',6)
+        for w,h,x,y,z,q in [(.58,.8,-2.15,.35,1.447,0),(.58,.8,-2.15,.35,5.753,2),(.48,.64,1.78,.35,1.447,0),(.55,.74,-1.45,.5,18.955,2)]:
+            nz=1 if q==0 else -1;b(x,y,z+nz*.04,w+.08,h+.08,.036,'Wood',0)
 
     if k=='rustbucket':
         # corridor: service spine, a railing for an arch, a belted cable tray, caged lamps, coat, bucket, tally board
@@ -226,7 +298,7 @@ def dress(r,k,ROOMS):
         wb(BF,-2.75,-.86,.02,.9,.14,.2,'Wear',.01);wr(BF,-1.75,-.3,0,.2,.12,'Steel',12)
         for dy in(-.1,.1):wl(BF,-2.75,-.3+dy,-1.75,-.3+dy*.9,.21,.012,'Signal',4)
         ball(wp(BF,-2.25,-.21,.21),(.04,.03,.03),'Signal')
-        wb(BF,-1.7,-.7,0,.5,.44,.1,'Upholstery',.04);b(-1.72,F+.03,5.91,.46,.06,.2,'Steel',.01)
+        drape(BF,-1.7,-.46,.52,.46,'Upholstery',3,.09);b(-1.72,F+.03,5.91,.46,.06,.2,'Steel',.01)
         rod((-3.,.3,5.9),(-3.,.72,5.9),.07,'Steel');cage(BF,-1.42,.2,'Signal')
         shelf(BA,-2.9,-.2,.7);p=wp(BA,-3.05,-.187,.065);rod(p,(p[0],p[1]+.2,p[2]),.06,'Pale',10);rod((p[0],p[1]+.2,p[2]),(p[0],p[1]+.22,p[2]),.064,'Wear',10)
         wring(BA,-1.3,.5,.03,.16,.015,'Rubber');hook(BA,-1.3,.66)
@@ -244,8 +316,8 @@ def dress(r,k,ROOMS):
         for i in range(8):z=2.05+i*.26;ball(wp(GO,z,.98-.05*math.sin(i*math.pi/7),.03),(.03,.03,.03),'Glow')
         wl(GO,2.05,.99,3.87,.99,.03,.005,'Rubber',4)
         for x in(1.5,1.78):hook(GA,x,.5);p=wp(GA,x,.36,.07);mug(p[0],p[1],p[2],'Steel')
-        b(3.64,-.33,3.2,.6,.035,1.3,'Upholstery',.012)
-        for i,m in enumerate(['Signal','Moss','Paper','Wear']):b(3.5+.26*(i%2),-.308,2.8+i*.26,.22,.01,.22,m,0)
+        lump(3.64,3.2,.62,.06,1.34,'Upholstery',y=-.345,ripple=.012)
+        for i,m in enumerate(['Signal','Moss','Paper','Wear']):b(3.5+.26*(i%2),-.283,2.8+i*.26,.2,.008,.2,m,0)
         picture(GO,2.5,.55,.7,.5,'Wood','Paper');wring(GO,2.4,.5,.03,.07,.006,'Wear',10);wring(GO,2.62,.62,.03,.07,.006,'Wear',10)
         board(GI,1.95,.35,.34,.46,'Paper',None);wb(GI,1.95,.52,.02,.34,.1,.004,'Signal',0)
         # airlock: handwheel, two dials and a lever, inner-tube seal, coat-stand suit rack, patched suit, plant helmet
@@ -282,7 +354,7 @@ def dress(r,k,ROOMS):
         b(1.9,-.035,18.75,.3,.03,.2,'Steel',.004)
         for i in range(6):rod((1.8+.1*(i%3),-.02,18.7+.1*(i//3)),(1.8+.1*(i%3),-.012,18.7+.1*(i//3)),.035,'Rubber',8)
         for s in(-1,1):
-            f=EP if s<0 else ES;wb(f,16.1,F+.92,.04,.85,1.84,.04,'Steel',.008)
+            f=EP if s<0 else ES;wb(f,16.1,F+.92,.04,.85,1.84,.04,door,.008)
             cage(LO if s<0 else RO,16.6,.55);ball((s*2.9,.13,18.66),(.2,.13,.18),'Wear');ring((s*2.9,-.34,18.45),.14,.03,'Rubber')
             for i in range(3):rod((s*3.3,F,17.3+i*.12),(s*3.3,.5+i*.12,17.2+i*.12),.03,'Trim' if i%2 else 'Steel',6)
         b(-2.33,F+.02,15.64,.12,.04,.17,'Signal',.004)
@@ -325,7 +397,7 @@ def dress(r,k,ROOMS):
         wb(KI,2.4,-.25,0,.7,.03,.14,'Panel',.004)
         for i in range(5):b(-.97,-.228,2.14+i*.11,.07,.006,.09,'Paper',0,yaw=.2*i)
         p=wp(KI,2.68,-.235,.07);rod(p,(p[0],p[1]+.24,p[2]),.045,'Steel',10);rod((p[0],p[1]+.24,p[2]),(p[0],p[1]+.3,p[2]),.035,'Signal',10);wl(KI,2.68,-.1,2.68,.3,.01,.005,'Steel',4)
-        b(-3.82,-.47,5.4,.5,.07,.5,'Trim',.03);b(-3.82,-.43,5.4,.52,.012,.1,'Rubber',0)
+        lump(-3.82,5.4,.52,.09,.52,'Trim',y=-.5,ripple=.015);b(-3.82,-.43,5.4,.52,.012,.1,'Rubber',0)
         grille('Trim','Steel',6,True)
         # scrubber bay: three-drawer cabinet with a cardboard front, fridge-shelf fan guard, mismatched hose, RUN button
         scrub_cab('Pale',1.4,1.25,-2.55)
@@ -468,7 +540,7 @@ def dress(r,k,ROOMS):
         for z in(2.2,3.7):rod((3.94,.3,z),(3.36,-.34,z),.014,'Steel',6)
         wb(GO,2.6,.2,0,.1,.12,.04,'Steel',.01);wb(GO,2.6,.0,.01,.05,.3,.008,'Trim',0)
         ring((1.7,0,4.62),.11,.02,'Rubber');f2=('z',4.385,-1);wr(f2,1.7,-.2,0,.05,.065,'Pale',10)
-        wb(GF,3.1,.35,0,.3,.5,.03,'Paper',.01)
+        drape(GF,3.1,.6,.32,.5,'Paper',2,.035)
         for y in(.2,.5):wb(GF,3.1,y,.03,.3,.04,.004,'Trim',0)
         wire([(3.,.85,1.45),(3.5,.78,1.7),(3.95,.85,2.)],.006,'Rubber')
         for i,m in enumerate(['Pale','Signal','Upholstery']):b(3.2+i*.25,.62,1.56+i*.14,.16,.3,.02,m,.006,yaw=-.5)
@@ -545,7 +617,7 @@ def dress(r,k,ROOMS):
         for i in range(3):ball((.83+.03*math.cos(i*2.1),.035,4.15+.03*math.sin(i*2.1)),(.02,.014,.02),'Paper')
         # passenger cabin: half-curtains on a hooked rail, drinks cabinet, brass heater, towelled union, chess, lamp
         for a,c in((1.95,2.75),(3.15,3.95),(4.35,5.15)):
-            for u in(a+.07,c-.07):wb(KO,u,.5,.05,.12,.78,.05,'Upholstery',.03);ball(wp(KO,u,.08,.08),(.03,.05,.03),'Trim')
+            for u in(a+.07,c-.07):drape(KO,u,.9,.17,.8,'Upholstery',2,.06,nc=7);ball(wp(KO,u,.08,.08),(.03,.05,.03),'Trim')
         wl(KO,1.85,.92,5.25,.92,.08,.012,'Trim');hook(KO,5.25,.94)
         b(-1.42,-.5,1.56,.5,.94,.38,'Wood',.03)
         for z in(1.39,1.73):rod((-1.65,.02,z),(-1.19,.02,z),.008,'Trim',4)
@@ -582,7 +654,7 @@ def dress(r,k,ROOMS):
         for i in range(5):rod((2.75+i*.07,.11,4.82),(2.765+i*.07,.11,4.82),.11,'Pale',14)
         b(2.9,.0,4.82,.42,.03,.14,'Wood',.006);mug(1.4,-.012,4.75,'Wear');mug(1.55,-.012,4.82,'Signal')
         pendant(2.45,4.55,.75,'Upholstery')
-        top();rod((3.3,1.05,2.),(3.3,1.05,3.9),.012,'Trim',6);low();b(3.3,.2,2.12,.1,1.6,.24,'Wear',.04);cage(GO,2.6,.95)
+        top();rod((3.3,1.05,2.),(3.3,1.05,3.9),.012,'Trim',6);low();drape(('x',3.37,-1),2.16,1.04,.36,1.34,'Wear',3,.07);cage(GO,2.6,.95)
         b(3.64,-.3,3.3,.3,.07,.42,'Signal',.03);rod((3.64,-.3,3.52),(3.64,-.3,3.58),.03,'Signal',6)
         # airlock: velvet rope on one post, brass handwheel, hand-painted dial, napkin-and-wax seal, valet-stand suit
         for z,x in((5.72,1.04),(6.52,1.08)):rod((x,F,z),(x,-.05,z),.022,'Trim',8);rod((x,F,z),(x,F+.03,z),.1,'Trim',10);ball((x,-.03,z),(.04,.04,.04),'Trim')
@@ -666,7 +738,7 @@ def dress(r,k,ROOMS):
         for i in range(12):
             t=i/11;u=3.1+t*.9;y=.92+.06*math.sin(t*math.pi);ball(wp(KO,u,y,.04),(.025,.025,.025),'Glow')
         wl(KO,3.1,.93,4.,.93,.04,.004,'Rubber',4)
-        b(-3.82,-.46,1.95,.5,.08,.4,'Signal',.03);b(-3.82,-.42,1.95,.52,.01,.06,'Paper',0);b(-3.82,-.46,5.4,.5,.08,.4,'Moss',.03);b(-3.82,-.42,5.4,.06,.01,.42,'Paper',0)
+        lump(-3.82,1.95,.5,.1,.42,'Signal',y=-.5,ripple=.015);b(-3.82,-.42,1.95,.52,.01,.06,'Paper',0);lump(-3.82,5.4,.5,.1,.42,'Moss',y=-.5,ripple=.015);b(-3.82,-.42,5.4,.06,.01,.42,'Paper',0)
         shelf(KI,2.4,-.2,.8);stack(-.97,-.187,2.4,5,.12,.34,.05,['Signal','Moss','Trim','Paper','Wear'])
         ball((-3.72,F+.13,2.52),(.17,.13,.17),'Pale');ball((-3.72,F+.34,2.52),(.18,.18,.18),'Moss')
         for i,m in enumerate(['Signal','Moss','Trim']):wb(KA,-1.6+i*.2,-.35+.05*i,0,.3,.016,.004,m,0)
@@ -691,7 +763,7 @@ def dress(r,k,ROOMS):
         for d in(-.06,.06):rod((1.78+d,0,4.62),(1.78+d,.11,4.62),.008,'Steel',4)
         b(2.5,.06,4.8,.44,.14,.14,'Trim',.01)
         for i in range(3):rod((2.36+i*.14,.0,4.8),(2.36+i*.14,.19,4.8),.05,'Paper',10,.06)
-        b(3.64,-.335,2.95,.58,.02,1.8,'Pale',.006);b(3.64,-.26,3.1,.5,.14,1.4,'Moss',.06)
+        b(3.64,-.335,2.95,.58,.02,1.8,'Pale',.006);lump(3.64,3.1,.54,.16,1.42,'Moss',y=-.325,ripple=.02)
         picture(GO,2.45,.6,.8,.55,'Pale','Upholstery');wb(GO,2.6,.62,.03,.44,.36,.004,'Paper',0)
         for u in(2.4,2.8):ball(wp(GO,u,.78,.035),(.015,.015,.015),'Signal')
         shelf(GA,1.5,.4,.5);p=wp(GA,1.5,.413,.065);rod(p,(p[0],p[1]+.08,p[2]),.012,'Pale',6);rod((p[0],p[1]+.08,p[2]),(p[0],p[1]+.18,p[2]),.02,'Pale',10,.045)
@@ -704,7 +776,7 @@ def dress(r,k,ROOMS):
         for z,y in((5.63,.2),(6.57,-.3),(6.57,.5)):ball(wp(AP,z,y,.05),(.03,.06,.03),'Pale')
         lever(AP,6.9,-.1,.3,'Signal');wr(AP,6.72,.55,0,.03,.12,'Pale',16);wr(AP,6.72,.55,.03,.036,.1,'Diffuser',16);wb(AP,6.74,.58,.036,.012,.08,.004,'Rubber',0)
         wl(AL,1.34,.84,1.86,.84,.03,.01,'Steel',4)
-        for i in range(5):wb(AL,1.4+i*.1,-.04,.01+.012*(i%2),.1,1.7,.02,'Upholstery',.008)
+        drape(AL,1.6,.83,.52,1.7,'Upholstery',4,.045,nr=5)
         suit(AA,1.4,.86,'Pale')
         for d in(-1,1):wb(AA,1.4+d*.3,.78,.02,.16,.04,.16,'Trim',.01)
         suit(AA,2.2,.86,'Upholstery','Rubber');b(2.5,-.54,7.03,.2,.05,.07,'Wood',.01);b(2.5,-.5,7.03,.18,.03,.06,'Rubber',0)
@@ -725,8 +797,8 @@ def dress(r,k,ROOMS):
         ladder(HA,1.5,F,1.05);b(.8,1.02,9.34,.56,.31,.012,'Signal',0)
         for x in(.6,1.):rod((x,1.17,9.34),(x,1.3,9.34),.006,'Steel',4)
         for z in(8.3,10.2,11.6,13.3):cage(HP,z,1.);cage(HS,z,1.)
-        b(-1.66,F+.72,10.4,.42,1.44,1.9,'Upholstery',.16);b(-1.66,F+.015,10.4,.5,.03,2.,'Upholstery',.008)
-        for z in(9.9,10.9):b(-1.66,F+.72,z,.44,1.46,.05,'Trim',0)
+        lump(-1.66,10.4,.5,1.44,2.05,'Upholstery',ripple=.035,n=11)
+        for z in(9.9,10.9):b(-1.66,F+.7,z,.475,1.42,.04,'Trim',0)
         b(-1.5,F+.2,11.6,.1,.4,.1,'Rubber',.03)
         crate(-1.65,12.6,.45,.5,.6);b(-1.42,F+.25,12.6,.006,.2,.2,'Trim',0,rx=.785)
         for z in(7.7,8.9):rod((-1.65,F,z),(-1.65,.1,z),.015,'Steel',6)

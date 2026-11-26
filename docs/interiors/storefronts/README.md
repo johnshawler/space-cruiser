@@ -1,8 +1,29 @@
-# Long Haul storefront proof sheets
+# Long Haul storefront models
 
-The venue proof sheet shows sixteen proposed shop exteriors across nine planets and four research stations. Each caption gives the business name, shop type and location. The [venue definitions](../../../src/08b-venues.js) supply the names, locations, services and shop keys. The facades are original concept art.
+This collection contains sixteen individually editable, open-front shops across nine planets and four research stations. The render sheet below shows the finished geometry. Names, locations, services and shop keys come from the [game venue definitions](../../../src/08b-venues.js).
 
-## Venue proof sheet
+## Blender models and game exports
+
+[Open the model proof at full resolution](storefront-model-proof.jpg) · [Editable Blender master](../../../art/storefronts/Long-Haul-Storefronts.blend) · [Sixteen GLBs and manifest](../../../assets/storefronts/)
+
+![Sixteen rendered storefront models](storefront-model-proof.jpg)
+
+[Shop-to-port list, individual Blender files, GLBs and marker guide](shop-to-port.md)
+
+Each model has an open sales floor, a service counter facing the viewer, space behind it for a keeper and two crew, and a workshop or display fitting specific to the trade. The standalone Blender files keep architectural assemblies, sign lettering and named placement empties editable. Texture images are packed. The combined master arranges every shop on one review grid. Each GLB carries the same placement nodes as its standalone source.
+
+The port builder matches a venue by location and shop key, loads its GLB through `Assets.glb`, and places the entrance against the pad-facing side of the shop. The storefront is visible during landing and takeoff. Docking switches to the existing interior and its interactive counter. A missing file, an unmodeled venue or `?noassets` uses the existing port. Use a branch preview serving both the HTML and the assets to review this change.
+
+Rebuild the models with Blender 4.5 LTS from the repository root:
+
+```sh
+blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py -- "$PWD" --render
+bash build.sh
+```
+
+The optional render pass writes individual views under `build/storefront-renders/`.
+
+## Original venue concept sheet
 
 ![Sixteen Long Haul venue exteriors in four rows. The table below follows the same reading order.](long-haul-storefronts.png)
 
@@ -10,7 +31,7 @@ The venue proof sheet shows sixteen proposed shop exteriors across nine planets 
 
 Use the venue sheet as the exterior design reference. Match a panel by location and shop key when working on a port. The silhouette and the equipment at the entrance are what distinguish two shops with the same function. For example, Sloshwell displays its ship in a bowl-shaped drydock, while Jovexa displays one on an open platform floating above the clouds.
 
-The delivery consists of two full-resolution PNG proof sheets. The game’s existing rooms, counters, keepers, ship displays and interactions have separate implementation files. Any future facade model can be fitted around those features. The [port-interior handoff](../../handoff-bespoke-interiors.md) documents the anchors for depots, garages and cantinas.
+The [port-interior handoff](../../handoff-bespoke-interiors.md) documents the existing interaction anchors for depots, garages and cantinas. The exterior assets have their own manifest.
 
 | Panel | Business | Location | Shop type and key | Visible design feature |
 | --- | --- | --- | --- | --- |
