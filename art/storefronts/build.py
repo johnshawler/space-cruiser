@@ -11,6 +11,7 @@ exec(compile((Path(__file__).parent/"open_front.py").read_text(), "open_front.py
 exec(compile((Path(__file__).parent/"refit.py").read_text(), "refit.py", "exec"))
 exec(compile((Path(__file__).parent/"expansion.py").read_text(), "expansion.py", "exec"))
 exec(compile((Path(__file__).parent/"freight.py").read_text(), "freight.py", "exec"))
+exec(compile((Path(__file__).parent/"garage_bays.py").read_text(), "garage_bays.py", "exec"))
 TEXDIR=tempfile.TemporaryDirectory(prefix="long-haul-storefronts-")
 
 args = sys.argv[sys.argv.index('--')+1:]
@@ -31,7 +32,7 @@ PAL = {
  'red':'a3423d','wine':'733344','rose':'c88188','orange':'dc8347','yellow':'dfb943','sand':'be9066',
  'sand2':'dab488','tan':'a87e55','wood':'80563c','mahogany':'674331','basalt':'484348','stone':'756e70',
  'glass':'375d68','light':'ffcb79','cyan':'9ceef2','flame':'ff8140','pearl':'dfd5e2','pink':'de9da5'}
-PAL.update(deckplate='777570',upholstery='805141',canvas='9a8e6d',safety='cc9663')
+PAL.update(deckplate='777570',upholstery='805141',canvas='9a8e6d',safety='cc9663',workdeck='8b8271',workskin='8c9187')
 metal=set('iron dark edge steel brass gold copper rust'.split())
 def linear(c):
     q=int(c,16)/255
@@ -554,9 +555,10 @@ def finish_meshes():
         for face in mesh.polygons:
             normal=face.normal;axis=max(range(3),key=lambda j:abs(normal[j]))
             indices=((1,2),(0,2),(0,1))[axis]
+            scale=.31 if palette[face.material_index] in ('workdeck','workskin') else .62
             for li in face.loop_indices:
                 pos=mesh.vertices[mesh.loops[li].vertex_index].co
-                uv.data[li].uv=(pos[indices[0]]*.62,pos[indices[1]]*.62)
+                uv.data[li].uv=(pos[indices[0]]*scale,pos[indices[1]]*scale)
         obj=bpy.data.objects.new(name,mesh);col.objects.link(obj)
 def stamp_hardware(index):
     part('Countersunk deck fasteners and cleats')
@@ -580,7 +582,13 @@ def prepare_game_copy(objects):
         clone=obj.copy();clone.data=obj.data.copy()
         scene.collection.objects.link(clone);clone.select_set(True);clones.append(clone)
     bpy.context.view_layer.objects.active=clones[0]
-    bpy.ops.object.convert(target='MESH');bpy.ops.object.join()
+    bpy.ops.object.convert(target='MESH')
+    # Converted lettering and workshop meshes start with differently named UV layers. Blender
+    # joins by layer name; glTF/Three sample layer zero. Unify the authored UVs before joining.
+    for obj in clones:
+        uv=obj.data.uv_layers.active
+        if uv:uv.name='Surface metres'
+    if len(clones)>1:bpy.ops.object.join()
     mesh=bpy.context.object;mesh.name='Facade'
     # Normalize the joined mesh to an identity origin at street center.
     mesh.data.transform(mesh.matrix_world);mesh.matrix_world=Matrix.Identity(4)
@@ -632,27 +640,41 @@ for i,(title,port,key,fn) in enumerate(VENUES):
     else:
         fn();stamp_hardware(i);detail_kit(i);marks=make_open_shop(i,title,port,key)
         forecourt_display(port,key)
-    # Freight's own workshop, equipment, lights and navigation mast stay in place.
-    # All three collections receive the worn surfaces through material().
-    fixtures=[] if freight else refit_shop(title,port,key)
+    animated = freight and key=='garage'
+    if freight:
+        freight_deck(key=='depot')
+        fixtures=garage_bay(port,marks) if animated else []
+    else:
+        fixtures=refit_shop(title,port,key)
     finish_meshes()
-    original=list(col.objects);game=prepare_game_copy(original)
+    original=list(col.objects)
+    pivots={port+' '+DRIVE:('drive',DRIVE_AT), port+' '+NOZZLE:('nozzle',NOZZLE_AT)} if animated else {}
+    moving={name:col.objects[name] for name in pivots}
+    game=prepare_game_copy([o for o in original if o not in moving.values()])
     game.name=f'{port}-{key}';game['venue']=title;game['shopKey']=key;game['locationKey']=port
     game.data.calc_loop_triangles()
     tris=len(game.data.loop_triangles)
+    export=[game]
+    for name,(role,origin) in pivots.items():
+        moving_mesh=prepare_game_copy([moving[name]])
+        moving_mesh.data.transform(Matrix.Translation(-Vector(origin)))
+        moving_mesh.location=origin
+        moving_mesh.name=title+' '+role;moving_mesh['garagePart']=role
+        moving_mesh.data.calc_loop_triangles()
+        tris+=len(moving_mesh.data.loop_triangles);export.append(moving_mesh)
     assert 1000<tris<80000,(title,tris)
     filename=f'{port}-{key}.glb'
     anchors=create_markers(marks)
-    for anchor in anchors:anchor.select_set(True)
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in export+anchors:obj.select_set(True)
     bpy.ops.export_scene.gltf(filepath=str(MODELS/filename),export_format='GLB',use_selection=True,export_yup=True,
         export_texcoords=True,export_image_format='JPEG',export_jpeg_quality=82,export_animations=False,export_extras=True,export_cameras=False,export_lights=False,export_normals=True)
     entry={'name':title,'file':filename,'triangles':tris,'port':PORTS[port],'markers':marks}
-    if not freight:
-        entry['lights']=fixtures
-        if key=='depot':
-            entry['wayfindingMount']='overhead'
+    if fixtures:entry['lights']=fixtures
+    if animated or (not freight and key=='depot'):
+        entry['wayfindingMount']='overhead'
     manifest['venues'].setdefault(port,{})[key]=entry
-    bpy.data.objects.remove(game,do_unlink=True)
+    for obj in export:bpy.data.objects.remove(obj,do_unlink=True)
     lamps=fit_native_lights(fixtures)
     save_one(title,port,key)
     for ob in anchors:ob.name=f'{port}_{key}__{ob.name}'

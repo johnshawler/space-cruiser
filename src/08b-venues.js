@@ -276,15 +276,15 @@ const Venues = (() => {
       const hull=new THREE.Group(); hull.add(bx(3.2,0.9,1.5,M('#8a9aa8',0.4,0.6),0,1.05,0)); hull.add(bx(3.24,0.12,1.54,M('#e0b000',0.4,0.5),0,1.45,0)); for(const sx of [-1,1]) hull.add(bx(0.3,0.6,1.2,M('#333',0.6,0.4),sx*1.1,0.3,0)); hull.position.set(1.6,0,-4.6); R.add(hull);
       const torch=new THREE.Group(); torch.add(cyl(0.05,0.05,0.4,M('#555',0.4,0.7),0,-0.15,0.1,6)); const tip=sph(0.05,new THREE.MeshBasicMaterial({color:HDR('#8fd8ff',4)}),0,-0.35,0.12,6,4); torch.add(tip);
       return {tro,cable,hook,pod,torch,tip}; },
-    garage(V,pal){ const R=V.root; R.add(bx(12.6,5.2,0.3,M(pal[0],0.85,0.1),0,2.6,-7)); const door=bx(5,3.6,0.1,M('#8a9099',0.5,0.5),0,1.8,-6.8); R.add(door); for(let i=0;i<9;i++) R.add(bx(5,0.05,0.04,M('#5d636b',0.5,0.5),0,0.2+i*0.4,-6.74));
+    garage(V,pal){ const R=V.garageBackdrop=new THREE.Group(); V.root.add(R); R.add(bx(12.6,5.2,0.3,M(pal[0],0.85,0.1),0,2.6,-7)); const door=bx(5,3.6,0.1,M('#8a9099',0.5,0.5),0,1.8,-6.8); R.add(door); for(let i=0;i<9;i++) R.add(bx(5,0.05,0.04,M('#5d636b',0.5,0.5),0,0.2+i*0.4,-6.74));
       for(let i=0;i<5;i++) R.add(bx(0.08,0.6+i*0.1,0.06,M(['#c0392b','#d0d4da','#f1c40f','#2980b9','#d0d4da'][i],0.4,0.6),-5+i*0.35,2.6,-6.8));
-      const eng=new THREE.Group(); eng.position.set(1.0,0,-4.2); R.add(eng); eng.add(bx(0.5,0.85,0.8,M('#2d3136',0.6,0.5),0,0.42,0)); const core=new THREE.Group(); core.position.y=1.28; eng.add(core);
-      const body=cyl(0.5,0.5,1.7,M(pal[3],0.4,0.6),0,0,0,18); body.rotation.z=Math.PI/2; core.add(body); for(const x of [-0.5,0.2]){ const rg=cyl(0.53,0.53,0.1,M('#d0d4da',0.3,0.8),x,0,0,18); rg.rotation.z=Math.PI/2; core.add(rg); }
+      const eng=new THREE.Group(); eng.position.set(1.0,0,-4.2); V.root.add(eng); R.add(bx(0.5,0.85,0.8,M('#2d3136',0.6,0.5),1,0.42,-4.2)); const core=new THREE.Group(); core.position.y=1.28; eng.add(core);
+      const stockDrive=new THREE.Group(); core.add(stockDrive); const body=cyl(0.5,0.5,1.7,M(pal[3],0.4,0.6),0,0,0,18); body.rotation.z=Math.PI/2; stockDrive.add(body); for(const x of [-0.5,0.2]){ const rg=cyl(0.53,0.53,0.1,M('#d0d4da',0.3,0.8),x,0,0,18); rg.rotation.z=Math.PI/2; stockDrive.add(rg); }
       const nz=new THREE.Group(); nz.position.x=0.85; core.add(nz); const nc=cyl(0.32,0.5,0.55,M('#3a3f46',0.5,0.6),0.27,0,0,16); nc.rotation.z=-Math.PI/2; nz.add(nc);
       const glowM=new THREE.MeshBasicMaterial({color:HDR('#ff9040',0.3)}), glow=new THREE.Mesh(new THREE.CircleGeometry(0.42,18),glowM); glow.rotation.y=Math.PI/2; glow.position.x=0.56; nz.add(glow);
       const flame=new THREE.Mesh(new THREE.ConeGeometry(0.4,2.2,16,1,true),new THREE.MeshBasicMaterial({color:HDR('#6ab8ff',2),transparent:true,opacity:0.8,blending:THREE.AdditiveBlending,depthWrite:false})); flame.rotation.z=Math.PI/2; flame.position.x=1.65; flame.visible=false; core.add(flame);
       const wrench=bx(0.08,0.08,0.55,M('#cfd3d8',0.3,0.9)); wrench.position.z=0.2; const stick=new THREE.Group(); stick.add(cyl(0.015,0.015,0.9,M('#8a6a3a',0.8,0),0,0,0.45,5)); stick.children[0].rotation.x=Math.PI/2; const mm=sph(0.08,M('#f8f4ec',0.9,0),0,0,0.92,8,6); stick.add(mm);
-      return {core,nz,glow,flame,wrench,stick,mm}; },
+      return {core,nz,glow,flame,wrench,stick,mm,stockDrive,stockNozzle:nc}; },
     livery(V,pal){ const R=V.root; const cv=makeCanvas(512,256), x=cv.getContext('2d'); x.fillStyle=pal[0]; x.fillRect(0,0,512,256); const rr=mulberry32(V.seed);
       for(let i=0;i<40;i++){ x.fillStyle=pick(['#ff6b6b','#5c7cfa','#ffd43b','#51cf66','#cc5de8','#ff922b']); x.globalAlpha=0.7; x.beginPath(); x.arc(rr()*512,rr()*256,4+rr()*22,0,7); x.fill(); } x.globalAlpha=1;
       R.add(bx(12.6,5.2,0.3,M('#ffffff',0.9,0,{map:canvasTex(cv)}),0,2.6,-7));
@@ -734,8 +734,19 @@ const Venues = (() => {
 
   /* how far back the shopkeeper stands: just behind the counter (its back face is at z=-0.4), measured from the front of
      their own body at rest (and a hand's width of reach), so a deep design isn't standing in the counter */
-  function keeperZ(K){ K.updateMatrixWorld(true); const b=new THREE.Box3(), bb=new THREE.Box3();
-    K.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; o.geometry.computeBoundingBox(); bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); b.union(bb); });
+  function keeperZ(K, garage){
+    // The rig may still be downloading. Its authored horizontal extent is available at creation,
+    // including for long, low robots whose procedural stand-in is only an invisible contact box.
+    const bounds=K.userData.counterBounds;
+    if(garage && bounds){
+      const a=K.rotation.y, front=Math.abs(Math.sin(a))*bounds.halfWidth + Math.cos(a)*bounds.front;
+      return Math.min(-.85,-.48-front*K.scale.z-.18);
+    }
+    K.updateWorldMatrix(true,true);
+    const parentInverse=K.parent?K.parent.matrixWorld.clone().invert():new THREE.Matrix4();
+    const b=new THREE.Box3(), bb=new THREE.Box3(), local=new THREE.Matrix4();
+    K.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; o.geometry.computeBoundingBox();
+      local.multiplyMatrices(parentInverse,o.matrixWorld); bb.copy(o.geometry.boundingBox).applyMatrix4(local); b.union(bb); });
     const front=b.isEmpty()?0.45:b.max.z-K.position.z; return Math.min(-0.85,-0.46-front-0.08); }
 
   /* ---------- bespoke rooms ----------
@@ -786,6 +797,27 @@ const Venues = (() => {
      markers light the bake. Every shop with a storefront in the manifest uses it this way, in place of a bespoke room if
      it has one too. ?oldshops shows the earlier rooms, with the storefront as an outside entrance, for comparison. */
   const frontFor = V => { const c = Assets.manifests.storefronts, p = c && c.venues[Assets.slug(V.P.name)]; return (p && p[V.k]) || null; };
+  function discardGarageFixture(group) {
+    if (group.parent) group.parent.remove(group);
+    group.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
+  }
+  function installGarageWorkpiece(V, front) {
+    const parts = {};
+    front.traverse(o => { if (o.userData.garagePart) parts[o.userData.garagePart] = o; });
+    if (!parts.drive || !parts.nozzle) return;
+    // The Blender nodes are exported about the same pivots as the swaying engine and flying coupling.
+    // Keep the current animation phase, including a nozzle already airborne or in the mechanic's hand.
+    for (const [model, socket, fallback] of [[parts.drive,V.g.core,V.g.stockDrive], [parts.nozzle,V.g.nz,V.g.stockNozzle]]) {
+      discardGarageFixture(fallback);
+      socket.add(model);
+      model.position.set(0,0,0);
+      model.traverse(o => { if (o.isMesh) { o.castShadow=true; o.receiveShadow=true; } });
+    }
+    V.g.glow.scale.setScalar(.68); // keep the ignition glow inside the new coupling lip
+    V.g.glow.position.x=.535;
+    discardGarageFixture(V.garageBackdrop);
+    V.garageBackdrop=V.g.stockDrive=V.g.stockNozzle=null;
+  }
   function frontAsShop(V, entry) {
     Assets.glb('assets/storefronts/' + entry.file).then(source => {
       if (!Venues.list.includes(V)) return;
@@ -794,6 +826,7 @@ const Venues = (() => {
         const front = source.clone(true);
         front.traverse(o => { if (!o.isMesh) return; o.geometry = o.geometry.clone(); o.material = Array.isArray(o.material) ? o.material.map(m => m.clone()) : o.material.clone(); });
         const b = new THREE.Box3().setFromObject(front), mk = entry.markers || {};
+        if (V.k === 'garage' && entry.wayfindingMount === 'overhead') installGarageWorkpiece(V,front);
         // the room the game measures (bake, floor mirror, camera) is now the storefront's own extent
         Object.assign(V.room, { x0: b.min.x, x1: b.max.x, z0: b.min.z, z1: b.max.z, h: Math.min(12, b.max.y), store: false });
         const lights = (entry.lights || []).slice();
@@ -801,9 +834,11 @@ const Venues = (() => {
         // a lamp out front as well, where the stock set had one, so the counter and keeper are lit from the camera's side
         lights.push({ name: 'light_front', position: [0, 4.2, 3.4], color: '#fff1dc', intensity: 0.4, distance: 20 });
         V.bespoke = { location: Assets.slug(V.P.name), shop: V.k, lights, front: true }; V.frontShop = entry;
+        if (entry.wayfindingMount === 'overhead') {
+          discardGarageFixture(V.postSupport);
+          if (mk.signpost) V.post.position.fromArray(mk.signpost);
+        }
         swapRoom(V, front, null, null);
-        // The depot's ceiling rail supports the live destination buttons above the cargo lane.
-        if (entry.wayfindingMount === 'overhead') V.postSupport.visible = false;
         // the name plate sits proud of the storefront's own counter front
         for (const o of V.plate || []) o.position.z += 0.1;
       });
@@ -884,7 +919,14 @@ const Venues = (() => {
         DISTRICT[d.k](root,pal,rr,V); lampPosts(root); room(V,d.k,pal,cloud,rr);
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
         shell(V,pal); locationSign(V,P,pal); V.g=SETS[d.k](V,pal); { const n0=root.children.length; FIT[d.k](V,pal,rr); V.fit=root.children.slice(n0); } if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
-        V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,keeperZ(V.keeper)); root.add(V.keeper);
+        V.keeper=Folk.make(d.sp,seed,1.4);
+        const longKeeper=d.k==='garage' && V.keeper.userData.model==='millipress';
+        if(longKeeper) V.keeper.rotation.y=Math.PI/2;
+        V.keeper.position.set(longKeeper?0:-1.55,0,keeperZ(V.keeper,d.k==='garage')); root.add(V.keeper);
+        if(d.k==='garage') V.keeper.userData.onFallback=()=>{
+          V.keeper.rotation.y=0;
+          V.keeper.position.set(-1.55,0,keeperZ(V.keeper,true));
+        };
         const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
         // the finishing is the slow part (a fifth of a second a shop), so it is queued and done one shop per frame while

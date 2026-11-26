@@ -277,6 +277,17 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port .card.plate .mid{flex:1;min-width:0}#port .card.plate h3{font-size:28px}#port .card.plate p{-webkit-line-clamp:4;margin-top:4px}
 #port .card .step{font-size:30px;padding:14px 20px;flex:0 0 auto}
 #port .card .tag,#port .ticket .tag{font-size:15px;padding:1px 7px;margin-left:6px}
+/* Low service tickets leave the port name visible across the counter face, including at 800 × 600. */
+#port-body.garage-services{gap:8px;padding:6px 10px max(7px,env(safe-area-inset-bottom,0px));background:transparent}
+#port .garage-services .card{width:min(385px,calc(50vw - 18px));display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:center;gap:3px 10px;padding:7px 10px;border-top-width:2px}
+#port .garage-services .head{gap:6px}
+#port .garage-services .head canvas{width:24px;height:24px;flex-basis:24px}
+#port .garage-services h3{font-size:23px}
+#port .garage-services p,#port .garage-services .meta{grid-column:1;font-size:19px;line-height:1.13}
+#port .garage-services .right{grid-column:2;grid-row:1 / span 3;align-self:center;flex-direction:column;gap:2px;margin:0}
+#port .garage-services .pay{font-size:26px;margin:0}
+#port .garage-services .btn{font-size:20px;padding:5px 12px;min-height:44px}
+@media(max-width:600px){#port .garage-services .card{width:min(385px,calc(100vw - 36px))}}
 /* a job ticket, popped up over its model on the shelf */
 #port-card{position:absolute;left:0;top:0;transform:translate(-50%,-100%);width:min(460px,calc(100vw - 32px));z-index:2;background:#101b25;border:2px solid var(--amber);padding:14px 16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 40px rgba(0,0,0,.55)}
 #port-card.shady{border-color:var(--bad)}

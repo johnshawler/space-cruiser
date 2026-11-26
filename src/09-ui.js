@@ -89,7 +89,7 @@ const UI = {
   chatStop(){ if(this.chatT){ clearInterval(this.chatT); this.chatT=null; } },
   chat(lines){ this.chatStop(); let k=0; this.chatT=setInterval(()=>{ if(G.mode!=='port'||this.tab!=='bar'){ this.chatStop(); return; } const L=lines[k++%lines.length]; this.say(L.who,L.text); },7000); },
   render(){
-    const P=this.P, body=$('port-body'); if(!P) return; body.innerHTML=''; this.stats(); this.chatStop();
+    const P=this.P, body=$('port-body'); if(!P) return; body.innerHTML=''; body.classList.toggle('garage-services',this.tab==='garage'); this.stats(); this.chatStop();
     if(this.ticket&&G.jobs.indexOf(this.ticket)<0) this.closeTicket();
     if(this.tab==='residents'||this.tab==='stations'){ this.bubble=null; $('bubble').hidden=true; this.post(); this.plate(body); body.classList.toggle('empty',!body.children.length); return; }
     const d=SHIPS[G.shipId], v=Venues.def(P,this.tab)||Venues.defs(P)[0]; this.tab=v.k; this.post(); let used=0; G.cargo.forEach(c=>used+=c.qty);

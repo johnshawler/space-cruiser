@@ -14,7 +14,7 @@ All 46 shops across nine planets and four research stations have an individually
 
 Stand at the counter to see the new work. Each port has its own hull frame and enamel finish. Cantinas have leather booths and curved brass lamp arms, paint shops have extraction hoods and hanging swatches, and engine shops have inspection couplings and rail-mounted lifting gear. Packed colour, normal and roughness textures come from the same surface recipes as the ship interiors. In the original and market collections, three practical light positions per shop also drive the native Blender lights.
 
-The game resolves a shop by its existing location and shop key. The entrance, camera, keeper, crew, customer and nameplate sockets retain their original positions. Depots retain the twelve shelf positions, stock door, packing bench and cargo droid route. Keep purchases, contracts, repairs, drinks and character actions on the existing game handlers. `?oldshops` retains the existing comparison mode. The three remodeled depot wayfinding signs hang above the cargo lane so the droid clears the turn in front of the shelves.
+The game resolves a shop by its existing location and shop key. The entrance, camera, crew, customer and nameplate sockets retain their original positions. The long Far Wink garage keeper stands broadside behind the center of its counter. Depots retain the twelve shelf positions, stock door, packing bench and cargo droid route. Keep purchases, contracts, repairs, drinks and character actions on the existing game handlers. `?oldshops` retains the existing comparison mode. The three remodeled depot wayfinding signs hang above the cargo lane so the droid clears the turn in front of the shelves.
 
 ## Sixteen freight depots and garages
 
@@ -22,7 +22,11 @@ The game resolves a shop by its existing location and shop key. The entrance, ca
 
 ![Sixteen freight depots and garages, labeled by shop and location](freight-storefronts.jpg)
 
-These ten depots keep the navigation mast, so their droid takes the outer aisle to reach the goods shelf. All sixteen freight shops use the shared colour, normal and roughness textures on their original architecture and equipment. The freight builder retains their own light markers and leaves each equipment island and sign in place. In all depots the carrier and droid take turns at the stock-room door. A droid can collect a shelf item while the carrier finishes a trip.
+All 46 game exports use the same primary UV channel for lettering and textured structural geometry. All sixteen freight shops have replaceable deck plates with worn wheel paths, broken lane paint and boot-polished metal. The ten depots retain their navigation masts and outer droid routes. The six garages hang navigation from a side rail and each has its own center workpiece and service wall. The game attaches the Blender nodes tagged `garagePart: drive` and `garagePart: nozzle` to the crew animation. The coupling can still fly off, land and be reinstalled. With older models or while assets load, the crew uses the stock equipment.
+
+[Compare the six garages from the in-game counter at 800 × 600](garage-counter-views.jpg)
+
+In all depots the carrier and droid take turns at the stock-room door. A droid can collect a shelf item while the carrier finishes a trip.
 
 ## Rebuild the models and proof
 
