@@ -1,0 +1,37 @@
+{
+ "id": "rhovi",
+ "name": "Rhovi",
+ "kind": "humanoid",
+ "triangles": 13317,
+ "kb": 1289,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.449,
+  0.006,
+  -0.263
+ ],
+ "max": [
+  0.446,
+  1.623,
+  0.302
+ ],
+ "seat": [
+  0.126,
+  0.404,
+  -0.01
+ ]
+}

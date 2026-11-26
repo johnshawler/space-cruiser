@@ -6,12 +6,13 @@ const FLOOR=-0.97, CEIL=1.33, EYE=0.62;
 
 /* ---------- faults: things that break, where they are, what they do until fixed ---------- */
 const FAULT_DEFS = {
-  coolant:{name:'Coolant leak', where:'engine room', effect:'fuel use up 70%', pos:[-2.25,0.15,16.2], fx:'steam'},
+  coolant:{name:'Coolant leak', where:'passenger cabin', effect:'fuel use up 70%', pos:[-3.0,-0.35,1.55], fx:'steam'},
   thruster:{name:'Thruster misfire', where:'engine room', effect:'top speed down 40%', pos:[1.3,0.35,18.85], fx:'smoke'},
   fuse:{name:'Blown fuse', where:'galley', effect:'radio is dead', pos:[2.45,0.45,1.46], fx:'sparks'},
-  scrubber:{name:'Air scrubber jammed', where:'passenger cabin', effect:'passengers getting cross, canopy fogging', pos:[-3.0,0.95,5.74], fx:'haze'},
+  scrubber:{name:'Air scrubber jammed', where:'scrubber bay', effect:'passengers getting cross, canopy fogging', pos:[-3.0,0.95,5.86], fx:'haze'},
   crack:{name:'Hull crack', where:'corridor', effect:'hull slowly failing', pos:[-0.86,0.55,5.15], fx:'frost'},
   strap:{name:'Cargo strap snapped', where:'cargo hold', effect:'cargo getting knocked about, value dropping faster', pos:[1.55,0.1,10.6], fx:'strap'},
+  seal:{name:'Airlock seal leaking', where:'airlock', effect:'top speed down 20%', pos:[2.82,0.45,5.32], fx:'steam'},
 };
 /* what there is to say after a repair: a few for each fault, and some that fit anything */
 const FIX_LINES = {
@@ -21,28 +22,41 @@ const FIX_LINES = {
   fuse:['The radio crackles back to life. You almost miss the quiet.','You replaced the fuse with a slightly less blown fuse.','The fuse box smells of toast. That is new, but it works.'],
   scrubber:['The air no longer tastes of feet.','The scrubber hums again. It was full of fluff, as everything eventually is.','Fresh air. Well, air. Well, less of whatever that was.'],
   crack:['The patch is ugly, airtight and mostly straight.','You sealed it with something from the galley. Best not to say what.','Space is back on the outside, where it belongs.'],
+  seal:['The hissing has stopped. The silence is somehow louder.','You packed the seal with something rubbery from a drawer. It is holding.','The inside is staying inside again.'],
   strap:['The knot is not in any manual. It is holding anyway.','The cargo has stopped sliding about and started sulking.','Strapped down tight. The crates look almost grateful.'],
 };
 /* where each repair spot's status screen and particles sit, relative to the spot, and which way it faces */
+/* Hand-lettered boards, one set per hull: [text ('|' breaks the line), style, width, height, x, y, z, quarter turns].
+   They are drawn here, not modelled, so the lettering stays large and sharp. Positions match art/ship-interiors/dress.py. */
+const DECK_NOTES = {
+  rustbucket:[['DOOR STICKS|KICK HERE','chalk',1.0,0.5,0.888,0.35,1.6,-1],['FLUSH|TWICE','paper',0.8,0.5,-2.75,0.42,7.188,2],["STEP 4:|DON'T",'paper',0.46,0.56,0.912,0.3,6.9,1],['TOOL','tape',0.4,0.2,-0.75,1.1,18.988,2]],
+  dromedary:[['LOAD|EVENLY','paper',0.7,0.5,-1.4,0.45,5.788,2],['READS|HIGH','tape',0.44,0.3,2.888,0.2,6.85,-1],['SPARES|ASSORTED, UNKNOWN','paper',0.9,0.5,-0.5,0.45,18.988,2],['ROTA|SAME NAME, EVERY SLOT','chalk',0.8,0.45,3.988,0.68,2.55,-1],['FILTER LOG|EVERY ENTRY A NEW PEN','paper',1.0,0.5,-2.75,0.42,7.188,2]],
+  stoat:[['IF HUMMING,|FINE','paper',0.9,0.5,-2.75,0.42,7.188,2],['FRAGILE|(THE SHIP)','paint',0.95,0.5,1.45,0.4,14.188,2],['FAST|FOOD','tape',0.5,0.3,3.988,0.75,2.45,-1],['SPEED RECORD|STILL OURS','paper',0.5,0.4,0.862,0.3,4.15,-1],['SPACEWALKS|IIII IIII III','chalk',0.46,0.5,0.912,0.3,6.9,1]],
+  manatee:[['SERVICE','brass',0.5,0.18,0.888,0.44,1.6,-1],['PLEASE DO NOT|TIP THE SCRUBBER','brass',0.9,0.45,-2.7,0.42,7.188,2],['DAYS SINCE|LAST INCIDENT:','brass',0.9,0.5,-0.5,0.45,18.988,2],['CLOAKROOM|TICKETS','brass',0.46,0.4,0.912,0.35,6.9,1],['STAFF','brass',0.5,0.2,-2.3,0.3,16.1,1],['STAFF','brass',0.5,0.2,2.3,0.3,16.1,-1]],
+  empress:[['PAINT ME','paint',0.5,0.3,0.868,0.3,4.15,-1],['DO NOT BORROW|FROM THE GOOD ONE','paper',1.0,0.5,-2.75,0.42,7.188,2],['MIND THE STEP|IT IS DECORATIVE','paper',0.46,0.5,0.912,0.35,6.9,1],['THINGS TO FIX|WHEN RICH','paper',0.9,0.5,-0.5,0.45,18.988,2],['STOP','paint',0.5,0.25,0.8,1.02,9.352,0]],
+};
 const FAULT_SPOTS = {
-  coolant:{label:'COOLANT',bad:'LEAK',ry:Math.PI/2,scr:[-0.1,0.42,0],emit:[-0.03,0,0]},
+  coolant:{label:'COOLANT',bad:'LEAK',rot:-Math.PI/2,ry:Math.PI/2,scr:[-0.1,0.42,0],emit:[-0.03,0,0]},
   thruster:{label:'THRUSTERS',bad:'MISFIRE',ry:Math.PI,scr:[-0.75,0.45,0.1],emit:[0,0.45,0.02]},
   fuse:{label:'FUSES',bad:'BLOWN',ry:0,scr:[0,0.58,0.03],emit:[0,0.15,0.15]},
-  scrubber:{label:'AIR SCRUBBER',bad:'JAMMED',ry:Math.PI,scr:[-0.8,-0.12,0],emit:[0,0,-0.2]},
+  scrubber:{label:'AIR SCRUBBER',bad:'JAMMED',rot:Math.PI,ry:Math.PI,scr:[-0.8,-0.12,0],emit:[0,0,-0.2]},
   crack:{label:'HULL',bad:'BREACH',ry:Math.PI/2,scr:[0.005,-0.27,0],emit:[0.02,0,0]},
   strap:{label:'CARGO STRAPS',bad:'SNAPPED',ry:-Math.PI/2,scr:[-0.05,0.55,0.2],emit:[0,0,0]},
+  seal:{label:'AIRLOCK SEAL',bad:'LEAKING',rot:-Math.PI/2,ry:0,scr:[0,0.5,0.03],emit:[0.1,-0.05,0.1]},
 };
 const Faults = {
   t:45,
   has(id){ return (G.faults||[]).includes(id); },
   list(){ return G.faults||(G.faults=[]); },
   fuelMul(){ return this.has('coolant')?1.7:1; },
-  speedMul(){ return this.has('thruster')?0.6:1; },
+  speedMul(){ return (this.has('thruster')?0.6:1)*(this.has('seal')?0.8:1); },
   lagMul(c){ return c.kind==='pax'?(this.has('scrubber')?2:1):(this.has('strap')?2:1); },
   add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); const d=FAULT_DEFS[id];
     UI.toast(`⚠ ${d.name} in the ${d.where}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${TouchUI.on?'Tap Walk':'Press L'} to go and fix it.`,'warn');
     if(Sfx.ok()){ Sfx.beep(880); setTimeout(()=>Sfx.beep(880),220); } Interior.syncFaults(); this.badge(); },
-  fix(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(`Fixed: ${d.name.toLowerCase()}. ${pick((FIX_LINES[id]||[]).concat(FIX_LINES.any))}`,'good'); Interior.syncFaults(); this.badge(); },
+  /* which faults have been mended on this hull: a mended fitting shows its field repair from then on */
+  mended(id){ return (G.fixed||[]).includes(id); },
+  fix(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(`Fixed: ${d.name.toLowerCase()}. ${pick((FIX_LINES[id]||[]).concat(FIX_LINES.any))}`,'good'); Interior.syncFaults(); this.badge(); },
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
   badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(FAULT_DEFS[k].where)}</span></div>`).join(''); },
   update(dt){
@@ -65,12 +79,21 @@ function floorTex(){
 const Interior = {
   group:null, shipId:-1, fx:{}, seats:[], pax:[], crates:null, crateKey:'', lights:[],
   /* rectangles you can stand in (already inset for your body), and round things you cannot walk through */
-  RECTS:[[-0.35,0.35,0.9,1.3],[-0.6,0.6,0.95,6.9],[-1.25,-0.5,3.2,4.0],[-3.15,-1.15,1.7,5.5],[0.5,1.25,2.7,3.5],[1.15,2.9,1.7,4.25],[-0.6,0.6,6.8,7.7],[-1.25,1.25,7.5,13.9],[-0.5,0.5,13.8,14.7],[-2.1,2.1,14.5,18.65]],
-  OBST:[[0,16.6,1.25],[-1.42,1.55,0.3]],
-  inside(x,z){ for(const r of this.RECTS) if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3]){ for(const o of this.OBST) if(Math.hypot(x-o[0],z-o[1])<o[2]) return false; return true; } return false; },
+  RECTS:[[-0.35,0.35,0.9,1.3],[-0.6,0.6,0.95,6.9],[-1.25,-0.5,3.2,4.0],[-3.15,-1.15,1.7,5.5],[0.5,1.25,2.7,3.5],[1.15,2.9,1.7,4.25],[-0.6,0.6,6.8,7.7],[-1.25,1.25,7.5,13.9],[-0.5,0.5,13.8,14.7],[-2.1,2.1,14.5,18.65],
+    /* scrubber bay, airlock (suit locker, inner hatch, chamber) and the two service alleys beside the engine room */
+    [-1.25,-0.5,6.2,6.8],[-3.1,-1.15,6.1,6.9],[0.5,1.25,5.85,6.35],[1.15,2.65,5.3,6.9],[2.5,3.3,5.85,6.35],[3.15,3.7,5.3,6.9],
+    [-2.8,-2.0,14.8,15.4],[-3.1,-2.7,14.5,18.1],[2.0,2.8,14.8,15.4],[2.7,3.1,14.5,18.1]],
+  OBST:[[0,16.6,1.25],[-1.42,1.55,0.3],[-1.55,18.2,0.45]],   // reactor, the cabin's fore-wall fixture, the engine room seat
+  /* A hand-built deck brings its own map of where you can stand (the rectangles, less whatever the model puts in the way)
+     and its own free places for crates; both are worked out from the model by art/ship-interiors/import_deck.py */
+  plan(){ const B=Assets.deck(G.shipId); if(!B||!B.walk) return null; if(B._grid) return B;
+    const w=B.walk, raw=atob(w.bits), bits=new Uint8Array(raw.length); for(let i=0;i<raw.length;i++) bits[i]=raw.charCodeAt(i); B._grid=bits; return B; },
+  inside(x,z){ const P=this.plan();
+    if(P){ const w=P.walk, i=Math.floor((x-w.x0)/w.cell), j=Math.floor((z-w.z0)/w.cell); if(i<0||j<0||i>=w.nx||j>=w.nz) return false; const k=j*w.nx+i; return !!(P._grid[k>>3]&(128>>(k&7))); }
+    for(const r of this.RECTS) if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3]){ for(const o of this.OBST) if(Math.hypot(x-o[0],z-o[1])<o[2]) return false; return true; } return false; },
   build(){
     if(this.group){ World.cock.remove(this.group); this.group.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
-    const g=this.group=new THREE.Group(); g.visible=false; World.cock.add(g); this.shipId=G.shipId; this.fx={}; this.seats=[]; this.pax=[]; this.crates=null; this.crateKey=''; this.paxKey='';
+    const g=this.group=new THREE.Group(); g.visible=false; World.cock.add(g); this.shipId=G.shipId; this.lit=false; this.repairs=null; this.fx={}; this.seats=[]; this.pax=[]; this.crates=null; this.crateKey=''; this.paxKey='';
     const ck=SHIPS[G.shipId].ck, bump=panelBumpTex(), std=(hex,r,m,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:r,metalness:m},ex||{}));
     const M={ wall:std(ck.panel,0.75,0.25,{bumpMap:bump,bumpScale:0.002}), frame:std(ck.frame,0.55,0.55), floor:std('#3a3e44',0.6,0.7,{bumpMap:bump,bumpScale:0.004}), ceil:std('#2a2d32',0.8,0.3),
       trim:std(ck.trim,0.35,0.85), dark:std('#16181c',0.7,0.4), seat:std(ck.leather,0.6,0.05), hazard:std('#ffffff',0.7,0.2,{map:(()=>{ const cv=makeCanvas(256,32), x=cv.getContext('2d'); for(let i=0;i<16;i++){ x.fillStyle=i%2?'#f2c14e':'#1c1c1e'; x.beginPath(); x.moveTo(i*16,0); x.lineTo(i*16+16,0); x.lineTo(i*16,32); x.lineTo(i*16-16,32); x.fill(); } const t=canvasTex(cv); t.wrapS=THREE.RepeatWrapping; t.repeat.set(4,1); return t; })()}),
@@ -92,19 +115,29 @@ const Interior = {
         if(deco&&b-a>0.12){ seg(a,b,FLOOR,FLOOR+0.13,M.dark,0.15); seg(a,b,-0.29,-0.25,M.accent,0.1); seg(a,b,1.0,1.06,M.frame,0.15);
           for(let r=a+0.3;r<b-0.15;r+=1.3) seg(r-0.045,r+0.045,FLOOR,CEIL,M.frame,0.18); } }
       for(const h of holes){ seg(h.a,h.b,FLOOR,h.y0==null?FLOOR:h.y0); seg(h.a,h.b,h.y1==null?0.95:h.y1,CEIL); } };
-    const room=(x0,x1,z0,z1)=>{ const ft=floorTex().clone(); ft.needsUpdate=true; ft.repeat.set((x1-x0)/1.2,(z1-z0)/1.2);
+    const room=(x0,x1,z0,z1,unlit)=>{ const ft=floorTex().clone(); ft.needsUpdate=true; ft.repeat.set((x1-x0)/1.2,(z1-z0)/1.2);
       const f=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),std('#c4c8ce',0.55,0.65,{map:ft})); f.rotation.x=-Math.PI/2; f.position.set((x0+x1)/2,FLOOR,(z0+z1)/2); g.add(f);
       const c=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.ceil); c.rotation.x=Math.PI/2; c.position.set((x0+x1)/2,CEIL,(z0+z1)/2); g.add(c);
       // ceiling beams across the shorter side
       if(x1-x0<z1-z0){ for(let z=z0+0.65;z<z1-0.3;z+=1.3) bx(x1-x0,0.09,0.12,M.frame,(x0+x1)/2,CEIL-0.045,z); }
       else { for(let x=x0+0.65;x<x1-0.3;x+=1.3) bx(0.12,0.09,z1-z0,M.frame,x,CEIL-0.045,(z0+z1)/2); }
-      const lamp=bx(Math.min(1.4,(x1-x0)*0.4),0.04,0.3,M.lamp,(x0+x1)/2,CEIL-0.03,(z0+z1)/2); const L=new THREE.PointLight(C('#ffe2c0'),1.8,10,1.5); L.position.set((x0+x1)/2,CEIL-0.25,(z0+z1)/2); g.add(L); this.lights.push(L); return lamp; };
+      const lamp=bx(Math.min(1.4,(x1-x0)*0.4),0.04,0.3,M.lamp,(x0+x1)/2,CEIL-0.03,(z0+z1)/2); if(unlit) return lamp; const L=new THREE.PointLight(C('#ffe2c0'),1.8,10,1.5); L.position.set((x0+x1)/2,CEIL-0.25,(z0+z1)/2); g.add(L); this.lights.push(L); return lamp; };
     this.lights=[]; const hemi=new THREE.HemisphereLight(C('#ffe9d0'),C('#3a3e44'),0.3); g.add(hemi);
     // rooms
     room(-0.9,0.9,0.7,7.2); room(-4.4,-0.9,1.4,5.8); room(0.9,4.0,1.4,5.0); room(-3.4,3.4,7.2,14.2); room(-2.4,2.4,14.2,19.0);
+    // the scrubber bay, the airlock and the service alleys borrow the light of the rooms beside them
+    room(-4.4,-0.9,5.8,7.2,true); room(0.9,4.0,5.0,7.2,true); room(-3.4,-2.4,14.2,19.0,true); room(2.4,3.4,14.2,19.0,true);
     // the cockpit doorway (above the cockpit's own back wall) and the corridor
     wall(-0.9,0.7,0.9,0.7,[{a:0.0,b:1.8,y0:FLOOR,y1:0.8}],M.wall,false);
-    wall(-0.9,0.7,-0.9,7.2,[{a:2.3,b:3.5,y0:FLOOR,y1:0.95}]); wall(0.9,0.7,0.9,7.2,[{a:1.8,b:3.0,y0:FLOOR,y1:0.95}]);
+    wall(-0.9,0.7,-0.9,7.2,[{a:2.3,b:3.5,y0:FLOOR,y1:0.95},{a:5.3,b:6.3,y0:FLOOR,y1:0.95}]); wall(0.9,0.7,0.9,7.2,[{a:1.8,b:3.0,y0:FLOOR,y1:0.95},{a:4.9,b:5.9,y0:FLOOR,y1:0.95}]);
+    // scrubber bay and head (port) and the airlock (starboard), in what used to be sealed voids either side of the corridor's aft end
+    wall(-4.4,5.8,-4.4,7.2); wall(-4.4,7.2,-3.4,7.2); wall(4.0,5.0,4.0,7.2); wall(3.4,7.2,4.0,7.2); wall(2.9,5.0,2.9,7.2,[{a:0.65,b:1.55,y0:FLOOR,y1:0.95}]);
+    cyl(0.6,0.6,0.1,M.frame,3.92,0,6.1,28).rotation.z=Math.PI/2; cyl(0.13,0.13,0.2,M.trim,3.85,0,6.1,16).rotation.z=Math.PI/2; for(const a of [0,1.05,2.1]) bx(0.04,0.95,0.05,M.trim,3.84,0,6.1).rotation.x=a;   // outer hatch and its handwheel
+    bx(1.5,1.85,0.24,M.frame,1.85,FLOOR+0.925,5.14); for(const x of [1.35,1.85,2.35]){ bx(0.02,1.7,0.02,M.dark,x+0.25,FLOOR+0.925,5.265); bx(0.04,0.14,0.04,M.chrome,x+0.15,FLOOR+1.0,5.28); }   // suit lockers
+    bx(1.3,0.4,0.28,M.seat,1.9,FLOOR+0.2,7.03); bx(0.2,0.2,0.1,M.red,3.45,0.95,5.08);   // boot bench, red lamp
+    bx(0.5,0.42,0.5,M.cream,-3.95,FLOOR+0.21,6.5); bx(0.2,0.5,0.5,M.cream,-4.26,FLOOR+0.7,6.5); bx(0.04,2.0,0.6,M.rug,-3.35,FLOOR+1.05,6.87); bx(0.5,0.14,0.26,M.cream,-1.9,-0.2,7.04);   // the head, its curtain and a basin
+    cyl(0.1,0.1,0.2,M.frame,-3.0,1.23,5.93,12);   // scrubber duct
+    { const hp=cyl(0.07,0.07,2.4,M.cool,-3.1,-0.35,1.52,12); hp.rotation.z=Math.PI/2; }   // cabin heater pipe, off the engine's coolant loop
     // cabin: portholes in the outer wall
     wall(-4.4,1.4,-0.9,1.4); wall(-4.4,5.8,-0.9,5.8); wall(-4.4,1.4,-4.4,5.8,[{a:0.55,b:1.35,y0:0.05,y1:0.75},{a:1.75,b:2.55,y0:0.05,y1:0.75},{a:2.95,b:3.75,y0:0.05,y1:0.75}]);
     for(const a of [0.95,2.15,3.35]){ const ring=new THREE.Mesh(new THREE.TorusGeometry(0.42,0.06,10,28),M.trim); ring.rotation.y=Math.PI/2; ring.position.set(-4.36,0.4,1.4+a); g.add(ring); const gl=new THREE.Mesh(new THREE.PlaneGeometry(0.8,0.7),M.glass); gl.rotation.y=Math.PI/2; gl.position.set(-4.4,0.4,1.4+a); gl.renderOrder=5; g.add(gl); }
@@ -120,12 +153,15 @@ const Interior = {
     bx(0.04,1.9,3.2,M.hazard,3.36,0.0,10.6); bx(6.7,0.05,0.12,M.hazard,0,FLOOR+0.01,7.3);
     for(const sx of [-1,1]) for(let z=7.6;z<14;z+=1.6) bx(0.08,H,0.08,M.frame,sx*1.55,MY,z);
     // engine room: reactor in the middle, pipes on the walls, console at the back
-    wall(-2.4,14.2,-2.4,19.0); wall(2.4,14.2,2.4,19.0); wall(-2.4,19.0,2.4,19.0);
+    for(const sx of [-1,1]){ wall(sx*2.4,14.2,sx*2.4,19.0,[{a:0.4,b:1.4,y0:FLOOR,y1:0.95}]); wall(sx*3.4,14.2,sx*3.4,19.0); wall(sx*2.4,19.0,sx*3.4,19.0);
+      for(const y of [0.95,1.14]){ const q=cyl(0.06,0.06,4.5,y>1?M.pipe:M.cool,sx*3.28,y,16.6,10); q.rotation.x=Math.PI/2; }   // service alley: pipe runs overhead, spares at the dead end
+      bx(0.7,0.6,0.6,M.wood,sx*2.9,FLOOR+0.3,18.62); bx(0.5,0.4,0.5,M.frame,sx*2.9,FLOOR+0.8,18.66); }
+    wall(-2.4,19.0,2.4,19.0);
     cyl(1.0,1.0,0.2,M.frame,0,FLOOR+0.1,16.6,32); cyl(1.0,1.0,0.2,M.frame,0,CEIL-0.1,16.6,32); this.core=cyl(0.55,0.55,H-0.4,M.core,0,MY,16.6,32);
     for(let i=0;i<6;i++){ const a=i/6*Math.PI*2; cyl(0.06,0.06,H-0.3,M.trim,Math.cos(a)*0.85,MY,16.6+Math.sin(a)*0.85,10); }
     const eL=new THREE.PointLight(C('#6fd6ff'),2.2,8,1.5); eL.position.set(0,0.3,16.6); g.add(eL); this.lights.push(eL);
-    for(const y of [-0.5,0.15,0.8]){ const p=cyl(0.09,0.09,4.6,y>0?M.cool:M.pipe,-2.28,y,16.6,12); p.rotation.x=Math.PI/2; const q=cyl(0.09,0.09,4.6,M.pipe,2.28,y,16.6,12); q.rotation.x=Math.PI/2; }
-    bx(2.2,0.9,0.5,M.frame,1.0,-0.52,18.7); bx(1.8,0.5,0.04,new THREE.MeshBasicMaterial({color:HDR('#ff9a30',0.6)}),1.0,0.25,18.92);
+    for(const y of [-0.5,0.15,0.8]){ const p=cyl(0.09,0.09,3.1,y>0?M.cool:M.pipe,-2.28,y,17.35,12); p.rotation.x=Math.PI/2; const q=cyl(0.09,0.09,3.1,M.pipe,2.28,y,17.35,12); q.rotation.x=Math.PI/2; }
+    bx(2.2,0.9,0.5,M.frame,1.0,-0.52,18.7); cyl(0.2,0.2,0.5,M.frame,-1.55,FLOOR+0.25,18.2,16); bx(1.8,0.5,0.04,new THREE.MeshBasicMaterial({color:HDR('#ff9a30',0.6)}),1.0,0.25,18.92);
     // doorway frames
     for(const [x,z,ry] of [[-0.9,3.6,Math.PI/2],[0.9,3.0,Math.PI/2],[0,7.2,0],[0,14.2,0]]){ const f=new THREE.Group(); f.position.set(x,0,z); f.rotation.y=ry; g.add(f);
       for(const s of [-1,1]){ const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,H,0.16),M.hazard); p.position.set(s*(ry?0.62:0.92),MY,0); f.add(p); } }
@@ -137,7 +173,35 @@ const Interior = {
     // fault props, hidden until something breaks
     for(const id in FAULT_DEFS) this.fx[id]=this.faultFx(id);
     g.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
-    this.syncFaults();
+    this.syncFaults(); this.grade=null;
+    const own=Assets.deck(G.shipId); if(own) this.bespoke(own,g);
+  },
+  /* ---------- the ship's own deck ----------
+     Each hull's walkable deck is modelled in Blender on the same plan as the stock one (same rooms, doorways, seats and
+     repair spots, one in each of the seven rooms), so the walking bounds stay. When it has loaded it replaces the stock walls, floors, ceilings and
+     furniture; the seven repair spots, the passengers' places, the crates in the hold and the signs stay, the ceiling
+     lamps move to its light markers, and its own sky and colour grade come with it. */
+  bespoke(B, g){
+    const dir=`assets/ship-interiors/finish/${B.ship}/`;
+    Promise.all([Assets.glb(B.file), Assets.env(dir+'space.hdr').catch(()=>null), Assets.lut(dir+'grade.png').catch(()=>null)]).then(([src,env,lut])=>{
+      if(this.group!==g) return;
+      const deck=src.clone(true); deck.name='bespoke deck '+B.ship; Assets.prepare(deck,env); const A=Assets.anchors(deck);
+      if(B.baked) return this.bakedDeck(B,deck,g,A);
+      const grime=this.grimeTex();   // dirt, streaks and scratches over every plain surface, so no wall is one flat colour
+      deck.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false; if(o.material&&o.material.name==='glass'){ o.renderOrder=5; }
+        for(const m of [].concat(o.material)){ if(!m||!m.isMeshStandardMaterial||m.transparent||m.map) continue; if(m.emissive&&m.emissive.r+m.emissive.g+m.emissive.b>0.01) continue; m.map=grime; m.needsUpdate=true; } });
+      const keep=new Set([...Object.values(this.fx).map(f=>f.grp),...this.seats,this.crates].filter(Boolean));
+      for(const o of g.children.slice()){ if(keep.has(o)||o.isHemisphereLight) continue;
+        if(o.isMesh&&[].concat(o.material).some(m=>m&&m.userData.label)) continue;
+        if(o===this.core){ o.visible=false; continue; }
+        g.remove(o); if(o.geometry&&o!==this.core) o.geometry.dispose(); }
+      // the stock seats go too (the deck has its own); the places where passengers sit stay
+      for(const S of this.seats) for(const c of S.children.slice()) if(!this.pax.includes(c)) S.remove(c);
+      this.lights=[]; for(const k in A){ if(!/^lamp_/.test(k)) continue; const L=new THREE.PointLight(C('#ffe2c0'),1.8,10,1.5); L.position.copy(A[k].position).add(new V3(0,-0.2,0)); g.add(L); this.lights.push(L); }
+      if(A.reactor){ const L=new THREE.PointLight(C('#6fd6ff'),2.2,8,1.5); L.position.copy(A.reactor.position).add(new V3(0,0.15,0)); g.add(L); this.lights.push(L); }
+      g.add(deck); this.bespokeDeck=deck; this.grade=lut;
+      if(B.light) this.lightMapped(B,deck,g);
+    }).catch(()=>{});
   },
   /* a cushioned passenger seat on a pedestal, with armrests, a headrest and a harness; local +x faces into the cabin */
   seat(sg,M,i){ const rb=Folk.rbox, add=(o,rz)=>{ if(rz) o.rotation.z=rz; sg.add(o); return o; };
@@ -148,9 +212,69 @@ const Interior = {
     for(const s of [-1,1]){ add(Folk.bx(0.05,0.2,0.05,M.chrome,0.2,FLOOR+0.55,s*0.38)); add(rb(0.48,0.07,0.08,0.03,M.frame,0.03,FLOOR+0.66,s*0.38)); add(rb(0.42,0.04,0.09,0.02,M.cushion,0.03,FLOOR+0.71,s*0.38));
       add(Folk.bx(0.02,0.6,0.07,M.accent,-0.19,FLOOR+1.0,s*0.15),0.12); }
     add(Folk.bx(0.03,0.08,0.12,M.chrome,-0.15,FLOOR+0.7,0)); },
+  /* A hand-built deck whose every surface is baked to image maps, one per room: it is drawn unlit, exactly as it was lit
+     in Blender. The stock deck and all the game's own signs go; the repair props, crates and passengers stay, lit by the
+     lamps only */
+  bakedDeck(B,deck,g,A){
+    const keep=new Set([...Object.values(this.fx).map(f=>f.grp),...this.seats,this.crates].filter(Boolean));
+    for(const o of g.children.slice()){ if(keep.has(o)||o.isHemisphereLight) continue; if(o===this.core){ o.visible=false; continue; } g.remove(o); if(o.geometry) o.geometry.dispose(); }
+    for(const S of this.seats) for(const c of S.children.slice()) if(!this.pax.includes(c)) S.remove(c);
+    const key=n=>String(n).toLowerCase().replace(/[^a-z]+/g,'-').replace(/^-|-$/g,''), maps={}; for(const k in B.baked) maps[key(k)]=B.baked[k];
+    Assets.base().then(b=>deck.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false; const m=new THREE.MeshBasicMaterial({color:0x101210}); o.material=m; const url=maps[key(o.name)]; if(!url) return;
+      new THREE.TextureLoader().load(b+url,t=>{ t.flipY=false; t.encoding=THREE.sRGBEncoding; t.anisotropy=8; m.map=t; m.color.set(0xffffff); m.needsUpdate=true; }); }));
+    this.lights=[]; for(const k in A){ if(!/^lamp_/.test(k)) continue; const L=new THREE.PointLight(C('#ffe2c0'),0.75,9,1.5); L.position.copy(A[k].position).add(new V3(0,-0.2,0)); g.add(L); this.lights.push(L); }
+    for(const o of g.children) if(o.isHemisphereLight) o.intensity=0.1;
+    g.add(deck); this.bespokeDeck=deck; this.grade=null; this.lit=true; const grime=this.grimeTex();
+    if(this.crates) this.crates.traverse(o=>{ if(o.isMesh) this.indoor(o.material,0.5); });
+    for(const f of Object.values(this.fx)) f.grp.traverse(o=>{ if(!o.isMesh) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial){ if(!m.map&&!m.transparent) m.map=grime; m.envMapIntensity=(m.envMapIntensity==null?1:m.envMapIntensity)*0.25; this.indoor(m); } });
+    // where the model already draws the working fitting (the scrubber's fans, the straps on the cargo cases), the game's own
+    // working version is left out: only its status screen and what shows when it breaks remain
+    if(B.repairs) this.fitRepairs(B,g);
+    else for(const [id,body] of [['strap',false],['scrubber',true]]){ const f=this.fx[id]; if(!f) continue; f.ok.traverse(o=>{ if(o.isMesh) o.visible=false; });
+      if(body){ for(const c of f.grp.children) if(c.isMesh) c.visible=false; if(f.fan) f.fan.visible=false; } }
+  },
+  /* A deck with a baked light map: the lamps' light, shadow, dirt and edge wear all come from the map. The live lights
+     (the sun included, which otherwise shines straight through the hull) are switched off for the deck's own surfaces,
+     bar a little of their shine; they still light the crates, passengers and repair props */
+  lightMapped(B,deck,g){
+    Assets.base().then(b=>new THREE.TextureLoader().load(b+B.light,tex=>{ if(this.bespokeDeck!==deck) return; tex.flipY=false; tex.encoding=THREE.sRGBEncoding; tex.anisotropy=4;
+      const baked=sh=>{ sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin+'\n irradiance*=0.0; reflectedLight.directDiffuse*=0.0; reflectedLight.directSpecular*=0.3;\n'); };
+      deck.traverse(o=>{ if(!o.isMesh||!o.geometry.attributes.uv2) return; for(const m of [].concat(o.material)){ if(!m||!m.isMeshStandardMaterial||m.transparent) continue;
+        m.lightMap=tex; m.lightMapIntensity=this.LIGHT_GAIN; m.envMapIntensity*=0.4; m.onBeforeCompile=baked; m.needsUpdate=true; } });
+      for(const o of g.children) if(o.isMesh) for(const m of [].concat(o.material)) if(m&&m.userData.label&&m.color) m.color.multiplyScalar(0.62);   // signs sit in the same dim light
+      // the crates and repair props are not in the map: they keep the lamps' live light, lose the sun, and take the grime layer
+      this.lit=true; for(const L of this.lights) L.intensity*=0.4; const grime=this.grimeTex(); if(this.crates) this.crates.traverse(o=>{ if(o.isMesh) this.indoor(o.material,0.5); });
+      for(const f of Object.values(this.fx)) f.grp.traverse(o=>{ if(!o.isMesh) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial){ if(!m.map&&!m.transparent) m.map=grime; this.indoor(m); } });
+    })); },
+  LIGHT_GAIN:2.6,
+  /* a live-lit thing aboard a light-mapped deck: lamps only, no sun through the hull, a little ambient */
+  indoor(m,dim){ if(!m||!m.isMeshStandardMaterial||m.userData.indoor) return; m.userData.indoor=true; if(dim) m.color.multiplyScalar(dim);
+    m.onBeforeCompile=sh=>{ sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace(/NUM_DIR_LIGHTS > 0/g,'NUM_DIR_LIGHTS > 99')+'\n irradiance*=0.35;\n'); }; m.needsUpdate=true; },
+  /* a cargo crate: a box with a frame of battens and a diagonal brace on each side, so it is not just a cube */
+  crateGeo(){ if(this._crate) return this._crate; const U=THREE.BufferGeometryUtils, parts=[], S=0.74, T=0.03, W=0.09;
+    const add=(w,h,d,x,y,z,rx,ry,rz)=>{ const g=new THREE.BoxGeometry(w,h,d); if(rz) g.rotateZ(rz); if(rx) g.rotateX(rx); if(ry) g.rotateY(ry); g.translate(x,y,z); parts.push(g); };
+    add(S,S,S,0,0,0);
+    for(let k=0;k<4;k++){ const ry=k*Math.PI/2, c=Math.cos(ry), s=Math.sin(ry), o=S/2+T/2, P=(lx,ly)=>[lx*c+o*s,ly,-lx*s+o*c];
+      for(const sy of [-1,1]){ const p=P(0,sy*(S/2-W/2)); add(S+2*T,W,T,p[0],p[1],p[2],0,ry,0); }
+      for(const sx of [-1,1]){ const p=P(sx*(S/2-W/2+T),0); add(W,S-2*W,T,p[0],p[1],p[2],0,ry,0); }
+      const p=P(0,0); add(W,(S-2*W)*1.36,T*0.8,p[0],p[1],p[2],0,ry,(k%2?1:-1)*Math.PI/4); }
+    for(const sz of [-1,1]) add(S+2*T,T,W,0,S/2+T/2,sz*(S/2-W/2)); add(W,T,S,0,S/2+T/2,0);
+    return this._crate=U&&U.mergeBufferGeometries?U.mergeBufferGeometries(parts):new THREE.BoxGeometry(0.78,0.78,0.78); },
+  /* a tiling layer of grime for the modelled decks: blotches, streaks that run down, scratches and specks. One tile covers 2 m */
+  grimeTex(){ if(this._grime) return this._grime; const S=512, cv=makeCanvas(S,S), c=cv.getContext('2d'); let s=11; const R=()=>(s=s*16807%2147483647)/2147483647;
+    const wrap=(x,y,f)=>{ for(const dx of [-S,0,S]) for(const dy of [-S,0,S]) f(x+dx,y+dy); };
+    c.fillStyle='#e6e3dc'; c.fillRect(0,0,S,S);
+    for(let i=0;i<80;i++){ const x=R()*S, y=R()*S, r=30+R()*100, a=0.05+R()*0.1, col=R()<0.75?'38,32,26':'255,255,255';
+      wrap(x,y,(X,Y)=>{ const g=c.createRadialGradient(X,Y,0,X,Y,r); g.addColorStop(0,`rgba(${col},${a})`); g.addColorStop(1,`rgba(${col},0)`); c.fillStyle=g; c.fillRect(X-r,Y-r,2*r,2*r); }); }
+    for(let i=0;i<46;i++){ const x=R()*S, y=R()*S, l=50+R()*190, w=1.5+R()*6, a=0.1+R()*0.14;
+      wrap(x,y,(X,Y)=>{ const g=c.createLinearGradient(0,Y,0,Y+l); g.addColorStop(0,`rgba(30,26,22,${a})`); g.addColorStop(1,'rgba(30,26,22,0)'); c.fillStyle=g; c.fillRect(X,Y,w,l); }); }
+    for(let i=0;i<90;i++){ const x=R()*S, y=R()*S, an=R()*6.283, l=8+R()*46, a=0.1+R()*0.2, lt=R()<0.5; c.lineWidth=0.6+R();
+      wrap(x,y,(X,Y)=>{ c.strokeStyle=lt?`rgba(255,255,255,${a})`:`rgba(20,18,16,${a})`; c.beginPath(); c.moveTo(X,Y); c.lineTo(X+Math.cos(an)*l,Y+Math.sin(an)*l); c.stroke(); }); }
+    for(let i=0;i<2600;i++){ c.fillStyle=`rgba(${R()<0.6?'25,22,18':'255,255,255'},${0.05+R()*0.12})`; c.fillRect(R()*S,R()*S,1+R()*2,1+R()*2); }
+    const t=this._grime=canvasTex(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(0.25,0.25); return t; },
   /* signs, posters, rails, furniture and clutter, room by room */
   decor(g,M,bx,cyl,nSeats){
-    const ry90=Math.PI/2, add=o=>{ g.add(o); return o; };
+    const ry90=Math.PI/2, add=o=>{ g.add(o); return o; }, label=m=>{ m.userData.label=true; return m; };   // signs, posters and dials stay on a bespoke deck
     const plane=(w,h,m,x,y,z,ry)=>{ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m); o.position.set(x,y,z); o.rotation.y=ry; return add(o); };
     const fitFont=(c,txt,max,px,font)=>{ let s=px; do { c.font=font.replace('#',s); s-=2; } while(c.measureText(txt).width>max&&s>8); };
     const sign=(title,sub,w,h,x,y,z,ry,col)=>{ const W=768, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d'); col=col||'#f2c14e';
@@ -160,7 +284,7 @@ const Interior = {
       // mounted on a short stand-off, clear of the wall ribs and rails, and kept below the ceiling beams and pipes
       const top=CEIL-0.12; if(y+h/2>top) y=top-h/2; const nx=Math.sin(ry), nz=Math.cos(ry), off=0.07;
       const back=bx(w+0.04,h+0.04,0.05,M.dark,x+nx*(off-0.03),y,z+nz*(off-0.03)); back.rotation.y=ry;
-      return plane(w,h,new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)}),x+nx*off,y,z+nz*off,ry); };
+      return plane(w,h,label(new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)})),x+nx*off,y,z+nz*off,ry); };
     const poster=(title,body,col,w,h,x,y,z,ry)=>{ const W=512, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d');
       c.fillStyle='#ebe5d6'; c.fillRect(0,0,W,Hh); c.fillStyle=col; c.fillRect(0,0,W,Hh*0.22); c.fillStyle='#ffffff'; c.textAlign='center'; c.textBaseline='middle';
       fitFont(c,title,W-40,Math.round(Hh*0.1),`700 #px ${FONT_DISP}`); c.fillText(title,W/2,Hh*0.11);
@@ -168,23 +292,23 @@ const Interior = {
       for(const wd of body.split(' ')){ const t=line?line+' '+wd:wd; if(c.measureText(t).width>W-56){ c.fillText(line,W/2,yy); yy+=lh; line=wd; } else line=t; } c.fillText(line,W/2,yy);
       c.fillStyle=col; c.fillRect(W*0.3,Hh-26,W*0.4,8);
       const off=0.06; x+=Math.sin(ry)*off; z+=Math.cos(ry)*off; // proud of the wall ribs
-      const fr=bx(w+0.05,h+0.05,0.02,M.frame,x,y,z); fr.rotation.y=ry; const o=plane(w,h,new THREE.MeshStandardMaterial({map:canvasTex(cv),roughness:0.8}),x+Math.sin(ry)*0.012,y,z+Math.cos(ry)*0.012,ry); return o; };
+      const fr=bx(w+0.05,h+0.05,0.02,M.frame,x,y,z); fr.rotation.y=ry; const o=plane(w,h,label(new THREE.MeshStandardMaterial({map:canvasTex(cv),roughness:0.8})),x+Math.sin(ry)*0.012,y,z+Math.cos(ry)*0.012,ry); return o; };
+    /* ---- the crew's own boards and labels, per hull ---- */
+    const INK={chalk:['#22262a','#f1efe6','#6a4a30'],paper:['#efe6cf','#2a2420',null],tape:['#d9c98a','#2a2420',null],paint:['#8d9399','#f6f6f0',null],brass:['#b08d3c','#241a08','#7a5f20']};
+    for(const [text,style,w,h,x,y,z,q] of DECK_NOTES[Assets.shipKey(G.shipId)]||[]){ const W=512, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d'), [bg,ink,rim]=INK[style], lines=text.split('|');
+      c.fillStyle=bg; c.fillRect(0,0,W,Hh); if(rim){ c.strokeStyle=rim; c.lineWidth=18; c.strokeRect(9,9,W-18,Hh-18); }
+      c.fillStyle=ink; c.textAlign='center'; c.textBaseline='middle'; const lh=(Hh-44)/lines.length;
+      lines.forEach((t,i)=>{ fitFont(c,t,W-64,Math.round(lh*0.86),`700 #px ${FONT_DISP}`); c.fillText(t,W/2,22+lh*(i+0.5)); });
+      plane(w,h,label(new THREE.MeshBasicMaterial({map:canvasTex(cv),color:0xc8c8c8})),x,y,z,q*ry90); }
     /* ---- corridor ---- */
-    for(const [sx,spans] of [[-1,[[0.75,3.0],[4.2,7.15]]],[1,[[0.75,2.5],[3.7,7.15]]]]) for(const [a,b] of spans){
+    for(const [sx,spans] of [[-1,[[0.75,3.0],[4.2,5.95]]],[1,[[0.75,2.5],[3.7,5.55]]]]) for(const [a,b] of spans){
       const r=cyl(0.024,0.024,b-a-0.2,M.chrome,sx*0.77,0.08,(a+b)/2,12); r.rotation.x=ry90;
       for(const z of [a+0.15,(a+b)/2,b-0.15]) bx(0.1,0.035,0.035,M.chrome,sx*0.81,0.08,z);
       for(let z=a+0.25;z<b-0.1;z+=0.7) bx(0.06,0.012,0.14,M.guide,sx*0.76,FLOOR+0.007,z); }
     for(const [x,m] of [[-0.6,M.pipe],[0.6,M.cool]]){ const p=cyl(0.04,0.04,6.3,m,x,CEIL-0.055,3.95,10); p.rotation.x=ry90; } // tucked up under the ceiling, above the signs
-    cyl(0.08,0.08,0.45,M.red,0.74,FLOOR+0.42,6.6,16); cyl(0.03,0.04,0.1,M.dark,0.74,FLOOR+0.7,6.6,10); bx(0.06,0.06,0.2,M.chrome,0.81,FLOOR+0.5,6.6);
+    cyl(0.08,0.08,0.45,M.red,0.74,FLOOR+0.42,6.95,16); cyl(0.03,0.04,0.1,M.dark,0.74,FLOOR+0.7,6.95,10); bx(0.06,0.06,0.2,M.chrome,0.81,FLOOR+0.5,6.95);
+    // no signs name the rooms or point the way: the player learns the ship by walking it
     bx(0.06,0.4,0.56,M.red,-0.84,0.5,1.5); sign('EMERGENCY','Break glass. Then panic.',0.5,0.3,-0.805,0.5,1.5,ry90,'#ff6a5a');
-    sign('COCKPIT','Pilots only. That means you.',1.3,0.42,0,1.06,0.745,0);
-    sign('CABIN','Passengers, mostly content',1.1,0.32,-0.855,1.14,3.6,ry90);
-    sign('GALLEY','Tea, and other emergencies',1.1,0.32,0.855,1.14,3.1,-ry90);
-    sign('CARGO HOLD','Mind the boxes',1.7,0.3,0,1.165,7.155,Math.PI);
-    sign('TO COCKPIT','Straight on, past the tea',1.7,0.3,0,1.165,7.245,0);
-    sign('ENGINE ROOM','Do not lick the reactor',1.5,0.34,0,1.14,14.155,Math.PI);
-    sign('CARGO HOLD','The boxes are fine. Probably.',1.5,0.34,0,1.14,14.245,0);
-    sign('EXIT','To the corridor',1.1,0.32,-0.945,1.14,3.6,-ry90); sign('EXIT','To the corridor',1.1,0.32,0.945,1.14,3.1,ry90);
     /* ---- passenger cabin ---- */
     { const rug=plane(1.7,3.8,M.rug,-2.35,FLOOR+0.004,3.6,0); rug.rotation.x=-ry90; }
     add(Folk.rbox(0.5,0.3,4.25,0.05,M.cream,-4.12,1.15,3.6)); bx(0.02,0.03,4.2,M.accent,-3.865,1.02,3.6);
@@ -207,18 +331,18 @@ const Interior = {
     bx(0.16,0.12,6.8,M.accent,0,CEIL-0.16,10.7); bx(0.32,0.12,0.32,M.dark,0,CEIL-0.29,10.2); cyl(0.01,0.01,0.3,M.chrome,0,1.0,10.2,6);
     { const hk=new THREE.Mesh(new THREE.TorusGeometry(0.07,0.018,8,16,Math.PI*1.4),M.chrome); hk.position.set(0,0.8,10.2); add(hk); }
     { const W=1024,Hh=256,cv=makeCanvas(W,Hh),c=cv.getContext('2d'); c.fillStyle='rgba(242,193,78,0.85)'; c.textAlign='center'; c.textBaseline='middle'; c.font=`700 150px ${FONT_DISP}`; c.fillText('MIND THE BOXES',W/2,Hh/2,W-40);
-      const d=plane(2.2,0.55,new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false,color:0xbbbbbb}),0,FLOOR+0.006,8.2,0); d.rotation.set(-ry90,0,Math.PI); }
+      const d=plane(2.2,0.55,label(new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false,color:0xbbbbbb})),0,FLOOR+0.012,8.2,0); d.rotation.set(-ry90,0,Math.PI); }
     /* ---- engine room ---- */
     { const r1=new THREE.Mesh(new THREE.RingGeometry(1.02,1.6,48),M.dark); r1.rotation.x=-ry90; r1.position.set(0,FLOOR+0.005,16.6); add(r1);
       const r2=new THREE.Mesh(new THREE.RingGeometry(1.6,1.68,48),std2('#f2c14e')); r2.rotation.x=-ry90; r2.position.set(0,FLOOR+0.007,16.6); add(r2); }
-    for(const [y,z] of [[0.15,15.2],[-0.5,17.9],[0.8,17.4]]){ const w=new THREE.Mesh(new THREE.TorusGeometry(0.13,0.022,8,22),M.red); w.rotation.y=ry90; w.position.set(-2.1,y,z); add(w);
+    for(const [y,z] of [[0.15,16.2],[-0.5,17.9],[0.8,17.4]]){ const w=new THREE.Mesh(new THREE.TorusGeometry(0.13,0.022,8,22),M.red); w.rotation.y=ry90; w.position.set(-2.1,y,z); add(w);
       for(const a of [0,1.05,2.1]){ const s=bx(0.015,0.26,0.015,M.red,-2.1,y,z); s.rotation.x=a; } cyl(0.03,0.03,0.18,M.red,-2.19,y,z,8).rotation.z=ry90; }
     const dial=(v,lbl)=>{ const S=256,cv=makeCanvas(S,S),c=cv.getContext('2d'); c.fillStyle='#f0ece2'; c.beginPath(); c.arc(S/2,S/2,S/2-4,0,7); c.fill(); c.strokeStyle='#202428'; c.lineWidth=10; c.stroke();
       c.fillStyle='#c0392b'; c.beginPath(); c.moveTo(S/2,S/2); c.arc(S/2,S/2,S/2-18,-0.3,0.55); c.fill(); c.fillStyle='#f0ece2'; c.beginPath(); c.arc(S/2,S/2,S/2-40,0,7); c.fill();
       c.strokeStyle='#202428'; c.lineWidth=5; for(let k=0;k<=8;k++){ const a=Math.PI*0.75+k/8*Math.PI*1.5; c.beginPath(); c.moveTo(S/2+Math.cos(a)*(S/2-20),S/2+Math.sin(a)*(S/2-20)); c.lineTo(S/2+Math.cos(a)*(S/2-42),S/2+Math.sin(a)*(S/2-42)); c.stroke(); }
       c.fillStyle='#202428'; c.font=`700 40px ${FONT_DISP}`; c.textAlign='center'; c.fillText(lbl,S/2,S*0.8);
       const a=Math.PI*0.75+v*Math.PI*1.5; c.strokeStyle='#c0392b'; c.lineWidth=8; c.beginPath(); c.moveTo(S/2,S/2); c.lineTo(S/2+Math.cos(a)*(S/2-34),S/2+Math.sin(a)*(S/2-34)); c.stroke(); c.fillStyle='#202428'; c.beginPath(); c.arc(S/2,S/2,12,0,7); c.fill();
-      return new THREE.MeshBasicMaterial({map:canvasTex(cv),color:0xcccccc}); };
+      return label(new THREE.MeshBasicMaterial({map:canvasTex(cv),color:0xcccccc})); };
     [[0.4,0.35,'TEMP'],[1.0,0.62,'PRESS'],[1.6,0.9,'VIBES']].forEach(([x,v,l])=>{ const d=new THREE.Mesh(new THREE.CircleGeometry(0.13,32),dial(v,l)); d.position.set(x,-0.4,18.444); d.rotation.y=Math.PI; add(d); cyl(0.145,0.145,0.02,M.chrome,x,-0.4,18.452,24).rotation.x=ry90; });
     cyl(0.02,0.02,0.32,M.chrome,1.95,0.08,18.6,8).rotation.x=-0.4; add(Folk.sph(0.045,M.red,1.95,0.23,18.54));
     poster('REACTOR NOTICE','Glowing is normal. Humming is normal. If it starts singing, leave quietly and do not join in.','#c0392b',0.55,0.74,-1.45,0.5,18.955,Math.PI);
@@ -236,7 +360,7 @@ const Interior = {
   /* Each repair spot is a proper fitting with two looks: broken (flashing red, visibly damaged, leaking or smoking) and
      working (steady green, closed up, running). A small status screen beside it says which, in big letters. */
   faultFx(id){
-    const d=FAULT_DEFS[id], S=FAULT_SPOTS[id], M=this.M, grp=new THREE.Group(); grp.position.set(...d.pos); this.group.add(grp);
+    const d=FAULT_DEFS[id], S=FAULT_SPOTS[id], M=this.M, grp=new THREE.Group(); grp.position.set(...d.pos); grp.rotation.y=S.rot||0; this.group.add(grp);
     const ok=new THREE.Group(), bad=new THREE.Group(), em=new THREE.Group(); grp.add(ok); grp.add(bad); bad.add(em); em.position.set(...S.emit);
     const std=(hex,r,m,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:r,metalness:m},ex||{}));
     const B=(par,w,h,dd,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,dd),m); o.position.set(x,y,z); par.add(o); return o; };
@@ -245,8 +369,8 @@ const Interior = {
     const decal=(par,w,h,draw,x,y,z,ry)=>{ const cv=makeCanvas(256,256), c=cv.getContext('2d'); draw(c); const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:canvasTex(cv),transparent:true,depthWrite:false})); o.position.set(x,y,z); o.rotation.y=ry; o.renderOrder=4; par.add(o); return o; };
     const scorch=c=>{ const g=c.createRadialGradient(128,128,8,128,128,124); g.addColorStop(0,'rgba(10,8,6,.95)'); g.addColorStop(0.5,'rgba(20,16,12,.6)'); g.addColorStop(1,'rgba(20,16,12,0)'); c.fillStyle=g; c.fillRect(0,0,256,256); };
     const yellow=std('#f2c14e',0.7,0.05), steel=std('#7d848c',0.45,0.75), black=std('#141414',0.95,0), rivet=std('#c8ccd0',0.3,0.9);
-    // the status plate: a little screen and a light, facing into the room
-    const face=new THREE.Group(); face.position.set(...S.scr); face.rotation.y=S.ry; grp.add(face);
+    // the status plate (a little screen and a light): still built, because the repair code draws to it, but no longer shown
+    const face=new THREE.Group(); face.position.set(...S.scr); face.rotation.y=S.ry; grp.add(face); face.visible=false;   // the status screens are gone: the fitting itself shows whether it is working, broken or mended
     B(face,0.7,0.27,0.03,M.dark,0.05,0,-0.016);
     const cv=makeCanvas(256,104), tex=canvasTex(cv), scr=new THREE.Mesh(new THREE.PlaneGeometry(0.56,0.22),new THREE.MeshBasicMaterial({map:tex})); scr.position.z=0.001; face.add(scr);
     const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.045,12,8),new THREE.MeshBasicMaterial({color:HDR('#40ff80',2)})); lamp.position.set(0.34,0,0.01); face.add(lamp);
@@ -294,29 +418,49 @@ const Interior = {
       strap=new THREE.Group(); strap.position.set(0.35,1.0,-0.45); bad.add(strap); B(strap,0.02,1.0,0.08,band,0,-0.5,0);
       const fl=B(bad,1.1,0.006,0.08,band,-0.1,FLOOR-d.pos[1]+0.005,-0.9); fl.rotation.y=0.7; B(bad,0.13,0.09,0.22,M.chrome,-0.25,FLOOR-d.pos[1]+0.05,-1.35).rotation.y=0.4;
       B(bad,0.02,0.08,0.9,band,0.35,0.3,0.9); B(bad,0.02,0.08,0.5,band,0.35,0.9,1.05); }
+    else if(id==='seal'){ // the inner hatch's seal valve: a gauge and a lever on a plate; leaking, the lever has dropped, a strip of gasket hangs loose and air hisses out
+      B(grp,0.52,0.56,0.05,M.dark,0,0,0.025); Cy(grp,0.13,0.13,0.03,M.chrome,-0.1,0.1,0.06,24).rotation.x=Math.PI/2; Cy(grp,0.11,0.11,0.032,std('#f0ece2',0.6,0),-0.1,0.1,0.062,24).rotation.x=Math.PI/2;
+      B(ok,0.012,0.09,0.01,std('#2e9a4a',0.5,0.1),-0.1,0.14,0.082).rotation.z=-0.6; B(bad,0.012,0.09,0.01,std('#c0392b',0.5,0.1),-0.1,0.14,0.082).rotation.z=1.1;
+      const lever=(par,rz)=>{ const h=new THREE.Group(); h.position.set(0.14,-0.08,0.07); h.rotation.z=rz; par.add(h); B(h,0.05,0.3,0.04,M.chrome,0,0.13,0); Sp(h,0.045,yellow,0,0.29,0); };
+      lever(ok,0); lever(bad,-1.9); B(grp,0.4,0.05,0.01,M.hazard,0,-0.24,0.052);
+      const gk=B(bad,0.035,0.5,0.02,black,-0.3,-0.3,0.04); gk.rotation.z=0.25; B(bad,0.035,0.2,0.02,black,-0.36,-0.6,0.05).rotation.z=-0.5;
+      add(12,'#eaf4ff',0.05); }
     ok.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } }); bad.traverse(o=>{ if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
     const f={grp,ok,bad,lamp,scr,cv,tex,parts,strap,crack,fan,ribbon,d,S}; this.drawSpot(f,false); return f; },
   /* the status screen beside each repair spot */
   drawSpot(f, broken){ const x=f.cv.getContext('2d'); x.fillStyle='#050a0c'; x.fillRect(0,0,256,104); x.textAlign='center'; x.textBaseline='middle';
     x.fillStyle=broken?'#ff9a8a':'#9ff0b8'; x.font=`600 24px ${FONT_MONO}`; x.fillText(f.S.label,128,22,240);
     x.fillStyle=broken?'#ff5a4a':'#5dff8f'; x.font=`700 52px ${FONT_DISP}`; x.fillText(broken?f.S.bad:'OK',128,70,240); f.tex.needsUpdate=true; },
-  syncFaults(){ if(!this.group) return; for(const id in this.fx){ const f=this.fx[id], has=Faults.has(id); if(f.broken!==has){ f.broken=has; f.bad.visible=has; f.ok.visible=!has; this.drawSpot(f,has); } } },
+  syncFaults(){ if(!this.group) return; for(const id in this.fx){ const f=this.fx[id], has=Faults.has(id); if(f.broken!==has){ f.broken=has; f.bad.visible=has; f.ok.visible=!has; this.drawSpot(f,has); } } this.syncRepairs(); },
+  /* A hand-built deck can bring its own fitting for each repair station in three forms: working, broken and repaired.
+     Exactly one shows: broken while the fault is active, repaired once it has been mended on this hull, else working.
+     The game keeps the sounds and the smoke, steam and sparks */
+  syncRepairs(){ for(const id in this.repairs||{}){ const R=this.repairs[id], st=Faults.has(id)?'broken':Faults.mended(id)?'repaired':'working'; for(const k in R.models) R.models[k].visible=k===st; } },
+  fitRepairs(B,g){ this.repairs={};
+    for(const id in B.repairs){ const d=B.repairs[id], f=this.fx[id]; if(!f) continue; const grp=new THREE.Group(); grp.position.set(...d.pos); grp.rotation.y=d.yaw||0; g.add(grp); const R=this.repairs[id]={grp,models:{}};
+      // the game's own stand-in fitting goes; its particles stay
+      const face=f.scr.parent, keep=new Set(f.parts.map(p=>p.m)); f.grp.traverse(o=>{ if(!o.isMesh||keep.has(o)) return; for(let q=o;q;q=q.parent) if(q===face) return; o.visible=false; }); if(f.fan) f.fan.visible=false;
+      // the fittings are live-lit; they are dimmed to sit back against the baked walls
+      for(const st in d.models) Assets.glb(d.models[st]).then(src=>{ if(this.group!==g) return; const m=src.clone(true); m.visible=false; m.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false;
+          for(const mt of [].concat(o.material)) if(mt&&mt.isMeshStandardMaterial){ mt.envMapIntensity=0.12; this.indoor(mt,0.45); } }); grp.add(m); R.models[st]=m; this.syncRepairs(); }).catch(()=>{}); } },
   /* crates in the hold match how full it is; passengers sit in the cabin */
   syncCargo(){
-    const used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*28), key=n+'';
+    const P0=this.plan(), room=P0&&P0.crates?P0.crates.length*2:28, used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*room), key=n+'';
     if(key!==this.crateKey){ this.crateKey=key; if(this.crates) this.group.remove(this.crates); const cg=this.crates=new THREE.Group(); this.group.add(cg); let k=0;
       // plain wood crates: slats inside a darker frame. They take almost nothing from the bright sky map, which made them glow like lamps
       if(!this.crateTex){ const S=256, cv=makeCanvas(S,S), x=cv.getContext('2d'); x.fillStyle='#d8d0c4'; x.fillRect(0,0,S,S);
         for(let i=0;i<5;i++){ x.fillStyle=i%2?'#cfc6b8':'#e2dace'; x.fillRect(0,i*S/5,S,S/5-6); x.fillStyle='#5a4a38'; x.fillRect(0,(i+1)*S/5-6,S,6); }
-        x.strokeStyle='#4a3a2a'; x.lineWidth=30; x.strokeRect(15,15,S-30,S-30); x.lineWidth=22; x.beginPath(); x.moveTo(20,20); x.lineTo(S-20,S-20); x.stroke(); this.crateTex=canvasTex(cv); }
+        for(let i=0;i<260;i++){ const yy=(i*97)%S, xx=(i*53)%S; x.fillStyle=`rgba(${i%3?'60,44,30':'255,244,220'},${0.05+(i%5)*0.02})`; x.fillRect(xx,yy,30+(i*7)%120,1+(i%2)); } for(let i=0;i<5;i++){ x.fillStyle='rgba(40,28,18,0.5)'; x.beginPath(); x.ellipse((i*83+40)%S,(i*131+30)%S,7,4,0,0,7); x.fill(); } this.crateTex=canvasTex(cv); }
       const mats=['#a8743a','#8c5e2a','#b98040','#7a6650'].map(c=>new THREE.MeshStandardMaterial({color:C(c),map:this.crateTex,roughness:0.9,metalness:0,envMapIntensity:0.12}));
-      for(const sx of [-1,1]) for(let z=7.9;z<13.9&&k<n;z+=0.85) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.78,0.78,0.78),mats[(k*7)%4]); c.position.set(sx*(2.35+(lvl?0.05:0)),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
+      const P=this.plan(), slots=[]; if(P&&P.crates) for(const [x,z] of P.crates) slots.push([x,z]); else for(const sx of [-1,1]) for(let z=7.9;z<13.9;z+=0.85) slots.push([sx*2.35,z]);
+      for(const [sx0,z] of slots) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(this.crateGeo(),mats[(k*7)%4]); if(this.lit) this.indoor(c.material,0.5); c.position.set(sx0+Math.sign(sx0)*(lvl?0.05:0),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
     const pax=Cargo.pax(), pk=pax.map(p=>p.kind==='escort'?p.vip.seed:p.seed).join(',');
     if(pk!==this.paxKey){ this.paxKey=pk; for(const F of this.pax) F.parent&&F.parent.remove(F); this.pax=[];
       pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.66), S=this.seats[i], U=F.userData;
         // sit hips on the cushion (species without legs just settle into it), legs forward, hands on the armrests
         const hip=U.legs[0]?U.legs[0].position.y*0.66:0.06; F.position.set(0.04,FLOOR+0.49-hip+0.02,0); F.rotation.y=Math.PI/2; for(const l of U.legs) l.rotation.x=-1.45;
-        Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
+        if(U.model){ const sa=U.seatAt; if(sa){ U.sit(true); F.position.set(0.04-sa.z*0.66,FLOOR+0.49-sa.y*0.66+0.02,sa.x*0.66); } else { F.scale.setScalar(0.42); F.position.set(0.04,FLOOR+0.51,0); } }
+        else Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
   update(dt, t){
     const g=this.group; g.quaternion.copy(G.ship.quat);
     for(const id in this.fx){ const f=this.fx[id];

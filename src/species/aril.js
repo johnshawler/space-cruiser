@@ -115,7 +115,7 @@ const CastRig = (() => {
     simplified.set(original, result);
     return result;
   }
-  function batch(meshes, joint, scale, accentColor, linear = false) {
+  function batch(meshes, joint, scale, accentColor, linear = false, species = null) {
     const out = new Map(),
       pt = new THREE.Vector3(),
       norm = new THREE.Vector3(),
@@ -125,9 +125,13 @@ const CastRig = (() => {
       .multiply(new THREE.Matrix4().makeTranslation(...joint.map((v) => -v)));
     for (const mesh of meshes) {
       const source = mesh.material,
-        accent = source.name === 'accent' || source.name.split('/')[0] === accentColor;
-      if (!out.has(accent)) out.set(accent, { pos: [], normal: [], color: [], indices: [] });
-      const dst = out.get(accent),
+        paint = source.userData.basePaint || source.name,
+        accent = paint === 'accent' || paint.split('/')[0] === accentColor,
+        role = species ? source.userData.surfaceRole || ResidentModels.surfaceRole(species, mesh.name, mesh.parent?.name || '', paint) : null,
+        emission = !linear && (source.emissive?.getHex() || 0),
+        key = [accent,role,emission].join('|');
+      if (!out.has(key)) out.set(key, { accent,role,emission,pos: [], normal: [], uv: [], color: [], indices: [] });
+      const dst = out.get(key),
         g = gameGeometry(mesh.geometry),
         a = g.attributes.position,
         n = g.attributes.normal,
@@ -140,6 +144,8 @@ const CastRig = (() => {
       for (let i = 0; i < a.count; i++) {
         pt.fromBufferAttribute(a, i).applyMatrix4(mat);
         dst.pos.push(pt.x, pt.y, pt.z);
+        const uv = g.attributes.uv;
+        dst.uv.push(uv ? uv.getX(i) : pt.x*2, uv ? uv.getY(i) : pt.y*2);
         norm.fromBufferAttribute(n, i).applyMatrix3(normalMatrix).normalize();
         dst.normal.push(norm.x, norm.y, norm.z);
         dst.color.push(
@@ -151,7 +157,7 @@ const CastRig = (() => {
       for (let i = 0; i < (g.index ? g.index.count : a.count); i++)
         dst.indices.push(offset + (g.index ? g.index.getX(i) : i));
     }
-    return [...out].map(([accent, d]) => {
+    return [...out.values()].map((d) => {
       const g = new THREE.BufferGeometry();
       for (const [name, data] of [
         ['position', d.pos],
@@ -159,9 +165,11 @@ const CastRig = (() => {
         ['color', d.color],
       ])
         g.setAttribute(name, new THREE.Float32BufferAttribute(data, 3));
+      const uv=new THREE.Float32BufferAttribute(d.uv,2);
+      g.setAttribute('uv',uv);g.setAttribute('uv2',uv);
       g.setIndex(d.indices);
       g.computeBoundingSphere();
-      return { geometry: g, accent };
+      return { geometry:g, accent:d.accent, role:d.role, emission:d.emission };
     });
   }
 
@@ -372,7 +380,7 @@ const CastRig = (() => {
                 : pivots.get(parent).position[i])) *
           scale[i],
       ),
-      parts: batch(chunks.get(key), key === 'rig' ? origin : position, scale, acc),
+      parts: batch(chunks.get(key), key === 'rig' ? origin : position, scale, acc, false, id),
     }));
     const data = { jointData, scale, headPos, eyes, length: length * sy };
     templates.set(id, data);
@@ -497,6 +505,7 @@ const CastRig = (() => {
     const accent = T.body;
     accent.name = 'accent';
     accent.color.copy(C(T.hsl(T.S.lit + (T.rand() - 0.5) * 5)));
+    const paints=new Map();
     const seededSize = 0.98 + T.rand() * 0.04;
     for (const j of d.jointData) {
       const node = nodes[j.key] || (nodes[j.key] = group(nodes[j.parent], j.key, j.position));
@@ -505,7 +514,16 @@ const CastRig = (() => {
       node.userData.restY = node.position.y;
       node.userData.restZ = node.position.z;
       for (const part of j.parts) {
-        const m = new THREE.Mesh(part.geometry, part.accent ? accent : fixed);
+        const key=[part.accent,part.role,part.emission].join('|');
+        if(!paints.has(key)){
+          const base=part.accent?accent:fixed;
+          const mat=part.role?ResidentModels.roleMaterial(base,part.role):part.emission?base.clone():base;
+          mat.vertexColors=true;
+          if(part.accent)mat.color=accent.color;
+          if(part.emission){mat.emissive.setHex(part.emission);mat.emissiveIntensity=.75;}
+          paints.set(key,mat);
+        }
+        const m = new THREE.Mesh(part.geometry, paints.get(key));
         m.name = j.key + ' paint';
         node.add(m);
       }

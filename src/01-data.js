@@ -124,6 +124,20 @@ const CAST_FOR = {beepul:'lichen', grondar:'rusk', zkthar:'kipp', blorpax:'neru'
   parasolum:'yarro', pipettle:'plover', pluvindle:'plume', rilloon:'obo', rimebud:'sova', sealump:'cairn', tarestep:'tally', tessettle:'sura',
   timbrelk:'chime', velveteel:'sarra', wickindle:'caelo', whorloo:'kepp', winkmast:'wick'};
 for(const k in CAST_FOR) if(SPECIES[k]&&SPECIES_EXTRA[CAST_FOR[k]]) SPECIES[k]=SPECIES_EXTRA[CAST_FOR[k]];
+/* The Blender characters play everyone. MODEL_FOR maps each of the 50 cast designs to the model that now plays it
+   (assets/characters/species/<id>.glb, drawn by FolkModels in src/08a-folk-models.js); the 30 earlier species keys follow
+   through CAST_FOR. Keys, voices and lines stay, so planets, shops, jobs and saves are untouched; the name and the look
+   change. Several designs share a model. If a model can't be fetched, the design's own hand-built figure stands in. */
+const MODEL_FOR = {aril:'sovai', caelo:'mothren', cairn:'robot-cairn', chime:'bellwrought', crimp:'spoolback', dolly:'millipress', fathom:'nautil', fenn:'nemeya',
+  glint:'prismwake', hush:'velour', ilex:'koruun', iris:'latchling', kepp:'nautil', kiln:'basaltine', kipp:'zhavet', koro:'orrek', latch:'latchling', lichen:'thimble',
+  lyre:'bellwrought', marlo:'brunn', mica:'vessari', myrr:'keld', nacre:'velour', neru:'koruun', nim:'pelrin', obo:'rhovi', orlo:'gimbal', orris:'pelrin',
+  parallax:'gimbal', pavo:'vessari', pinion:'prismwake', plover:'sovai', plume:'mudlark', prong:'trestle', purl:'selvedge', relay:'folio', rivet:'basaltine',
+  rusk:'orrek', sarra:'ulnor', shuttle:'selvedge', silt:'dathri', sova:'ureth', spool:'spoolback', sura:'taluun', tacca:'mothren', tally:'thimble', tempo:'millipress',
+  vela:'eskel', wick:'lamplume', yarro:'taluun'};
+const MODEL_ROBOTS = new Set(['bellwrought','selvedge','gimbal','mudlark','folio','spoolback','lamplume','robot-cairn','latchling','velour','nautil','trestle','prismwake','millipress','basaltine','thimble']);
+for(const k in MODEL_FOR){ const old=SPECIES_EXTRA[k]; if(!old) continue; const id=MODEL_FOR[k], nm=id.replace(/^robot-/,'');
+  const now=Object.assign({},old,{name:nm.charAt(0).toUpperCase()+nm.slice(1),model:id,family:MODEL_ROBOTS.has(id)?'robot':'alien'});
+  for(const key in SPECIES) if(SPECIES[key]===old) SPECIES[key]=now; SPECIES_EXTRA[k]=now; }
 const CAST_PLAYING = new Set(Object.values(CAST_FOR));
 const ALIEN_POOL = SPECIES_KEYS.concat(SPECIES_EXTRA_KEYS.filter(k=>!SPECIES_EXTRA[k].cast||!CAST_PLAYING.has(k)));
 

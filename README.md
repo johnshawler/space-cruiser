@@ -51,9 +51,9 @@ Locals stroll around the landing pad, stop to chat, push carts of crates about, 
 
 ## Your ship
 
-Get up from the pilot's seat (L) and walk around inside: a corridor with handrails and signs over every door, a passenger cabin with cushioned seats under the portholes, a galley with cupboards and a bunk, the cargo hold (its crates match how full it is) and the engine room. Passengers sit in the cabin seats, wave when you come over, and wear how the trip is going on their faces. The ship keeps flying while you walk, on autopilot if it is set. The radio only reaches the pilot's seat: while you walk you hear no chatter and get no calls, and anyone who hails you (a customs cutter, a distress beacon) waits until you sit back down. Your passengers still talk to you. Walking backwards is half speed.
+Get up from the pilot's seat (L) and walk around inside: a corridor with handrails and signs over every door, a passenger cabin with cushioned seats under the portholes, a galley with cupboards and a bunk, the cargo hold (its crates match how full it is) and the engine room. Off the back of the corridor are an airlock with a suit locker and a scrubber bay with the head, and a narrow service alley runs down each side of the engine room. Every room has one thing that can break. Passengers sit in the cabin seats, wave when you come over, and wear how the trip is going on their faces. The ship keeps flying while you walk, on autopilot if it is set. The radio only reaches the pilot's seat: while you walk you hear no chatter and get no calls, and anyone who hails you (a customs cutter, a distress beacon) waits until you sit back down. Your passengers still talk to you. Walking backwards is half speed.
 
-Things break. A coolant leak (fuel use up), a thruster misfire (top speed down), a blown fuse (radio dead), a jammed air scrubber (passengers cross, canopy fogs), a hull crack (hull slowly failing), a snapped cargo strap (cargo loses value faster). Each shows on screen and in the ship itself, at its own fitting with a status screen and light: flashing red and visibly broken (a split, leaking coolant flange; a thruster panel hanging open over a glowing coil; a fuse box with a charred fuse; a scrubber clogged with fluff; a frosting crack; a snapped strap), or steady green and put right (a taped joint, a closed panel, a shut fuse box, a spinning fan with a ribbon in the draught, a riveted patch plate, taut straps). Walk to it and hold F to fix it. It goes slowly while the ship is shaking, above throttle 5 or in warp.
+Things break. A coolant leak (fuel use up), a thruster misfire (top speed down), a blown fuse (radio dead), a jammed air scrubber (passengers cross, canopy fogs), a hull crack (hull slowly failing), a snapped cargo strap (cargo loses value faster), a leaking airlock seal (top speed down). Each shows on screen and in the ship itself, at its own fitting with a status screen and light: flashing red and visibly broken (a split, leaking coolant flange; a thruster panel hanging open over a glowing coil; a fuse box with a charred fuse; a scrubber clogged with fluff; a frosting crack; a snapped strap), or steady green and put right (a taped joint, a closed panel, a shut fuse box, a spinning fan with a ribbon in the draught, a riveted patch plate, taut straps). Walk to it and hold F to fix it. It goes slowly while the ship is shaking, above throttle 5 or in warp.
 
 ## Research stations and deep space
 
@@ -220,3 +220,48 @@ Open `?gallery` and choose **Animated cast** to inspect the 50 articulated desig
 | Latch | A green lock body carries a silver U-shackle above brass-hub wheels. The axle turns as the shackle tests its travel twice. |
 | Plume | A blue sampler hovers below a crown of staggered intake tubes. Two jet pods vector in opposite directions to trim the climb. |
 | Prong | A yellow cargo tug has upright mast rails and two narrow lifting tines. Four wheels turn while the fork carriage takes up its slack. |
+
+## Bespoke interiors
+
+[Shop render gallery](docs/interiors/index.md) · [Model and light manifest](assets/interiors/manifest.json)
+
+- **Dispatch Bay B4** (Verdanthia) — Potting shed with a freight clock.
+- **Fix-O-Matic 3000** (Verdanthia) — Unfolded vending-machine service cabinet.
+- **The Coin Slot** (Verdanthia) — Orchard listening pavilion.
+- **Gravel Freight Yard** (Scorchmaw) — Basalt quarry under a weighbridge.
+- **Lava Lube & Patch** (Scorchmaw) — Ceramic heat shield curled around a forge.
+- **Form 27-B Cargo Office** (Dunemoor) — A civic archive cut into canyon strata.
+- **The Rubber Stamp** (Dunemoor) — Three ink-pad booths in a desert cellar.
+- **Ladle Harbor Freight** (Sloshwell) — A tide lock with a floating freight gauge.
+- **The Bottomless Bowl** (Sloshwell) — A tasting room inside a double-walled tureen.
+- **Bargain Roost Cargo Perch** (Amethyne) — A cantilevered crystal auction balcony.
+- **Mellow Hollow Depot** (Toxibloom) — A freight basket caught between mangrove roots.
+- **Spore & Bolt** (Toxibloom) — A workshop under one bracket fungus.
+- **The Damp Log** (Toxibloom) — A taproom in the split seam of a fallen trunk.
+- **Port Lament Cargo Dock** (Candara) — A flying dock under a slack sail.
+- **The Sunk Cost** (Candara) — The listing saloon of a failed cloud ferry.
+- **Drift Cargo Bubble** (Jovexa) — An inflated freight envelope tied to a rigid deck.
+- **Gentle Repairs** (Jovexa) — A hull cradle suspended in a cloud veranda.
+- **Fort Snuggle Cargo Hut** (Brrrindle) — A scarf-bound emergency A-frame.
+- **Warm Wrench Garage** (Brrrindle) — A thaw shed built around a radiator.
+- **The Warm Mitten** (Brrrindle) — A cocoa parlour tucked into a snowbank.
+- **Hush Receiving Bay** (Listening Post Hush) — A loading lock hung inside a second hull.
+- **Soft Landing Repairs** (Listening Post Hush) — An acoustic test chamber with a wall of dent casts.
+- **The Indoor Voice** (Listening Post Hush) — A quilted whispering gallery.
+- **Cold Storage Intake** (Cryo Vault Rimeholm) — A rolling specimen archive in a freezer lock.
+- **Thaw & Patch** (Cryo Vault Rimeholm) — A defrost tunnel lined with split heater collars.
+- **Precision Freight** (Calibration Spire) — A cargo hall inside a square measuring jig.
+- **Exactly Right Repairs** (Calibration Spire) — A torque laboratory built like a dial.
+- **Last Light Freight Office** (Beacon Far Wink) — A signal box astride a freight airlock.
+- **End of the Line Garage** (Beacon Far Wink) — A dead-end rail shed on the lamp service deck.
+- **The Final Blink** (Beacon Far Wink) — The lighthouse lantern room after hours.
+
+## Bespoke cockpits
+
+[Cockpit renders](docs/cockpits/index.md) · [Walkable deck renders](docs/ship-interiors/index.md)
+
+- **Rustbucket Mk I** — Riveted salvage cab with a patched windscreen and exposed copper lines. The walkable deck adds exposed service lines, patched berths and a repair gantry.
+- **Dromedary 400** — Freight cab with yellow load rails and recessed drawer handles. The walkable deck adds industrial tie-down rails, stowage and a freight-handling spine.
+- **Stellar Stoat** — Close-fitting courier canopy with turquoise edging and shoulder bolsters. The walkable deck adds compact foldaway furnishings and a streamlined service tunnel.
+- **Opulent Manatee** — Walnut instrument cabinets and upholstered seating inside a bowed observation bay. The walkable deck adds upholstered berths, walnut cabinetry and a brass-trimmed passenger lounge.
+- **Quasar Empress** — Pale ceramic arches framing a panoramic bridge and a suspended pilot chair. The walkable deck adds illuminated structural arches and a ringed reactor gallery.

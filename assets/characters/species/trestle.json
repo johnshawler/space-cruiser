@@ -1,0 +1,24 @@
+{
+ "id": "trestle",
+ "name": "Trestle",
+ "kind": "robot",
+ "triangles": 10552,
+ "kb": 1455,
+ "clips": [
+  "Idle",
+  "Travel",
+  "Operate"
+ ],
+ "glow": false,
+ "morphs": [],
+ "min": [
+  -1.365,
+  -0.014,
+  -0.593
+ ],
+ "max": [
+  1.363,
+  1.957,
+  0.606
+ ]
+}

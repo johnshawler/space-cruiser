@@ -1,0 +1,216 @@
+"""Five walkable interiors. Coordinates and active prop sockets follow src/09-walk.js."""
+import math,sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'cockpits'))
+from fabricate import Ship,coord,camera,bpy,LIT
+from ship_finish import make_material
+import surfaces
+from dress import dress
+
+ROOMS={'corridor':(-.9,.9,.70,7.20),'passenger cabin':(-4.4,-.9,1.4,5.8),
+       'galley':(.9,4.,1.4,5.),'cargo hold':(-3.4,3.4,7.2,14.2),'engine room':(-2.4,2.4,14.2,19.),
+       # walkable rooms in what used to be sealed voids; they borrow the light of the rooms beside them
+       'scrubber bay':(-4.4,-.9,5.8,7.2),'airlock':(.9,4.,5.,7.2),'port alley':(-3.4,-2.4,14.2,19.),'starboard alley':(2.4,3.4,14.2,19.)}
+UNLIT={'scrubber bay','airlock','port alley','starboard alley'}
+# one repair spot in each of the seven rooms
+FAULTS={'coolant':(-3.,-.35,1.55),'thruster':(1.3,.35,18.85),'fuse':(2.45,.45,1.46),
+        'scrubber':(-3.,.95,5.86),'crack':(-.86,.55,5.15),'strap':(1.55,.1,10.6),'seal':(2.82,.45,5.32)}
+def build(path):
+    r=Ship(path,True);k=r.key;rich=k in LIT
+    if rich:       # the full finish: drab painted steel, tread plate underfoot, surfaces with real wear
+        r.materials['Deck']=make_material('Deck','#34352f',.6,.55,'metal')
+        for name,kind,colour,bump in [('Frame','paint','#5b6148',1.),('Panel','paint2','#3d4334',1.),('Deck','plate',None,1.),('Trim','bare','#8d5a30',.8),
+            ('Steel','bare','#5a625f',.8),('Wear','paint','#8f7d5c',1.),('Leather','leather','#4a3426',1.),('Upholstery','cloth','#6e4d40',1.),
+            ('Moss','cloth','#5d6f45',1.),('Signal','cloth','#8a342b',.9),('Paper','cloth','#d9cfb6',.5),('Rubber','rubber','#262a2c',1.),
+            ('Wood','wood','#80573c',1.),('Pale','enamel','#b9b49c',.7)]:surfaces.finish(r.materials[name],kind,colour,bump)
+    def hsh(i):return (math.sin(i*12.9898)*43758.5453)%1
+    def keep(fn):
+        def run(*a):
+            if not rich:return
+            was=r.part,r.cut;fn(*a);r.section(*was)
+        return run
+    def onwall(axis,c,u,y,wu,h,t,m):return r.box(((c,-u,y) if axis=='x' else (u,-c,y)),((t,wu,h) if axis=='x' else (wu,t,h)),m,0)
+    @keep
+    def wallkit(axis,c,u0,u1,full=True):
+        """What a welded steel bulkhead is made of: a kick strip, a stringer, a cove, and riveted straps over the plate joints."""
+        L=u1-u0;r.section('Wall structure')
+        if L<.12:return
+        onwall(axis,c,(u0+u1)/2,-.9,L,.14,.036,'Panel')
+        if not full:return
+        onwall(axis,c,(u0+u1)/2,1.29,L,.08,.03,'Frame');onwall(axis,c,(u0+u1)/2,-.42,L,.05,.02,'Frame')
+        n=round(L/1.1)
+        for i in range(n if L>.8 else 0):
+            u=u0+L*(i+.5+(hsh(c*7.3+u0*3.1+i)-.5)*.34)/n
+            onwall(axis,c,u,.18,.07,2.3,.014,'Frame')
+            for y in(-.78,-.22,.34,.9,1.2):
+                p=(c,-u,y) if axis=='x' else (u,-c,y);d=(.011,0,0) if axis=='x' else (0,.011,0)
+                r.rod(tuple(a-b for a,b in zip(p,d)),tuple(a+b for a,b in zip(p,d)),.016,'Steel',n=6)
+    @keep
+    def doorkit(axis,c,u0,u1,top):
+        """A heavy steel frame round a doorway."""
+        r.section('Wall structure')
+        for u in(u0,u1):
+            onwall(axis,c,u,(top-.97)/2,.1,top+.97,.1,'Panel')
+            for y in(-.6,0,.6):
+                p=(c,-u,y) if axis=='x' else (u,-c,y);d=(.056,0,0) if axis=='x' else (0,.056,0)
+                r.rod(tuple(a-b for a,b in zip(p,d)),tuple(a+b for a,b in zip(p,d)),.02,'Steel',n=6)
+        onwall(axis,c,(u0+u1)/2,top+.05,u1-u0+.2,.1,.1,'Panel')
+    @keep
+    def floorkit(a,b,c,d):
+        """Deck plates: weld seams in a broken bond, and the odd plate that was replaced with whatever was to hand."""
+        r.section('Deck plates');rows=max(1,round((d-c)/1.05));cols=max(1,round((b-a)/1.2))
+        for j in range(rows):
+            z0=c+(d-c)*j/rows;z1=c+(d-c)*(j+1)/rows
+            if j:r.box(((a+b)/2,-z0,-.968),(b-a,.016,.004),'Panel',0)
+            off=(j%2)*.5
+            for i in range(cols+1):
+                x=a+(b-a)*(i+off)/cols
+                if a+.1<x<b-.1:r.box((x,-(z0+z1)/2,-.968),(.016,z1-z0,.004),'Panel',0)
+                if hsh(a*5+c*3+i*7+j*13)>.86 and i<cols and x+(b-a)/cols<b+.01 and x>a-.01:
+                    r.box((x+(b-a)/cols/2,-(z0+z1)/2,-.9685),((b-a)/cols-.05,z1-z0-.05,.003),'Frame' if hsh(i+j)>.5 else 'Panel',0)
+    @keep
+    def roofkit(a,b,c,d,spine=True):
+        """Roof beams across the room, a conduit down it and a cable slung beside that."""
+        r.section('Roof structure',True);cz=(c+d)/2;n=max(1,round((d-c)/1.15));zs=[c+(d-c)*(i+.5)/n for i in range(n)]
+        for z in zs:
+            if abs(z-cz)>.3:r.box(((a+b)/2,-z,1.285),(b-a,.09,.09),'Frame',0)
+        if spine and b-a>1.2:
+            x=a+(b-a)*.28;r.rod((x,-c-.02,1.215),(x,-d+.02,1.215),.022,'Steel',n=8)
+            for z in zs:r.box((x,-z,1.215),(.08,.1,.07),'Panel',0)
+            x=a+(b-a)*.74;pts=[]
+            for i,z in enumerate(zs):
+                pts.append((x,-z,1.23))
+                if i<len(zs)-1:pts.append((x+.03*(hsh(z)-.5),-(z+zs[i+1])/2,1.12+.05*hsh(z*3)))
+            if len(pts)>2:r.wire(pts,.014,'Rubber')
+    face='Wood' if k=='manatee' else 'Pale' if k=='empress' else 'Frame'
+    def bx(x,z,y,w,d,h,m,bev=.035):return r.box((x,-z,y),(w,d,h),m,bev)
+    def pipe(p,q,rad,m):return r.rod(coord(*p),coord(*q),rad,m)
+    for name,(a,b,c,d) in ROOMS.items():
+        r.section(name+' deck');r.quad((a,-d,-.97),(b,-d,-.97),(b,-c,-.97),(a,-c,-.97),'Leather' if k=='manatee' and name=='passenger cabin' else 'Deck' if rich else 'Panel')
+        r.section(name+' roof',True);r.quad((a,-c,1.33),(b,-c,1.33),(b,-d,1.33),(a,-d,1.33),face)
+        cx=(a+b)/2;cz=(c+d)/2
+        # 'fill_' markers light the preview renders only; the game makes lights from 'lamp_' markers
+        r.anchor(('fill_' if name in UNLIT else 'lamp_')+name.replace(' ','_'),(cx,1.18,cz))
+        bx(cx,cz,1.28,min(1.1,(b-a)*.6),.20,.065,'Diffuser')
+        bx(cx,cz,1.24,min(.83,(b-a)*.4),.10,.03,'Glow')
+        floorkit(a,b,c,d);roofkit(a,b,c,d,name!='corridor')
+    def lengthwall(x,z0,z1,gaps=(),portholes=()):
+        edges=sorted({z0,z1,*[q for ab in gaps for q in ab],*[q for a,b in portholes for q in (a,b)]})
+        for za,zb in zip(edges,edges[1:]):
+            mid=(za+zb)/2
+            if any(a<mid<b for a,b in gaps):low=.97
+            elif any(a<mid<b for a,b in portholes):
+                r.side(x,-zb,-za,-.97,.02,face);low=.85
+                r.glaze('canopy_deck_'+str(len(r.windows)),[(x,-za,.02),(x,-zb,.02),(x,-zb,.85),(x,-za,.85)])
+                for z in [za,zb]:bx(x,z,.44,.065,.06,.87,'Trim',.015)
+                for y in [.015,.86]:bx(x,mid,y,.065,zb-za,.061,'Trim',.012)
+            else:low=-.97
+            r.side(x,-zb,-za,low,1.33,face)
+            if low==.97:doorkit('x',x,za,zb,.97)
+            else:wallkit('x',x,za,zb,low==-.97)
+    def endwall(z,a,b,gap=None):
+        if gap:
+            r.back_panel(a,gap[0],-.97,1.33,-z,face);r.back_panel(gap[1],b,-.97,1.33,-z,face)
+            r.back_panel(gap[0],gap[1],gap[2],1.33,-z,face)
+            wallkit('z',z,a,gap[0]);wallkit('z',z,gap[1],b);doorkit('z',z,gap[0],gap[1],gap[2])
+        else:r.back_panel(a,b,-.97,1.33,-z,face);wallkit('z',z,a,b)
+    r.section('Hall bulkheads')
+    lengthwall(-.9,.7,7.2,[(3.,4.2),(6.,7.)]);lengthwall(.9,.7,7.2,[(2.5,3.7),(5.6,6.6)])
+    endwall(.70,-.9,.9,(-.42,.42,.62))
+    r.section('Cabin glazing');lengthwall(-4.4,1.4,5.8,portholes=[(1.95,2.75),(3.15,3.95),(4.35,5.15)])
+    endwall(1.4,-4.4,-.9);endwall(5.8,-4.4,-.9)
+    r.section('Galley walls');lengthwall(4.,1.4,5.,portholes=[(3.,3.8)]);endwall(1.4,.9,4);endwall(5.,.9,4)
+    r.section('Scrubber bay');lengthwall(-4.4,5.8,7.2);endwall(7.2,-4.4,-3.4)
+    bx(-3.95,6.5,-.76,.5,.5,.42,'Pale',.1);bx(-4.26,6.5,-.27,.2,.5,.5,'Pale',.06)
+    bx(-3.35,6.87,.08,.04,.6,2.0,'Upholstery',.015);pipe((-3.35,1.12,5.85),(-3.35,1.12,7.15),.025,'Trim')
+    bx(-1.9,7.04,-.2,.5,.26,.14,'Pale',.05);pipe((-3.,1.15,5.93),(-3.,1.32,5.93),.1,'Steel')
+    r.section('Airlock');lengthwall(4.,5.,7.2);endwall(7.2,3.4,4.);lengthwall(2.9,5.,7.2,[(5.65,6.55)])
+    pipe((3.86,0,6.1),(3.98,0,6.1),.6,'Frame');pipe((3.76,0,6.1),(3.88,0,6.1),.13,'Trim')
+    for a in range(3):r.box((3.83,-6.1,0),(.04,.05,.95),'Trim',.012,rot=(a*math.pi/3,0,0))
+    bx(1.85,5.14,-.045,1.5,.24,1.85,'Frame');bx(1.9,7.03,-.77,1.3,.28,.4,'Leather',.08)
+    for x in [1.6,2.1,2.6]:bx(x,5.27,-.045,.025,.02,1.7,'Trim',.005)
+    bx(3.45,5.08,.95,.2,.1,.2,'Glow',.03)
+    r.section('Cabin heater');pipe((-4.3,-.35,1.52),(-1.9,-.35,1.52),.07,'Trim')
+    r.section('Freight bulkheads');endwall(7.2,-3.4,3.4,(-.90,.90,1.0));endwall(14.2,-3.4,3.4,(-.8,.8,.95))
+    for x in [-3.4,3.4]:lengthwall(x,7.2,14.2)
+    r.section('Engine bulkheads');endwall(19.,-2.4,2.4)
+    for x in [-2.4,2.4]:lengthwall(x,14.2,19.,[(14.6,15.6)])
+    r.section('Service alleys')
+    for sx in [-1,1]:
+        lengthwall(sx*3.4,14.2,19.);endwall(19.,*sorted((sx*2.4,sx*3.4)))
+        pipe((sx*3.28,.95,14.4),(sx*3.28,.95,18.8),.07,'Trim');pipe((sx*3.28,1.13,14.4),(sx*3.28,1.13,18.8),.06,'Steel')
+        bx(sx*2.9,18.62,-.67,.7,.6,.6,'Panel',.05);bx(sx*2.9,18.66,-.17,.5,.5,.4,'Frame',.05)
+    r.section('Passenger furniture')
+    for i in range(4):
+        z=1.95+i*1.15;r.anchor('passenger_'+str(i+1),(-3.8,0,z))
+        bx(-3.82,z,-.565,.60,.66,.13,'Leather',.055)
+        bx(-4.13,z,-.14,.11,.69,.86,'Upholstery',.045)
+        pipe((-3.79,-.97,z),(-3.79,-.62,z),.105,'Steel')
+        if k in ['manatee','empress']:bx(-4.12,z,.37,.15,.52,.23,'Leather',.064)
+    r.section('Galley furnishings')
+    bx(2.45,4.67,-.52,2.62,.57,.89,face)
+    bx(2.45,4.66,-.055,2.68,.65,.085,'Trim')
+    bx(3.64,2.95,-.57,.60,1.86,.45,'Leather',.08);bx(3.65,2.17,-.30,.51,.34,.13,'Pale',.05)
+    r.section('Reactor')
+    r.anchor('reactor',(0,.18,16.6));pipe((0,-.95,16.6),(0,-.72,16.6),.88,'Frame')
+    pipe((0,-.72,16.6),(0,1.12,16.6),.48,'Glow');pipe((0,1.11,16.6),(0,1.29,16.6),.88,'Frame')
+    for i in range(6):
+        a=i*math.pi/3;x=.78*math.cos(a);z=16.6+.78*math.sin(a)
+        pipe((x,-.72,z),(x,1.1,z),.059,'Trim')
+    r.section('Ship-specific construction')
+    if k=='rustbucket':
+        for z in [1.38,4.55,5.48]:
+            r.wire([(-.81,-z,.77),(-.64,-z,1.14),(.66,-z,1.14),(.82,-z,.78)],.075,'Steel',False)
+        for j in range(3):pipe((2.25,-.54+j*.22,15.85),(2.25,-.54+j*.22,18.45),.085,'Trim')
+        for x in [-3.12,3.12]:
+            for z in [8.1,10.2,12.5]:
+                pipe((x,-.65,z),(x,.83,z),.21,'Steel')
+        bx(2.4,4.64,.15,.42,.38,.32,'Steel');r.ring(2.57,-4.52,.15,.09,.021,'Trim')
+    elif k=='dromedary':
+        for z in [1.30,4.60,5.48,7.8,10.6,13.65]:
+            w=.78 if z<7 else 3.22
+            bx(-w,z,.05,.13,.14,2.05,'Trim');bx(w,z,.05,.13,.14,2.05,'Trim');bx(0,z,1.11,w*2,.15,.16,'Frame')
+        for i in range(6):
+            bx(-3.23,7.94+i*1.0,.06,.19,.80,1.28,'Pale')
+            bx(-3.10,7.94+i*1.0,-.06,.08,.40,.08,'Trim')
+        for x in [1.55,2.38,3.22]:bx(x,4.82,.63,.69,.25,.6,'Panel')
+    elif k=='stoat':
+        for z in [1.37,4.58,5.48]:
+            r.wire([(-.81,-z,.63),(-.56,-z,1.12),(0,-z,1.24),(.56,-z,1.12),(.81,-z,.63)],.047,'Trim')
+        for x in [-3.19,3.19]:
+            r.wire([(x,-7.48,-.51),(x*.98,-10.19,.15),(x,-13.93,.65)],.063,'Trim')
+            r.wire([(x,-7.48,-.46),(x*.98,-10.19,.20),(x,-13.93,.70)],.019,'Glow')
+        for side in [-1,1]:
+            r.box((side*1.9,-17.4,.56),(.19,2.4,.24),'Pale',.075,rot=(.16,0,0))
+        for z in [2.45,3.0,3.55]:bx(3.91,z,-.13,.10,.17,.19,'Trim')
+    elif k=='manatee':
+        for z in [1.30,4.55,5.48]:
+            r.wire([(-.82,-z,.70),(-.7,-z,1.03),(0,-z,1.23),(.7,-z,1.03),(.82,-z,.70)],.062,'Wood')
+        for z in [2.35,3.55,4.75]:
+            for kx in [-4.28,-.99]:bx(kx,z,.84,.08,.74,.13,'Trim')
+        for x in [-3.24,3.24]:
+            for z in [8.15,10.48,12.83]:bx(x,z,.12,.18,1.8,1.7,'Wood',.075)
+        for x in [1.60,2.26,2.92]:
+            pipe((x,.02,4.63),(x,.22,4.63),.095,'Pale')
+        for h in [-.50,.15,.8]:pipe((-2.26,h,15.85),(-2.26,h,18.8),.069,'Trim')
+    else:
+        for z in [1.28,4.62,5.48,8.1,11.,13.72]:
+            w=.81 if z<7 else 3.23
+            for side in [-1,1]:
+                r.wire([(side*w,-z,-.57),(side*w,-z,.42),(side*w*.83,-z,1.02),(side*w*.43,-z,1.19)],.074,'Pale')
+                r.wire([(side*w*.98,-z,.05),(side*w*.94,-z,.63),(side*w*.74,-z,1.025)],.019,'Glow')
+        for z in [2.35,3.55,4.75]:bx(-4.28,z,.92,.08,.80,.06,'Glow')
+        for h in [-.55,.38,.89]:
+            r.wire([(.88*math.cos(a*math.pi/12),-16.6+.88*math.sin(a*math.pi/12),h) for a in range(25)],.037,'Pale',False)
+    dress(r,k,ROOMS,rich)
+    r.section('Deck wear')
+    for i in range(6):bx(-.68+i*.045,6.12+i*.08,-.966,.11,.019,.004,'Wear',.001)
+    for n,pt in FAULTS.items():r.anchor('fault_'+n,pt)
+    r.anchor('cockpit_door',(0,-.175,.68));r.anchor('cargo_aisle',(0,-.97,10.6))
+    for n,p,a in [('corridor',(0,-1.13,.62),(0,-6.7,.29)),('cabin',(-1.19,-3.60,.62),(-4.35,-3.55,.08)),
+                  ('galley',(1.05,-2.77,.62),(3.10,-4.4,.02)),('hold',(0,-7.52,.62),(.15,-13.65,.20)),
+                  ('engine',(0,-14.35,.62),(.07,-17.05,.18)),
+                  ('airlock',(1.2,-6.1,.62),(3.9,-6.1,.05)),('scrubber',(-1.2,-6.5,.62),(-4.3,-6.5,-.1)),('alley',(-2.9,-14.55,.62),(-2.9,-18.8,0))]:
+        cam=camera(bpy.context.scene,n,p,a);cam.data.lens=18;cam.data.clip_start=.02;r.cams[n]=cam
+    cam=camera(bpy.context.scene,'overview',(14,-22,16.5),(0,-9.9,0));cam.data.type='ORTHO';cam.data.ortho_scale=22;r.cams['overview']=cam
+    r.finish()

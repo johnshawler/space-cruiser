@@ -177,7 +177,7 @@ const World = {
     this.dofPass.enabled=false; this.composer.addPass(this.dofPass);
     this.bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256),0.75,0.6,1.0);
     this.composer.addPass(this.bloom);
-    this.post=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uExposure:{value:1},uWarp:{value:0},uFade:{value:0},uFlash:{value:0},uFadeCol:{value:new THREE.Color(0,0,0)},uBlur:{value:0},uSat:{value:1},uContrast:{value:1},uLift:{value:new THREE.Color(0,0,0)},uGain:{value:new THREE.Color(1,1,1)}},vertexShader:GLSL.postVert,fragmentShader:GLSL.postFrag});
+    this.post=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uExposure:{value:1},uWarp:{value:0},uFade:{value:0},uFlash:{value:0},uFadeCol:{value:new THREE.Color(0,0,0)},uBlur:{value:0},uSat:{value:1},uContrast:{value:1},uLift:{value:new THREE.Color(0,0,0)},uGain:{value:new THREE.Color(1,1,1)},uLut:{value:null},uLutMix:{value:0}},vertexShader:GLSL.postVert,fragmentShader:GLSL.postFrag});
     this.composer.addPass(this.post);
     if(THREE.FXAAShader){ this.fxaa=new THREE.ShaderPass(THREE.FXAAShader); this.composer.addPass(this.fxaa); }
   },
@@ -226,6 +226,9 @@ const World = {
       sc.overrideMaterial=prev; sc.background=bg; r.setClearColor(cc,ca); r.shadowMap.autoUpdate=au; r.setRenderTarget(null); hidden.forEach(o=>o.visible=true);
       const u=this.dofPass.uniforms; u.uNear.value=cam.near; u.uFar.value=cam.far; u.uFocus.value=D.focus; }
     if(this.composer) this.composer.render(); else { this.scenes.renderToScreen=true; this.scenes.render(this.renderer,null,null); } },
+  /* a place's own colour table (a bespoke shop or cockpit), faded in over the planet grade; null fades it out */
+  lut(t, dt){ if(!this.post) return; const u=this.post.uniforms; if(t){ if(u.uLut.value!==t){ u.uLut.value=t; u.uLutMix.value=0; } u.uLutMix.value=Math.min(0.85,u.uLutMix.value+(dt||1)*1.5); }
+    else { u.uLutMix.value=Math.max(0,u.uLutMix.value-(dt||1)*1.5); if(!u.uLutMix.value) u.uLut.value=null; } },
   /* set a post-processing uniform if the chain exists */
   /* colour grade for the current scene (null = neutral, for space and the cockpit) */
   grade(g){ if(!this.post) return; const u=this.post.uniforms; if(!g){ u.uSat.value=1; u.uContrast.value=1; u.uLift.value.setRGB(0,0,0); u.uGain.value.setRGB(1,1,1); return; }

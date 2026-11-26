@@ -28,6 +28,25 @@ const Bake = (() => {
     if (mat.emissiveMap || (mat.emissive && mat.emissiveIntensity > 0 && mat.emissive.getHex() !== 0)) return true;   // lit signs
     return false;
   }
+  /* a Blender room's large faces are split (longest edge first) until no edge is longer than maxE, for the same reason;
+     every attribute is carried along, and it stops at a vertex budget so a huge mesh can't stall the bake */
+  function tessellate(src, maxE, budget = 60000) {
+    const g = src.index ? src.toNonIndexed() : src.clone(), names = Object.keys(g.attributes), A = names.map(k => g.attributes[k]);
+    let tris = []; const n = g.attributes.position.count / 3, P = g.attributes.position;
+    const get = (a, i) => { const s = a.itemSize, o = []; for (let k = 0; k < s; k++) o.push(a.array[i * s + k]); return o; };
+    for (let t = 0; t < n; t++) tris.push([0, 1, 2].map(k => A.map(a => get(a, t * 3 + k))));
+    const pi = names.indexOf('position'), d2 = (p, q) => (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2, mid = (p, q) => p.map((v, k) => v.map((x, j) => (x + q[k][j]) / 2));
+    const m2 = maxE * maxE; let out = [], guard = 0;
+    while (tris.length && guard++ < 40) { const next = [];
+      for (const T of tris) { const e = [d2(T[0][pi], T[1][pi]), d2(T[1][pi], T[2][pi]), d2(T[2][pi], T[0][pi])], k = e.indexOf(Math.max(...e));
+        if (e[k] <= m2 || (out.length + next.length + tris.length) * 3 > budget) { out.push(T); continue; }
+        const a = T[k], b = T[(k + 1) % 3], c = T[(k + 2) % 3], m = mid(a, b); next.push([a, m, c], [m, b, c]); }
+      tris = next; }
+    out = out.concat(tris);
+    const geo = new THREE.BufferGeometry();
+    names.forEach((k, ai) => { const s = A[ai].itemSize, arr = new Float32Array(out.length * 3 * s); let o = 0; for (const T of out) for (const V of T) { arr.set(V[ai], o); o += s; } geo.setAttribute(k, new THREE.BufferAttribute(arr, s)); });
+    return geo;
+  }
   /* big flat faces get more vertices, so a lamp's pool of light or a shadow has somewhere to land */
   function subdivide(geo, cell) {
     const p = geo.parameters, k = q => Math.max(1, Math.min(48, Math.ceil(q / cell)));
@@ -57,8 +76,18 @@ const Bake = (() => {
       for (const ch of o.children) walk(ch); };
     walk(R);
     if (meshes.length > 65000) meshes.length = 65000;
-    // fill the grid: every cell a mesh's box overlaps
-    meshes.forEach((e, id) => { const b = e.box;
+    // fill the grid: every cell a mesh's box overlaps. A Blender room's meshes are grouped by material, so one mesh can
+    // wrap the whole room and its box would fill it: those are filled triangle by triangle instead, from points
+    // spread over each face at half a cell apart
+    const tp = new THREE.Vector3(), ta = new THREE.Vector3(), tb = new THREE.Vector3(), tc = new THREE.Vector3();
+    const voxTri = (e, val) => { const g = e.o.geometry, pa = g.attributes.position, ix = g.index, nT = ix ? ix.count / 3 : pa.count / 3, vi = k => ix ? ix.getX(k) : k;
+      for (let t = 0; t < nT; t++) { ta.fromBufferAttribute(pa, vi(t * 3)).applyMatrix4(e.m); tb.fromBufferAttribute(pa, vi(t * 3 + 1)).applyMatrix4(e.m); tc.fromBufferAttribute(pa, vi(t * 3 + 2)).applyMatrix4(e.m);
+        const n = Math.min(400, Math.max(1, Math.ceil(Math.max(ta.distanceTo(tb), tb.distanceTo(tc), tc.distanceTo(ta)) / (cell * 0.5))));
+        for (let i = 0; i <= n; i++) for (let j = 0; j <= n - i; j++) { const u = i / n, w = j / n; tp.set(ta.x + (tb.x - ta.x) * u + (tc.x - ta.x) * w, ta.y + (tb.y - ta.y) * u + (tc.y - ta.y) * w, ta.z + (tb.z - ta.z) * u + (tc.z - ta.z) * w);
+          const c = cellOf0(tp.x, tp.y, tp.z); if (c >= 0) occ[c] = val; } } };
+    const cellOf0 = (x, y, z) => { const i = Math.floor((x - x0) / cell), j = Math.floor((y - y0) / cell), k = Math.floor((z - z0) / cell);
+      return i < 0 || j < 0 || k < 0 || i >= nx || j >= ny || k >= nz ? -1 : (k * ny + j) * nx + i; };
+    meshes.forEach((e, id) => { if (e.o.userData.triVox) return voxTri(e, id + 1); const b = e.box;
       const i0 = Math.max(0, Math.floor((b.min.x - x0) / cell)), i1 = Math.min(nx - 1, Math.floor((b.max.x - x0) / cell));
       const j0 = Math.max(0, Math.floor((b.min.y - y0) / cell)), j1 = Math.min(ny - 1, Math.floor((b.max.y - y0) / cell));
       const k0 = Math.max(0, Math.floor((b.min.z - z0) / cell)), k1 = Math.min(nz - 1, Math.floor((b.max.z - z0) / cell));
@@ -96,7 +125,7 @@ const Bake = (() => {
       // the sky's sheen on it: white on plastic and paint, tinted by the metal's own colour on metal
       const rgh = fold ? (M0.roughness ?? 1) : 1, mtl = fold ? (M0.metalness || 0) : 0, gloss = 0.04 + 0.22 * Math.pow(1 - rgh, 2);
       const ksC = fold ? new THREE.Color(gloss, gloss, gloss).lerp(M0.color.clone().multiplyScalar(0.25 + 0.45 * (1 - rgh)), mtl).multiplyScalar(GS) : new THREE.Color(0, 0, 0);
-      const geo = subdivide(o.geometry, big ? 2.5 : 0.5); geo.computeVertexNormals && !geo.attributes.normal && geo.computeVertexNormals();
+      const geo = o.userData.triVox ? tessellate(o.geometry, 1.25) : subdivide(o.geometry, big ? 2.5 : 0.5); geo.computeVertexNormals && !geo.attributes.normal && geo.computeVertexNormals();
       const pos = geo.attributes.position, nor = geo.attributes.normal, count = pos.count;
       const E = new Float32Array(count * 3), AO = new Float32Array(count), hits = new Int32Array(count * ND), surf = new Int32Array(count);
       tmpN.getNormalMatrix(e.m); const self = id + 1;
@@ -240,6 +269,10 @@ const Bake = (() => {
     return shaftMat; }
   function beams(V, scn) {
     const S = V.room; if (!S) return; const R = V.root, inv = new THREE.Matrix4().copy(R.matrixWorld).invert(), B = [];
+    if (V.beams) { R.remove(V.beams); V.beams.geometry.dispose(); V.beams = null; }   // built again when a bespoke room arrives
+    // a bespoke room's ceiling lamps (from its light markers)
+    for (const s of V.beamSpots || []) { const down = Math.min(S.h, s.y) * 0.66, w = 0.55;
+      B.push({ s: new THREE.Vector3(s.x, s.y - 0.3, s.z), ax: new THREE.Vector3(0, -down, 0), w0: w * 0.9, w1: w + down * 0.32, col: s.col.clone().multiplyScalar(0.07) }); }
     let sun = null; scn.traverse(o => { if (o.isDirectionalLight && !sun) sun = { d: new THREE.Vector3().subVectors(o.position, o.target.position).normalize().transformDirection(inv), c: o.color.clone().multiplyScalar(o.intensity) }; });
     R.traverse(o => { if (!o.isMesh || !o.material || o.userData.baked) return; const m = o.material;
       // sunbeams through the windows (the hall only: in the small shops the camera stands too close to the windows)

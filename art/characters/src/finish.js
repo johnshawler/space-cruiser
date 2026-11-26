@@ -22,5 +22,5 @@ export function paintedFinish(kind){
     else{n-=Math.max(0,.28-b)*40;}
     const i=(y*size+x)*4;data[i]=n+4;data[i+1]=n+2;data[i+2]=n;data[i+3]=255;
   }
-  const map=new T.DataTexture(data,size,size);map.name=kind==='metal'?'Worn enamel and brass grain':'Hand-painted surface grain';map.colorSpace=T.SRGBColorSpace;map.wrapS=map.wrapT=T.RepeatWrapping;map.magFilter=T.LinearFilter;map.minFilter=T.LinearMipmapLinearFilter;map.generateMipmaps=true;map.needsUpdate=true;cache.set(kind,map);return map;
+  const map=new T.DataTexture(data,size,size);map.name=kind==='metal'?'Worn enamel and brass grain':'Hand-painted surface grain';if(T.SRGBColorSpace)map.colorSpace=T.SRGBColorSpace;else map.encoding=T.sRGBEncoding;map.wrapS=map.wrapT=T.RepeatWrapping;map.magFilter=T.LinearFilter;map.minFilter=T.LinearMipmapLinearFilter;map.generateMipmaps=true;map.needsUpdate=true;cache.set(kind,map);return map;
 }

@@ -130,6 +130,8 @@ const Game = {
       this.flash=Math.max(0,this.flash-dt*2.2); this.fade=Math.max(0,this.fade-dt*1.1); World.fx('uExposure',1); World.fx('uWarp',s.warpF); World.fx('uBlur',0); World.layerFx.blur=s.warpF*0.7+clamp((s.speed-900)/4000,0,0.3); World.layerFx.warp=s.warpF; World.grade(null); World.dof=null; World.fx('uFlash',this.flash*this.flash); World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol);
       World.tunnel.visible=s.warpF>0.02; World.tunnelMat.uniforms.uWarp.value=s.warpF; if(World.bloom) World.bloom.strength=Walk.on?0.35:0.75+s.warpF*0.7;
     } else { World.fx('uWarp',0); World.layerFx.blur=World.layerFx.warp=0; if(G.mode!=='port'&&G.mode!=='landing'&&G.mode!=='takeoff'){ World.fx('uBlur',0); World.grade(null); World.dof=null; } World.fx('uFlash',0); World.tunnel.visible=false; if(World.bloom) World.bloom.strength=Cine.mode==='A'||Cine.mode==='B'?0.7:0.4; }
+    // the colour grade of the bespoke place you're in: a shop room, the walkable deck or the cockpit
+    const VA=Venues.active; World.lut(G.mode==='port'&&VA&&!Venues.moving?VA.grade:G.mode==='flight'||G.mode==='title'?(Walk.on?Interior.grade:Cockpit.grade):null,dt);
     SysMap.update(dt,t); Dlg.update(dt); TouchUI.update(dt,t);
     if((this.mk++%12)===0) this.markers();
     const fly=G.mode==='flight'; Sfx.setEngine(fly?s.throttle/10:0,fly?s.warpF:0,fly&&G.sys.power); Sfx.tick(dt,G.sys,fly);
@@ -137,15 +139,15 @@ const Game = {
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[]})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[]})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[]}); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[]}); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
     const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init();
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k])}); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k])}); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },

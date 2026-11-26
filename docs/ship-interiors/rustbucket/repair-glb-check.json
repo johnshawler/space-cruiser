@@ -1,0 +1,29 @@
+{
+  "imported_glbs": {
+    "coolant-working.glb": 1024,
+    "coolant-broken.glb": 1624,
+    "coolant-repaired.glb": 1656,
+    "thruster-working.glb": 2136,
+    "thruster-broken.glb": 3396,
+    "thruster-repaired.glb": 2744,
+    "fuse-working.glb": 3744,
+    "fuse-broken.glb": 3980,
+    "fuse-repaired.glb": 4128,
+    "scrubber-working.glb": 3166,
+    "scrubber-broken.glb": 7248,
+    "scrubber-repaired.glb": 4214,
+    "crack-working.glb": 768,
+    "crack-broken.glb": 1136,
+    "crack-repaired.glb": 1832,
+    "strap-working.glb": 1096,
+    "strap-broken.glb": 1174,
+    "strap-repaired.glb": 1396,
+    "seal-working.glb": 2672,
+    "seal-broken.glb": 2740,
+    "seal-repaired.glb": 3440
+  },
+  "portal_tests_each_variant": 90,
+  "variant_count": 21,
+  "active_scene": "walkable",
+  "default_state": 0
+}

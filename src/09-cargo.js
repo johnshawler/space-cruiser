@@ -278,6 +278,7 @@ const Specs = {
   /* does what is aboard fit in ship i? (fittings move across with you) */
   fits(i){ const s=SHIPS[i]; return holdUsed()<=s.hold+(G.up.hidden?1:0)&&Cargo.pax().length<=SEATS[Math.min(s.model,SEATS.length-1)]; },
   /* swap to ship i: a fresh ship, so the old one's damage, faults, grime, heat and paint stay with the old one */
-  change(i, P){ const s=SHIPS[i]; Walk.exit(true); G.shipId=i; G.fuel=s.fuel; G.paint=null; G.hull=100; G.faults=[]; G.sys.dirt=0; Throttle.heat=0; Throttle.hotTold=false;
+  change(i, P){ const s=SHIPS[i]; Walk.exit(true); G.shipId=i; G.fuel=s.fuel; G.paint=null; G.hull=100; G.faults=[]; G.fixed=[];   // a different hull has no faults and no repair history
+    G.sys.dirt=0; Throttle.heat=0; Throttle.hotTold=false;
     Cine.setPreview(null); Cine.setModel(i); Cine.dock(P); Cockpit.build(s); Interior.shipId=-1; Faults.badge(); Game.genJobs(P.idx); Game.save(); },
 };

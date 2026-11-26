@@ -1,6 +1,5 @@
 // This scope receives the game's existing Three.js r128 global.
 const T=THREE, {Group,Box3,Vector3}=T;
-function paintedFinish(){return null;}
 class RoundedBoxGeometry extends T.BoxGeometry {
   constructor(w,h,d,segments,radius){
     const n=Math.max(3,2*segments+1);super(w,h,d,n,n,n);

@@ -139,7 +139,7 @@ const Folk = (() => {
     const F=new THREE.Group(), lift=new THREE.Group(), rig=new THREE.Group(); F.add(lift); lift.add(rig); const head=new THREE.Group(); rig.add(head);
     const U={rig,lift,low0:0,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
     const iris=IRIS[Math.floor(r()*IRIS.length)];
-    const build=S.build||OriginalFolk[sp];
+    const build=S.model&&FolkModels.info(S.model)?FolkModels.build:(S.build||OriginalFolk[sp]);
     build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
       glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
     U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; });
@@ -158,7 +158,7 @@ const Folk = (() => {
     +' float back = pow( saturate( dot( geometry.viewDir, -directLight.direction ) ), 4.0 ) * 0.3;'
     +' reflectedLight.directDiffuse += ( wrapNL * vec3( 1.0, 0.55, 0.42 ) + back * vec3( 1.0, 0.72, 0.56 ) ) * directLight.color * material.diffuseColor; }');
   function sssPatch(shader){ shader.fragmentShader=shader.fragmentShader.replace('#include <lights_physical_pars_fragment>',SSS_CHUNK); }
-  function sssSkin(F){ F.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial&&!m.userData.sss){ m.onBeforeCompile=sssPatch; m.userData.sss=true; m.needsUpdate=true; } }); }
+  function sssSkin(F){ F.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial&&m.userData.subsurfaceWeight>0&&!m.userData.sss){ m.onBeforeCompile=sssPatch; m.userData.sss=true; m.needsUpdate=true; } }); }
   const contactGeo=new THREE.PlaneGeometry(1,1); let _contactMat=null;
   function contactMat(){ if(_contactMat) return _contactMat; const cv=makeCanvas(128,128), x=cv.getContext('2d'), g=x.createRadialGradient(64,64,4,64,64,62);
     g.addColorStop(0,'rgba(0,0,0,0.62)'); g.addColorStop(0.35,'rgba(0,0,0,0.38)'); g.addColorStop(0.7,'rgba(0,0,0,0.12)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128);
@@ -172,13 +172,13 @@ const Folk = (() => {
     const d=y+U.low0-lowest(F); if(d>0) L.position.y=d/(F.scale.y||1); }
   function hold(F, obj, side=1){ const a=F.userData.arms[side]; if(!a) return obj; F.userData.held=true; obj.position.y=-(a.userData.len||0.4); a.add(obj); return obj; }
   /* expressions: neutral, happy, sad, shock, worried */
-  function mood(F, m){ const U=F.userData; U.mood=m||'neutral'; const M=U.mouth;
+  function mood(F, m){ const U=F.userData; U.mood=m||'neutral'; const M=U.mouth; if(U.onMood) U.onMood(U.mood);
     const P={neutral:{mo:0.55,o:0,bz:0,by:0,lid:-1.0},happy:{mo:1.2,o:0,bz:-0.12,by:0.03,lid:-0.85},sad:{mo:-0.9,o:0,bz:0.32,by:0.0,lid:-0.62},shock:{mo:0,o:1,bz:-0.05,by:0.08,lid:-1.45},worried:{mo:-0.45,o:0,bz:0.38,by:0.03,lid:-0.8}}[U.mood]||{};
     U.lidOpen=P.lid; for(const l of U.lids) l.rotation.x=P.lid;
     if(M){ M.arc.visible=!P.o; M.o.visible=!!P.o; const k=P.mo; M.arc.rotation.z=k>=0?Math.PI:0; M.arc.scale.set(0.6+Math.abs(k)*0.55,0.4+Math.abs(k)*0.6,1); M.arc.position.y=k>=0?0:-0.06*M.s; }
     for(const b of U.brows){ b.b.rotation.z=b.side*P.bz; b.b.position.y=b.y+P.by; }
     if(U.beak) U.beak.rotation.x=P.o?0.45:P.mo>1?0.2:0; }
-  function blink(F, t){ const U=F.userData, ph=(t+U.ph)%4.3, cl=ph<0.14?Math.sin(ph/0.14*Math.PI):0;
+  function blink(F, t){ const U=F.userData; if(U.tick) U.tick(t); const ph=(t+U.ph)%4.3, cl=ph<0.14?Math.sin(ph/0.14*Math.PI):0;
     for(const e of U.eyes) e.scale.y=(1-cl*0.88)*(e.userData.sy||1);
     for(const l of U.lids) l.rotation.x=lerp(U.lidOpen,Math.PI/2+0.05,cl);
     // eyes dart about now and then, like they are thinking
@@ -191,7 +191,7 @@ const Folk = (() => {
   function rest(F){ const U=F.userData; if(U.gait) walk(F,0,0); U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
-  function arms(F, l, r){ const A=F.userData.arms; if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
+  function arms(F, l, r){ const A=F.userData.arms; if(F.userData.onArms) F.userData.onArms(l,r); if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
   return {make, hold, blink, walk, rest, arms, mood, ground, sph, cyl, bx, rbox};
 })();
 
@@ -213,8 +213,9 @@ const Portrait = (() => {
     const cv=makeCanvas(S,S), x=cv.getContext('2d'), bg=x.createLinearGradient(0,0,0,S); bg.addColorStop(0,'#0a1620'); bg.addColorStop(1,'#1b3442'); x.fillStyle=bg; x.fillRect(0,0,S,S);
     const glow=x.createRadialGradient(S*0.5,S*0.42,S*0.05,S*0.5,S*0.45,S*0.6); glow.addColorStop(0,'rgba(127,214,255,.18)'); glow.addColorStop(1,'rgba(127,214,255,0)'); x.fillStyle=glow; x.fillRect(0,0,S,S);
     R.setClearColor(0x000000,0); R.clear(); R.render(scn,cam); x.drawImage(R.domElement,0,0);
-    scn.remove(F); F.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); return cv; }
-  return { get(sp, seed){ const k=sp+':'+(seed|0); let c=cache.get(k); if(c){ cache.delete(k); cache.set(k,c); return c; } c=render(sp,seed); if(!c) return null; cache.set(k,c); if(cache.size>160) cache.delete(cache.keys().next().value); return c; } };
+    scn.remove(F); if(!F.userData.model) F.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); return cv; }
+  return { get(sp, seed){ const md=SPECIES[sp]&&SPECIES[sp].model; if(md&&FolkModels.info(md)&&!FolkModels.loaded(md)&&!FolkModels.failed(md)) return null;   // not fetched yet: see drawAlien
+      const k=sp+':'+(seed|0); let c=cache.get(k); if(c){ cache.delete(k); cache.set(k,c); return c; } c=render(sp,seed); if(!c) return null; cache.set(k,c); if(cache.size>160) cache.delete(cache.keys().next().value); return c; } };
 })();
 
 /* ---------- the sets ---------- */
@@ -233,17 +234,19 @@ const Venues = (() => {
   function shell(V, pal){
     const R=V.root, def=V.def;
     const S=V.room, hang=!!S&&S.z0>-8, sz=hang?-6.5:-7.35; if(!S) R.add(bx(13,0.2,11,M(pal[0],0.9,0.05),0,-0.1,-2));
-    R.add(bx(4.4,1.0,0.8,M(pal[1],0.65,0.1),0,0.5,0)); R.add(bx(4.7,0.1,1.0,M(pal[2],0.4,0.2),0,1.05,0)); R.add(bx(4.42,0.12,0.82,M(pal[3],0.5,0.2),0,0.2,0));
+    // the parts a bespoke room brings its own version of: the counter, the sign's hangers and the clutter in the corner
+    const own=V.shellG=new THREE.Group(); R.add(own); V.signHang=[];
+    own.add(bx(4.4,1.0,0.8,M(pal[1],0.65,0.1),0,0.5,0)); own.add(bx(4.7,0.1,1.0,M(pal[2],0.4,0.2),0,1.05,0)); own.add(bx(4.42,0.12,0.82,M(pal[3],0.5,0.2),0,0.2,0));
     // the shop's name hangs on a frame at the back, above the crew, so nothing blocks the view past the counter
-    for(const sx of [-1,1]) R.add(hang?cyl(0.04,0.04,S.h-6.4,M('#555a60',0.45,0.7),sx*2.6,(S.h+6.4)/2,sz,6):cyl(0.1,0.1,6.4,M('#555a60',0.45,0.7),sx*3.0,3.2,sz,8));
+    for(const sx of [-1,1]){ const h=hang?cyl(0.04,0.04,S.h-6.4,M('#555a60',0.45,0.7),sx*2.6,(S.h+6.4)/2,sz,6):cyl(0.1,0.1,6.4,M('#555a60',0.45,0.7),sx*3.0,3.2,sz,8); R.add(h); V.signHang.push(h); }
     R.add(bx(6.2,1.4,0.18,M('#20242a',0.5,0.4),0,5.7,sz));
     const sg=new THREE.Mesh(new THREE.PlaneGeometry(6.0,1.3),new THREE.MeshStandardMaterial({map:signTex(def.name,'#10161c',pal[4]),emissive:C('#ffffff'),emissiveIntensity:0.35,roughness:0.6})); sg.material.emissiveMap=sg.material.map; sg.position.set(0,5.7,sz+0.1); R.add(sg);
-    const skirt=new THREE.Mesh(new THREE.PlaneGeometry(4.4,0.5),new THREE.MeshStandardMaterial({map:stripeTex(pal[3],'#f4efe4'),roughness:0.8})); skirt.position.set(0,0.75,0.41); R.add(skirt);
+    const skirt=new THREE.Mesh(new THREE.PlaneGeometry(4.4,0.5),new THREE.MeshStandardMaterial({map:stripeTex(pal[3],'#f4efe4'),roughness:0.8})); skirt.position.set(0,0.75,0.41); own.add(skirt);
     
     const L=new THREE.PointLight(C('#ffe2b8'),1.1,18,1.6); L.position.set(0,2.9,2.2); R.add(L);
     // the signpost beside the counter: its arms are the big buttons that take you to the other places in this port
     R.add(cyl(0.08,0.08,3.3,M('#6b4a2b',0.8,0.05),3.4,1.65,0.7,8)); V.post=new THREE.Object3D(); V.post.position.set(3.4,3.3,0.7); R.add(V.post);
-    if(V.k!=='depot') for(let i=0;i<3;i++){ const c=bx(0.6,0.6,0.6,M(['#b07a3a','#9c6a30','#c48a48'][i],0.8,0.02),-5.6+i*0.15,0.3+i*0.6,1.2+(i%2)*0.1); c.rotation.y=i*0.3; R.add(c); }
+    if(V.k!=='depot') for(let i=0;i<3;i++){ const c=bx(0.6,0.6,0.6,M(['#b07a3a','#9c6a30','#c48a48'][i],0.8,0.02),-5.6+i*0.15,0.3+i*0.6,1.2+(i%2)*0.1); c.rotation.y=i*0.3; own.add(c); }
   }
 
   /* the location sign: a name plate on the front of the counter, right in view, with the port in big letters and the
@@ -375,7 +378,7 @@ const Venues = (() => {
   const STORE={dx:4.5,dw:2.2,dh:3.5,x0:1.6,x1:7.4,z0:-14.6,h:4.6};
   const roomSpec=k=>Object.assign({x0:-9.6,x1:9.6,z0:-7.15,z1:17,win:4.6,sill:1.4,head:4.6},ROOMS[k]);
   function room(V, k, pal, cloud, rr){
-    const S=V.room=roomSpec(k), R=V.root, g=new THREE.Group(); R.add(g);
+    const S=V.room=roomSpec(k), R=V.root, g=V.roomG=new THREE.Group(); R.add(g);
     const W=S.x1-S.x0, D=S.z1-S.z0, cx=(S.x0+S.x1)/2, cz=(S.z0+S.z1)/2, H=S.h, big=H>20, T=big?1.2:0.4;
     const wallM=M(S.wall,0.88,0.06,S.splat?{map:splatTex(S.wall,rr),color:C('#ffffff')}:{}), trimM=M(S.trim,0.5,0.35), darkM=M('#2a2d32',0.7,0.4), floorM=M(S.floor,0.86,0.08), ceilM=M('#3a3d42',0.9,0.1), lampM=glow(S.lamp,1.5),
       glassM=new THREE.MeshStandardMaterial({color:C('#bcd8ee'),roughness:0.05,metalness:0.5,transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide,emissive:C(cloud?'#e8f2ff':'#d8ecff'),emissiveIntensity:0.9});   // daylight glows in the panes
@@ -470,11 +473,11 @@ const Venues = (() => {
   /* ---------- the goods shelf: a cartoon model of everything on the contract board, which you can click ---------- */
   const SHELF={x:-4.45,z:-0.9,w:4.2,rows:[1.0,2.15,3.3],cols:4};
   function makeShelf(V){ const R=V.root, g=new THREE.Group(); g.position.set(SHELF.x,0,SHELF.z); R.add(g); const wood=M('#8a5a34',0.7,0.05), dark=M('#4a3020',0.8,0.05), W=SHELF.w;
-    g.add(bx(W,4.4,0.12,M('#5a3a22',0.85,0.03),0,2.2,-0.4)); for(const sx of [-1,1]) g.add(bx(0.14,4.4,0.9,dark,sx*(W/2+0.07),2.2,0));
-    for(const y of [0.12].concat(SHELF.rows)) g.add(bx(W,0.09,0.9,wood,0,y-0.05,0)); g.add(bx(W+0.3,0.16,1.0,dark,0,4.45,0));
+    const frame=[]; frame.push(bx(W,4.4,0.12,M('#5a3a22',0.85,0.03),0,2.2,-0.4)); for(const sx of [-1,1]) frame.push(bx(0.14,4.4,0.9,dark,sx*(W/2+0.07),2.2,0));
+    for(const y of [0.12].concat(SHELF.rows)) frame.push(bx(W,0.09,0.9,wood,0,y-0.05,0)); frame.push(bx(W+0.3,0.16,1.0,dark,0,4.45,0)); frame.forEach(o=>g.add(o));
     const sg=new THREE.Mesh(new THREE.PlaneGeometry(3.4,0.62),new THREE.MeshStandardMaterial({map:signTex("Today's goods",'#10161c','#f2c14e'),emissive:C('#ffffff'),emissiveIntensity:0.3,roughness:0.6})); sg.material.emissiveMap=sg.material.map; sg.position.set(0,4.95,0.02); g.add(sg);
     const lamp=new THREE.PointLight(C('#ffe2b8'),0.6,7,1.6); lamp.position.set(0,3.6,1.4); g.add(lamp);
-    V.shelf={g,items:[],hover:null,pick:null}; }
+    V.shelf={g,items:[],hover:null,pick:null,frame}; }
   /* keep the shelf in step with the board: one model per contract, in board order */
   function syncShelf(jobs){ const V=api.list.find(v=>v.shelf); if(!V) return; const S=V.shelf, want=jobs.filter(j=>j.kind!=='escort').slice(0,SHELF.rows.length*SHELF.cols);
     for(const it of S.items.slice()) if(!want.includes(it.job)){ S.g.remove(it.o); S.items.splice(S.items.indexOf(it),1); }
@@ -717,7 +720,97 @@ const Venues = (() => {
     K.traverse(o=>{ if(!o.isMesh||o.userData.contact) return; o.geometry.computeBoundingBox(); bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); b.union(bb); });
     const front=b.isEmpty()?0.45:b.max.z-K.position.z; return Math.min(-0.85,-0.46-front-0.08); }
 
+  /* ---------- bespoke rooms ----------
+     Every depot, garage and cantina has a room of its own, modelled in Blender in the shop's frame (counter at the origin,
+     camera towards +z) around the same fixed spots: the keeper, the crew's stage, the signpost, the goods shelf, the stock
+     room and the droid's lanes. When it has loaded it takes the place of the stock room, counter, furniture and shelf
+     frame; everything that moves or works (the goods, droid, keeper, crew, name plate, signpost, shop sign) stays.
+     Its lamps become real lights, the room is baked again, its own sky lights its glass and metal, and its colour
+     grade is used while you're in it. If it can't be loaded the stock room simply stays. */
+  function bespoke(V){
+    const B=V.bespoke, port=V.P;
+    Promise.all([Assets.glb(B.file), Assets.env(B.file.replace(/[^/]+$/,'environment.hdr')).catch(()=>null), Assets.lut(B.file.replace(/[^/]+$/,'grade.png')).catch(()=>null)]).then(([src,env,lut])=>{
+      if(Venues.list.includes(V)) Venues.pending.push(()=>swapRoom(V,src,env,lut)); }).catch(()=>{});   // one frame of its own, in the queue (it bakes)
+  }
+  function swapRoom(V, src, env, lut){
+    const B=V.bespoke, port=V.P; { if(!Venues.list.includes(V)) return;   // the port was left before it arrived
+      const R=V.root, room=src.clone(true); room.name='bespoke '+B.location+' '+B.shop; Assets.prepare(room,env);
+      const out=o=>{ if(!o) return; if(o.parent) o.parent.remove(o); o.traverse(q=>{ if(q.geometry) q.geometry.dispose(); }); };
+      const stockLights=V.roomG?V.roomG.children.filter(o=>o.isPointLight).length:2;
+      out(V.roomG); out(V.shellG); (V.fit||[]).forEach(out); if(V.shelf) V.shelf.frame.forEach(out);
+      // the shop's name sign hangs from the room's own ceiling
+      const box=new THREE.Box3().setFromObject(room), top=clamp(box.max.y,6.6,12); V.room.h=Math.max(V.room.h,Math.min(12,top));
+      for(const h of V.signHang||[]){ h.geometry.dispose(); h.geometry=new THREE.CylinderGeometry(0.04,0.04,Math.max(0.1,top-6.4),6); h.position.y=(top+6.4)/2; }
+      // its lamps become real lights; the room is closed in, so they stand in for the sky light the stock rooms got through
+      // their windows, and are a bit brighter than in Blender (whose area lights spread wider)
+      // All of them light the bake; afterwards only the two strongest stay as live lights for the keeper and crew, the same
+      // number as the stock room had, because a change in the scene's light count recompiles every material in the port.
+      V.beamSpots=[]; const bakeLights=[]; for(const L of B.lights||[]){ const p=L.position, l=new THREE.PointLight(C(L.color),L.intensity*1.7,(L.distance||20)*1.25,1); l.position.set(p[0],p[1],p[2]); room.add(l); bakeLights.push(l);
+        if(p[1]>3&&p[2]<1.5) V.beamSpots.push({x:p[0],y:p[1],z:p[2],col:C(L.color)}); }
+      const liveN=stockLights;
+      room.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; o.userData.triVox=true; } }); R.add(room); V.bespokeRoom=room; V.grade=lut; V.roomEnv=env;
+      R.updateMatrixWorld(true);
+      if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,V.scn,port);
+      bakeLights.sort((p,q)=>q.intensity-p.intensity).slice(liveN).forEach(l=>room.remove(l)); for(const l of bakeLights.slice(0,liveN)) l.intensity*=0.6;
+      if(!/[?&]nobake\b/.test(location.search)) Bake.probe(V,V.scn);
+      // the room's own glass, metal and lamps reflect its sky; the keeper, crew, droid and goods take the probe of the finished room
+      if(env) room.traverse(o=>{ if(o.isMesh&&!o.userData.baked) for(const m of [].concat(o.material)) if(m&&m.isMeshStandardMaterial){ m.envMap=env; m.needsUpdate=true; } });
+      Bake.beams(V,V.scn); if(!V.mirror) Bake.floorMirror(V);
+      // its materials are new: compile them now rather than the first time the shop comes into view
+      const vis=V.root.visible; V.root.visible=true; try{ World.renderer.compile(V.scn,Cine.cam); }catch(e){} V.root.visible=vis;
+    }
+  }
+
+  // This is the public entrance on the pad-facing side of the shop. Keep it
+  // outside the room subtree so the indoor bake, mirrors and click targets
+  // continue to use only the walk-in set.
+  function loadStorefront(V) {
+    const catalog = Assets.manifests.storefronts;
+    const port = catalog && catalog.venues[Assets.slug(V.P.name)];
+    const entry = port && port[V.k];
+    if (!entry) return;
+    Assets.glb('assets/storefronts/' + entry.file).then(source => {
+      if (!Venues.list.includes(V)) return;
+      const front = source.clone(true);
+      // Surface teardown owns its geometry and materials. The cached original
+      // must still be usable on the next visit to the same planet.
+      front.traverse(o => {
+        if (!o.isMesh) return;
+        o.geometry = o.geometry.clone();
+        o.material = Array.isArray(o.material) ? o.material.map(m => m.clone()) : o.material.clone();
+      });
+      const bounds = new THREE.Box3().setFromObject(front);
+      const size = bounds.getSize(new V3());
+      const room = V.room;
+      // A shipyard gets a sales pavilion at the entrance to its larger hangar.
+      const width = V.k === 'yard' ? 42 : room.x1 - room.x0;
+      const scale = width / size.x;
+      front.scale.setScalar(scale);
+      const forward = room.z1 - bounds.min.z * scale;
+      const centre = (room.x0 + room.x1) / 2;
+      front.position.copy(V.root.localToWorld(new V3(centre, -bounds.min.y * scale, forward)));
+      front.quaternion.copy(V.root.quaternion);
+      front.name = 'Storefront: ' + entry.name;
+      Assets.prepare(front, null);
+      // The entrance has its own foundation, including on the cloud platforms.
+      const foundation = new THREE.Mesh(
+        new THREE.BoxGeometry(size.x * .97, .38, size.z * .97),
+        new THREE.MeshStandardMaterial({color: 0x49505a, roughness: .85}));
+      const middle = bounds.getCenter(new V3());
+      foundation.position.set(middle.x, bounds.min.y - .19, middle.z);
+      front.add(foundation);
+      front.visible = Venues.outside;
+      V.storefront = front;
+      V.scn.add(front);
+    }).catch(() => {}); // The procedural port still works when an asset is unavailable.
+  }
+
   const api = {
+    outside:true,
+    showStorefronts(visible) {
+      this.outside = visible;
+      for (const v of this.list) if (v.storefront) v.storefront.visible = visible;
+    },
     active:null, moving:false, list:[],
     defs(P){ return VENUES[P.idx]||[VENUES[0][0]]; },
     has(P,k){ return this.defs(P).some(d=>d.k===k); },
@@ -728,7 +821,7 @@ const Venues = (() => {
     /* each place gets its own spot somewhere around the port, a few hundred metres from the pad and from each other,
        on a terrace cut into the ground (or a platform on a cloud world) with its own neighbourhood behind it */
     build(scn, P, cloud, padMat, hAt, liq){
-      this.list=[]; this.active=null; this.pending=[]; const defs=this.defs(P), n=defs.length, r0=mulberry32(P.idx*313+7), base=r0()*6.283;
+      this.list=[]; this.outside=true; this.active=null; this.pending=[]; const defs=this.defs(P), n=defs.length, r0=mulberry32(P.idx*313+7), base=r0()*6.283;
       defs.forEach((d,i)=>{ const a=base+i/n*6.283+(r0()-0.5)*0.3, rad=d.k==='depot'?240:300+((i*2)%3)*130+r0()*60;
         const root=new THREE.Group(), pos=new V3(Math.cos(a)*rad,0,Math.sin(a)*rad), dir=pos.clone().normalize().negate(); root.rotation.y=Math.atan2(dir.x,dir.z)+(r0()-0.5)*0.5;
         // sit the terrace on the highest ground it covers so nothing pokes through; the showroom pad counts too
@@ -740,20 +833,21 @@ const Venues = (() => {
         if(cloud){ const py=new THREE.Mesh(new THREE.CylinderGeometry(4,8,600,12),padMat); py.position.set(0,-303,-6); root.add(py); }
         DISTRICT[d.k](root,pal,rr,V); lampPosts(root); room(V,d.k,pal,cloud,rr);
         if(cloud&&V.show){ const py=new THREE.Mesh(new THREE.CylinderGeometry(5,9,600,12),padMat); py.position.set(V.show.x,-330,V.show.z); root.add(py); }
-        shell(V,pal); locationSign(V,P,pal); V.g=SETS[d.k](V,pal); FIT[d.k](V,pal,rr); if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
+        shell(V,pal); locationSign(V,P,pal); V.g=SETS[d.k](V,pal); { const n0=root.children.length; FIT[d.k](V,pal,rr); V.fit=root.children.slice(n0); } if(d.k==='depot'){ V.droid=makeDroid(V); makeShelf(V); }
         V.keeper=Folk.make(d.sp,seed,1.4); V.keeper.position.set(-1.55,0,keeperZ(V.keeper)); root.add(V.keeper);
         const others=ALIEN_POOL.filter(k=>k!==d.sp); V.A=Folk.make(P.species===d.sp?pick(others):P.species,seed+1,1.2); V.B=Folk.make(others[Math.floor(rr()*others.length)],seed+2,1.2); root.add(V.A); root.add(V.B);
         V.gag=GAGS[VENUE_GAG[d.k]]; this.restart(V,rr()*V.gag.dur*0.3); root.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial&&!o.material.transparent){ o.castShadow=!o.userData.ns; o.receiveShadow=true; } }); root.updateMatrixWorld(true);
         // the finishing is the slow part (a fifth of a second a shop), so it is queued and done one shop per frame while
         // the ship is still out in space on the approach (see tick); a straight dock does it all at once behind the fade
-        this.pending.push(()=>{
+        this.pending.push(()=>{ if(V.bespokeRoom) return;   // its own room arrived first and was finished with it
           if(!/[?&]nobake\b/.test(location.search)) V.bake=Bake.room(V,scn,P); });   // light the room once and paint it in (?nobake shows the live lighting)
-        this.pending.push(()=>{
+        this.pending.push(()=>{ if(V.bespokeRoom) return;
           if(!/[?&]nobake\b/.test(location.search)) Bake.probe(V,scn);   // the room's own light for its live things
           Bake.beams(V,scn);   // sunbeams through the windows and cones of light under the lamps
           Bake.decals(V);   // oil, scuffs and drink rings on the floor
           Bake.floorMirror(V); });   // reflections on the floor (high quality only)
-        this.list.push(V); });
+        V.P=P; V.scn=scn; V.bespoke=Assets.room(P,d.k); if(V.bespoke) bespoke(V);   // this port's own room, modelled in Blender, replaces the stock one when it arrives
+        this.list.push(V); loadStorefront(V); });
       // last of all, every material in the port is compiled in one go, with all the shops showing: otherwise each one
       // compiles the first time it comes into view, which stutters the descent and again the takeoff
       this.pending.push(()=>{ const r=World.renderer, cam=Cine.cam; if(!r||!cam) return; const vis=this.list.map(v=>v.root.visible); this.list.forEach(v=>v.root.visible=true);

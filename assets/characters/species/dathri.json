@@ -1,0 +1,37 @@
+{
+ "id": "dathri",
+ "name": "Dathri",
+ "kind": "humanoid",
+ "triangles": 14024,
+ "kb": 1325,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.466,
+  0.0,
+  -0.221
+ ],
+ "max": [
+  0.467,
+  1.509,
+  0.296
+ ],
+ "seat": [
+  0.054,
+  0.334,
+  -0.011
+ ]
+}

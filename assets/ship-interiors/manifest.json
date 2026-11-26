@@ -1,0 +1,1658 @@
+{
+  "ships": [
+    {
+      "ship": "dromedary",
+      "name": "Dromedary 400",
+      "file": "assets/ship-interiors/dromedary.glb",
+      "triangles": 33722,
+      "meshes": 94,
+      "materials": 16,
+      "bytes": 2639716,
+      "anchors": {
+        "lamp_corridor": {
+          "position": [
+            0,
+            1.1799999475479126,
+            3.950000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_passenger_cabin": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            3.5999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_galley": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            3.200000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_cargo_hold": {
+          "position": [
+            0,
+            1.1799999475479126,
+            10.699999809265137
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_engine_room": {
+          "position": [
+            0,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_scrubber_bay": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            6.5
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_airlock": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            6.099999904632568
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_port_alley": {
+          "position": [
+            -2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_starboard_alley": {
+          "position": [
+            2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_1": {
+          "position": [
+            -3.799999952316284,
+            0,
+            1.9500000476837158
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_2": {
+          "position": [
+            -3.799999952316284,
+            0,
+            3.0999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_3": {
+          "position": [
+            -3.799999952316284,
+            0,
+            4.25
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_4": {
+          "position": [
+            -3.799999952316284,
+            0,
+            5.400000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "reactor": {
+          "position": [
+            0,
+            0.18000000715255737,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_coolant": {
+          "position": [
+            -3,
+            -0.3499999940395355,
+            1.5499999523162842
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            1.2999999523162842,
+            0.3499999940395355,
+            18.850000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            2.450000047683716,
+            0.44999998807907104,
+            1.4600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            -3,
+            0.949999988079071,
+            5.860000133514404
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_crack": {
+          "position": [
+            -0.8600000143051147,
+            0.550000011920929,
+            5.150000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_strap": {
+          "position": [
+            1.5499999523162842,
+            0.10000000149011612,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_seal": {
+          "position": [
+            2.819999933242798,
+            0.44999998807907104,
+            5.320000171661377
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cockpit_door": {
+          "position": [
+            0,
+            -0.17499999701976776,
+            0.6800000071525574
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cargo_aisle": {
+          "position": [
+            0,
+            -0.9700000286102295,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ship": "stoat",
+      "name": "Stellar Stoat",
+      "file": "assets/ship-interiors/stoat.glb",
+      "triangles": 31434,
+      "meshes": 95,
+      "materials": 16,
+      "bytes": 2407148,
+      "anchors": {
+        "lamp_corridor": {
+          "position": [
+            0,
+            1.1799999475479126,
+            3.950000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_passenger_cabin": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            3.5999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_galley": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            3.200000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_cargo_hold": {
+          "position": [
+            0,
+            1.1799999475479126,
+            10.699999809265137
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_engine_room": {
+          "position": [
+            0,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_scrubber_bay": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            6.5
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_airlock": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            6.099999904632568
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_port_alley": {
+          "position": [
+            -2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_starboard_alley": {
+          "position": [
+            2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_1": {
+          "position": [
+            -3.799999952316284,
+            0,
+            1.9500000476837158
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_2": {
+          "position": [
+            -3.799999952316284,
+            0,
+            3.0999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_3": {
+          "position": [
+            -3.799999952316284,
+            0,
+            4.25
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_4": {
+          "position": [
+            -3.799999952316284,
+            0,
+            5.400000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "reactor": {
+          "position": [
+            0,
+            0.18000000715255737,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_coolant": {
+          "position": [
+            -3,
+            -0.3499999940395355,
+            1.5499999523162842
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            1.2999999523162842,
+            0.3499999940395355,
+            18.850000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            2.450000047683716,
+            0.44999998807907104,
+            1.4600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            -3,
+            0.949999988079071,
+            5.860000133514404
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_crack": {
+          "position": [
+            -0.8600000143051147,
+            0.550000011920929,
+            5.150000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_strap": {
+          "position": [
+            1.5499999523162842,
+            0.10000000149011612,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_seal": {
+          "position": [
+            2.819999933242798,
+            0.44999998807907104,
+            5.320000171661377
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cockpit_door": {
+          "position": [
+            0,
+            -0.17499999701976776,
+            0.6800000071525574
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cargo_aisle": {
+          "position": [
+            0,
+            -0.9700000286102295,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ship": "manatee",
+      "name": "Opulent Manatee",
+      "file": "assets/ship-interiors/manatee.glb",
+      "triangles": 35038,
+      "meshes": 95,
+      "materials": 16,
+      "bytes": 2624680,
+      "anchors": {
+        "lamp_corridor": {
+          "position": [
+            0,
+            1.1799999475479126,
+            3.950000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_passenger_cabin": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            3.5999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_galley": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            3.200000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_cargo_hold": {
+          "position": [
+            0,
+            1.1799999475479126,
+            10.699999809265137
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_engine_room": {
+          "position": [
+            0,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_scrubber_bay": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            6.5
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_airlock": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            6.099999904632568
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_port_alley": {
+          "position": [
+            -2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_starboard_alley": {
+          "position": [
+            2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_1": {
+          "position": [
+            -3.799999952316284,
+            0,
+            1.9500000476837158
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_2": {
+          "position": [
+            -3.799999952316284,
+            0,
+            3.0999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_3": {
+          "position": [
+            -3.799999952316284,
+            0,
+            4.25
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_4": {
+          "position": [
+            -3.799999952316284,
+            0,
+            5.400000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "reactor": {
+          "position": [
+            0,
+            0.18000000715255737,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_coolant": {
+          "position": [
+            -3,
+            -0.3499999940395355,
+            1.5499999523162842
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            1.2999999523162842,
+            0.3499999940395355,
+            18.850000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            2.450000047683716,
+            0.44999998807907104,
+            1.4600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            -3,
+            0.949999988079071,
+            5.860000133514404
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_crack": {
+          "position": [
+            -0.8600000143051147,
+            0.550000011920929,
+            5.150000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_strap": {
+          "position": [
+            1.5499999523162842,
+            0.10000000149011612,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_seal": {
+          "position": [
+            2.819999933242798,
+            0.44999998807907104,
+            5.320000171661377
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cockpit_door": {
+          "position": [
+            0,
+            -0.17499999701976776,
+            0.6800000071525574
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cargo_aisle": {
+          "position": [
+            0,
+            -0.9700000286102295,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ship": "empress",
+      "name": "Quasar Empress",
+      "file": "assets/ship-interiors/empress.glb",
+      "triangles": 39994,
+      "meshes": 92,
+      "materials": 16,
+      "bytes": 2962964,
+      "anchors": {
+        "lamp_corridor": {
+          "position": [
+            0,
+            1.1799999475479126,
+            3.950000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_passenger_cabin": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            3.5999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_galley": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            3.200000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_cargo_hold": {
+          "position": [
+            0,
+            1.1799999475479126,
+            10.699999809265137
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_engine_room": {
+          "position": [
+            0,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_scrubber_bay": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            6.5
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_airlock": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            6.099999904632568
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_port_alley": {
+          "position": [
+            -2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fill_starboard_alley": {
+          "position": [
+            2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_1": {
+          "position": [
+            -3.799999952316284,
+            0,
+            1.9500000476837158
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_2": {
+          "position": [
+            -3.799999952316284,
+            0,
+            3.0999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_3": {
+          "position": [
+            -3.799999952316284,
+            0,
+            4.25
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_4": {
+          "position": [
+            -3.799999952316284,
+            0,
+            5.400000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "reactor": {
+          "position": [
+            0,
+            0.18000000715255737,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_coolant": {
+          "position": [
+            -3,
+            -0.3499999940395355,
+            1.5499999523162842
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            1.2999999523162842,
+            0.3499999940395355,
+            18.850000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            2.450000047683716,
+            0.44999998807907104,
+            1.4600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            -3,
+            0.949999988079071,
+            5.860000133514404
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_crack": {
+          "position": [
+            -0.8600000143051147,
+            0.550000011920929,
+            5.150000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_strap": {
+          "position": [
+            1.5499999523162842,
+            0.10000000149011612,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_seal": {
+          "position": [
+            2.819999933242798,
+            0.44999998807907104,
+            5.320000171661377
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cockpit_door": {
+          "position": [
+            0,
+            -0.17499999701976776,
+            0.6800000071525574
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cargo_aisle": {
+          "position": [
+            0,
+            -0.9700000286102295,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ship": "rustbucket",
+      "name": "Rustbucket Mk I",
+      "file": "assets/ship-interiors/rustbucket.glb",
+      "triangles": 214312,
+      "meshes": 9,
+      "materials": 9,
+      "bytes": 5700416,
+      "anchors": {
+        "cockpit_door": {
+          "position": [
+            0,
+            -0.17499999701976776,
+            0.6800000071525574
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_corridor": {
+          "position": [
+            0,
+            1.1799999475479126,
+            3.950000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_crack": {
+          "position": [
+            -0.8600000143051147,
+            0.550000011920929,
+            5.150000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_passenger_cabin": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            3.5999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_1": {
+          "position": [
+            -3.799999952316284,
+            0,
+            1.9500000476837158
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_2": {
+          "position": [
+            -3.799999952316284,
+            0,
+            3.0999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_3": {
+          "position": [
+            -3.799999952316284,
+            0,
+            4.25
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_4": {
+          "position": [
+            -3.799999952316284,
+            0,
+            5.400000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_coolant": {
+          "position": [
+            -3,
+            -0.3499999940395355,
+            1.5499999523162842
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_scrubber_bay": {
+          "position": [
+            -2.6500000953674316,
+            1.1799999475479126,
+            6.5
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            -3,
+            0.949999988079071,
+            5.860000133514404
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_galley": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            3.200000047683716
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            2.450000047683716,
+            0.44999998807907104,
+            1.4600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_airlock": {
+          "position": [
+            2.450000047683716,
+            1.1799999475479126,
+            6.099999904632568
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_seal": {
+          "position": [
+            2.819999933242798,
+            0.44999998807907104,
+            5.320000171661377
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_cargo_hold": {
+          "position": [
+            0,
+            1.1799999475479126,
+            10.699999809265137
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_strap": {
+          "position": [
+            1.5499999523162842,
+            0.10000000149011612,
+            10.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_engine_room": {
+          "position": [
+            0,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            1.2999999523162842,
+            0.3499999940395355,
+            18.850000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_port_alley": {
+          "position": [
+            -2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_starboard_alley": {
+          "position": [
+            2.9000000953674316,
+            1.1799999475479126,
+            16.600000381469727
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      "repairs": {
+        "coolant": {
+          "pos": [
+            -3,
+            -0.35,
+            1.55
+          ],
+          "yaw": 0.0,
+          "models": {
+            "working": "assets/ship-interiors/rustbucket-repairs/glb/coolant-working.glb",
+            "broken": "assets/ship-interiors/rustbucket-repairs/glb/coolant-broken.glb",
+            "repaired": "assets/ship-interiors/rustbucket-repairs/glb/coolant-repaired.glb"
+          }
+        },
+        "thruster": {
+          "pos": [
+            1.3,
+            0.35,
+            18.85
+          ],
+          "yaw": 3.141592653589793,
+          "models": {
+            "working": "assets/ship-interiors/rustbucket-repairs/glb/thruster-working.glb",
+            "broken": "assets/ship-interiors/rustbucket-repairs/glb/thruster-broken.glb",
+            "repaired": "assets/ship-interiors/rustbucket-repairs/glb/thruster-repaired.glb"
+          }
+        },
+        "fuse": {
+          "pos": [
+            2.45,
+            0.45,
+            1.46
+          ],
+          "yaw": 0.0,
+          "models": {
+            "working": "assets/ship-interiors/rustbucket-repairs/glb/fuse-working.glb",
+            "broken": "assets/ship-interiors/rustbucket-repairs/glb/fuse-broken.glb",
+            "repaired": "assets/ship-interiors/rustbucket-repairs/glb/fuse-repaired.glb"
+          }
+        },
+        "scrubber": {
+          "pos": [
+            -3,
+            0.95,
+            5.86
+          ],
+          "yaw": 0.0,
+          "models": {
+            "working": "assets/ship-interiors/rustbucket-repairs/glb/scrubber-working.glb",
+            "broken": "assets/ship-interiors/rustbucket-repairs/glb/scrubber-broken.glb",
+            "repaired": "assets/ship-interiors/rustbucket-repairs/glb/scrubber-repaired.glb"
+          }
+        },
+        "crack": {
+          "pos": [
+            -0.86,
+            0.55,
+            5.15
+          ],
+          "yaw": 1.5707963267948966,
+          "models": {
+            "working": "assets/ship-interiors/rustbucket-repairs/glb/crack-working.glb",
+            "broken": "assets/ship-interiors/rustbucket-repairs/glb/crack-broken.glb",
+            "repaired": "assets/ship-interiors/rustbucket-repairs/glb/crack-repaired.glb"
+          }
+        },
+        "strap": {
+          "pos": [
+            1.55,
+            0.1,
+            10.6
+          ],
+          "yaw": 0.0,
+          "models": {
+            "working": "assets/ship-interiors/rustbucket-repairs/glb/strap-working.glb",
+            "broken": "assets/ship-interiors/rustbucket-repairs/glb/strap-broken.glb",
+            "repaired": "assets/ship-interiors/rustbucket-repairs/glb/strap-repaired.glb"
+          }
+        },
+        "seal": {
+          "pos": [
+            2.82,
+            0.45,
+            5.32
+          ],
+          "yaw": -1.5707963267948966,
+          "models": {
+            "working": "assets/ship-interiors/rustbucket-repairs/glb/seal-working.glb",
+            "broken": "assets/ship-interiors/rustbucket-repairs/glb/seal-broken.glb",
+            "repaired": "assets/ship-interiors/rustbucket-repairs/glb/seal-repaired.glb"
+          }
+        }
+      },
+      "baked": {
+        "corridor": "assets/ship-interiors/finish/rustbucket/corridor.jpg",
+        "passenger cabin": "assets/ship-interiors/finish/rustbucket/passenger-cabin.jpg",
+        "galley": "assets/ship-interiors/finish/rustbucket/galley.jpg",
+        "cargo hold": "assets/ship-interiors/finish/rustbucket/cargo-hold.jpg",
+        "engine room": "assets/ship-interiors/finish/rustbucket/engine-room.jpg",
+        "scrubber bay": "assets/ship-interiors/finish/rustbucket/scrubber-bay.jpg",
+        "airlock": "assets/ship-interiors/finish/rustbucket/airlock.jpg",
+        "port alley": "assets/ship-interiors/finish/rustbucket/port-alley.jpg",
+        "starboard alley": "assets/ship-interiors/finish/rustbucket/starboard-alley.jpg"
+      },
+      "walk": {
+        "x0": -4.6,
+        "z0": 0.5,
+        "cell": 0.05,
+        "nx": 176,
+        "nz": 376,
+        "bits": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM//8wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAB/wAAP/4AP///wAegC9/vAAAAAAAAAf/AAP/+AD///8AH+D///wAAAAAAAAH//8///gA////AB/////8AAAAAAAAB//////4AP///wAf/////AAAAAAAAAf/////+AD///8AH/////wAAAAAAAAH//////gA////AB/////8AAAAAAAAB//////4AP///wAf/////AAAAAAAAAf/////+AD///8AH/////wAAAAAAAAH//////gA////AB/////8AAAAAAAAB//////4AP///wAf/////AAAAAAAAAf/////+AD///8AH/////wAAAAAAAAH//////gA////AB/////8AAAAAAAAB//////4AP///wAf/////AAAAAAAAAf/////+AD///8AH/////wAAAAAAAAH//////gA////AA/////8AAAAAAAAB//////4AP///wAP/////AAAAAAAAAf/////+AD///8AH/////wAAAAAAAAH//////gA////AB/////sAAAAAAAAB//////4AP///wAf////gAAAAAAAAAf/////+AD///8AH////wAAAAAAAAAH//////gA//////////8AAAAAAAAAB//////4AP/////////+AAAAAAAAAAf/////+AD//////////wAAAAAAAAAH//////gA//////////8AAAAAAAAAB//////wAP//////////gAAAAAAAAAf/////8AD//////////+wAAAAAAAAH//////gA///////////8AAAAAAAAB//////4AP///////////AAAAAAAAAf/////+AD///////////wAAAAAAAAH//////gA///////////8AAAAAAAAB///////////////////7AAAAAAAAAf//////////////////4AAAAAAAAAH//////////////////8AAAAAAAAAB///////////////////AAAAAAAAAAf//////////////////gAAAAAAAAAH//////////////////8AAAAAAAAAB////////////wAf////AAAAAAAAAAf///////////8AH////4AAAAAAAAAH////////////AB/////sAAAAAAAAB////////////wAf/////AAAAAAAAAf///////////8AD/////wAAAAAAAAH////////////AA/////8AAAAAAAAB////////////wAf/////AAAAAAAAAf///////////8AH////8AAAAAAAAAH////////////AB/B//8AAAAAAAAAB////////////wABAGOOAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////gA////AAAAAAAAAAAAAAAAB//////4AP///wAAAAAAAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////AA////AAAAAAAAAAAAAAAAB//////wAP///wAAAAAAAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////gA////AAAAAAAAAAAAAAAAB//////4AP///wAAAAAAAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////gA////AAAAAAAAAAAAAAAAB//////4AP///wAAAAAAAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////gA////AAAAAAAAAAAAAAAAB//////4AP///wAAAAAAAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////gA////AAAAAAAAAAAAAAAAB//////4AP///wAAAAAAAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////gA////AAAAAAAAAAAAAAAAB//////4AP///wAAAAAAAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////gA////AAAAAAAAAAAAAAAAB//////4AP///wAAAAAAAAAAAAAAAAf/////+AD///8AAAAAAAAAAAAAAAAH//////gA////AAAAAAAAAAAAAAAAB//////4AP///wAAAAAAABwAAAAAAAfAAAAA+AD///8AAAAAAAAeAAAAAAAHAAAAADgA////AAAAAAAAH4AAAAAABgAAAAAYAP///wAAAAAAAB/wAAAAAAAAAAAAAAD///8AAAAAAAAf4AAAAAAAAAAAAAAA////AAAAAAAAD+AAAAAAAAAAAAAAAP///wAfgf8DAA/gAAAAAAAAAAAAAAD///8AH////4Af4AAAAAAAAAAAAAAA////AB////+AH+AAAAAAAAAAAAAAAP///wAf////gB/gAAAAAAAAAAAAAAD///8AH////4Af8AAAAAAAAAAAAAAA/////////////+AAAAAAAAAAAAAAAP/////////////gAAAAAAAAAAAAAAD/////////////4AAAAAAAAAAAAAAA/////////////+AAAAAAAAAAAAAAAP/////////////gAAAAAAAAAD//+AD/////////////4AAAAAAAAAD///gA/////////////+AAAAAAAAAB///////////////////gAAAAAAAAB///////////////////4AAAAAAD/////////////////////+AAAAAAA////////////wAf////gB/wAAAAAAP///////////8AH////4Af4AAAAAAD////////////AB////+AH+AAAAAAA////////////wAf////gB/gAAAAAAP///////////8AH////wAP4AAAAAAD////////////AA////8AD+AAAAAAA///AAf//////wAPAAB/gB/gAAAAAAP//AAB/8////8AHAAAH4Af8AAAAAAD//gAAP8D////ABgAAA+AH/AAAAAAA//wAAD4AP///wAQAAAPgB/4AAAAAAP/8AAAeAD///8AEAAAB4Af/AAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAA////////gAAAAAAAAAAAAAAAAAAAAH///////4AAAAAAAAAAAAAAAAAAAAB///////+AAAAAAAAAAAAAAAAAAAAAP///////gAAAAAAAAAAAAAAAAAAAAD///////4AAAAAAAAAAAAAAAAAAAAB///////+AAAAAAAAAAAAAAAAAAAAAf///////gAAAAAAAAAAAAAAAAAAAAP///////4AAAAAAAAAAAAAAAAAAAAB///////+AAAAAAAAAAAAAAAAAAAAAf///////gAAAAAAAAAAAAAAAAAAAAD///////4AAAAAAAAAAAAAAAAAAAAA///////+AAAAAAAAAAAAAAAAAAAAAH///////gAAAAAAAAAAAAAAAAAAAAB///////4AAAAAAAAAAAAAAAAAAAAAf//////+AAAAAAAAAAAAAAAAAAAAAH///////gAAAAAAAAAAAAAAAAAAAAA///////4AAAAAAAAAAAAAAAAAAAAAD//////+AAAAAAAAAAAAAAAAAAAAAAf//////gAAAAAAAAAAAAAAAAAAAAAH//////4AAAAAAAAAAAAAAAAAAAAAA//////+AAAAAAAAAAAAAAAAAAAAAAP//////gAAAAAAAAAAAAAAAAAAAAAD//////4AAAAAAAAAAAAAAAAAAAAAA//////+AAAAAAAAAAAAAAAAAAAAAAP//////gAAAAAAAAAAAAAAAAAAAAAD//////4AAAAAAAAAAAAAAAAAAAAAB//////+AAAAAAAAAAAAAAAAAAAAAAf//////gAAAAAAAAAAAAAAAAAAAAAP//////4AAAAAAAAAAAAAAAAAAAAAP//////+AAAAAAAAAAAAAAAAAAAAA////////gAAAAAAAAAAAAAAAAAAAAP///////4AAAAAAAAAAAAAAAAAAAAD///////+AAAAAAAAAAAAAAAAAAAAA////////gAAAAAAAAAAAAAAAAAAAAP///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAH///////+AAAAAAAAAAAAAAAAAAAAB////////gAAAAAAAAAAAAAAAAAAAAf///////4AAAAAAAAAAAAAAAAAAAAAAA///wAAAAAAAAAAAAAAAAAAAAAAAAAP//8AAAAAAAAAAAAAAAAAAAAAAAAAD///AAAAAAAAAAAAAAAAAAAAAAAAAA///wAAAAAAAAAAAAAAAAAAAAAAAAAP//8AAAAAAAAAAAAAAAAAAAAAAAAAD///AAAAAAAAAAAAAAAAAAAAAAAAAA///wAAAAAAAAAAAAAAAAAAAAAAAAAP//8AAAAAAAAAAAAAAAAAAAAAAAAAD///AAAAAAAAAAAAAAAAAAAAAAAAAA///wAAAAAAAAAAAAAAAAAAAAAAAAAP//8AAAAAAAAAAAAAAAAAAAAAAAAAD///AAAAAAAAAAAAAAAAAD8AD/////////////8AD8AAAAAAAAA/AA//////////////AA/AAAAAAAAAPwAP/////////////wAPwAAAAAAAAD8AD/////////////8AD8AAAAAAAAA/AA//////////////AA/AAAAAAAAAPwAP/////////////wAPwAAAAAAAAD///////////////////8AAAAAAAAA////////////////////AAAAAAAAAP///////////////////wAAAAAAAAD///////////////////8AAAAAAAAA////////////////////AAAAAAAAAP///////////////////wAAAAAAAAD///////////////////8AAAAAAAAA////////////////////AAAAAAAAAP///////////////////wAAAAAAAAD///////////////////8AAAAAAAAA///////////+P///////AAAAAAAAAP////////AACA///////wAAAAAAAAD8AD////8AAAAH///8AD8AAAAAAAAA/AA////8AAAAB////AA/AAAAAAAAAPwAP///+AAAAAP///wAPwAAAAAAAAD8AD////AAAAAD///8AD8AAAAAAAAA/AA////gAAAAB////AA/AAAAAAAAAPwAP///4AAAAAf///wAPwAAAAAAAAD8AD///8AAAAAD///8AD8AAAAAAAAA/AAf///AAAAAA///+AA/AAAAAAAAAPwAH///4AAAAAf///gAPwAAAAAAAAD8AB///+AAAAAH///4AD8AAAAAAAAA/AAf///gAAAAB///+AA/AAAAAAAAAPwAH///wAAAAAf///gAPwAAAAAAAAD8AB///8AAAAAH///4AD8AAAAAAAAA/AAf///AAAAAB///+AA/AAAAAAAAAPwAH///4AAAAAf///gAHwAAAAAAAAD8AB///+AAAAAH///4AD8AAAAAAAAA/AAf///AAAAAB///+AA/AAAAAAAAAPwAH///wAAAAAf///gAPwAAAAAAAAD8AB///8AAAAAH///4AD8AAAAAAAAA/AAf///AAAAAB///+AA/AAAAAAAAAPwAH///4AAAAAf///gAPwAAAAAAAAD8AB///8AAAAAD///4AD8AAAAAAAAA/AAf///AAAAAA///+AA/AAAAAAAAAPwAH///wAAAAAP///gAHwAAAAAAAAD8AB///8AAAAAH///4AD8AAAAAAAAA/AAf///AAAAAB///+AA/AAAAAAAAAPwAH///4AAAAA////gAPwAAAAAAAAD8AB///+AAAAAH///4AD8AAAAAAAAA/AAf///AAAAAD///+AA/AAAAAAAAAHwAH///wAAAAA////gAPwAAAAAAAAB8AB///8AAAAAP///4AD8AAAAAAAAAfAAf///AAAAAD///+AAfAAAAAAAAAHwAH///4AAAAA////gAHwAAAAAAAAB8AAf//+AAAAAP///4AD8AAAAAAAAAfAAB///AAAAAD///+AA/AAAAAAAAAHwAAP//wAAAAA////gAPwAAAAAAAAD8AAD//8AAAAAP///4AD8AAAAAAAAA/AAAf//gAAAAB///+AA/AAAAAAAAAPwAAH//4AAAAAf///gAPwAAAAAAAAD8AAB//8AAAAAD///4AD8AAAAAAAAA/AAAf//AAAAAA///+AAfAAAAAAAAAPwAAH//wAAAAAf///gAHwAAAAAAAAD8AAB//8AAAAAH///4AD8AAAAAAAAA/AAAf//gAAAAD///+AA/AAAAAAAAAPwAAH//4AAAAB////gAPwAAAAAAAAD8AAB///AAAAA////4AD8AAAAAAAAA/AAAf//4AAAAP///+AA/AAAAAAAAAPwAAAAf+AAAAD////gAPwAAAAAAAAD8AAAAB/wAAAB////4AD8AAAAAAAAA/AAAAAP+AAAAf///+AA/AAAAAAAAAPwAAAAD/wAAAP////gAPwAAAAAAAAD8AAAAAf/AAAP////4AD8AAAAAAAAA/AAAAAH/////////+AA/AAAAAAAAAPwAAAAB//////////gAPwAAAAAAAAAAAAAAAf/////////4AAAAAAAAAAAAAAAAAAH/////////+AAAAAAAAAAAAAAAAAAB//////////gAAAAAAAAAAAAAAAAAAf/////////4AAAAAAAAAAAAAAAAAAH/////////+AAAAAAAAAAAAAAAAAAB//////////gAAAAAAAAAAAAAAAAAAf/////////4AAAAAAAAAAAAAAAAAAP/////////+AAAAAAAAAAAAAAAAAAD//////////gAAAAAAAAAAAAAAAAAB//////////4AAAAAAAAAAAAAAAAAB//////////+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+      },
+      "crates": [
+        [
+          -2.35,
+          7.9
+        ],
+        [
+          -2.35,
+          8.75
+        ],
+        [
+          -2.35,
+          9.6
+        ],
+        [
+          -2.35,
+          13.0
+        ]
+      ]
+    }
+  ]
+}

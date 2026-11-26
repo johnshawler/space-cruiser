@@ -1,0 +1,24 @@
+{
+ "id": "bellwrought",
+ "name": "Bellwrought",
+ "kind": "robot",
+ "triangles": 11130,
+ "kb": 1107,
+ "clips": [
+  "Idle",
+  "Travel",
+  "Operate"
+ ],
+ "glow": false,
+ "morphs": [],
+ "min": [
+  -1.206,
+  -0.008,
+  -0.933
+ ],
+ "max": [
+  1.262,
+  2.14,
+  0.933
+ ]
+}
