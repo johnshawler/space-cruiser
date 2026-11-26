@@ -34,6 +34,22 @@ Each Blender file opens a single editable shop. Each corresponding GLB contains 
 | Mellow Hollow | Toxibloom | The Damp Log | Cantina (`bar`) | [Blender](../../../art/storefronts/models/toxibloom-bar.blend) · [GLB](../../../assets/storefronts/toxibloom-bar.glb) |
 | Port Lament | Candara | The Sunk Cost | Cantina (`bar`) | [Blender](../../../art/storefronts/models/candara-bar.blend) · [GLB](../../../assets/storefronts/candara-bar.glb) |
 | The Last Light | Beacon Far Wink | The Final Blink | Cantina (`bar`) | [Blender](../../../art/storefronts/models/beacon-far-wink-bar.blend) · [GLB](../../../assets/storefronts/beacon-far-wink-bar.glb) |
+| Port Gneiss | Scorchmaw | Gravel Freight Yard | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/scorchmaw-depot.blend) · [GLB](../../../assets/storefronts/scorchmaw-depot.glb) |
+| Ladle Harbor | Sloshwell | Ladle Harbor Freight | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/sloshwell-depot.blend) · [GLB](../../../assets/storefronts/sloshwell-depot.glb) |
+| Bargain Roost | Amethyne | Bargain Roost Cargo Perch | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/amethyne-depot.blend) · [GLB](../../../assets/storefronts/amethyne-depot.glb) |
+| Mellow Hollow | Toxibloom | Mellow Hollow Depot | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/toxibloom-depot.blend) · [GLB](../../../assets/storefronts/toxibloom-depot.glb) |
+| Port Lament | Candara | Port Lament Cargo Dock | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/candara-depot.blend) · [GLB](../../../assets/storefronts/candara-depot.glb) |
+| The Drift | Jovexa | Drift Cargo Bubble | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/jovexa-depot.blend) · [GLB](../../../assets/storefronts/jovexa-depot.glb) |
+| Fort Snuggle | Brrrindle | Fort Snuggle Cargo Hut | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/brrrindle-depot.blend) · [GLB](../../../assets/storefronts/brrrindle-depot.glb) |
+| The Quiet Ear | Listening Post Hush | Hush Receiving Bay | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/listening-post-hush-depot.blend) · [GLB](../../../assets/storefronts/listening-post-hush-depot.glb) |
+| Tolerance Station | Calibration Spire | Precision Freight | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/calibration-spire-depot.blend) · [GLB](../../../assets/storefronts/calibration-spire-depot.glb) |
+| The Last Light | Beacon Far Wink | Last Light Freight Office | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/beacon-far-wink-depot.blend) · [GLB](../../../assets/storefronts/beacon-far-wink-depot.glb) |
+| Vendorhaven | Verdanthia | Fix-O-Matic 3000 | Garage (`garage`) | [Blender](../../../art/storefronts/models/verdanthia-garage.blend) · [GLB](../../../assets/storefronts/verdanthia-garage.glb) |
+| The Drift | Jovexa | Gentle Repairs | Garage (`garage`) | [Blender](../../../art/storefronts/models/jovexa-garage.blend) · [GLB](../../../assets/storefronts/jovexa-garage.glb) |
+| Fort Snuggle | Brrrindle | Warm Wrench Garage | Garage (`garage`) | [Blender](../../../art/storefronts/models/brrrindle-garage.blend) · [GLB](../../../assets/storefronts/brrrindle-garage.glb) |
+| The Freezer Aisle | Cryo Vault Rimeholm | Thaw & Patch | Garage (`garage`) | [Blender](../../../art/storefronts/models/cryo-vault-rimeholm-garage.blend) · [GLB](../../../assets/storefronts/cryo-vault-rimeholm-garage.glb) |
+| Tolerance Station | Calibration Spire | Exactly Right Repairs | Garage (`garage`) | [Blender](../../../art/storefronts/models/calibration-spire-garage.blend) · [GLB](../../../assets/storefronts/calibration-spire-garage.glb) |
+| The Last Light | Beacon Far Wink | End of the Line Garage | Garage (`garage`) | [Blender](../../../art/storefronts/models/beacon-far-wink-garage.blend) · [GLB](../../../assets/storefronts/beacon-far-wink-garage.glb) |
 
 ## Marker convention
 

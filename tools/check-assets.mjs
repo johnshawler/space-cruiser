@@ -83,7 +83,12 @@ for (const [loc, shops] of Object.entries(fronts)) {
     const file = 'assets/storefronts/' + entry.file;
     const g = glb(file);
     if (g.tris !== entry.triangles || g.tris > 80000) fail(`storefront ${key}: triangle count ${g.tris}`);
-    for (const marker of basicMarkers) {
+    const markers = [...basicMarkers];
+    if (shop === 'depot') {
+      markers.push('shelf','stock_door','packing_bench','droid_home');
+      for (let i = 1; i <= 12; i++) markers.push('goods_' + String(i).padStart(2, '0'));
+    }
+    for (const marker of markers) {
       if (!entry.markers[marker]) fail(`storefront ${key}: missing ${marker}`);
     }
     for (const [marker, position] of Object.entries(entry.markers)) {
@@ -95,10 +100,10 @@ for (const [loc, shops] of Object.entries(fronts)) {
 for (const [loc, shops] of Object.entries(shopsAt)) {
   for (const shop of shops) {
     const key = loc + '/' + shop;
-    if (!have.has(key) && !locationsWithFronts.has(key)) fail(`shop ${key}: no authored environment`);
+    if (!locationsWithFronts.has(key)) fail(`shop ${key}: no playable storefront`);
   }
 }
-pass(`${locationsWithFronts.size} playable storefronts, every other shop has a bespoke room`);
+pass(`${locationsWithFronts.size} playable storefronts covering the complete venue roster`);
 
 // ---- cockpits ----
 const SHIPS = ['rustbucket', 'dromedary', 'stoat', 'manatee', 'empress'];

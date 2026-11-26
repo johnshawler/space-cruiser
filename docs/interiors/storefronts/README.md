@@ -1,6 +1,6 @@
 # Long Haul storefront models
 
-This collection contains thirty individually editable, open-front shops across nine planets and four research stations. The two render sheets show the finished geometry. Names, locations, services and shop keys come from the [game venue definitions](../../../src/08b-venues.js).
+This collection contains 46 individually editable, open-front shops across nine planets and four research stations. The three render sheets show the finished geometry. Names, locations, services and shop keys come from the [game venue definitions](../../../src/08b-venues.js).
 
 ## Blender models and game exports
 
@@ -12,21 +12,26 @@ This collection contains thirty individually editable, open-front shops across n
 
 ![Fourteen new storefronts, labeled by shop and location](market-storefronts.jpg)
 
+[Final ten depots and six garages in Blender](../../../art/storefronts/Freight-Storefronts.blend) · [Full-resolution render sheet](freight-storefronts.jpg)
+
+![Sixteen freight depots and garages, labeled by shop and location](freight-storefronts.jpg)
+
 [Shop-to-port list, individual Blender files, GLBs and marker guide](shop-to-port.md)
 
 Each model has an open sales floor, a service counter facing the viewer, space behind it for a keeper and two crew, and a workshop or display fitting specific to the trade. The standalone Blender files keep architectural assemblies, sign lettering and named placement empties editable. Texture images are packed. Each master arranges its shops on a review grid. Each GLB carries the same placement nodes as its standalone source.
 
-The game has 46 shops at 13 ports. It loads a storefront by location and shop key and uses it as the playable shop. The keeper, crew and transaction controls come from the game. All eight cantinas and every shipyard, assay office, paint shop and outfitter have storefronts. Ten depots and six garages still use their individually modeled rooms. The `?oldshops` option shows the earlier interiors with the storefronts outside during approach and takeoff.
+The game has 46 shops at 13 ports. It loads a storefront by location and shop key and uses it as the playable shop. The keeper, crew and transaction controls come from the game. Every location has a storefront, including all 13 depots. The depot droid uses the outer aisle to reach the goods shelf and carries orders through the stock-room door to the packing bench. The `?oldshops` option shows the earlier interiors with the storefronts outside during approach and takeoff.
 
 Rebuild the models with Blender 4.5 LTS from the repository root:
 
 ```sh
 blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py -- "$PWD" --render
 blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py -- "$PWD" --expansion --render
+blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py -- "$PWD" --freight --render
 bash build.sh
 ```
 
-The optional render pass writes individual views under `build/storefront-renders/` and `build/market-renders/`.
+The optional render pass writes individual views under `build/storefront-renders/`, `build/market-renders/` and `build/freight-renders/`.
 
 ## Original venue concept sheet
 

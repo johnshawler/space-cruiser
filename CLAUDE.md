@@ -77,9 +77,9 @@ Each depot, garage and cantina, each ship's cockpit and each walkable deck has a
 
 ## Storefronts are the shops
 
-Thirty of the 46 playable shops have a storefront model in `assets/storefronts/` (listed in its `manifest.json`, embedded as `ASSET_MANIFESTS.storefronts`). Each is built in the shop's own frame: counter at the origin, front towards +Z, with markers where the game already puts the keeper, crew, name plate, signpost and camera. `frontAsShop` in `src/08b-venues.js` uses it as the shop itself, through the same `swapRoom` path as a bespoke room: the stock room, counter and furniture go; the keeper, crew act, goods shelf, droid, name plate, signpost and shop sign stay. The `light_key` and `light_fill` markers, plus one lamp out front, light the bake.
+All 46 playable shops at 13 ports have a storefront model in `assets/storefronts/` (listed in its `manifest.json`, embedded as `ASSET_MANIFESTS.storefronts`). Each is built in the shop's own frame: counter at the origin, front towards +Z, with markers where the game already puts the keeper, crew, name plate, signpost and camera. `frontAsShop` in `src/08b-venues.js` uses it as the shop itself, through the same `swapRoom` path as a bespoke room: the stock room, counter and furniture go; the keeper, crew act, goods shelf, droid, name plate, signpost and shop sign stay. The `light_key` and `light_fill` markers, plus one lamp out front, light the bake.
 
-- A shop with both a storefront and a bespoke room uses the storefront (three depots, three garages and all eight cantinas). The room's files are still in `assets/interiors/`.
+- A shop with both a storefront and a bespoke room uses the storefront (all 13 depots, nine garages and eight cantinas). The room's files are still in `assets/interiors/`.
 - A shipyard's storefront is a sales pavilion; it takes the place of the hangar in the shop view. The showroom pad for previewing ships is unchanged.
 - `?oldshops` shows the earlier rooms, with the storefront as an outside entrance during landing and take-off.
-- Ten depots and six garages still use their bespoke interior rooms. All eight cantinas and all shipyards, outfitters, paint shops and assay offices have storefronts. The [model index](docs/interiors/storefronts/shop-to-port.md) links each editable source and game export.
+- Each depot has twelve goods sockets and an open route from the shelf to the packing bench and counter. The [model index](docs/interiors/storefronts/shop-to-port.md) links each editable source and game export.
