@@ -97,11 +97,27 @@ def walking(objs,key):
     bits=np.packbits(reach.ravel())
     return {'x0':GX0,'z0':GZ0,'cell':CELL,'nx':nx,'nz':nz,'bits':base64.b64encode(bits.tobytes()).decode()},[c[:2] for c in crates if c[2]],report
 
-def prep(src,key,budget,cockpit=False,drop=None):
+def prep(src,key,budget,cockpit=False,drop=None,trim=None):
     bpy.ops.wm.open_mainfile(filepath=str(src),use_scripts=False)
     sc=bpy.data.scenes[0];bpy.context.window.scene=sc;t0=time.time()
     if drop:      # lettering and plates the game copy is to go without
         for o in [o for o in sc.objects if re.search(drop,o.name)]:bpy.data.objects.remove(o,do_unlink=True)
+    if trim:
+        for obj in list(bpy.data.collections['cockpit'].objects):
+            bounds=next((regions for prefix,regions in trim.items() if obj.name.startswith(prefix)),None)
+            if not bounds or obj.type!='MESH':continue
+            # Edit a private mesh so other rooms and source instances keep their own fittings.
+            if obj.data.users>1:obj.data=obj.data.copy()
+            bm=bmesh.new();bm.from_mesh(obj.data)
+            for vert in list(bm.verts):
+                xyz=game(obj.matrix_world @ vert.co)
+                if any(all(a<=v<=b for a,v,b in zip(lo,xyz,hi)) for lo,hi in bounds):
+                    bm.verts.remove(vert)
+            if bm.faces:
+                bm.to_mesh(obj.data);obj.data.update()
+            else:
+                bpy.data.objects.remove(obj,do_unlink=True)
+            bm.free()
     rooms={}
     for coll in sc.collection.children:
         for o in coll.objects:
@@ -323,12 +339,12 @@ def export_cockpit(key,title,panels=None,fittings=None):
     mf=ROOT/'assets'/'cockpits'/'manifest.json';data=json.loads(mf.read_text());data['ships']=[x for x in data['ships'] if x['ship']!=key]+[stat];mf.write_text(json.dumps(data,indent=2)+'\n')
     print('IMPORT cockpit exported',tri,'triangles',len(b),'bytes',sorted(n['name'] for n in g['nodes']))
 
-def build(path,src,title,budget=200000,panels=None,drop=None,cockpit_drop=None,cockpit_fittings=None):
+def build(path,src,title,budget=200000,panels=None,drop=None,cockpit_drop=None,cockpit_fittings=None,cockpit_trim=None):
     key=Path(path).stem;args=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
     stage=args[0] if args else 'all'
     if stage in('prep','all'):prep(src,key,budget,False,drop)
     if stage in('bake','all'):bake(key,args[1] if len(args)>1 else None)
     if stage in('export','all'):export(key,title)
-    if stage in('cockpit-prep','all'):prep(src,key,38000,True,cockpit_drop)
+    if stage in('cockpit-prep','all'):prep(src,key,38000,True,cockpit_drop,cockpit_trim)
     if stage in('cockpit-bake','all'):bake(key,None,True)
     if stage in('cockpit-export','all'):export_cockpit(key,title,panels,cockpit_fittings)
