@@ -245,7 +245,8 @@ const Venues = (() => {
     
     const L=new THREE.PointLight(C('#ffe2b8'),1.1,18,1.6); L.position.set(0,2.9,2.2); R.add(L);
     // the signpost beside the counter: its arms are the big buttons that take you to the other places in this port
-    R.add(cyl(0.08,0.08,3.3,M('#6b4a2b',0.8,0.05),3.4,1.65,0.7,8)); V.post=new THREE.Object3D(); V.post.position.set(3.4,3.3,0.7); R.add(V.post);
+    V.postSupport=cyl(0.08,0.08,3.3,M('#6b4a2b',0.8,0.05),3.4,1.65,0.7,8); R.add(V.postSupport);
+    V.post=new THREE.Object3D(); V.post.position.set(3.4,3.3,0.7); R.add(V.post);
     if(V.k!=='depot') for(let i=0;i<3;i++){ const c=bx(0.6,0.6,0.6,M(['#b07a3a','#9c6a30','#c48a48'][i],0.8,0.02),-5.6+i*0.15,0.3+i*0.6,1.2+(i%2)*0.1); c.rotation.y=i*0.3; own.add(c); }
   }
 
@@ -764,7 +765,7 @@ const Venues = (() => {
   /* ---------- a storefront as the shop itself ----------
      The storefront models are built in the shop's own frame (counter at the origin, keeper, crew and camera markers where
      the game already puts them), so one can take the place of the walk-in room in the same way a bespoke room does: the
-     stock room, counter and furniture go, and the keeper, crew, name plate, signpost and shop sign stay. Its two light
+     stock room, counter and furniture go, and the keeper, crew, name plate, signpost and shop sign stay. Its authored practicals and light
      markers light the bake. Every shop with a storefront in the manifest uses it this way, in place of a bespoke room if
      it has one too. ?oldshops shows the earlier rooms, with the storefront as an outside entrance, for comparison. */
   const frontFor = V => { const c = Assets.manifests.storefronts, p = c && c.venues[Assets.slug(V.P.name)]; return (p && p[V.k]) || null; };
@@ -778,11 +779,14 @@ const Venues = (() => {
         const b = new THREE.Box3().setFromObject(front), mk = entry.markers || {};
         // the room the game measures (bake, floor mirror, camera) is now the storefront's own extent
         Object.assign(V.room, { x0: b.min.x, x1: b.max.x, z0: b.min.z, z1: b.max.z, h: Math.min(12, b.max.y), store: false });
-        const lights = []; for (const [n, col, pw] of [['light_key', '#ffe6c4', 0.62], ['light_fill', '#dfe8ff', 0.45]]) if (mk[n]) lights.push({ name: n, position: mk[n], color: col, intensity: pw, distance: 26 });
+        const lights = (entry.lights || []).slice();
+        for (const [n, col, pw] of [['light_key', '#ffe6c4', 0.62], ['light_fill', '#dfe8ff', 0.45]]) if (mk[n]) lights.push({ name: n, position: mk[n], color: col, intensity: pw, distance: 26 });
         // a lamp out front as well, where the stock set had one, so the counter and keeper are lit from the camera's side
         lights.push({ name: 'light_front', position: [0, 4.2, 3.4], color: '#fff1dc', intensity: 0.4, distance: 20 });
         V.bespoke = { location: Assets.slug(V.P.name), shop: V.k, lights, front: true }; V.frontShop = entry;
         swapRoom(V, front, null, null);
+        // The depot's ceiling rail supports the live destination buttons above the cargo lane.
+        if (entry.wayfindingMount === 'overhead') V.postSupport.visible = false;
         // the name plate sits proud of the storefront's own counter front
         for (const o of V.plate || []) o.position.z += 0.1;
       });
