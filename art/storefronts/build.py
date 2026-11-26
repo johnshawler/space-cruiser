@@ -8,6 +8,7 @@ from mathutils import Vector, Matrix
 from functools import lru_cache
 exec(compile((Path(__file__).parent/"finish.py").read_text(), "finish.py", "exec"))
 exec(compile((Path(__file__).parent/"open_front.py").read_text(), "open_front.py", "exec"))
+exec(compile((Path(__file__).parent/"refit.py").read_text(), "refit.py", "exec"))
 exec(compile((Path(__file__).parent/"expansion.py").read_text(), "expansion.py", "exec"))
 exec(compile((Path(__file__).parent/"freight.py").read_text(), "freight.py", "exec"))
 TEXDIR=tempfile.TemporaryDirectory(prefix="long-haul-storefronts-")
@@ -30,6 +31,7 @@ PAL = {
  'red':'a3423d','wine':'733344','rose':'c88188','orange':'dc8347','yellow':'dfb943','sand':'be9066',
  'sand2':'dab488','tan':'a87e55','wood':'80563c','mahogany':'674331','basalt':'484348','stone':'756e70',
  'glass':'375d68','light':'ffcb79','cyan':'9ceef2','flame':'ff8140','pearl':'dfd5e2','pink':'de9da5'}
+PAL.update(deckplate='777570',upholstery='805141',canvas='9a8e6d',safety='cc9663')
 metal=set('iron dark edge steel brass gold copper rust'.split())
 def linear(c):
     q=int(c,16)/255
@@ -45,10 +47,7 @@ def material(k):
     p.inputs['Roughness'].default_value=.21 if k in ('glass','pearl','ice') else .38 if k in metal else .63
     if k in ('light','cyan','flame'):
         p.inputs['Emission Color'].default_value=(*rgb,1);p.inputs['Emission Strength'].default_value=2.1
-    img=surface_image(k)
-    if img:
-        tex=m.node_tree.nodes.new("ShaderNodeTexImage");tex.image=img
-        m.node_tree.links.new(tex.outputs["Color"],p.inputs["Base Color"])
+    finish_port_material(m,k)
     return m
 
 # Each labeled assembly has its own editable mesh. Parts share vertices only within a solid.
@@ -629,6 +628,8 @@ for i,(title,port,key,fn) in enumerate(VENUES):
         fit_floor(spec)
     else:
         fn();stamp_hardware(i);detail_kit(i);marks=make_open_shop(i,title,port,key)
+    if not expansion:forecourt_display(port,key)
+    fixtures=refit_shop(title,port,key)
     finish_meshes()
     original=list(col.objects);game=prepare_game_copy(original)
     game.name=f'{port}-{key}';game['venue']=title;game['shopKey']=key;game['locationKey']=port
@@ -640,11 +641,14 @@ for i,(title,port,key,fn) in enumerate(VENUES):
     for anchor in anchors:anchor.select_set(True)
     bpy.ops.export_scene.gltf(filepath=str(MODELS/filename),export_format='GLB',use_selection=True,export_yup=True,
         export_texcoords=True,export_image_format='JPEG',export_jpeg_quality=82,export_animations=False,export_extras=True,export_cameras=False,export_lights=False,export_normals=True)
-    manifest['venues'].setdefault(port,{})[key]={'name':title,'file':filename,'triangles':tris,'port':PORTS[port],'markers':marks}
+    manifest['venues'].setdefault(port,{})[key]={'name':title,'file':filename,'triangles':tris,'port':PORTS[port],'markers':marks,'lights':fixtures}
+    if key=='depot':
+        manifest['venues'][port][key]['wayfindingMount']='overhead'
     bpy.data.objects.remove(game,do_unlink=True)
+    lamps=fit_native_lights(fixtures)
     save_one(title,port,key)
     for ob in anchors:ob.name=f'{port}_{key}__{ob.name}'
-    original+=anchors
+    original+=anchors+lamps
     collections_by_id.append(col)
     # Keep each shop distinct and directly editable in the master gallery.
     offset=Vector(((i%4-1.5)*22,(1.5-i//4)*30,0))
