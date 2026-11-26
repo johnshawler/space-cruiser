@@ -16168,7 +16168,7 @@ const Venues = (() => {
     x.fillStyle=pal[4]; fit(where,700,48,`600 #px ${FONT_DISP}`); x.fillText(where,384,165);
     const t=canvasTex(cv), w=2.9, h=w*220/768;
     const plate=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:t,emissive:C('#ffffff'),emissiveMap:t,emissiveIntensity:0.5,roughness:0.5}));
-    plate.position.set(0,0.52,0.47); R.add(plate); R.add(bx(w+0.1,h+0.1,0.05,M("#20242a",0.5,0.4),0,0.52,0.42));
+    plate.position.set(0,0.52,0.47); R.add(plate); const back=bx(w+0.1,h+0.1,0.05,M("#20242a",0.5,0.4),0,0.52,0.42); R.add(back); V.plate=[plate,back];
   }
   /* back-of-set scenery and props for each kind; returns the props its gag needs */
   const SETS = {
@@ -16669,6 +16669,34 @@ const Venues = (() => {
     }
   }
 
+  /* ---------- a storefront as the shop itself ----------
+     The storefront models are built in the shop's own frame (counter at the origin, keeper, crew and camera markers where
+     the game already puts them), so one can take the place of the walk-in room in the same way a bespoke room does: the
+     stock room, counter and furniture go, and the keeper, crew, name plate, signpost and shop sign stay. Its two light
+     markers light the bake. Every shop with a storefront in the manifest uses it this way, in place of a bespoke room if
+     it has one too. ?oldshops shows the earlier rooms, with the storefront as an outside entrance, for comparison. */
+  const frontFor = V => { const c = Assets.manifests.storefronts, p = c && c.venues[Assets.slug(V.P.name)]; return (p && p[V.k]) || null; };
+  function frontAsShop(V, entry) {
+    Assets.glb('assets/storefronts/' + entry.file).then(source => {
+      if (!Venues.list.includes(V)) return;
+      Venues.pending.push(() => {
+        if (!Venues.list.includes(V)) return;
+        const front = source.clone(true);
+        front.traverse(o => { if (!o.isMesh) return; o.geometry = o.geometry.clone(); o.material = Array.isArray(o.material) ? o.material.map(m => m.clone()) : o.material.clone(); });
+        const b = new THREE.Box3().setFromObject(front), mk = entry.markers || {};
+        // the room the game measures (bake, floor mirror, camera) is now the storefront's own extent
+        Object.assign(V.room, { x0: b.min.x, x1: b.max.x, z0: b.min.z, z1: b.max.z, h: Math.min(12, b.max.y), store: false });
+        const lights = []; for (const [n, col, pw] of [['light_key', '#ffe6c4', 0.62], ['light_fill', '#dfe8ff', 0.45]]) if (mk[n]) lights.push({ name: n, position: mk[n], color: col, intensity: pw, distance: 26 });
+        // a lamp out front as well, where the stock set had one, so the counter and keeper are lit from the camera's side
+        lights.push({ name: 'light_front', position: [0, 4.2, 3.4], color: '#fff1dc', intensity: 0.4, distance: 20 });
+        V.bespoke = { location: Assets.slug(V.P.name), shop: V.k, lights, front: true }; V.frontShop = entry;
+        swapRoom(V, front, null, null);
+        // the name plate sits proud of the storefront's own counter front
+        for (const o of V.plate || []) o.position.z += 0.1;
+      });
+    }).catch(() => {});   // the stock shop stays when the model is unavailable
+  }
+
   // This is the public entrance on the pad-facing side of the shop. Keep it
   // outside the room subtree so the indoor bake, mirrors and click targets
   // continue to use only the walk-in set.
@@ -16677,6 +16705,7 @@ const Venues = (() => {
     const port = catalog && catalog.venues[Assets.slug(V.P.name)];
     const entry = port && port[V.k];
     if (!entry) return;
+    if (!/[?&]oldshops\b/.test(location.search)) { frontAsShop(V, entry); return; }
     Assets.glb('assets/storefronts/' + entry.file).then(source => {
       if (!Venues.list.includes(V)) return;
       const front = source.clone(true);
@@ -16754,7 +16783,7 @@ const Venues = (() => {
           Bake.beams(V,scn);   // sunbeams through the windows and cones of light under the lamps
           Bake.decals(V);   // oil, scuffs and drink rings on the floor
           Bake.floorMirror(V); });   // reflections on the floor (high quality only)
-        V.P=P; V.scn=scn; V.bespoke=Assets.room(P,d.k); if(V.bespoke) bespoke(V);   // this port's own room, modelled in Blender, replaces the stock one when it arrives
+        V.P=P; V.scn=scn; V.bespoke=Assets.room(P,d.k); if(V.bespoke&&!(frontFor(V)&&!/[?&]oldshops\b/.test(location.search))) bespoke(V);   // this port's own room, modelled in Blender, replaces the stock one when it arrives
         this.list.push(V); loadStorefront(V); });
       // last of all, every material in the port is compiled in one go, with all the shops showing: otherwise each one
       // compiles the first time it comes into view, which stutters the descent and again the takeoff

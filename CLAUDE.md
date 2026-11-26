@@ -74,3 +74,12 @@ Each depot, garage and cantina, each ship's cockpit and each walkable deck has a
   - Deck dressing (repairs, lamps, clutter) is `art/ship-interiors/dress.py`. Keep it out of `Interior.RECTS`, off the repair spots and off the game's signs. Lettered boards are `DECK_NOTES` in `src/09-walk.js`. Deck exports bake short-range shading into vertex colours (`bake_grime` in `art/cockpits/fabricate.py`), and the game adds `Interior.grimeTex()` to plain deck materials.
   - The Rustbucket's deck and cockpit are hand-built: `art/ship-interiors/source/Rustbucket-Mk-I.blend`, made into game copies by `art/ship-interiors/import_deck.py` (run through `art/ship-interiors/rustbucket.py`, stages `prep`, `bake`, `export`, `cockpit-prep`, `cockpit-bake`, `cockpit-export`; about 25 minutes in all). Do not run `art/cockpits/rustbucket.py`: it would overwrite the imported cockpit. A baked deck (`baked` in the manifest) is drawn unlit and carries its own walking map (`walk`) and crate places (`crates`); see `Interior.bakedDeck` and `Interior.plan`.
 - `node tools/check-assets.mjs` checks the manifests against the files and the game's own shops, repair spots and seats.
+
+## Storefronts are the shops
+
+Sixteen shops have a storefront model in `assets/storefronts/` (listed in its `manifest.json`, embedded as `ASSET_MANIFESTS.storefronts`). Each is built in the shop's own frame: counter at the origin, front towards +Z, with markers where the game already puts the keeper, crew, name plate, signpost and camera. `frontAsShop` in `src/08b-venues.js` uses it as the shop itself, through the same `swapRoom` path as a bespoke room: the stock room, counter and furniture go; the keeper, crew act, goods shelf, droid, name plate, signpost and shop sign stay. The `light_key` and `light_fill` markers, plus one lamp out front, light the bake.
+
+- A shop with both a storefront and a bespoke room uses the storefront (eight shops: three depots, three garages, two cantinas). The room's files are still in `assets/interiors/`.
+- A shipyard's storefront is a sales pavilion; it takes the place of the hangar in the shop view. The showroom pad for previewing ships is unchanged.
+- `?oldshops` shows the earlier rooms, with the storefront as an outside entrance during landing and take-off.
+- The other 30 shops have no storefront yet and look as before.
