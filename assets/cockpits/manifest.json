@@ -828,15 +828,15 @@
       "ship": "rustbucket",
       "name": "Rustbucket Mk I",
       "file": "assets/cockpits/rustbucket.glb",
-      "triangles": 31966,
-      "meshes": 10,
+      "triangles": 16230,
+      "meshes": 11,
       "materials": 8,
-      "bytes": 1049256,
+      "bytes": 664052,
       "anchors": {
         "panel_main": {
           "position": [
             0,
-            -0.15000000596046448,
+            -0.097,
             -0.6520000100135803
           ],
           "quaternion": [

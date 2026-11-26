@@ -2987,15 +2987,15 @@ const ASSET_MANIFESTS={interiors:{
       "ship": "rustbucket",
       "name": "Rustbucket Mk I",
       "file": "assets/cockpits/rustbucket.glb",
-      "triangles": 31966,
-      "meshes": 10,
+      "triangles": 16230,
+      "meshes": 11,
       "materials": 8,
-      "bytes": 1049256,
+      "bytes": 664052,
       "anchors": {
         "panel_main": {
           "position": [
             0,
-            -0.15000000596046448,
+            -0.097,
             -0.6520000100135803
           ],
           "quaternion": [
@@ -14710,19 +14710,23 @@ const Cockpit = {
     bx(0.52,0.1,0.5,M.leather,0,-0.76,0.06); bx(0.5,0.95,0.1,M.leather,0,-0.3,0.36); bx(0.3,0.2,0.08,M.leather,0,0.26,0.33);
     for(const s of [-1,1]){ bx(0.34,0.52,1.25,M.frame,s*0.81,-0.69,-0.3); bx(0.35,0.012,1.26,M.panel,s*0.81,-0.424,-0.3); bx(0.02,0.012,1.26,M.trim,s*0.635,-0.42,-0.3); }
     bx(0.26,0.5,0.44,M.frame,0,-0.88,-0.56);
-    // side-stick
-    const stickBase=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,0.03,24),M.rubber); stickBase.position.set(0.74,-0.405,-0.5); add(stickBase);
-    this.stick=new THREE.Group(); this.stick.position.set(0.74,-0.39,-0.5); g.add(this.stick);
-    const st=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.016,0.15,16),M.knob); st.position.y=0.075; add(st,true,this.stick);
-    const gr=new THREE.Mesh(new THREE.SphereGeometry(0.026,16,12),M.leather); gr.scale.set(1,1.5,1.1); gr.position.y=0.16; add(gr,true,this.stick);
-    const tb=new THREE.Mesh(new THREE.SphereGeometry(0.008,10,8),std('#c02020',0.4,0.2)); tb.position.set(0,0.2,-0.008); this.stick.add(tb);
+    // The Rustbucket uses keyboard or touch steering and the live throttle on the pedestal.
+    let stickBase=null; this.stick=null;
+    if(def!==SHIPS[0]){
+      stickBase=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,0.03,24),M.rubber); stickBase.position.set(0.74,-0.405,-0.5); add(stickBase);
+      this.stick=new THREE.Group(); this.stick.position.set(0.74,-0.39,-0.5); g.add(this.stick);
+      const st=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.016,0.15,16),M.knob); st.position.y=0.075; add(st,true,this.stick);
+      const gr=new THREE.Mesh(new THREE.SphereGeometry(0.026,16,12),M.leather); gr.scale.set(1,1.5,1.1); gr.position.y=0.16; add(gr,true,this.stick);
+      const tb=new THREE.Mesh(new THREE.SphereGeometry(0.008,10,8),std('#c02020',0.4,0.2)); tb.position.set(0,0.2,-0.008); this.stick.add(tb);
+    }
     // mug
     const mug=new THREE.Mesh(new THREE.CylinderGeometry(0.036,0.032,0.085,24,1,true),std('#d8d2c4',0.4,0,{side:THREE.DoubleSide})); mug.position.set(-0.74,-0.375,-0.66); add(mug);
     const coffee=new THREE.Mesh(new THREE.CircleGeometry(0.034,24),std('#1c0f08',0.15,0)); coffee.rotation.x=-Math.PI/2; coffee.position.set(-0.74,-0.345,-0.66); g.add(coffee);
     const hd=new THREE.Mesh(new THREE.TorusGeometry(0.024,0.006,8,16,Math.PI),mug.material); hd.rotation.z=-Math.PI/2; hd.position.set(-0.704,-0.375,-0.66); g.add(hd);
     // what is shell and what moves with the bespoke cockpit's anchors
     const keep=new Set([this.stick,stickBase,mug,coffee,hd,this.door,v1,v2]); this.shellParts=g.children.slice(shell0).filter(o=>!keep.has(o));
-    this.fit={ stick:{home:new V3(0.74,-0.39,-0.5),parts:[this.stick,stickBase]}, mug:{home:new V3(-0.74,-0.375,-0.66),parts:[mug,coffee,hd]} };
+    this.fit={ mug:{home:new V3(-0.74,-0.375,-0.66),parts:[mug,coffee,hd]} };
+    if(this.stick) this.fit.stick={home:new V3(0.74,-0.39,-0.5),parts:[this.stick,stickBase]};
 
     /* ---- panel + control factories ---- */
     const panel=(w,h)=>{
@@ -14793,8 +14797,9 @@ const Cockpit = {
     };
     const screen=(P,x,y,w,h,cw,ch,name,round)=>{
       const cv=makeCanvas(cw,ch), tex=canvasTex(cv), mat=new THREE.MeshBasicMaterial({map:tex});
-      // Set the radio readout just inside its bezel so the lower rim clears the signal meter.
-      const faceZ=name==='radio'?0.0095:0.003;
+      // Small readouts sit flush with their bezels to keep the lower row visible from the seat.
+      const flush=name==='radio'||(name==='thr'&&def===SHIPS[0]);
+      const faceZ=flush?0.0095:0.003;
       const m=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),mat); m.position.set(x,y,faceZ); P.g.add(m);
       const [cx,cy]=P.xy(x,y); P.ctx.fillStyle='#050506'; if(round){ P.ctx.beginPath(); P.ctx.arc(cx,cy,w/2*P.px+10,0,7); P.ctx.fill(); } else P.ctx.fillRect(cx-w/2*P.px-10,cy-h/2*P.px-10,w*P.px+20,h*P.px+20);
       if(round){ const bz=new THREE.Mesh(new THREE.TorusGeometry(w/2*1.03,w*0.022,10,48),M.rubber); bz.position.set(x,y,0.006); add(bz,false,P.g); }
@@ -14809,7 +14814,10 @@ const Cockpit = {
     ['NAV','CARGO','SYS'].forEach((lb,i)=>button(PC,-0.11+i*0.075,-0.118,0.014,{id:'page'+i,label:lb,color:'#3fb8ff',press(){ G.sys.mfdPage=i; },lit:()=>G.sys.mfdPage===i,tip:'MFD page'}));
     knob(PC,0.245,0.065,0.03,{id:'target',label:'DESTINATION',wrap:true,min:0,max:PLANETS.length-1,step:1,get:()=>G.target,set:v=>Game.setTarget(v),fmt:v=>PLANETS[v].name});
     button(PC,0.245,-0.07,0.02,{id:'hail',label:'HAIL',color:'#2fd45a',press(){ Comms.hail(); },lit:()=>!!Npc.nearest(7000),tip:'Hail nearest pilot'});
-    PC.text(0.13,-0.118,'LONG HAUL FREIGHT SYS',0.0075,'center',true); PC.done();
+    // The low Rustbucket pedestal puts its handles in front of the throttle readout.
+    if(def===SHIPS[0]) screen(PC,0.157,-0.128,0.158,0.04,400,80,'thr');
+    else PC.text(0.13,-0.118,'LONG HAUL FREIGHT SYS',0.0075,'center',true);
+    PC.done();
 
     /* ---- left wing: flight gauges + radar ---- */
     const PL=panel(0.46,0.34); PL.g.rotation.order='YXZ'; PL.g.rotation.set(-0.38,0.62,0); PL.g.position.set(-0.497,-0.37,-0.666); PL.hood();
@@ -14836,7 +14844,7 @@ const Cockpit = {
 
     /* ---- pedestal: throttle + warp ---- */
     const PP=panel(0.24,0.44); PP.g.position.set(0,-0.60,-0.56); PP.g.rotation.set(-1.17,0,0);
-    screen(PP,0,0.185,0.2,0.04,400,80,'thr');
+    if(def!==SHIPS[0]) screen(PP,0,0.185,0.2,0.04,400,80,'thr');
     { // throttle lever
       const x=-0.055, y=-0.02, len=0.3, [cx,cy]=PP.xy(x,y), L=len*PP.px;
       for(const c of [PP.ctx,PP.gctx]){ c.fillStyle=c===PP.ctx?'#030304':'#000'; c.fillRect(cx-12,cy-L/2-14,24,L+28); c.fillStyle=c.strokeStyle=c===PP.ctx?'#c9cdd2':'#fff'; c.lineWidth=3;
@@ -14926,7 +14934,7 @@ const Cockpit = {
       g.add(room); this.bespokeRoom=room;
       // panels and fittings onto their anchors
       for(const k in this.panels){ const a=A[k]; if(!a) continue; const pg=this.panels[k]; pg.position.copy(a.position); pg.quaternion.copy(a.quaternion); if(B.baked&&a.scale) pg.scale.copy(a.scale); }
-      // a hand-built cockpit draws its own sticks, mug and paperwork
+      // The hand-built shell supplies its own desk fittings.
       if(B.baked){ for(const k in this.fit) for(const o of this.fit[k].parts) if(o) o.visible=false; if(this.clipboard) this.clipboard.visible=false; }
       for(const k in this.fit){ const a=A[k]; if(!a) continue; const d=a.position.clone().sub(this.fit[k].home); for(const o of this.fit[k].parts) o.position.add(d); this.fit[k].home.copy(a.position); }
       if(A.clipboard&&this.clipboard) this.clipboard.position.copy(A.clipboard.position);
@@ -14969,7 +14977,7 @@ const Cockpit = {
     const wa=-1.47+(0.5-0.5*Math.cos(this.wipePh))*1.75; for(const w of this.wipers) w.rotation.z=wa;
     this.dirtMat.opacity=sys.dirt*0.5;
     // stick + mascot follow the controls
-    this.stick.rotation.x=damp(this.stick.rotation.x,-s.ctl.x*0.28,10,dt); this.stick.rotation.z=damp(this.stick.rotation.z,s.ctl.y*0.28+s.ctl.z*0.12,10,dt);
+    if(this.stick){ this.stick.rotation.x=damp(this.stick.rotation.x,-s.ctl.x*0.28,10,dt); this.stick.rotation.z=damp(this.stick.rotation.z,s.ctl.y*0.28+s.ctl.z*0.12,10,dt); }
     this.bobV.x+=(-this.bobA.x*60-this.bobV.x*3+s.angVel.x*14)*dt; this.bobV.y+=(-this.bobA.y*60-this.bobV.y*3-s.angVel.y*14+(s.warpF>0.5?Math.sin(t*23)*2:0))*dt; this.bobA.addScaledVector(this.bobV,dt); this.bobble.rotation.set(this.bobA.x,0,this.bobA.y);
     // screens, staggered
     const f=this.frame; if(!pw){ if(f%20===0) for(const k of ['mfd','ann','radar','att','radio','thr','clock','hold','xl']) this.blank(k); return; }
