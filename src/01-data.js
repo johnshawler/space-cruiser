@@ -164,17 +164,18 @@ const GOODS = [
   ['Slightly Used Tomorrows',1.6,'No refunds on Tuesdays.'],['Organic Free-Range Static',0.8,'May cling.'],
 ];
 
-/* speeds in km/s; one light-second = 300,000 km */
+/* speeds in km/s; one light-second = 300,000 km. `faults` is how often things break, against the Rustbucket's 1:
+   the dearer the ship, the less it needs repairs (Faults.rate in 09-walk.js) */
 const SHIPS = [
-  {name:'Rustbucket Mk I', tag:'It flies. Mostly forward.', price:0, hold:6, cruise:900, warp:55000, fuel:100, turn:0.8, model:0,
+  {name:'Rustbucket Mk I', tag:'It flies. Mostly forward.', price:0, hold:6, cruise:900, warp:55000, fuel:100, turn:0.8, faults:1, model:0,
    ck:{frame:'#3d3a36',panel:'#23211f',trim:'#b5651d',glow:'#ffb060',leather:'#4a3426',cage:true}},
-  {name:'Dromedary 400', tag:'A box with ambitions.', price:4500, hold:14, cruise:1000, warp:65000, fuel:140, turn:0.8, model:1,
+  {name:'Dromedary 400', tag:'A box with ambitions.', price:4500, hold:14, cruise:1000, warp:65000, fuel:140, turn:0.8, faults:0.7, model:1,
    ck:{frame:'#34383c',panel:'#1d2024',trim:'#e0b000',glow:'#ffd27a',leather:'#2e2e30',cage:true}},
-  {name:'Stellar Stoat', tag:'Sleek, quick, slightly smug.', price:16000, hold:30, cruise:1200, warp:80000, fuel:180, turn:1.0, model:2,
+  {name:'Stellar Stoat', tag:'Sleek, quick, slightly smug.', price:16000, hold:30, cruise:1200, warp:80000, fuel:180, turn:1.0, faults:0.45, model:2,
    ck:{frame:'#2a3238',panel:'#161b20',trim:'#19b8a6',glow:'#7ff5e6',leather:'#1e2a30',cage:false}},
-  {name:'Opulent Manatee', tag:'Heated seats. Heated everything.', price:52000, hold:60, cruise:1350, warp:95000, fuel:240, turn:0.9, model:3,
+  {name:'Opulent Manatee', tag:'Heated seats. Heated everything.', price:52000, hold:60, cruise:1350, warp:95000, fuel:240, turn:0.9, faults:0.25, model:3,
    ck:{frame:'#33252a',panel:'#1a1416',trim:'#c9a24a',glow:'#ffd9a0',leather:'#5a1f28',cage:false}},
-  {name:'Quasar Empress', tag:'The last ship you will ever need to brag about.', price:180000, hold:120, cruise:1600, warp:120000, fuel:320, turn:1.1, model:4,
+  {name:'Quasar Empress', tag:'The last ship you will ever need to brag about.', price:180000, hold:120, cruise:1600, warp:120000, fuel:320, turn:1.1, faults:0.12, model:4,
    ck:{frame:'#9aa1aa',panel:'#1b1f26',trim:'#3fd0ff',glow:'#9fe8ff',leather:'#e8e4dc',cage:false}},
 ];
 

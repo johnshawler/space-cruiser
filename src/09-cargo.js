@@ -253,6 +253,7 @@ const Calls = {
 /* ---------- ship specs: one list of categories, used everywhere a ship's specs are shown ---------- */
 const Specs = {
   open:false,
+  reliability(f){ return f>=0.9?'Breaks down often':f>=0.6?'Fair':f>=0.35?'Good':f>=0.2?'Very good':'Rarely breaks down'; },
   handling(t){ return t<0.85?'Sluggish':t<0.95?'Steady':t<1.05?'Nimble':'Agile'; },
   /* the same categories, in the same order, for every ship */
   rows(i){ const s=SHIPS[i]; return [
@@ -262,9 +263,10 @@ const Specs = {
     ['Warp speed',`${(s.warp/LS).toFixed(2)}c`],
     ['Fuel tank',`${s.fuel} units`],
     ['Handling',`${this.handling(s.turn)} (${s.turn.toFixed(1)})`],
+    ['Reliability',this.reliability(s.faults==null?1:s.faults)],
     ['Price new',s.price?fmtCr(s.price):'Free with the job'] ]; },
   /* the short form for shop cards: the same names, minus the price */
-  line(i){ return this.rows(i).slice(0,6).map(([k,v])=>`${k} <i>${esc(v)}</i>`).join(' · '); },
+  line(i){ return this.rows(i).slice(0,7).map(([k,v])=>`${k} <i>${esc(v)}</i>`).join(' · '); },
   show(i){ i=i==null?G.shipId:i; const s=SHIPS[i], mine=i===G.shipId, box=$('specs-body'); this.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click();
     $('specs-name').textContent=s.name; $('specs-tag').textContent=s.tag;
     const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;

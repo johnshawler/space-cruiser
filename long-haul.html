@@ -13468,17 +13468,18 @@ const GOODS = [
   ['Slightly Used Tomorrows',1.6,'No refunds on Tuesdays.'],['Organic Free-Range Static',0.8,'May cling.'],
 ];
 
-/* speeds in km/s; one light-second = 300,000 km */
+/* speeds in km/s; one light-second = 300,000 km. `faults` is how often things break, against the Rustbucket's 1:
+   the dearer the ship, the less it needs repairs (Faults.rate in 09-walk.js) */
 const SHIPS = [
-  {name:'Rustbucket Mk I', tag:'It flies. Mostly forward.', price:0, hold:6, cruise:900, warp:55000, fuel:100, turn:0.8, model:0,
+  {name:'Rustbucket Mk I', tag:'It flies. Mostly forward.', price:0, hold:6, cruise:900, warp:55000, fuel:100, turn:0.8, faults:1, model:0,
    ck:{frame:'#3d3a36',panel:'#23211f',trim:'#b5651d',glow:'#ffb060',leather:'#4a3426',cage:true}},
-  {name:'Dromedary 400', tag:'A box with ambitions.', price:4500, hold:14, cruise:1000, warp:65000, fuel:140, turn:0.8, model:1,
+  {name:'Dromedary 400', tag:'A box with ambitions.', price:4500, hold:14, cruise:1000, warp:65000, fuel:140, turn:0.8, faults:0.7, model:1,
    ck:{frame:'#34383c',panel:'#1d2024',trim:'#e0b000',glow:'#ffd27a',leather:'#2e2e30',cage:true}},
-  {name:'Stellar Stoat', tag:'Sleek, quick, slightly smug.', price:16000, hold:30, cruise:1200, warp:80000, fuel:180, turn:1.0, model:2,
+  {name:'Stellar Stoat', tag:'Sleek, quick, slightly smug.', price:16000, hold:30, cruise:1200, warp:80000, fuel:180, turn:1.0, faults:0.45, model:2,
    ck:{frame:'#2a3238',panel:'#161b20',trim:'#19b8a6',glow:'#7ff5e6',leather:'#1e2a30',cage:false}},
-  {name:'Opulent Manatee', tag:'Heated seats. Heated everything.', price:52000, hold:60, cruise:1350, warp:95000, fuel:240, turn:0.9, model:3,
+  {name:'Opulent Manatee', tag:'Heated seats. Heated everything.', price:52000, hold:60, cruise:1350, warp:95000, fuel:240, turn:0.9, faults:0.25, model:3,
    ck:{frame:'#33252a',panel:'#1a1416',trim:'#c9a24a',glow:'#ffd9a0',leather:'#5a1f28',cage:false}},
-  {name:'Quasar Empress', tag:'The last ship you will ever need to brag about.', price:180000, hold:120, cruise:1600, warp:120000, fuel:320, turn:1.1, model:4,
+  {name:'Quasar Empress', tag:'The last ship you will ever need to brag about.', price:180000, hold:120, cruise:1600, warp:120000, fuel:320, turn:1.1, faults:0.12, model:4,
    ck:{frame:'#9aa1aa',panel:'#1b1f26',trim:'#3fd0ff',glow:'#9fe8ff',leather:'#e8e4dc',cage:false}},
 ];
 
@@ -17924,6 +17925,7 @@ const Calls = {
 /* ---------- ship specs: one list of categories, used everywhere a ship's specs are shown ---------- */
 const Specs = {
   open:false,
+  reliability(f){ return f>=0.9?'Breaks down often':f>=0.6?'Fair':f>=0.35?'Good':f>=0.2?'Very good':'Rarely breaks down'; },
   handling(t){ return t<0.85?'Sluggish':t<0.95?'Steady':t<1.05?'Nimble':'Agile'; },
   /* the same categories, in the same order, for every ship */
   rows(i){ const s=SHIPS[i]; return [
@@ -17933,9 +17935,10 @@ const Specs = {
     ['Warp speed',`${(s.warp/LS).toFixed(2)}c`],
     ['Fuel tank',`${s.fuel} units`],
     ['Handling',`${this.handling(s.turn)} (${s.turn.toFixed(1)})`],
+    ['Reliability',this.reliability(s.faults==null?1:s.faults)],
     ['Price new',s.price?fmtCr(s.price):'Free with the job'] ]; },
   /* the short form for shop cards: the same names, minus the price */
-  line(i){ return this.rows(i).slice(0,6).map(([k,v])=>`${k} <i>${esc(v)}</i>`).join(' · '); },
+  line(i){ return this.rows(i).slice(0,7).map(([k,v])=>`${k} <i>${esc(v)}</i>`).join(' · '); },
   show(i){ i=i==null?G.shipId:i; const s=SHIPS[i], mine=i===G.shipId, box=$('specs-body'); this.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click();
     $('specs-name').textContent=s.name; $('specs-tag').textContent=s.tag;
     const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
@@ -18004,7 +18007,7 @@ const Rep = {
   payMul(){ return 1+G.rep/400; },
 };
 const Hull = {
-  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Math.random()<0.35) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
+  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Math.random()<0.35*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
     UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
   breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
 };
@@ -18371,7 +18374,7 @@ const Deep = {
     if(st.dmg) UI.toast(`The storm passes. It cost you ${st.dmg}% hull. Hull ${Math.round(G.hull)}%`,'warn');
     else UI.toast('The storm passes without a scratch. Nicely flown.','good');
     if(st.ore&&!st.dmg){ const q=Math.min(st.ore,holdFree()); if(q>0){ let c=G.cargo.find(x=>x.kind==='ore'&&x.good==='Meteor Glass'); if(!c){ c={kind:'ore',good:'Meteor Glass',qty:0,to:-1,pay:0,val:95,from:-1}; G.cargo.push(c); } c.qty+=q; Cockpit.drawManifest(); setTimeout(()=>UI.toast(`Your scoop caught ${q}× Meteor Glass. Any assay office will buy it.`,'good'),1600); } }
-    if(st.dmg>=4&&Math.random()<0.4) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'shaken loose by the storm'),900); },
+    if(st.dmg>=4&&Math.random()<0.4*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'shaken loose by the storm'),900); },
   salvage(){ const z=this.z, sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9);
     Dlg.show({icon:'📡',tone:'alert',who:'Scanner · unidentified contact',text:'A derelict survey probe is drifting nearby, still blinking. Salvage could be worth a lot out here. It could also be bait.',timeout:25,mini:true,
       opts:[{t:'Go and look',sub:'A short detour',fn:()=>{ const s=G.ship, fwd=new V3(0,0,-1).applyQuaternion(s.quat), side=new V3(1,0,0).applyQuaternion(s.quat), pos=s.pos.clone().addScaledVector(fwd,rnd(14000,22000)).addScaledVector(side,rnd(-7000,7000));
@@ -19003,6 +19006,8 @@ const FAULT_SPOTS = {
 };
 const Faults = {
   t:45,
+  /* how fault-prone this ship is: 1 for the Rustbucket, down to about an eighth for the dearest */
+  rate(){ const s=SHIPS[G.shipId]; return s&&s.faults!=null?s.faults:1; },
   has(id){ return (G.faults||[]).includes(id); },
   list(){ return G.faults||(G.faults=[]); },
   fuelMul(){ return this.has('coolant')?1.7:1; },
@@ -19017,8 +19022,8 @@ const Faults = {
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
   badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(FAULT_DEFS[k].where)}</span></div>`).join(''); },
   update(dt){
-    // something new goes wrong every couple of minutes of flight, more often on a battered ship
-    this.t-=dt*(1+(100-G.hull)/60); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
+    // something new goes wrong every couple of minutes of flight on the Rustbucket: more often on a battered ship, less on a dearer one
+    this.t-=dt*(1+(100-G.hull)/60)*this.rate(); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
     if(this.has('crack')){ G.hull=Math.max(0,G.hull-dt*0.1); if(G.hull<=0) Hull.breach(); }
     if(this.has('scrubber')) G.sys.dirt=Math.min(1,G.sys.dirt+dt*0.01);
   },
