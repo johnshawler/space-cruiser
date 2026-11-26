@@ -20,6 +20,20 @@ Each Blender file opens a single editable shop. Each corresponding GLB contains 
 | The Freezer Aisle | Cryo Vault Rimeholm | Cold Storage Intake | Cargo depot (`depot`) | [Blender](../../../art/storefronts/models/cryo-vault-rimeholm-depot.blend) · [GLB](../../../assets/storefronts/cryo-vault-rimeholm-depot.glb) |
 | Tolerance Station | Calibration Spire | Fine Margins Outfitters | Outfitter (`outfit`) | [Blender](../../../art/storefronts/models/calibration-spire-outfit.blend) · [GLB](../../../assets/storefronts/calibration-spire-outfit.glb) |
 | The Last Light | Beacon Far Wink | Far Field Assay | Assay office (`assay`) | [Blender](../../../art/storefronts/models/beacon-far-wink-assay.blend) · [GLB](../../../assets/storefronts/beacon-far-wink-assay.glb) |
+| Vendorhaven | Verdanthia | Gently Used Hulls | Shipyard (`yard`) | [Blender](../../../art/storefronts/models/verdanthia-yard.blend) · [GLB](../../../assets/storefronts/verdanthia-yard.glb) |
+| Bargain Roost | Amethyne | Wing & Prayer Motors | Shipyard (`yard`) | [Blender](../../../art/storefronts/models/amethyne-yard.blend) · [GLB](../../../assets/storefronts/amethyne-yard.glb) |
+| Ladle Harbor | Sloshwell | The Crouton Exchange | Assay office (`assay`) | [Blender](../../../art/storefronts/models/sloshwell-assay.blend) · [GLB](../../../assets/storefronts/sloshwell-assay.glb) |
+| Port Lament | Candara | The Sunken Scale | Assay office (`assay`) | [Blender](../../../art/storefronts/models/candara-assay.blend) · [GLB](../../../assets/storefronts/candara-assay.glb) |
+| Fort Snuggle | Brrrindle | Snowball Assay | Assay office (`assay`) | [Blender](../../../art/storefronts/models/brrrindle-assay.blend) · [GLB](../../../assets/storefronts/brrrindle-assay.glb) |
+| Port Gneiss | Scorchmaw | Hard Rock Outfitters | Outfitter (`outfit`) | [Blender](../../../art/storefronts/models/scorchmaw-outfit.blend) · [GLB](../../../assets/storefronts/scorchmaw-outfit.glb) |
+| Bargain Roost | Amethyne | Shiny Things Emporium | Outfitter (`outfit`) | [Blender](../../../art/storefronts/models/amethyne-outfit.blend) · [GLB](../../../assets/storefronts/amethyne-outfit.glb) |
+| The Drift | Jovexa | Shimmer & Shine | Paint shop (`livery`) | [Blender](../../../art/storefronts/models/jovexa-livery.blend) · [GLB](../../../assets/storefronts/jovexa-livery.glb) |
+| Vendorhaven | Verdanthia | The Coin Slot | Cantina (`bar`) | [Blender](../../../art/storefronts/models/verdanthia-bar.blend) · [GLB](../../../assets/storefronts/verdanthia-bar.glb) |
+| Bureau Nine | Dunemoor | The Rubber Stamp | Cantina (`bar`) | [Blender](../../../art/storefronts/models/dunemoor-bar.blend) · [GLB](../../../assets/storefronts/dunemoor-bar.glb) |
+| Ladle Harbor | Sloshwell | The Bottomless Bowl | Cantina (`bar`) | [Blender](../../../art/storefronts/models/sloshwell-bar.blend) · [GLB](../../../assets/storefronts/sloshwell-bar.glb) |
+| Mellow Hollow | Toxibloom | The Damp Log | Cantina (`bar`) | [Blender](../../../art/storefronts/models/toxibloom-bar.blend) · [GLB](../../../assets/storefronts/toxibloom-bar.glb) |
+| Port Lament | Candara | The Sunk Cost | Cantina (`bar`) | [Blender](../../../art/storefronts/models/candara-bar.blend) · [GLB](../../../assets/storefronts/candara-bar.glb) |
+| The Last Light | Beacon Far Wink | The Final Blink | Cantina (`bar`) | [Blender](../../../art/storefronts/models/beacon-far-wink-bar.blend) · [GLB](../../../assets/storefronts/beacon-far-wink-bar.glb) |
 
 ## Marker convention
 

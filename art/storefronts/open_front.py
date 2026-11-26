@@ -11,7 +11,7 @@ CREW={'depot':((-3.6,-3.6),(2.2,-7.5)),'yard':((-.6,-3),(3.3,-3)),
 'outfit':((-.2,-3.9),(3,-3.6)),'assay':((0,-4),(3.2,-3.7)),
 'bar':((-.55,-3.6),(2.35,-3.6))}
 TRIM=['pine','sand','ice','blue','cream','rust','teal','navy','sand2','purple','mahogany','chalk','basalt','navy','wine','wine']
-def make_open_shop(index,title,port,key):
+def make_open_shop(index,title,port,key,trim=None):
     global parts
     # The trade equipment occupies the back of the open set. Keep the crew stage
     # and the approach to the public counter unobstructed at pedestrian height.
@@ -22,7 +22,7 @@ def make_open_shop(index,title,port,key):
     for ob in list(col.objects):
         ob.location=Vector((factor*ob.location.x,rear+factor*ob.location.y,factor*(ob.location.z-.24)))
         ob.scale*=factor
-    c=TRIM[index]
+    c=trim or TRIM[index]
     part('Open sales floor and recessed threshold')
     box(0,(rear+1.8)/2,-.125,16.9,rear+7.0,.30,'wood' if key=='bar' else ('bone' if key=='livery' else 'edge'))
     for x in (-8.17,8.17):
