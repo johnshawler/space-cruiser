@@ -1,0 +1,658 @@
+[
+  {
+    "species": "Bellwrought",
+    "parts": 249,
+    "triangles": 97312,
+    "bounds": [
+      [
+        -1.2418,
+        1.262
+      ],
+      [
+        -0.934,
+        0.934
+      ],
+      [
+        0.0,
+        2.148
+      ]
+    ],
+    "rig": {
+      "bones": 13,
+      "armature": "Bellwrought | Rig",
+      "actions": [
+        "Bellwrought.Idle",
+        "Bellwrought.Travel",
+        "Bellwrought.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 6e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Selvedge",
+    "parts": 305,
+    "triangles": 82352,
+    "bounds": [
+      [
+        -0.915,
+        1.1012
+      ],
+      [
+        -0.38,
+        0.19
+      ],
+      [
+        0.0,
+        2.1952
+      ]
+    ],
+    "rig": {
+      "bones": 14,
+      "armature": "Selvedge | Rig",
+      "actions": [
+        "Selvedge.Idle",
+        "Selvedge.Travel",
+        "Selvedge.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 1,
+      "sampled_bind_surface_error": 8.3e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Gimbal",
+    "parts": 296,
+    "triangles": 40844,
+    "bounds": [
+      [
+        -0.8,
+        0.8
+      ],
+      [
+        -0.8338,
+        0.8338
+      ],
+      [
+        0.0,
+        2.1529
+      ]
+    ],
+    "rig": {
+      "bones": 6,
+      "armature": "Gimbal | Rig",
+      "actions": [
+        "Gimbal.Idle",
+        "Gimbal.Travel",
+        "Gimbal.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 6e-07,
+      "sampled_loop_matrix_error": 2.4e-07,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Mudlark",
+    "parts": 275,
+    "triangles": 38400,
+    "bounds": [
+      [
+        -1.7237,
+        1.44
+      ],
+      [
+        -0.46,
+        0.46
+      ],
+      [
+        0.0,
+        1.59
+      ]
+    ],
+    "rig": {
+      "bones": 16,
+      "armature": "Mudlark | Rig",
+      "actions": [
+        "Mudlark.Idle",
+        "Mudlark.Travel",
+        "Mudlark.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 4.2e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Folio",
+    "parts": 242,
+    "triangles": 59128,
+    "bounds": [
+      [
+        -1.0208,
+        1.0208
+      ],
+      [
+        -0.297,
+        0.3425
+      ],
+      [
+        0.0,
+        2.2792
+      ]
+    ],
+    "rig": {
+      "bones": 15,
+      "armature": "Folio | Rig",
+      "actions": [
+        "Folio.Idle",
+        "Folio.Travel",
+        "Folio.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 7.2e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Spoolback",
+    "parts": 281,
+    "triangles": 80420,
+    "bounds": [
+      [
+        -1.038,
+        1.038
+      ],
+      [
+        -1.1601,
+        0.658
+      ],
+      [
+        0.0,
+        1.9462
+      ]
+    ],
+    "rig": {
+      "bones": 17,
+      "armature": "Spoolback | Rig",
+      "actions": [
+        "Spoolback.Idle",
+        "Spoolback.Travel",
+        "Spoolback.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 5,
+      "sampled_bind_surface_error": 3.6e-07,
+      "sampled_loop_matrix_error": 2.4e-07,
+      "travel_floor_clearance_range": [
+        3e-05,
+        0.00012
+      ]
+    }
+  },
+  {
+    "species": "Lamplume",
+    "parts": 275,
+    "triangles": 46284,
+    "bounds": [
+      [
+        -1.3617,
+        1.4717
+      ],
+      [
+        -0.3228,
+        0.2928
+      ],
+      [
+        0.0,
+        2.3165
+      ]
+    ],
+    "rig": {
+      "bones": 22,
+      "armature": "Lamplume | Rig",
+      "actions": [
+        "Lamplume.Idle",
+        "Lamplume.Travel",
+        "Lamplume.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 3.6e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.00067
+      ]
+    }
+  },
+  {
+    "species": "Cairn",
+    "parts": 267,
+    "triangles": 65336,
+    "bounds": [
+      [
+        -1.0489,
+        1.0495
+      ],
+      [
+        -0.6176,
+        0.6295
+      ],
+      [
+        0.0,
+        2.1018
+      ]
+    ],
+    "rig": {
+      "bones": 103,
+      "armature": "Cairn | Rig",
+      "actions": [
+        "Cairn.Idle",
+        "Cairn.Travel",
+        "Cairn.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 2.4e-07,
+      "sampled_loop_matrix_error": 2.4e-07,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Latchling",
+    "parts": 290,
+    "triangles": 53984,
+    "bounds": [
+      [
+        -1.4072,
+        1.2285
+      ],
+      [
+        -0.7366,
+        0.677
+      ],
+      [
+        0.0,
+        1.3024
+      ]
+    ],
+    "rig": {
+      "bones": 20,
+      "armature": "Latchling | Rig",
+      "actions": [
+        "Latchling.Idle",
+        "Latchling.Travel",
+        "Latchling.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 4,
+      "sampled_bind_surface_error": 4.8e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Velour",
+    "parts": 205,
+    "triangles": 152464,
+    "bounds": [
+      [
+        -0.9406,
+        0.7517
+      ],
+      [
+        -0.5516,
+        0.5884
+      ],
+      [
+        0.0,
+        2.4162
+      ]
+    ],
+    "rig": {
+      "bones": 14,
+      "armature": "Velour | Rig",
+      "actions": [
+        "Velour.Idle",
+        "Velour.Travel",
+        "Velour.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 6e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Nautil",
+    "parts": 159,
+    "triangles": 38972,
+    "bounds": [
+      [
+        -1.0218,
+        1.073
+      ],
+      [
+        -0.577,
+        0.577
+      ],
+      [
+        0.0,
+        1.6739
+      ]
+    ],
+    "rig": {
+      "bones": 10,
+      "armature": "Nautil | Rig",
+      "actions": [
+        "Nautil.Idle",
+        "Nautil.Travel",
+        "Nautil.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 1,
+      "sampled_bind_surface_error": 6e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Trestle",
+    "parts": 357,
+    "triangles": 35804,
+    "bounds": [
+      [
+        -1.365,
+        1.365
+      ],
+      [
+        -0.6065,
+        0.595
+      ],
+      [
+        0.0,
+        1.973
+      ]
+    ],
+    "rig": {
+      "bones": 16,
+      "armature": "Trestle | Rig",
+      "actions": [
+        "Trestle.Idle",
+        "Trestle.Travel",
+        "Trestle.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 9.5e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.0
+      ]
+    }
+  },
+  {
+    "species": "Prismwake",
+    "parts": 112,
+    "triangles": 13394,
+    "bounds": [
+      [
+        -1.364,
+        1.3871
+      ],
+      [
+        -0.674,
+        0.823
+      ],
+      [
+        0.4574,
+        2.023
+      ]
+    ],
+    "rig": {
+      "bones": 5,
+      "armature": "Prismwake | Rig",
+      "actions": [
+        "Prismwake.Idle",
+        "Prismwake.Travel",
+        "Prismwake.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 4.2e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        0.35948,
+        0.51658
+      ]
+    }
+  },
+  {
+    "species": "Millipress",
+    "parts": 446,
+    "triangles": 96440,
+    "bounds": [
+      [
+        -1.7831,
+        1.7093
+      ],
+      [
+        -0.3322,
+        0.8549
+      ],
+      [
+        0.0,
+        0.7525
+      ]
+    ],
+    "rig": {
+      "bones": 27,
+      "armature": "Millipress | Rig",
+      "actions": [
+        "Millipress.Idle",
+        "Millipress.Travel",
+        "Millipress.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 5.4e-07,
+      "sampled_loop_matrix_error": 2.4e-07,
+      "travel_floor_clearance_range": [
+        -0.0,
+        -0.0
+      ]
+    }
+  },
+  {
+    "species": "Basaltine",
+    "parts": 411,
+    "triangles": 87234,
+    "bounds": [
+      [
+        -0.8501,
+        0.8501
+      ],
+      [
+        -0.68,
+        0.484
+      ],
+      [
+        0.0,
+        1.8306
+      ]
+    ],
+    "rig": {
+      "bones": 13,
+      "armature": "Basaltine | Rig",
+      "actions": [
+        "Basaltine.Idle",
+        "Basaltine.Travel",
+        "Basaltine.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 6e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        -0.0
+      ]
+    }
+  },
+  {
+    "species": "Thimble",
+    "parts": 174,
+    "triangles": 46862,
+    "bounds": [
+      [
+        -0.736,
+        0.736
+      ],
+      [
+        -0.736,
+        0.736
+      ],
+      [
+        0.0,
+        2.0008
+      ]
+    ],
+    "rig": {
+      "bones": 13,
+      "armature": "Thimble | Rig",
+      "actions": [
+        "Thimble.Idle",
+        "Thimble.Travel",
+        "Thimble.Operate"
+      ],
+      "fps": 24,
+      "playback_frames": [
+        1,
+        48
+      ],
+      "loop_endpoint": 49,
+      "flexible_parts": 0,
+      "sampled_bind_surface_error": 4.8e-07,
+      "sampled_loop_matrix_error": 0.0,
+      "travel_floor_clearance_range": [
+        -0.0,
+        0.24
+      ]
+    }
+  }
+]
