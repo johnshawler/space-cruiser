@@ -10,7 +10,7 @@ Long Haul lives in this repository, `johnshawler/space-cruiser`. Residents and l
 | 10 outposts and 10 research facilities | [Interactive station gallery](docs/outposts/index.html) |
 | Standalone character models | [50 GLBs](assets/characters/) · [Named residents and homeworlds](assets/characters/residents.json) |
 | Standalone station models | [20 GLBs](assets/stations/models/) · [20 editable Blender scenes](assets/stations/blender/) |
-| Original robot species (16 Blender masters) | [Species handoff, proof sheets and individual files](docs/character-models/robot-species/README.md) |
+| Original robot species (16 rigged Blender masters) | [Rig handoff, animations, proof sheets and individual files](docs/character-models/robot-species/README.md) |
 | Character geometry and roles | [Character registry and builder](art/characters/src/characters.js) · [Expanded cast](art/characters/src/new-cast.js) |
 | Resident names, dimensions, finishes and homeworlds | [Resident definitions](art/characters/src/residents.js) |
 | Facility names and architecture | [Station definitions and layouts](art/stations/stations.mjs) · [Three.js builder](art/stations/three-stations.mjs) |

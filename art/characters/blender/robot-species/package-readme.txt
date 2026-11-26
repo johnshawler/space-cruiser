@@ -1,10 +1,11 @@
-Robot Species
-Blender 4.5 LTS
+Robot Species • Blender 4.5 LTS
 
-Open Robot-Species.blend for the entire collection. It opens on the gallery. Choose a numbered species from the Scene selector to inspect or render that robot. The original concept sheet is packed in the master file under “Original robot species | design reference”.
+Open Robot-Species.blend to view all sixteen robots. Use the Scene selector to open one species in the gallery. The original concept image is packed into the gallery project.
 
-The Models folder contains a self-contained .blend for each species. Each robot is assembled under its own named origin in the “editable parts” collection. Select the assembly origin to move the complete robot. Select a named object to edit an individual part. The lighting, ground and portrait camera are separate from the character collection.
+The Models folder contains sixteen standalone projects. Each opens in Pose Mode with its mechanical rig selected. Frame 0 is the design pose. Press Space to play Travel. In the NLA Editor, enable Idle, Travel or Operate and mute the other two tracks. Each Action runs in place for frames 1–48 at 24 fps. Frame 49 is the duplicate loop endpoint.
 
-The Proofs folder contains the labeled front and reverse sheets. Renders contains a three-quarter portrait and a reverse view of every species, rendered in Cycles from the saved geometry.
+Move the assembly origin to position the whole character. Pose the named bones to articulate individual mechanisms. Each original part remains editable. The studio camera, lights and floor are separate from the robot collection.
 
-The reference provides one view of each character. The reverse surfaces, component depths and physical dimensions are modeled interpretations. The models are posed, unrigged source assets.
+Watch Robot-Species-Motion.mp4 for the animated gallery. Proofs contains the labeled front and reverse sheets. Renders contains the Cycles portraits in the original design pose.
+
+The undersides, rear surfaces and physical dimensions were inferred from the original concept sheet.
