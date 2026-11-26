@@ -1,6 +1,6 @@
 # Long Haul storefront models
 
-All 46 shops across nine planets and four research stations have an individually editable, open-front storefront. Thirty of them use the Rustbucket’s surface library. Each pair on the sheet below shows the public approach and a close inspection of the trade display, both rendered in Cycles from the individually saved Blender project. The other sixteen are the freight depots and garages further down. Names, locations, services and shop keys come from the [game venue definitions](../../../src/08b-venues.js).
+All 46 shops across nine planets and four research stations have an individually editable, open-front storefront. All 46 use the Rustbucket’s worn surface library. Each pair on the sheet below shows the public approach and a close inspection of the trade display, both rendered in Cycles from the individually saved Blender project. The [freight proof](freight-storefronts.jpg) shows the other sixteen depots and garages. Names, locations, services and shop keys come from the [game venue definitions](../../../src/08b-venues.js).
 
 [Open the full-resolution proof sheet](port-shop-remodels.jpg)
 
@@ -12,7 +12,7 @@ All 46 shops across nine planets and four research stations have an individually
 - [Original sixteen, master Blender project](../../../art/storefronts/Long-Haul-Storefronts.blend) and [fourteen market additions, master Blender project](../../../art/storefronts/Market-Storefronts.blend)
 - [Shop-to-port list and marker guide](shop-to-port.md)
 
-Stand at the counter to see the new work. Each port has its own hull frame and enamel finish. Cantinas have leather booths and curved brass lamp arms, paint shops have extraction hoods and hanging swatches, and engine shops have inspection couplings and rail-mounted lifting gear. Packed colour, normal and roughness textures come from the same surface recipes as the ship interiors. The three practical light positions in each manifest entry also drive the native Blender lights.
+Stand at the counter to see the new work. Each port has its own hull frame and enamel finish. Cantinas have leather booths and curved brass lamp arms, paint shops have extraction hoods and hanging swatches, and engine shops have inspection couplings and rail-mounted lifting gear. Packed colour, normal and roughness textures come from the same surface recipes as the ship interiors. In the original and market collections, three practical light positions per shop also drive the native Blender lights.
 
 The game resolves a shop by its existing location and shop key. The entrance, camera, keeper, crew, customer and nameplate sockets retain their original positions. Depots retain the twelve shelf positions, stock door, packing bench and cargo droid route. Keep purchases, contracts, repairs, drinks and character actions on the existing game handlers. `?oldshops` retains the existing comparison mode. The three remodeled depot wayfinding signs hang above the cargo lane so the droid clears the turn in front of the shelves.
 
@@ -22,11 +22,11 @@ The game resolves a shop by its existing location and shop key. The entrance, ca
 
 ![Sixteen freight depots and garages, labeled by shop and location](freight-storefronts.jpg)
 
-These ten depots keep the navigation mast, so their droid takes the outer aisle to reach the goods shelf. They have not had the Rustbucket surface pass.
+These ten depots keep the navigation mast, so their droid takes the outer aisle to reach the goods shelf. All sixteen freight shops use the shared colour, normal and roughness textures on their original architecture and equipment. The freight builder retains their own light markers and leaves each equipment island and sign in place. In all depots the carrier and droid take turns at the stock-room door. A droid can collect a shelf item while the carrier finishes a trip.
 
 ## Rebuild the models and proof
 
-Run from the repository root with Blender 4.5 LTS and a Python installation with Pillow. Build the two model collections sequentially because they share the game manifest.
+Run from the repository root with Blender 4.5 LTS and a Python installation with Pillow. Build the three model collections sequentially because they share the game manifest.
 
 ```sh
 blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py -- "$PWD"

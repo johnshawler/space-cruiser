@@ -513,15 +513,16 @@ const Venues = (() => {
         // keeps the direct turn in front of the shelves, the route its model was checked against.
         const overhead=V.frontShop&&V.frontShop.wayfindingMount==='overhead', ax=overhead?3.4:5.0, az=overhead?1.5:1.6;
         const out=overhead?[['to',ax,az]]:[['to',ax,HOME[1]],['to',ax,az]], home=overhead?[['to',ax,az]]:[['to',ax,az],['to',ax,HOME[1]]];
-        D.cur={slot,name,it,iy:p.y,steps:[...out,['to',ix,az],['to',ix,0.55],['face',Math.PI],['liftTo',Math.max(0.6,p.y-0.04)],['take'],['liftTo',1.0],['rev',ix,az],...home,['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['liftTo',1.0],['pack'],...back]};
+        D.cur={slot,name,it,iy:p.y,steps:[...out,['to',ix,az],['to',ix,0.55],['face',Math.PI],['liftTo',Math.max(0.6,p.y-0.04)],['take'],['liftTo',1.0],['rev',ix,az],...home,['stockDoor'],['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['liftTo',1.0],['pack'],...back]};
       } else { // no model to hand (a long board): fetch a ready-made crate from the stock room as before
-        D.cur={slot,name,steps:[['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['grab'],...back]};
+        D.cur={slot,name,steps:[['stockDoor'],['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['grab'],...back]};
         const c=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(name)}),x0,0.93+0.31,-13.6); c.castShadow=true; V.root.add(c); Bake.useProbe(V,c,false); D.crate=c; }
       D.i=0; D.t=0; snd(V,()=>Sfx.beep(1320)); }
     D.head.rotation.y*=0.9; const s=D.cur.steps[D.i]; if(!s){ D.cur=null; return; } const k=s[0]; let done=false;
     const turn=a=>{ const d=((a-g.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; g.rotation.y+=Math.sign(d)*Math.min(Math.abs(d),dt*4.5); return Math.abs(d)<0.05; };
     const move=(x,z)=>{ const dx=x-g.position.x, dz=z-g.position.z, d=Math.hypot(dx,dz), st=Math.min(d,3.4*dt); if(d>1e-4){ g.position.x+=dx/d*st; g.position.z+=dz/d*st; } return d-st<0.01; };
-    if(k==='to'){ const dx=s[1]-g.position.x, dz=s[2]-g.position.z; if(Math.hypot(dx,dz)<0.02) done=true; else { const ok=turn(Math.atan2(dx,dz)); if(ok||D.go){ D.go=true; done=move(s[1],s[2]); } } if(done) D.go=false; }
+    if(k==='stockDoor') done=!V.g.crewInAisle;
+    else if(k==='to'){ const dx=s[1]-g.position.x, dz=s[2]-g.position.z; if(Math.hypot(dx,dz)<0.02) done=true; else { const ok=turn(Math.atan2(dx,dz)); if(ok||D.go){ D.go=true; done=move(s[1],s[2]); } } if(done) D.go=false; }
     else if(k==='rev') done=move(s[1],s[2]);
     else if(k==='face') done=turn(s[1]);
     else if(k==='lift'){ const d=s[1]-D.lift.position.y; D.lift.position.y+=clamp(d,-dt*0.5,dt*0.5); done=Math.abs(d)<0.005; }
@@ -587,10 +588,10 @@ const Venues = (() => {
        room at the back, while B waves them in from beside the door. On a bad day the stack topples halfway: A goes over,
        gets back up, picks up every box one at a time, restacks them and carries on into the stock room anyway. Then A
        comes back out for the next lot, which has turned up on the pile in the meantime. */
-    stack:{ dur:120, PILE:[-4.45,-3.6], HOME:[-3.6,-3.6], SPILL:[0.6,-3.6], ROUTE:[[2.8,-5.3],[4.3,-7.0],[4.3,-10.3]], BACK:[[4.3,-7.0],[1.4,-4.6],[-3.6,-3.6]], DROP:[3.4,-10.0],
+    stack:{ dur:120, PILE:[-4.45,-3.6], HOME:[-3.6,-3.6], SPILL:[0.6,-3.6], ROUTE:[[-1.4,-4.15],[2.8,-5.3],[4.3,-7.0],[4.3,-10.3]], BACK:[[4.3,-7.0],[1.4,-4.6],[-3.6,-3.6]], DROP:[3.4,-10.0],
       reset(V){ const {A,B}=V, g=V.g, Q=this; A.position.set(Q.HOME[0],0,Q.HOME[1]); A.rotation.y=-Math.PI/2; B.position.set(2.2,0,-7.5); B.rotation.y=Math.PI/2;
         g.crates.forEach((c,i)=>{ c.visible=true; c.scale.setScalar(1); c.rotation.set(0,0,0); c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); });
-        g.held=[]; g.st='lift'; g.sT=0; g.wp=0; g.ph=0; g.spilt=false; },
+        g.held=[]; g.st='lift'; g.sT=0; g.wp=0; g.ph=0; g.spilt=false; g.crewInAisle=false; },
       update(V,t,dt){ const {A,B}=V, g=V.g, Q=this, U=A.userData, r=U.rig; g.sT+=dt; const s=g.st, T=g.sT;
         const go=s=>{ g.st=s; g.sT=0; };
         const face=(x,z,k=6)=>{ const a=Math.atan2(x-A.position.x,z-A.position.z); let d=((a-A.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; A.rotation.y+=Math.sign(d)*Math.min(Math.abs(d),dt*k); return Math.abs(d)<0.08; };
@@ -606,7 +607,16 @@ const Venues = (() => {
         if(s==='spill'||s==='down') Folk.arms(B,[2.7,0.3],[2.7,0.3]); else if(g.held.length&&s!=='gather'&&s!=='pick') Folk.arms(B,null,[1.1,0.4]); else Folk.arms(B,[0.1,0.1],[0.1,0.1]);
         if(s==='lift'){ face(Q.PILE[0],Q.PILE[1]); const u=P_(T,0,0.9); bend(u); if(T>0.45&&!g.held.length){ g.held=g.crates.slice(); snd(V,()=>Sfx.clunk()); } carry(0); if(T>0.9){ r.rotation.x=0; r.position.y=0; go('out'); } }
         else if(s==='out'){ // across the back of the shop; on a bad day it all goes over halfway
-          const dest=Q.ROUTE[g.wp]; if(!V.ok&&!g.spilt&&g.wp===0&&A.position.x>Q.SPILL[0]-0.05){ go('wobble'); return; }
+          // The crew and droid both need the single stock-room doorway. Wait on the shop side
+          // until queued deliveries clear; a carrier already in the aisle finishes the round trip.
+          if(g.wp===1&&!g.crewInAisle){
+            if(V.droid.cur||V.droid.q.length){
+              V.gagDur=(V.gagDur||Q.dur)+dt;
+              Folk.walk(A,g.ph,0); carry(0.15); return;
+            }
+            g.crewInAisle=true;
+          }
+          const dest=Q.ROUTE[g.wp]; if(!V.ok&&!g.spilt&&g.wp===1&&A.position.x>Q.SPILL[0]-0.05){ go('wobble'); return; }
           if(walkTo(dest[0],dest[1])){ g.wp++; if(g.wp>=Q.ROUTE.length){ go('drop'); api.react('clap',0.1); } } carry(V.ok?0.35:0.6+P_(A.position.x,-3.6,0.6)); }
         else if(s==='wobble'){ Folk.walk(A,0,0); const k=P_(T,0,0.8); g.held.forEach((c,i)=>{ c.rotation.z=Math.sin(t*11+i)*0.3*i*k; }); carry(0.6+k*2.5); r.rotation.z=Math.sin(t*10)*0.12*k; if(T>0.8){ r.rotation.z=0; go('spill'); } }
         else if(s==='spill'){ if(once(V,'spill')){ const f=new V3(Math.sin(A.rotation.y),0,Math.cos(A.rotation.y));
@@ -616,7 +626,7 @@ const Venues = (() => {
           r.rotation.x=-E(P_(T,0,0.35))*1.45; r.position.y=-0.1*P_(T,0,0.35); Folk.arms(A,[2.6,0.4],[2.6,0.4]); if(T>2.4) go('up'); }
         else if(s==='up'){ const k=E(P_(T,0,0.8)); r.rotation.x=-1.45*(1-k); r.position.y=-0.1*(1-k); Folk.arms(A,[2.6*(1-k)+0.2,0.4],[2.6*(1-k)+0.2,0.4]); if(T>0.8){ r.rotation.set(0,0,0); r.position.y=0; go('gather'); } }
         else if(s==='gather'){ // nearest box first, once it has stopped bouncing about
-          const left=g.crates.filter(c=>!g.held.includes(c)); if(!left.length){ g.wp=0; go('out'); return; }
+          const left=g.crates.filter(c=>!g.held.includes(c)); if(!left.length){ go('out'); return; }
           left.sort((a,b)=>a.position.distanceToSquared(A.position)-b.position.distanceToSquared(A.position)); g.tgt=left[0];
           if(walkTo(g.tgt.position.x,g.tgt.position.z,0.62)&&face(g.tgt.position.x,g.tgt.position.z)) go('pick'); carry(0.3); }
         else if(s==='pick'){ const c=g.tgt, u=P_(T,0,0.8); bend(u); Folk.walk(A,0,0);
@@ -629,7 +639,10 @@ const Venues = (() => {
         else if(s==='back'){ const dest=Q.BACK[g.wp]; Folk.arms(A,[0,0],[0,0]);
           if(g.wp===1&&!g.fresh){ g.fresh=true; g.crates.forEach((c,i)=>{ c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); c.rotation.set(0,0,0); c.scale.setScalar(0.001); }); } // the next lot turns up on the pile
           if(g.fresh) g.crates.forEach(c=>c.scale.setScalar(Math.min(1,c.scale.x+dt*1.6)));
-          if(walkTo(dest[0],dest[1])){ g.wp++; if(g.wp>=Q.BACK.length){ g.fresh=false; V.t=Q.dur+1; } } }
+          if(walkTo(dest[0],dest[1])){
+            if(g.wp===1) g.crewInAisle=false; // both the carrier and stack have cleared the doorway
+            g.wp++; if(g.wp>=Q.BACK.length){ g.fresh=false; V.t=(V.gagDur||Q.dur)+1; }
+          } }
       } },
     crane:{ dur:13, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.6,0,-3.0); A.rotation.y=0.5; B.position.set(3.3,0,-3.0); B.rotation.y=-Math.PI/2; g.tro.position.x=-3.6; g.pod.visible=true; g.pod.scale.setScalar(1); g.pod.rotation.set(0,0,0); g.hookY=4.8; },
       update(V,t,dt){ const {A,B}=V, g=V.g, ok=V.ok; let tx=g.tro.position.x, hy=g.hookY, swing=0, attached=!V.fired.snap;
