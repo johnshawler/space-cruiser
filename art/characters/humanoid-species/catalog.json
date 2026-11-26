@@ -22,11 +22,17 @@
       },
       "rig": {
         "object": "Taluun | Rig",
-        "bones": 59,
+        "bones": 61,
         "poseAssets": [
           "Taluun | Stride",
           "Taluun | Seat",
           "Taluun | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Taluun | Happy",
+          "Taluun | Bored",
+          "Taluun | Sad"
         ]
       }
     },
@@ -48,11 +54,17 @@
       },
       "rig": {
         "object": "Orrek | Rig",
-        "bones": 54,
+        "bones": 56,
         "poseAssets": [
           "Orrek | Stride",
           "Orrek | Seat",
           "Orrek | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Orrek | Happy",
+          "Orrek | Bored",
+          "Orrek | Sad"
         ]
       }
     },
@@ -74,11 +86,17 @@
       },
       "rig": {
         "object": "Vessari | Rig",
-        "bones": 57,
+        "bones": 59,
         "poseAssets": [
           "Vessari | Stride",
           "Vessari | Seat",
           "Vessari | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Vessari | Happy",
+          "Vessari | Bored",
+          "Vessari | Sad"
         ]
       }
     },
@@ -100,11 +118,17 @@
       },
       "rig": {
         "object": "Mothren | Rig",
-        "bones": 60,
+        "bones": 62,
         "poseAssets": [
           "Mothren | Stride",
           "Mothren | Seat",
           "Mothren | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Mothren | Happy",
+          "Mothren | Bored",
+          "Mothren | Sad"
         ]
       }
     },
@@ -126,11 +150,17 @@
       },
       "rig": {
         "object": "Ureth | Rig",
-        "bones": 55,
+        "bones": 57,
         "poseAssets": [
           "Ureth | Stride",
           "Ureth | Seat",
           "Ureth | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Ureth | Happy",
+          "Ureth | Bored",
+          "Ureth | Sad"
         ]
       }
     },
@@ -152,11 +182,17 @@
       },
       "rig": {
         "object": "Keld | Rig",
-        "bones": 51,
+        "bones": 53,
         "poseAssets": [
           "Keld | Stride",
           "Keld | Seat",
           "Keld | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Keld | Happy",
+          "Keld | Bored",
+          "Keld | Sad"
         ]
       }
     },
@@ -178,11 +214,17 @@
       },
       "rig": {
         "object": "Sovai | Rig",
-        "bones": 59,
+        "bones": 61,
         "poseAssets": [
           "Sovai | Stride",
           "Sovai | Seat",
           "Sovai | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Sovai | Happy",
+          "Sovai | Bored",
+          "Sovai | Sad"
         ]
       }
     },
@@ -204,11 +246,17 @@
       },
       "rig": {
         "object": "Brunn | Rig",
-        "bones": 57,
+        "bones": 59,
         "poseAssets": [
           "Brunn | Stride",
           "Brunn | Seat",
           "Brunn | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Brunn | Happy",
+          "Brunn | Bored",
+          "Brunn | Sad"
         ]
       }
     },
@@ -230,11 +278,17 @@
       },
       "rig": {
         "object": "Pelrin | Rig",
-        "bones": 59,
+        "bones": 61,
         "poseAssets": [
           "Pelrin | Stride",
           "Pelrin | Seat",
           "Pelrin | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Pelrin | Happy",
+          "Pelrin | Bored",
+          "Pelrin | Sad"
         ]
       }
     },
@@ -256,11 +310,17 @@
       },
       "rig": {
         "object": "Zhavet | Rig",
-        "bones": 52,
+        "bones": 54,
         "poseAssets": [
           "Zhavet | Stride",
           "Zhavet | Seat",
           "Zhavet | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Zhavet | Happy",
+          "Zhavet | Bored",
+          "Zhavet | Sad"
         ]
       }
     },
@@ -282,11 +342,17 @@
       },
       "rig": {
         "object": "Koruun | Rig",
-        "bones": 57,
+        "bones": 59,
         "poseAssets": [
           "Koruun | Stride",
           "Koruun | Seat",
           "Koruun | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Koruun | Happy",
+          "Koruun | Bored",
+          "Koruun | Sad"
         ]
       }
     },
@@ -308,11 +374,17 @@
       },
       "rig": {
         "object": "Eskel | Rig",
-        "bones": 51,
+        "bones": 53,
         "poseAssets": [
           "Eskel | Stride",
           "Eskel | Seat",
           "Eskel | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Eskel | Happy",
+          "Eskel | Bored",
+          "Eskel | Sad"
         ]
       }
     },
@@ -334,11 +406,17 @@
       },
       "rig": {
         "object": "Rhovi | Rig",
-        "bones": 40,
+        "bones": 42,
         "poseAssets": [
           "Rhovi | Stride",
           "Rhovi | Seat",
           "Rhovi | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Rhovi | Happy",
+          "Rhovi | Bored",
+          "Rhovi | Sad"
         ]
       }
     },
@@ -360,11 +438,17 @@
       },
       "rig": {
         "object": "Nemeya | Rig",
-        "bones": 45,
+        "bones": 47,
         "poseAssets": [
           "Nemeya | Stride",
           "Nemeya | Seat",
           "Nemeya | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Nemeya | Happy",
+          "Nemeya | Bored",
+          "Nemeya | Sad"
         ]
       }
     },
@@ -386,11 +470,17 @@
       },
       "rig": {
         "object": "Dathri | Rig",
-        "bones": 49,
+        "bones": 51,
         "poseAssets": [
           "Dathri | Stride",
           "Dathri | Seat",
           "Dathri | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Dathri | Happy",
+          "Dathri | Bored",
+          "Dathri | Sad"
         ]
       }
     },
@@ -412,14 +502,21 @@
       },
       "rig": {
         "object": "Ulnor | Rig",
-        "bones": 39,
+        "bones": 41,
         "poseAssets": [
           "Ulnor | Stride",
           "Ulnor | Seat",
           "Ulnor | Reach"
+        ],
+        "expressionControl": "Expression",
+        "expressionAssets": [
+          "Ulnor | Happy",
+          "Ulnor | Bored",
+          "Ulnor | Sad"
         ]
       }
     }
   ],
-  "poseProof": "proofs/Long-Haul-Species-Rig-Poses.jpg"
+  "poseProof": "proofs/Long-Haul-Species-Rig-Poses.jpg",
+  "expressionProof": "proofs/Long-Haul-Humanoid-Expression-Sheet.jpg"
 }
