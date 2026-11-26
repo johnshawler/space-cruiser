@@ -10,6 +10,7 @@ exec(compile((Path(__file__).parent/"finish.py").read_text(), "finish.py", "exec
 exec(compile((Path(__file__).parent/"open_front.py").read_text(), "open_front.py", "exec"))
 exec(compile((Path(__file__).parent/"refit.py").read_text(), "refit.py", "exec"))
 exec(compile((Path(__file__).parent/"expansion.py").read_text(), "expansion.py", "exec"))
+exec(compile((Path(__file__).parent/"freight.py").read_text(), "freight.py", "exec"))
 TEXDIR=tempfile.TemporaryDirectory(prefix="long-haul-storefronts-")
 
 args = sys.argv[sys.argv.index('--')+1:]
@@ -600,21 +601,31 @@ def studio():
     bpy.ops.mesh.primitive_plane_add(size=200);floor=bpy.context.object;floor.name='Review ground';floor.location.z=-.62
     floor.data.materials.append(material('bone'))
 manifest={'units':'metres','up':'+Y','front':'+Z','venues':{}}
-# Build either collection independently while retaining the other catalog entries.
-expansion = '--expansion' in args
+# Each gallery rebuild updates only the venues it owns.
+gallery='Long-Haul-Storefronts'
+render_folder='storefront-renders'
+specs=[]
+if '--freight' in args:
+    gallery,render_folder='Freight-Storefronts','freight-renders'
+    specs=FREIGHT_SHOPS
+    workshop,fit_floor=build_service_workshop,fit_service_floor
+elif '--expansion' in args:
+    gallery,render_folder='Market-Storefronts','market-renders'
+    specs=NEW_SHOPS
+    workshop,fit_floor=back_workshop,counter_display
 if (MODELS/'manifest.json').exists():
     manifest=json.loads((MODELS/'manifest.json').read_text())
-if expansion:
-    VENUES=[(s[0],s[1],s[2],None) for s in NEW_SHOPS]
+if specs:
+    VENUES=[(s[0],s[1],s[2],None) for s in specs]
 collections_by_id=[]
 for i,(title,port,key,fn) in enumerate(VENUES):
     rng=random.Random(950+i);parts=collections.defaultdict(lambda:([],[],[],[]))
     col=bpy.data.collections.new(f'{i+1:02}  {title}');scene.collection.children.link(col)
-    if expansion:
-        spec=NEW_SHOPS[i]
-        back_workshop(spec)
+    if specs:
+        spec=specs[i]
+        workshop(spec)
         marks=make_open_shop(i,title,port,key,trim=spec[4][1])
-        counter_display(spec)
+        fit_floor(spec)
     else:
         fn();stamp_hardware(i);detail_kit(i);marks=make_open_shop(i,title,port,key)
     if not expansion:forecourt_display(port,key)
@@ -653,10 +664,10 @@ for area in bpy.context.screen.areas:
 bpy.ops.object.select_all(action='DESELECT')
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.outliner.orphans_purge(do_recursive=True)
-bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE/('Market-Storefronts.blend' if expansion else 'Long-Haul-Storefronts.blend')),compress=True)
+bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE/(gallery+'.blend')),compress=True)
 if RENDER:
     studio()
-    review=ROOT/'build'/('market-renders' if expansion else 'storefront-renders');review.mkdir(parents=True,exist_ok=True)
+    review=ROOT/'build'/render_folder;review.mkdir(parents=True,exist_ok=True)
     for c in collections_by_id:c.hide_render=True
     for i,c in enumerate(collections_by_id):
         c.hide_render=False

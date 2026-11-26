@@ -1,6 +1,6 @@
 # Long Haul storefront models
 
-Thirty shops across thirteen ports use the Rustbucket’s surface library. Each pair shows the public approach and a close inspection of the trade display, both rendered in Cycles from the individually saved Blender project.
+All 46 shops across nine planets and four research stations have an individually editable, open-front storefront. Thirty of them use the Rustbucket’s surface library. Each pair on the sheet below shows the public approach and a close inspection of the trade display, both rendered in Cycles from the individually saved Blender project. The other sixteen are the freight depots and garages further down. Names, locations, services and shop keys come from the [game venue definitions](../../../src/08b-venues.js).
 
 [Open the full-resolution proof sheet](port-shop-remodels.jpg)
 
@@ -14,9 +14,15 @@ Thirty shops across thirteen ports use the Rustbucket’s surface library. Each 
 
 Stand at the counter to see the new work. Each port has its own hull frame and enamel finish. Cantinas have leather booths and curved brass lamp arms, paint shops have extraction hoods and hanging swatches, and engine shops have inspection couplings and rail-mounted lifting gear. Packed colour, normal and roughness textures come from the same surface recipes as the ship interiors. The three practical light positions in each manifest entry also drive the native Blender lights.
 
-The game resolves a shop by its existing location and shop key. The entrance, camera, keeper, crew, customer and nameplate sockets retain their original positions. Depots retain the twelve shelf positions, stock door, packing bench and cargo droid route. Keep purchases, contracts, repairs, drinks and character actions on the existing game handlers. `?oldshops` retains the existing comparison mode. The three depot wayfinding signs hang above the cargo lane so the droid clears the turn in front of the shelves.
+The game resolves a shop by its existing location and shop key. The entrance, camera, keeper, crew, customer and nameplate sockets retain their original positions. Depots retain the twelve shelf positions, stock door, packing bench and cargo droid route. Keep purchases, contracts, repairs, drinks and character actions on the existing game handlers. `?oldshops` retains the existing comparison mode. The three remodeled depot wayfinding signs hang above the cargo lane so the droid clears the turn in front of the shelves.
 
-The sixteen additional freight sites are tracked in [PR #18](https://github.com/johnshawler/space-cruiser/pull/18). When integrating both changes, combine manifest entries by location and shop key. Run the refit builder for the original and market collections, keep the freight collection on its own build mode, then rebuild both HTML bundles from source.
+## Sixteen freight depots and garages
+
+[Final ten depots and six garages in Blender](../../../art/storefronts/Freight-Storefronts.blend) · [Full-resolution render sheet](freight-storefronts.jpg)
+
+![Sixteen freight depots and garages, labeled by shop and location](freight-storefronts.jpg)
+
+These ten depots keep the navigation mast, so their droid takes the outer aisle to reach the goods shelf. They have not had the Rustbucket surface pass.
 
 ## Rebuild the models and proof
 
@@ -28,11 +34,12 @@ blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py --
 blender -b --factory-startup --python-exit-code 1 -P art/storefronts/proof_views.py -- "$PWD" "$PWD/build/port-shop-remodels"
 blender -b --factory-startup --python-exit-code 1 -P art/storefronts/proof_views.py -- "$PWD" "$PWD/build/port-shop-details" --details
 python3 art/storefronts/proof_sheet.py build/port-shop-remodels build/port-shop-details docs/interiors/storefronts/port-shop-remodels.jpg
+blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py -- "$PWD" --freight --render
 bash build.sh
 node tools/check-assets.mjs
 ```
 
-Earlier model sheets document the previous pass on the [original sixteen](storefront-model-proof.jpg) and the [fourteen additions](market-storefronts.jpg).
+The optional `--render` pass of the freight build writes individual views under `build/freight-renders/`. Earlier model sheets document the previous pass on the [original sixteen](storefront-model-proof.jpg) and the [fourteen additions](market-storefronts.jpg).
 
 ## Original venue concept sheet
 

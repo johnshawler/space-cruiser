@@ -509,7 +509,11 @@ const Venues = (() => {
       const back=[['rev',x0,-11.4],['to',x0,-9.2],['to',x0,-2.3],['to',sx,-1.9],['face',0],['lift',1.14],['rev',sx,-0.85],['drop'],['rev',sx,-1.9],['lift',0.95],['to',HOME[0],HOME[1]],['face',0]];
       if(it){ // the good's own model: round the front of the counter to the shelf, lift it off, take it to the bench in the stock room, crate it there, bring the crate out
         const p=it.o.getWorldPosition(new V3()); V.root.worldToLocal(p); const ix=Math.min(-2.7,p.x);
-        D.cur={slot,name,it,iy:p.y,steps:[['to',3.4,1.5],['to',ix,1.5],['to',ix,0.55],['face',Math.PI],['liftTo',Math.max(0.6,p.y-0.04)],['take'],['liftTo',1.0],['rev',ix,1.5],['to',3.4,1.5],['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['liftTo',1.0],['pack'],...back]};
+        // A depot with the navigation mast at (3.4, 0.7) takes the outer aisle around it. One whose sign hangs overhead
+        // keeps the direct turn in front of the shelves, the route its model was checked against.
+        const overhead=V.frontShop&&V.frontShop.wayfindingMount==='overhead', ax=overhead?3.4:5.0, az=overhead?1.5:1.6;
+        const out=overhead?[['to',ax,az]]:[['to',ax,HOME[1]],['to',ax,az]], home=overhead?[['to',ax,az]]:[['to',ax,az],['to',ax,HOME[1]]];
+        D.cur={slot,name,it,iy:p.y,steps:[...out,['to',ix,az],['to',ix,0.55],['face',Math.PI],['liftTo',Math.max(0.6,p.y-0.04)],['take'],['liftTo',1.0],['rev',ix,az],...home,['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['liftTo',1.0],['pack'],...back]};
       } else { // no model to hand (a long board): fetch a ready-made crate from the stock room as before
         D.cur={slot,name,steps:[['to',x0,-2.3],['to',x0,-9.2],['to',x0,-12.8],['face',Math.PI],['grab'],...back]};
         const c=bx(0.62,0.62,0.62,M('#ffffff',0.85,0.02,{map:crateTex(name)}),x0,0.93+0.31,-13.6); c.castShadow=true; V.root.add(c); Bake.useProbe(V,c,false); D.crate=c; }
