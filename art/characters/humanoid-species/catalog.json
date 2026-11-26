@@ -1,0 +1,280 @@
+{
+  "blenderVersion": "4.5.16",
+  "source": "Long-Haul-Humanoid-Species.blend",
+  "status": "static authoring masters",
+  "characterCount": 16,
+  "species": [
+    {
+      "id": "taluun",
+      "scene": "Taluun",
+      "collection": "Taluun | character",
+      "meshObjects": 88,
+      "faces": 67417,
+      "dimensionsMetres": {
+        "width": 1.126,
+        "depth": 0.569,
+        "height": 1.682
+      },
+      "renders": {
+        "front": "renders/taluun/front.png",
+        "profile": "renders/taluun/profile.png",
+        "rear": "renders/taluun/rear.png"
+      }
+    },
+    {
+      "id": "orrek",
+      "scene": "Orrek",
+      "collection": "Orrek | character",
+      "meshObjects": 100,
+      "faces": 83529,
+      "dimensionsMetres": {
+        "width": 1.499,
+        "depth": 0.719,
+        "height": 1.81
+      },
+      "renders": {
+        "front": "renders/orrek/front.png",
+        "profile": "renders/orrek/profile.png",
+        "rear": "renders/orrek/rear.png"
+      }
+    },
+    {
+      "id": "vessari",
+      "scene": "Vessari",
+      "collection": "Vessari | character",
+      "meshObjects": 74,
+      "faces": 44350,
+      "dimensionsMetres": {
+        "width": 0.892,
+        "depth": 0.585,
+        "height": 1.921
+      },
+      "renders": {
+        "front": "renders/vessari/front.png",
+        "profile": "renders/vessari/profile.png",
+        "rear": "renders/vessari/rear.png"
+      }
+    },
+    {
+      "id": "mothren",
+      "scene": "Mothren",
+      "collection": "Mothren | character",
+      "meshObjects": 174,
+      "faces": 94595,
+      "dimensionsMetres": {
+        "width": 1.086,
+        "depth": 0.484,
+        "height": 1.424
+      },
+      "renders": {
+        "front": "renders/mothren/front.png",
+        "profile": "renders/mothren/profile.png",
+        "rear": "renders/mothren/rear.png"
+      }
+    },
+    {
+      "id": "ureth",
+      "scene": "Ureth",
+      "collection": "Ureth | character",
+      "meshObjects": 72,
+      "faces": 55363,
+      "dimensionsMetres": {
+        "width": 0.916,
+        "depth": 0.482,
+        "height": 1.862
+      },
+      "renders": {
+        "front": "renders/ureth/front.png",
+        "profile": "renders/ureth/profile.png",
+        "rear": "renders/ureth/rear.png"
+      }
+    },
+    {
+      "id": "keld",
+      "scene": "Keld",
+      "collection": "Keld | character",
+      "meshObjects": 76,
+      "faces": 74192,
+      "dimensionsMetres": {
+        "width": 1.187,
+        "depth": 0.588,
+        "height": 1.612
+      },
+      "renders": {
+        "front": "renders/keld/front.png",
+        "profile": "renders/keld/profile.png",
+        "rear": "renders/keld/rear.png"
+      }
+    },
+    {
+      "id": "sovai",
+      "scene": "Sovai",
+      "collection": "Sovai | character",
+      "meshObjects": 68,
+      "faces": 47432,
+      "dimensionsMetres": {
+        "width": 0.754,
+        "depth": 0.353,
+        "height": 1.714
+      },
+      "renders": {
+        "front": "renders/sovai/front.png",
+        "profile": "renders/sovai/profile.png",
+        "rear": "renders/sovai/rear.png"
+      }
+    },
+    {
+      "id": "brunn",
+      "scene": "Brunn",
+      "collection": "Brunn | character",
+      "meshObjects": 60,
+      "faces": 67622,
+      "dimensionsMetres": {
+        "width": 1.476,
+        "depth": 0.71,
+        "height": 1.8
+      },
+      "renders": {
+        "front": "renders/brunn/front.png",
+        "profile": "renders/brunn/profile.png",
+        "rear": "renders/brunn/rear.png"
+      }
+    },
+    {
+      "id": "pelrin",
+      "scene": "Pelrin",
+      "collection": "Pelrin | character",
+      "meshObjects": 114,
+      "faces": 66713,
+      "dimensionsMetres": {
+        "width": 0.902,
+        "depth": 0.448,
+        "height": 1.409
+      },
+      "renders": {
+        "front": "renders/pelrin/front.png",
+        "profile": "renders/pelrin/profile.png",
+        "rear": "renders/pelrin/rear.png"
+      }
+    },
+    {
+      "id": "zhavet",
+      "scene": "Zhavet",
+      "collection": "Zhavet | character",
+      "meshObjects": 41,
+      "faces": 36596,
+      "dimensionsMetres": {
+        "width": 1.283,
+        "depth": 0.399,
+        "height": 1.907
+      },
+      "renders": {
+        "front": "renders/zhavet/front.png",
+        "profile": "renders/zhavet/profile.png",
+        "rear": "renders/zhavet/rear.png"
+      }
+    },
+    {
+      "id": "koruun",
+      "scene": "Koruun",
+      "collection": "Koruun | character",
+      "meshObjects": 150,
+      "faces": 102282,
+      "dimensionsMetres": {
+        "width": 1.261,
+        "depth": 0.63,
+        "height": 1.482
+      },
+      "renders": {
+        "front": "renders/koruun/front.png",
+        "profile": "renders/koruun/profile.png",
+        "rear": "renders/koruun/rear.png"
+      }
+    },
+    {
+      "id": "eskel",
+      "scene": "Eskel",
+      "collection": "Eskel | character",
+      "meshObjects": 65,
+      "faces": 52604,
+      "dimensionsMetres": {
+        "width": 0.794,
+        "depth": 0.479,
+        "height": 1.907
+      },
+      "renders": {
+        "front": "renders/eskel/front.png",
+        "profile": "renders/eskel/profile.png",
+        "rear": "renders/eskel/rear.png"
+      }
+    },
+    {
+      "id": "rhovi",
+      "scene": "Rhovi",
+      "collection": "Rhovi | character",
+      "meshObjects": 77,
+      "faces": 59298,
+      "dimensionsMetres": {
+        "width": 0.891,
+        "depth": 0.566,
+        "height": 1.617
+      },
+      "renders": {
+        "front": "renders/rhovi/front.png",
+        "profile": "renders/rhovi/profile.png",
+        "rear": "renders/rhovi/rear.png"
+      }
+    },
+    {
+      "id": "nemeya",
+      "scene": "Nemeya",
+      "collection": "Nemeya | character",
+      "meshObjects": 58,
+      "faces": 48629,
+      "dimensionsMetres": {
+        "width": 0.834,
+        "depth": 0.472,
+        "height": 1.773
+      },
+      "renders": {
+        "front": "renders/nemeya/front.png",
+        "profile": "renders/nemeya/profile.png",
+        "rear": "renders/nemeya/rear.png"
+      }
+    },
+    {
+      "id": "dathri",
+      "scene": "Dathri",
+      "collection": "Dathri | character",
+      "meshObjects": 105,
+      "faces": 78604,
+      "dimensionsMetres": {
+        "width": 0.94,
+        "depth": 0.519,
+        "height": 1.509
+      },
+      "renders": {
+        "front": "renders/dathri/front.png",
+        "profile": "renders/dathri/profile.png",
+        "rear": "renders/dathri/rear.png"
+      }
+    },
+    {
+      "id": "ulnor",
+      "scene": "Ulnor",
+      "collection": "Ulnor | character",
+      "meshObjects": 75,
+      "faces": 65900,
+      "dimensionsMetres": {
+        "width": 1.014,
+        "depth": 0.69,
+        "height": 1.945
+      },
+      "renders": {
+        "front": "renders/ulnor/front.png",
+        "profile": "renders/ulnor/profile.png",
+        "rear": "renders/ulnor/rear.png"
+      }
+    }
+  ]
+}
