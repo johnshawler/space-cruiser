@@ -1,6 +1,7 @@
-"""Build the stoat cockpit with Blender 4.5 LTS."""
+"""Rebuild the stoat cockpit in Blender."""
 import sys
 from pathlib import Path
-sys.path.insert(0,str(Path(__file__).resolve().parent))
-from fabricate import build
-build(__file__)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "ship-interiors"))
+from fleet.build import rebuild_entry
+
+rebuild_entry(__file__, True)

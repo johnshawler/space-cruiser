@@ -4,16 +4,16 @@
       "ship": "dromedary",
       "name": "Dromedary 400",
       "file": "assets/ship-interiors/dromedary.glb",
-      "triangles": 33722,
-      "meshes": 94,
-      "materials": 16,
-      "bytes": 2639716,
+      "triangles": 63342,
+      "meshes": 36,
+      "materials": 22,
+      "bytes": 3562052,
       "anchors": {
-        "lamp_corridor": {
+        "lamp_01": {
           "position": [
             0,
-            1.1799999475479126,
-            3.950000047683716
+            2,
+            -10.899999618530273
           ],
           "quaternion": [
             0,
@@ -22,219 +22,11 @@
             1
           ]
         },
-        "lamp_passenger_cabin": {
+        "lamp_02": {
           "position": [
-            -2.6500000953674316,
-            1.1799999475479126,
-            3.5999999046325684
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_galley": {
-          "position": [
-            2.450000047683716,
-            1.1799999475479126,
-            3.200000047683716
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_cargo_hold": {
-          "position": [
-            0,
-            1.1799999475479126,
-            10.699999809265137
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_engine_room": {
-          "position": [
-            0,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_scrubber_bay": {
-          "position": [
-            -2.6500000953674316,
-            1.1799999475479126,
-            6.5
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_airlock": {
-          "position": [
-            2.450000047683716,
-            1.1799999475479126,
-            6.099999904632568
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_port_alley": {
-          "position": [
-            -2.9000000953674316,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_starboard_alley": {
-          "position": [
-            2.9000000953674316,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_1": {
-          "position": [
-            -3.799999952316284,
-            0,
-            1.9500000476837158
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_2": {
-          "position": [
-            -3.799999952316284,
-            0,
-            3.0999999046325684
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_3": {
-          "position": [
-            -3.799999952316284,
-            0,
-            4.25
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_4": {
-          "position": [
-            -3.799999952316284,
-            0,
-            5.400000095367432
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "reactor": {
-          "position": [
-            0,
-            0.18000000715255737,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_coolant": {
-          "position": [
-            -3,
-            -0.3499999940395355,
-            1.5499999523162842
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_thruster": {
-          "position": [
-            1.2999999523162842,
-            0.3499999940395355,
-            18.850000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_fuse": {
-          "position": [
-            2.450000047683716,
-            0.44999998807907104,
-            1.4600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_scrubber": {
-          "position": [
-            -3,
-            0.949999988079071,
-            5.860000133514404
+            -0.5,
+            2,
+            -7.699999809265137
           ],
           "quaternion": [
             0,
@@ -245,9 +37,22 @@
         },
         "fault_crack": {
           "position": [
-            -0.8600000143051147,
-            0.550000011920929,
-            5.150000095367432
+            -2.950000047683716,
+            0.8700000047683716,
+            -8.720000267028809
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_03": {
+          "position": [
+            0,
+            2,
+            -1
           ],
           "quaternion": [
             0,
@@ -258,9 +63,22 @@
         },
         "fault_strap": {
           "position": [
-            1.5499999523162842,
-            0.10000000149011612,
-            10.600000381469727
+            2.380000114440918,
+            0.8700000047683716,
+            0.9200000166893005
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_04": {
+          "position": [
+            2.549999952316284,
+            2,
+            5.300000190734863
           ],
           "quaternion": [
             0,
@@ -271,9 +89,191 @@
         },
         "fault_seal": {
           "position": [
-            2.819999933242798,
-            0.44999998807907104,
-            5.320000171661377
+            3.180000066757202,
+            0.8700000047683716,
+            4.670000076293945
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_05": {
+          "position": [
+            0.4000000059604645,
+            2,
+            6.03000020980835
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_06": {
+          "position": [
+            -2.075000047683716,
+            2,
+            5.300000190734863
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            -2.5299999713897705,
+            0.8700000047683716,
+            5.199999809265137
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_07": {
+          "position": [
+            0.6000000238418579,
+            2,
+            7.599999904632568
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            2.0999999046325684,
+            0.8700000047683716,
+            7.349999904632568
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_08": {
+          "position": [
+            0.25,
+            4.369999885559082,
+            -1.4500000476837158
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_1": {
+          "position": [
+            -2.380000114440918,
+            2.549999952316284,
+            -0.550000011920929
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "passenger_2": {
+          "position": [
+            2.380000114440918,
+            2.549999952316284,
+            -0.550000011920929
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "fault_coolant": {
+          "position": [
+            -0.6499999761581421,
+            3.4200000762939453,
+            -2.0799999237060547
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_09": {
+          "position": [
+            -1.5499999523162842,
+            4.369999885559082,
+            2.5
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_10": {
+          "position": [
+            0.75,
+            4.369999885559082,
+            2.5
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            1.909999966621399,
+            3.4200000762939453,
+            3.5
+          ],
+          "quaternion": [
+            0,
+            1,
+            0,
+            4.371138828673793e-08
+          ]
+        },
+        "lamp_11": {
+          "position": [
+            1.8200000524520874,
+            4.369999885559082,
+            5.5
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_12": {
+          "position": [
+            -1.649999976158142,
+            4.369999885559082,
+            5.400000095367432
           ],
           "quaternion": [
             0,
@@ -285,21 +285,8 @@
         "cockpit_door": {
           "position": [
             0,
-            -0.17499999701976776,
-            0.6800000071525574
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "cargo_aisle": {
-          "position": [
-            0,
-            -0.9700000286102295,
-            10.600000381469727
+            0.9100000262260437,
+            -9
           ],
           "quaternion": [
             0,
@@ -308,22 +295,197 @@
             1
           ]
         }
-      }
+      },
+      "fitted": true,
+      "layout": {
+        "levels": [
+          {
+            "name": "Freight deck",
+            "floor": 0,
+            "walk": {
+              "x0": -4.0,
+              "z0": -13.0,
+              "cell": 0.1,
+              "nx": 80,
+              "nz": 220,
+              "bits": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB/wAAD/AAAAAAAf8AAA/wAAAAAAH/AAAP8AAAAAAB/wAAD/AAAAAAAf8AAA/wAAAAAAH/AAAP8AAAAAAB/wAAD/AAAAAAAf/4Af/wAAAAAAH/+AH/8AAAAAAB//gB//AAAAAAAf/4Af/wAAAAAAH/+AH/8AAAAAAB//gB//AAAAAAAf/4Af/wAAAAAAH/+AH/8AAAAAAB//////AAAAAAAf/////wAAAAAAH/////8AAAAAAB//////AAAAAAAf/////wAAAAAAH/////8AAAAAAB//////AAAAAAAf/////wAAAAAAH/////8AAAAAAB//////AAAAAAAf/////wAAAAAAH/////8AAAAAAB//////AAAAAAAf/////wAAAAAAH/////8AAAAAAB//////AAAAAAAf/////wAAAAAAH/////8AAAAAAB//////AAAAAAAAAB+AAAAAAAAAAAAfgAAAAAAAAAAAH4AAAAAAAAAAAB+AAAAAAAf//////////gAH//////////4AB//////////+AAf//////////gAH//////////4AB//////////+AAf//////4AAPgAH//////+AAD4AB///////gAA+AAf//////4AAPgAH//////+AAD4AB///////gAA+AAf//////4AAPgAH//////+AAD4AB//////////+AAf//////////gAH//////////4AB//////////+AAf//////////gAH//////////4AB//////////+AAAAAAf//gAAAAAAAAAB//gAAAAAAAAAAf/4AAAAAAAAAAH/+AAAAAAAAAAD//wAAAAAB//////////+AAf//////////gAH//////////4AB//////////+AAf//////////gAH//////////4AB////////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP////////gAAAD////////4AAAA////////+AAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAH////////wAAAB////////8AAAAf////////AAAAH////////wAAAB////////8AAAAf////////AAAAH////////wAAAB////////8AAAAf//////////gAH//////////4AB//////////+AAf//////////gAH//////////4AAAB/AAH+AD/AAAAAfwAA/AAfgAAAAH8AAPwAH4AAAAB/AAH+AD/AAAAB/8AH/4D/8AAAB//4P//g//4AAAf/+D//4P/+AAAH//g//+D//gAAB//4P//g//4AAAf/+D//4P/+AAAH//g//+D//gAAB//4P//g//4AAAf/+D//4P/+AAAH//g//+D//gAAB//4P//g//4AAAf/+D//4P/+AAAH//g//+D//gAAB//4P//g//4AAAf/+D//4P/+AAf///g//+D//gAH///4P//g//4AAAB/4Af+AAAAAAAAP8AD/AAAAAAAAB+AAfgAAAAAAAAfgAH4AAAAAAAAP8AD/AAAAAAH//////////4AB//////////+AAf//////////gAH//////////4AB//////////+AAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+          },
+          {
+            "name": "Hump deck",
+            "floor": 2.55,
+            "walk": {
+              "x0": -4.0,
+              "z0": -3.0,
+              "cell": 0.1,
+              "nx": 80,
+              "nz": 100,
+              "bits": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP////////AAAAD////////wAAAA////////8AAAAP////////AAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAA////////8AAAAP////////AAAAAA/gAH+AAAAAAAAHwAA/gAAAAAAAB8AAPwAAAAAAAAfAAD+AAAAAAAAP4AB/gAAAAAAAH/wf///AAAAAAB/8H///wAAAAAAf/B///8AAAAAAH/wf///AAAAAAB/8H///wAAAAAAf/B///8AAAAAAH/wf///AAAAAAB/8H///wAAAAAAf/B///8AAAAAAH/4////AAAAAAB//////wAAAAAAf/////8AAAAAAH//////AAAAAAB//////wAAAAAAf/j///8AAAAAAH/wf///AAAAAAB/8H///wAAAAAAf/B///8AAAAAAH/wf///AAAAAAB/8H///wAAAAAAf/B///8AAAAAAH/wf///AAAAAAB/8H///wAAAAAAAAAA/wAAAAAAAAAAAH4AAAAAAAAAAAB+AAAAAAAAAAAAfgAAAAAAAAAAAP8AAAAAAAB/4P////wAAAAAf+D////8AAAAAH/g/////AAAAAB/4P////wAAAAAf+D////8AAAAAH/g/////AAAAAB/4P////wAAAA//+D////8AAAAP//w/////AAAAD//8P////wAAAA////////8AAAAP////////AAAAD////////wAAAA////////8AAAAP////////AAAAD//8P////wAAAA///D////8AAAAP//g/////AAAAD//4P////wAAAA//+D////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+          }
+        ],
+        "spots": {
+          "crack": {
+            "level": 0,
+            "room": "Dispatch room"
+          },
+          "strap": {
+            "level": 0,
+            "room": "Freight hold"
+          },
+          "seal": {
+            "level": 0,
+            "room": "Airlock"
+          },
+          "scrubber": {
+            "level": 0,
+            "room": "Filter workshop"
+          },
+          "thruster": {
+            "level": 0,
+            "room": "Engine shop"
+          },
+          "seat_1": {
+            "level": 1,
+            "room": "Passenger majlis"
+          },
+          "seat_2": {
+            "level": 1,
+            "room": "Passenger majlis"
+          },
+          "coolant": {
+            "level": 1,
+            "room": "Passenger majlis"
+          },
+          "fuse": {
+            "level": 1,
+            "room": "Coffee galley"
+          }
+        },
+        "lifts": [
+          {
+            "id": "L1",
+            "decks": [
+              0,
+              1
+            ],
+            "rooms": [
+              "05",
+              "11"
+            ],
+            "position": [
+              0.42,
+              5.22
+            ],
+            "size": [
+              1.12,
+              1.28
+            ]
+          }
+        ],
+        "door": [
+          0,
+          -9
+        ],
+        "spawn": [
+          0,
+          -8.56
+        ],
+        "eye": [
+          0,
+          1.31,
+          -11.7
+        ]
+      },
+      "crates": [
+        [
+          -2.65,
+          -4.9,
+          1.568,
+          0.9
+        ],
+        [
+          -2.65,
+          -3.9,
+          1.568,
+          0.9
+        ],
+        [
+          -2.65,
+          -2.9,
+          1.568,
+          0.9
+        ],
+        [
+          -2.65,
+          -1.9,
+          1.568,
+          0.9
+        ],
+        [
+          -2.65,
+          -0.9,
+          1.568,
+          0.9
+        ],
+        [
+          -2.65,
+          0.1,
+          1.568,
+          0.9
+        ],
+        [
+          -2.65,
+          1.1,
+          1.568,
+          0.9
+        ],
+        [
+          -2.65,
+          2.1,
+          1.568,
+          0.9
+        ],
+        [
+          2.65,
+          -4.85,
+          1.568,
+          0.9
+        ],
+        [
+          2.65,
+          -3.65,
+          1.568,
+          0.9
+        ],
+        [
+          2.65,
+          1.6,
+          1.568,
+          0.9
+        ],
+        [
+          2.65,
+          2.8,
+          1.568,
+          0.9
+        ]
+      ]
     },
     {
       "ship": "stoat",
       "name": "Stellar Stoat",
       "file": "assets/ship-interiors/stoat.glb",
-      "triangles": 31434,
-      "meshes": 95,
-      "materials": 16,
-      "bytes": 2407148,
+      "triangles": 39254,
+      "meshes": 33,
+      "materials": 19,
+      "bytes": 2424132,
       "anchors": {
-        "lamp_corridor": {
+        "lamp_01": {
           "position": [
             0,
-            1.1799999475479126,
-            3.950000047683716
+            0.8999999761581421,
+            -8.149999618530273
           ],
           "quaternion": [
             0,
@@ -332,102 +494,11 @@
             1
           ]
         },
-        "lamp_passenger_cabin": {
+        "lamp_02": {
           "position": [
-            -2.6500000953674316,
-            1.1799999475479126,
-            3.5999999046325684
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_galley": {
-          "position": [
-            2.450000047683716,
-            1.1799999475479126,
-            3.200000047683716
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_cargo_hold": {
-          "position": [
-            0,
-            1.1799999475479126,
-            10.699999809265137
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_engine_room": {
-          "position": [
-            0,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_scrubber_bay": {
-          "position": [
-            -2.6500000953674316,
-            1.1799999475479126,
-            6.5
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_airlock": {
-          "position": [
-            2.450000047683716,
-            1.1799999475479126,
-            6.099999904632568
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_port_alley": {
-          "position": [
-            -2.9000000953674316,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_starboard_alley": {
-          "position": [
-            2.9000000953674316,
-            1.1799999475479126,
-            16.600000381469727
+            0.20000000298023224,
+            0.8999999761581421,
+            -4.849999904632568
           ],
           "quaternion": [
             0,
@@ -438,113 +509,61 @@
         },
         "passenger_1": {
           "position": [
-            -3.799999952316284,
-            0,
-            1.9500000476837158
+            -1.7200000286102295,
+            -0.949999988079071,
+            -5.550000190734863
           ],
           "quaternion": [
             0,
+            0.6180626153945923,
             0,
-            0,
-            1
+            0.7861288785934448
           ]
         },
         "passenger_2": {
           "position": [
-            -3.799999952316284,
-            0,
-            3.0999999046325684
+            -1.9199999570846558,
+            -0.949999988079071,
+            -4.480000019073486
           ],
           "quaternion": [
             0,
+            0.6180626153945923,
             0,
-            0,
-            1
+            0.7861288785934448
           ]
         },
         "passenger_3": {
           "position": [
-            -3.799999952316284,
-            0,
-            4.25
+            1.899999976158142,
+            -0.949999988079071,
+            -4.230000019073486
           ],
           "quaternion": [
             0,
+            -0.6180626153945923,
             0,
-            0,
-            1
-          ]
-        },
-        "passenger_4": {
-          "position": [
-            -3.799999952316284,
-            0,
-            5.400000095367432
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "reactor": {
-          "position": [
-            0,
-            0.18000000715255737,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
+            0.7861288785934448
           ]
         },
         "fault_coolant": {
           "position": [
-            -3,
-            -0.3499999940395355,
-            1.5499999523162842
+            -0.8999999761581421,
+            -0.07999999821186066,
+            -3.1500000953674316
           ],
           "quaternion": [
             0,
+            1,
             0,
-            0,
-            1
+            4.371138828673793e-08
           ]
         },
-        "fault_thruster": {
+        "lamp_03": {
           "position": [
-            1.2999999523162842,
-            0.3499999940395355,
-            18.850000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_fuse": {
-          "position": [
-            2.450000047683716,
-            0.44999998807907104,
-            1.4600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_scrubber": {
-          "position": [
-            -3,
-            0.949999988079071,
-            5.860000133514404
+            -1.3899999856948853,
+            0.8999999761581421,
+            2.9200000762939453
           ],
           "quaternion": [
             0,
@@ -555,9 +574,22 @@
         },
         "fault_crack": {
           "position": [
-            -0.8600000143051147,
-            0.550000011920929,
-            5.150000095367432
+            -2.809999942779541,
+            -0.07999999821186066,
+            -0.5
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_04": {
+          "position": [
+            0,
+            0.8999999761581421,
+            2.5
           ],
           "quaternion": [
             0,
@@ -568,9 +600,113 @@
         },
         "fault_strap": {
           "position": [
-            1.5499999523162842,
-            0.10000000149011612,
-            10.600000381469727
+            0.5199999809265137,
+            -0.07999999821186066,
+            4.449999809265137
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_05": {
+          "position": [
+            2.299999952316284,
+            0.8999999761581421,
+            2.5999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            2.7799999713897705,
+            -0.07999999821186066,
+            1.25
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_06": {
+          "position": [
+            -2.8299999237060547,
+            0.8999999761581421,
+            3.869999885559082
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_07": {
+          "position": [
+            0,
+            0.8999999761581421,
+            6.400000095367432
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            -2.119999885559082,
+            -0.07999999821186066,
+            6.699999809265137
+          ],
+          "quaternion": [
+            0,
+            1,
+            0,
+            4.371138828673793e-08
+          ]
+        },
+        "lamp_08": {
+          "position": [
+            -0.800000011920929,
+            0.8999999761581421,
+            8.649999618530273
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            1.25,
+            -0.07999999821186066,
+            9.359999656677246
+          ],
+          "quaternion": [
+            0,
+            1,
+            0,
+            4.371138828673793e-08
+          ]
+        },
+        "lamp_09": {
+          "position": [
+            2.8499999046325684,
+            0.8999999761581421,
+            -0.8999999761581421
           ],
           "quaternion": [
             0,
@@ -581,35 +717,22 @@
         },
         "fault_seal": {
           "position": [
-            2.819999933242798,
-            0.44999998807907104,
-            5.320000171661377
+            3.2699999809265137,
+            -0.07999999821186066,
+            -0.2199999988079071
           ],
           "quaternion": [
             0,
+            -0.7071068286895752,
             0,
-            0,
-            1
+            0.7071068286895752
           ]
         },
         "cockpit_door": {
           "position": [
             0,
-            -0.17499999701976776,
-            0.6800000071525574
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "cargo_aisle": {
-          "position": [
-            0,
-            -0.9700000286102295,
-            10.600000381469727
+            -0.03999999910593033,
+            -6.300000190734863
           ],
           "quaternion": [
             0,
@@ -618,22 +741,109 @@
             1
           ]
         }
-      }
+      },
+      "fitted": true,
+      "layout": {
+        "levels": [
+          {
+            "name": "Courier deck",
+            "floor": -0.95,
+            "walk": {
+              "x0": -4.0,
+              "z0": -11.0,
+              "cell": 0.1,
+              "nx": 80,
+              "nz": 220,
+              "bits": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAfAAAPgAAAAAAAHwAAD4AAAAAAAB8AAA+AAAAAAAAfAAAPgAAAAAAAHwAAD4AAAAAAAB8AAA+AAAAAAAA/AAAPwAAAAAAAPwAAD8AAAAAAAD/4A//AAAAAAAA/+AP/wAAAAAAAP/gD/8AAAAAAAD/4A//AAAAAAAA/+AP/wAAAAAAAP/gD/8AAAAAAAD/4A//AAAAAAAB/////4AAAAAAAf////+AAAAAAAH/////gAAAAAAB/////4AAAAAAAf////+AAAAAAAH/////gAAAAAAB/////4AAAAAAAf////+AAAAAAAP/////wAAAAAAD/////8AAAAAAA//////AAAAAAAP/////wAAAAAAD/////8AAAAAAA//////AAAAAAAP/////wAAAAAAD/////8AAAAAAB//////gAAAAAAf/////4AAAAAAAAAfgAAAAAAAAAAAH4AAAAAAAAAAAB+AAAAAAAAAAAAfgAAAAAAAAD////wAAAAAAAAAf//8AAAAAAAAAH///AAAAAAAAAB///wAAAAAAAAAf//8ACAAAAAAAH///AAgAAAAAAB///wAIAAAAAAAf////+AAAAAAAH/////gAAAAAAB/////8AAAAAD///////AAAAAAAf/////wAAAAAAH/////8AAAAAAB//////gAAAAAAf////AAAAAAAAH////wAAAAAAAB////8AAAAAAAAf////AAAAAAAAH////wAAAAAAAB////8AAAAAAAAf////AAAAAAB//////wAgAAAAf/////8AIAAAAH//////ACAAAAB////////gAAAA////////8AAAAP////////AAAAD////////wAAAA////////8AAAAf////////gAAAH////////4AAAA/gAAAAAH8AAAAHwAAAAAA+AAAAB8AAAAAAPgAAAA/gAAAAAH8AAAA//+D/8H//wAAAP//gB/B//8AAAD//4Afwf4AAAAA//+AH8H8AAAAAP//gB/B/AAAAAD//4AfwfwAAAAA//+AH8H8AAAAAP//gB/B/B/4AAD//4Afwfwf+AAA//+AH8H8H/gAAP//gB/B/B/4AAD//4Afwfwf+AAA//+AH8H8H/gAAP//gB/B/D/4AAD//4Afwf//+AAA//+AH8H///gAAP//gB/B///4AAD//4Afwf//+AAA//+AH8H///gAAP//gB/B/3/4AAD//4Afwfwf+AAA//+AH8H8H/gAAP//g//B/B/4AAD//4P/wfwf+AAAAf+D/8H8H/gAAAB/g//B/B/4AAAAP4P/wfwAAAAAAD+D/8H8AAAAAAA/g//B/AAAAH/4P4P/wfwAAAB/+D+D/8H+AAAAf/g/g//B//8AAH/4P4P/wf//AAB/+D+H/8H//wAAf/g/z//B//8AAH/4P//4Af//AAB/+D//+AH//wAAf/g///gB//8AAH/4P//4Af//AAB/+D//+AH//wAAB/g///gB//8AAAf4P//4Af//AAAH+H//+AH//wAAB/z/z/gB//8AAAf//4f4Af//AAAH//+D+AH//wAAB///g/gB//8AAAf//4P4Af//AAAH//+D+AH//wAAB///g/gB//8AAAf//4P4Af//AAAH//+D+AH//wAAB///g/gB//8AAAf//4P4Af//AAAH//+D/8H//wAAB///g//h//8AAAf//4P/8///AAAH//+D/////wAAB///g/////8AAAf//4P/////AAAH/P+D/////wAAB/h/g/////8AAAf4P4P/////AAB/+D+D/////wAAf/g/g/////8AAH/4P4P/8///AAB/+D+D/+H//wAAf/g/g//B//8AAH/4P4P/wf//AAB/+D+D/8H//wAAf/g/g//B//8AAAAAP4P/wf//AAAAAD+D/8H//wAAAAA/g//B//8AAAAAP4P/wf//AAAAAH+D/8H//wAAAP//g//B//8AAAD//4P/wf//AAAA//+D/8H//wAAAP/AAAAAA/8AAAA/AAAAAAD8AAAAHwAAAAAA+AAAAB8AAAAAAPgAAAA/AAAAAAD8AAAA/////////wAAAP////////8AAAD/////////AAAA/////////wAAAP////////8AAAD/////////AAAAA////////wAAAAP///////8AAAAD////////AAAAA////////wAAAAP///////8AAAAD////////AAAAAAAB/4AAAAAAAAAAAP8AAAAAAAAAAAD/AAAAAAAAAAAB/4AAAAAAAAAAB//gAAAAAAA////////8AAAAP////////AAAAD////////wAAAAf///4AB/4AAAAH///+AAf+AAAAB////gAH/gAAAAP///4AB/wAAAAD///+AAf8AAAAA////gAH/AAAAAH///4AB/gAAAAB///+AAf4AAAAAf///gAH+AAAAAD///4AB/AAAAAA///+AAfwAAAAAP///gAH8AAAAAB///4AB+AAAAAAf//+AAfgAAAAAH///gAH4AAAAAA///4AB8AAAAAAP//+AAfAAAAAAD///gAHwAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAP/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+          }
+        ],
+        "spots": {
+          "seat_1": {
+            "level": 0,
+            "room": "Captain\u2019s wardroom"
+          },
+          "seat_2": {
+            "level": 0,
+            "room": "Captain\u2019s wardroom"
+          },
+          "seat_3": {
+            "level": 0,
+            "room": "Captain\u2019s wardroom"
+          },
+          "coolant": {
+            "level": 0,
+            "room": "Captain\u2019s wardroom"
+          },
+          "crack": {
+            "level": 0,
+            "room": "Port passage"
+          },
+          "strap": {
+            "level": 0,
+            "room": "Sealed cargo pod"
+          },
+          "fuse": {
+            "level": 0,
+            "room": "Starboard passage"
+          },
+          "scrubber": {
+            "level": 0,
+            "room": "Cross passage"
+          },
+          "thruster": {
+            "level": 0,
+            "room": "Turbine room"
+          },
+          "seal": {
+            "level": 0,
+            "room": "Pressure lock"
+          }
+        },
+        "lifts": [],
+        "door": [
+          0,
+          -6.3
+        ],
+        "spawn": [
+          0,
+          -5.859999999999999
+        ],
+        "eye": [
+          0,
+          0.3600000000000001,
+          -8.8
+        ]
+      },
+      "crates": [
+        [
+          -0.51,
+          -1.42,
+          0.6180000000000001,
+          0.429
+        ],
+        [
+          0.52,
+          1.82,
+          0.6180000000000001,
+          0.429
+        ]
+      ]
     },
     {
       "ship": "manatee",
       "name": "Opulent Manatee",
       "file": "assets/ship-interiors/manatee.glb",
-      "triangles": 35038,
-      "meshes": 95,
-      "materials": 16,
-      "bytes": 2624680,
+      "triangles": 67146,
+      "meshes": 40,
+      "materials": 26,
+      "bytes": 4144212,
       "anchors": {
-        "lamp_corridor": {
+        "lamp_01": {
           "position": [
             0,
-            1.1799999475479126,
-            3.950000047683716
+            2.3299999237060547,
+            -13.100000381469727
           ],
           "quaternion": [
             0,
@@ -642,11 +852,11 @@
             1
           ]
         },
-        "lamp_passenger_cabin": {
+        "lamp_02": {
           "position": [
-            -2.6500000953674316,
-            1.1799999475479126,
-            3.5999999046325684
+            0.699999988079071,
+            2.3299999237060547,
+            -9.300000190734863
           ],
           "quaternion": [
             0,
@@ -655,206 +865,11 @@
             1
           ]
         },
-        "lamp_galley": {
+        "lamp_03": {
           "position": [
-            2.450000047683716,
-            1.1799999475479126,
-            3.200000047683716
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_cargo_hold": {
-          "position": [
-            0,
-            1.1799999475479126,
-            10.699999809265137
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_engine_room": {
-          "position": [
-            0,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_scrubber_bay": {
-          "position": [
-            -2.6500000953674316,
-            1.1799999475479126,
-            6.5
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_airlock": {
-          "position": [
-            2.450000047683716,
-            1.1799999475479126,
-            6.099999904632568
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_port_alley": {
-          "position": [
-            -2.9000000953674316,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_starboard_alley": {
-          "position": [
-            2.9000000953674316,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_1": {
-          "position": [
-            -3.799999952316284,
-            0,
-            1.9500000476837158
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_2": {
-          "position": [
-            -3.799999952316284,
-            0,
-            3.0999999046325684
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_3": {
-          "position": [
-            -3.799999952316284,
-            0,
-            4.25
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_4": {
-          "position": [
-            -3.799999952316284,
-            0,
-            5.400000095367432
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "reactor": {
-          "position": [
-            0,
-            0.18000000715255737,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_coolant": {
-          "position": [
-            -3,
-            -0.3499999940395355,
-            1.5499999523162842
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_thruster": {
-          "position": [
-            1.2999999523162842,
-            0.3499999940395355,
-            18.850000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_fuse": {
-          "position": [
-            2.450000047683716,
-            0.44999998807907104,
-            1.4600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_scrubber": {
-          "position": [
-            -3,
-            0.949999988079071,
-            5.860000133514404
+            -3.1500000953674316,
+            2.3299999237060547,
+            -2.5
           ],
           "quaternion": [
             0,
@@ -865,9 +880,22 @@
         },
         "fault_crack": {
           "position": [
-            -0.8600000143051147,
-            0.550000011920929,
-            5.150000095367432
+            -3.8299999237060547,
+            1.1200000047683716,
+            -4.949999809265137
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_04": {
+          "position": [
+            0.44999998807907104,
+            2.3299999237060547,
+            -3.700000047683716
           ],
           "quaternion": [
             0,
@@ -876,11 +904,154 @@
             1
           ]
         },
-        "fault_strap": {
+        "passenger_1": {
           "position": [
-            1.5499999523162842,
+            -1.600000023841858,
+            0.25,
+            -5.75
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "passenger_2": {
+          "position": [
+            -0.46000000834465027,
+            0.25,
+            -5.75
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_3": {
+          "position": [
+            -1.600000023841858,
+            0.25,
+            -1
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "passenger_4": {
+          "position": [
+            -0.46000000834465027,
+            0.25,
+            -1
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "fault_coolant": {
+          "position": [
+            1.7999999523162842,
+            1.1200000047683716,
+            -6.670000076293945
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_05": {
+          "position": [
+            3.319999933242798,
+            2.3299999237060547,
+            -2.5999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_06": {
+          "position": [
+            -1.4500000476837158,
+            2.3299999237060547,
+            4.199999809265137
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_07": {
+          "position": [
+            3.2899999618530273,
+            2.3299999237060547,
+            3.549999952316284
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            3.7799999713897705,
+            1.1200000047683716,
+            5.570000171661377
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_08": {
+          "position": [
             0.10000000149011612,
-            10.600000381469727
+            2.3299999237060547,
+            8.149999618530273
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_09": {
+          "position": [
+            0.30000001192092896,
+            -0.2800000011920929,
+            -8.899999618530273
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_10": {
+          "position": [
+            -3.049999952316284,
+            -0.2800000011920929,
+            -5.050000190734863
           ],
           "quaternion": [
             0,
@@ -891,35 +1062,139 @@
         },
         "fault_seal": {
           "position": [
-            2.819999933242798,
-            0.44999998807907104,
-            5.320000171661377
+            -3.6600000858306885,
+            -1.2300000190734863,
+            -4.070000171661377
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_11": {
+          "position": [
+            -1.149999976158142,
+            -0.2800000011920929,
+            2
           ],
           "quaternion": [
             0,
             0,
             0,
             1
+          ]
+        },
+        "fault_strap": {
+          "position": [
+            0.4300000071525574,
+            -1.2300000190734863,
+            4.849999904632568
+          ],
+          "quaternion": [
+            0,
+            1,
+            0,
+            4.371138828673793e-08
+          ]
+        },
+        "lamp_12": {
+          "position": [
+            2.5899999141693115,
+            -0.2800000011920929,
+            -0.699999988079071
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_13": {
+          "position": [
+            -1.7999999523162842,
+            -0.2800000011920929,
+            8.149999618530273
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_14": {
+          "position": [
+            0.47999998927116394,
+            -0.2800000011920929,
+            7.699999809265137
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            0.6299999952316284,
+            -1.2300000190734863,
+            8.75
+          ],
+          "quaternion": [
+            0,
+            1,
+            0,
+            4.371138828673793e-08
+          ]
+        },
+        "lamp_15": {
+          "position": [
+            2.5999999046325684,
+            -0.2800000011920929,
+            7.119999885559082
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_16": {
+          "position": [
+            -1.4500000476837158,
+            -0.2800000011920929,
+            12.079999923706055
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            2.25,
+            -1.2300000190734863,
+            12.649999618530273
+          ],
+          "quaternion": [
+            0,
+            -0.7387718558311462,
+            0,
+            0.6739556789398193
           ]
         },
         "cockpit_door": {
           "position": [
             0,
-            -0.17499999701976776,
-            0.6800000071525574
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "cargo_aisle": {
-          "position": [
-            0,
-            -0.9700000286102295,
-            10.600000381469727
+            1.159999966621399,
+            -11
           ],
           "quaternion": [
             0,
@@ -928,22 +1203,254 @@
             1
           ]
         }
-      }
+      },
+      "fitted": true,
+      "layout": {
+        "levels": [
+          {
+            "name": "Promenade deck",
+            "floor": 0.25,
+            "walk": {
+              "x0": -5.0,
+              "z0": -16.0,
+              "cell": 0.1,
+              "nx": 100,
+              "nz": 260,
+              "bits": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//////wAAAAAAAAAP//////AAAAAAAAAB//////+AAAAAAAAAH//////4AAAAAAAAAf/AAAP/gAAAAAAAAB/8AAA/+AAAAAAAAAH/wAAD/4AAAAAAAAAf/AAAP/gAAAAAAAAB/8AAA/+AAAAAAAAAH/wAAD/4AAAAAAAAA//AAAP/wAAAAAAAAD/8AAA//AAAAAAAAAP/wAAD/8AAAAAAAAA//8AD//wAAAAAAAAD//wAP//AAAAAAAAAP//AA//8AAAAAAAAA//8AD//wAAAAAAAAH//wAP//gAAAAAAAAf//AA//+AAAAAAAAB//8AD//4AAAAAAAAH//wAP//gAAAAAAAAf//////+AAAAAAAAB///////4AAAAAAAAH///////gAAAAAAAAf//////+AAAAAAAAD///////8AAAAAAAAP///////wAAAAAAAA////////AAAAAAAAD///////8AAAAAAAAP///////wAAAAAAAA////////AAAAAAAAD///////8AAAAAAAAP///////wAAAAAAAB////////gAAAAAAAH///////+AAAAAAAAf///////4AAAAAAAB////////gAAAAAAAH///////+AAAAAAAAAAAD/AAAAAAAAAAAAAAAP8AAAAAAAAAAAAAAA/wAAAAAAAAAAAAAAD/AAAAAAAAAAD//////////wAAAAAP//////////AAAAAA//////////8AAAAAD//////////wAAAAAP//////////AAAAAA//////////8AAAAAD////////4AQAAAAAf////////gBgAAAAB////////+AGAAAAAH////////4AYAAAAAf////////gBgAAAAB////////+AGAAAAAH////////4AYAAAAAf////////gBgAAAAB////////+AGAAAAAH////////4AYAAAAA/////////gBwAAAAD////////+AHAAAAAP////////4AcAAAAA/////////gBwAAAAD////////+AHAAAAAP////////4AcAAAAA/////////gBwAAAAD////////+AHAAAAAP////////4AcAAAAB/////////gB4AAAAH////////+AHgAAAAf////////4AeAAAAB/////////gB4AAAAH///////////gAAAAf//////////+AAAAB///////////4AAAAH///////////gAAAAf//////////+AAAAD///////////8AAAAP///////////wAAAAP4AAAf+AAAH4AAAAA/gAAB/4AAAPgAAAAD+AAAH/gAAA+AAAAAP4AAAf+AAAD4AAAAP/4P//////4P/AAAA//g///////g/8AAAD/+D//////+D/wAAAP/4P//////4P/AAAA//g///////g/8AAAD/+D//////+D/wAAAP/4ABgD///4P/AAAA//gAGAP///g/8AAAD/+AAYA///+D/wAAAP/4ABgD///4P/AAAA//gAGAP///g/8AAAD/+AAYA///+D/wAAAP/4ABgD///4P/AAAA//gAGAP///g/8AAAD/+AAYA///+D/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+D//////AD/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+D//////AD/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+D//////AD/wAAAP/4P/////8AP/AAAA//x//////wA/8AAAD/////////AD/wAAAP////////8AP/AAAA/////////wA/8AAAD/////////AD/wAAAP////////8AP/AAAA/////////wA/8AAAD/////////AD/wAAAP////////8AP/AAAA/////////wA/8AAAD/////////AD/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+D//////AD/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+D//////AD/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+D//////AD/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+D//////AD/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+D//////AD/wAAAP/4P/////8AP/AAAA//g//////wA/8AAAD/+AAYA///+D/wAAAP/4ABgD///4P/AAAA//gAGAP///g/8AAAD/+AAYA///+D/wAAAP/4ABgD///4P/AAAA//gAGAP///g/8AAAD/+AAYA///+D/wAAAP/4ABgD///4P/AAAA//gAGAP///g/8AAAD/+AAYA///+D/wAAAP/4P//////4P/AAAA//g///////g/8AAAD/+D//////+D/wAAAP/4P//////4P/AAAA//g///////g/8AAAD/+D//////+D/wAAAP/4P//////4P/AAAA//g///////g/8AAAD/+D//////+D/wAAAP/4P//////4P/AAAA//g///////g/8AAAD/+D//////+D/wAAAP/4P//////4P/AAAAH+AAAH/gAAAPwAAAAf4AAAf+AAAA/AAAAB/gAAB/4AAAD8AAAAH+AAAH/gAAAPwAAAD/////////+D/wAAAP/////////4P/AAAA//////////g/8AAAD/////////+D/wAAAP/////////4P/AAAA//////////g/8AAAD/////////+D/wAAAP/////////4P/AAAA//////////g/8AAAD/////////+D/wAAAP/////////4P4AAAA//////////g/gAAAD/////AA//+D+AAAAP////8AD//4P4AAAA/////wAP//g/gAAAD/////AA//+D+AAAAP////8AD//4P4AAAA/////wAP//g/gAAAD/////AA//+D+AAAAP////8AD//4P4AAAA/////wAP//g/gAAAD/////AA//+D+AAAAP////8AD//4P4AAAA/////wAP//g/gAAAD/////////+D+AAAAP/////////4f4AAAA////////////gAAAD///////////+AAAAP///////////4AAAA////////////gAAAD///////////+AAAAP/////////+/4AAAA//////////g/gAAAD/////////+D+AAAAP/////////4P4AAAA//////////g/gAAAD/////////+D+AAAAP/////////4P4AAAA//////////g/gAAAD/////////+D/wAAAP/////////4P/AAAA//////////g/8AAAD/////////+D/wAAAP/////////4P/AAAA//////////g/8AAAD/////////+D/wAAAP/////////4P/AAAA//////////g/8AAAAAAAA//wAAAD/AAAAAAAAA/8AAAAPwAAAAAAAAB/gAAAAfAAAAAAAAAH+AAAAB8AAAAAAAAA/8AAAAPwAAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAA///////////+AAAAD///////////4AAAAP///////////gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+          },
+          {
+            "name": "Working deck",
+            "floor": -2.1,
+            "walk": {
+              "x0": -5.0,
+              "z0": -11.0,
+              "cell": 0.1,
+              "nx": 90,
+              "nz": 260,
+              "bits": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAA//////////4AAAAAfwAH/gAB/gAAAAAfgAH/gAA/gAAAAAfgAH/gAA/gAAAAAfwAH/gAB/wAAA///wf///4P/+AAA///wf///4P/+AAA///wf///4P/+AAA///wf///4P/+AAA///wf///4P/+AAA///wf///4P/+AAA///wf///4P/+AAA///4////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA///4//+AIP/+AAA///wf/+AIP/+AAA///wf/+AIP/+AAA///wf/+AIP/+AAA///wf/+AIP/+AAA///wf/+AIP/+AAAAAAAf/+AIP/+AAAAAAAf/+AIP/+AAAAAAAf/+AIP/+AAAAAAAf/+AIP/+AAAAAAA//+AIP/+AAA//////+AIP/+AAA//////+AIP/+AAA//////+AIP/+AAA//////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AMP/+AAAAB////+AOf/+AAAAB////+AP//+AAAAB////+AP//+AAAAB////+AP//+AAAAB////+AP//+AAAAB////+AP//+AAAAB////+AP//+AAAAB////+AP//+AAAAB////+AP//+AAAAB////+AMP/+AAAAB////+AMP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB////+AIP/+AAAAB//////4P/+AAAAB//////4P/+AAAAB//////4P/+AAAAB//////4P/+AAAAB//////4P/+AAAAB//////4P/+AAAAB//////4P/+AAAAB//////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAA////////4P/+AAAAA/8AAAAAP/+AAAAAPwAAAAAP/+AAAAAPwAAAAAP/+AAAAAPwAAAAAP/+AAAAAPwAAAAAP/+AAAB////h//4P/+AAAB////h//4P/+AAAB////h//4P/+AAAAAf//h//4AfwAAAAAf//h//4AfwAAAAAf//h//4AfwAAAAAf//h//4AfwAAAAAf//h//4P/+AAAAAf//h//4P/+AAAAAf//h//4P/+AAAAAf//h//4P/+AAAAAf//h//4P/+AAAAAf//h//4P/+AAAAAf//h//4P/+AAAAAf//h//4P/+AAAAAf//h//8P/+AAAAAf//h//8P/+AAAAAf//h/////+AAAAAf//h/////+AAAAAf//h/////+AAAAAf//h/////+AAAAAf//h/////+AAAAAf//h/////+AAAAAf//h//8P/+AAAAAf//h//8P/+AAAAAf//gAP4P/+AAAB////gAP4P/+AAAB////gAP4P/+AAAB////gAP4P/+AAAB////gAP4P/+AAAB////gAP4P/+AAAB////gAP4P/+AAAB////gAP4P/+AAAAAAAAAAMAB/gAAAAAAAAAD8AB/gAAAAAAAAAD4AA/AAAAAAAAAAD8AB/gAAAAAAAAAH8AB/gAAAB//////////+AAAB//////////+AAAB//////////+AAAA//////////8AAAA//////////8AAAA//////////8AAAA//////////8AAAA//////////8AAAA//////////8AAAA//////////8AAAA////4AAA//8AAAA////4AAA//8AAAA////4AAA//8AAAA////4AAA//8AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAf///4AAA//4AAAAP///4AAA//wAAAAP///4AAA//wAAAAP///4AAA//wAAAAP///4AAA//wAAAAP///4AAA//wAAAAP///4AAA//wAAAAP///4AAA//wAAAAP/////////wAAAAP/////////wAAAAP/////////wAAAAH/////////gAAAAH/////////gAAAAH/////////gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          }
+        ],
+        "spots": {
+          "seat_1": {
+            "level": 0,
+            "room": "First-class salon"
+          },
+          "seat_2": {
+            "level": 0,
+            "room": "First-class salon"
+          },
+          "seat_3": {
+            "level": 0,
+            "room": "First-class salon"
+          },
+          "seat_4": {
+            "level": 0,
+            "room": "First-class salon"
+          },
+          "coolant": {
+            "level": 0,
+            "room": "First-class salon"
+          },
+          "crack": {
+            "level": 0,
+            "room": "Port promenade"
+          },
+          "fuse": {
+            "level": 0,
+            "room": "China pantry"
+          },
+          "seal": {
+            "level": 1,
+            "room": "Baggage lock"
+          },
+          "strap": {
+            "level": 1,
+            "room": "Luggage hold"
+          },
+          "scrubber": {
+            "level": 1,
+            "room": "Plant & scrubber"
+          },
+          "thruster": {
+            "level": 1,
+            "room": "Engine gallery"
+          }
+        },
+        "lifts": [
+          {
+            "id": "L1",
+            "decks": [
+              0,
+              1
+            ],
+            "rooms": [
+              "02",
+              "09"
+            ],
+            "position": [
+              -2.28,
+              -8.54
+            ],
+            "size": [
+              1.3,
+              1.5
+            ]
+          },
+          {
+            "id": "L2",
+            "decks": [
+              0,
+              1
+            ],
+            "rooms": [
+              "08",
+              "15"
+            ],
+            "position": [
+              2.55,
+              8.33
+            ],
+            "size": [
+              1.18,
+              1.32
+            ]
+          }
+        ],
+        "door": [
+          0,
+          -11
+        ],
+        "spawn": [
+          0,
+          -10.56
+        ],
+        "eye": [
+          0,
+          1.56,
+          -13.5
+        ]
+      },
+      "crates": [
+        [
+          -3.3,
+          -2.463,
+          -0.532,
+          0.78
+        ],
+        [
+          -3.3,
+          -1.488,
+          -0.532,
+          0.78
+        ],
+        [
+          -3.3,
+          -0.512,
+          -0.532,
+          0.78
+        ],
+        [
+          -3.3,
+          0.462,
+          -0.532,
+          0.78
+        ],
+        [
+          -3.3,
+          1.438,
+          -0.532,
+          0.78
+        ],
+        [
+          -3.3,
+          2.412,
+          -0.532,
+          0.78
+        ],
+        [
+          -3.3,
+          3.388,
+          -0.532,
+          0.78
+        ],
+        [
+          -3.3,
+          4.362,
+          -0.532,
+          0.78
+        ],
+        [
+          0.75,
+          -3.928,
+          -0.532,
+          0.634
+        ],
+        [
+          0.75,
+          -2.983,
+          -0.532,
+          0.634
+        ],
+        [
+          0.75,
+          -2.039,
+          -0.532,
+          0.634
+        ],
+        [
+          0.75,
+          -1.094,
+          -0.532,
+          0.634
+        ],
+        [
+          0.75,
+          -0.15,
+          -0.532,
+          0.634
+        ],
+        [
+          0.75,
+          0.794,
+          -0.532,
+          0.634
+        ],
+        [
+          0.75,
+          1.739,
+          -0.532,
+          0.634
+        ],
+        [
+          0.75,
+          2.683,
+          -0.532,
+          0.634
+        ],
+        [
+          0.75,
+          3.628,
+          -0.532,
+          0.634
+        ]
+      ]
     },
     {
       "ship": "empress",
       "name": "Quasar Empress",
       "file": "assets/ship-interiors/empress.glb",
-      "triangles": 39994,
-      "meshes": 92,
-      "materials": 16,
-      "bytes": 2962964,
+      "triangles": 45638,
+      "meshes": 39,
+      "materials": 25,
+      "bytes": 3192248,
       "anchors": {
-        "lamp_corridor": {
+        "lamp_01": {
           "position": [
             0,
-            1.1799999475479126,
-            3.950000047683716
+            1.440000057220459,
+            -13.850000381469727
           ],
           "quaternion": [
             0,
@@ -952,11 +1459,11 @@
             1
           ]
         },
-        "lamp_passenger_cabin": {
+        "lamp_02": {
           "position": [
-            -2.6500000953674316,
-            1.1799999475479126,
-            3.5999999046325684
+            0.20000000298023224,
+            1.440000057220459,
+            -8.399999618530273
           ],
           "quaternion": [
             0,
@@ -965,206 +1472,11 @@
             1
           ]
         },
-        "lamp_galley": {
+        "lamp_03": {
           "position": [
-            2.450000047683716,
-            1.1799999475479126,
-            3.200000047683716
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_cargo_hold": {
-          "position": [
-            0,
-            1.1799999475479126,
-            10.699999809265137
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "lamp_engine_room": {
-          "position": [
-            0,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_scrubber_bay": {
-          "position": [
-            -2.6500000953674316,
-            1.1799999475479126,
-            6.5
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_airlock": {
-          "position": [
-            2.450000047683716,
-            1.1799999475479126,
-            6.099999904632568
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_port_alley": {
-          "position": [
-            -2.9000000953674316,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fill_starboard_alley": {
-          "position": [
-            2.9000000953674316,
-            1.1799999475479126,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_1": {
-          "position": [
-            -3.799999952316284,
-            0,
-            1.9500000476837158
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_2": {
-          "position": [
-            -3.799999952316284,
-            0,
-            3.0999999046325684
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_3": {
-          "position": [
-            -3.799999952316284,
-            0,
-            4.25
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "passenger_4": {
-          "position": [
-            -3.799999952316284,
-            0,
-            5.400000095367432
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "reactor": {
-          "position": [
-            0,
-            0.18000000715255737,
-            16.600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_coolant": {
-          "position": [
-            -3,
-            -0.3499999940395355,
-            1.5499999523162842
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_thruster": {
-          "position": [
-            1.2999999523162842,
-            0.3499999940395355,
-            18.850000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_fuse": {
-          "position": [
-            2.450000047683716,
             0.44999998807907104,
-            1.4600000381469727
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "fault_scrubber": {
-          "position": [
-            -3,
-            0.949999988079071,
-            5.860000133514404
+            1.440000057220459,
+            -2
           ],
           "quaternion": [
             0,
@@ -1175,9 +1487,165 @@
         },
         "fault_crack": {
           "position": [
-            -0.8600000143051147,
-            0.550000011920929,
-            5.150000095367432
+            1.5299999713897705,
+            0.38999998569488525,
+            -4.579999923706055
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_04": {
+          "position": [
+            -2.619999885559082,
+            1.440000057220459,
+            -2.4000000953674316
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_1": {
+          "position": [
+            -2.8399999141693115,
+            -0.47999998927116394,
+            -5.139999866485596
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "passenger_2": {
+          "position": [
+            -2.8399999141693115,
+            -0.47999998927116394,
+            -3.940000057220459
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "fault_coolant": {
+          "position": [
+            -2.140000104904175,
+            0.38999998569488525,
+            0.9900000095367432
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_05": {
+          "position": [
+            2.5999999046325684,
+            1.440000057220459,
+            -2.4000000953674316
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "passenger_3": {
+          "position": [
+            2.8399999141693115,
+            -0.47999998927116394,
+            -5.139999866485596
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "passenger_4": {
+          "position": [
+            2.8399999141693115,
+            -0.47999998927116394,
+            -3.940000057220459
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_06": {
+          "position": [
+            -1.7999999523162842,
+            1.440000057220459,
+            3.2200000286102295
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_07": {
+          "position": [
+            -1.600000023841858,
+            1.440000057220459,
+            6.550000190734863
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_thruster": {
+          "position": [
+            2.700000047683716,
+            0.38999998569488525,
+            7.349999904632568
+          ],
+          "quaternion": [
+            0,
+            1,
+            0,
+            4.371138828673793e-08
+          ]
+        },
+        "lamp_08": {
+          "position": [
+            -1.100000023841858,
+            1.440000057220459,
+            10.050000190734863
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_09": {
+          "position": [
+            -0.4000000059604645,
+            -0.9300000071525574,
+            -2.0999999046325684
           ],
           "quaternion": [
             0,
@@ -1188,9 +1656,87 @@
         },
         "fault_strap": {
           "position": [
-            1.5499999523162842,
-            0.10000000149011612,
-            10.600000381469727
+            0.8500000238418579,
+            -1.75,
+            -4.849999904632568
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_10": {
+          "position": [
+            -1.399999976158142,
+            -0.9300000071525574,
+            3.049999952316284
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_fuse": {
+          "position": [
+            -1.0299999713897705,
+            -1.75,
+            2.140000104904175
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_11": {
+          "position": [
+            1.5,
+            -0.9300000071525574,
+            3.0999999046325684
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "fault_scrubber": {
+          "position": [
+            1.9700000286102295,
+            -1.75,
+            3.0999999046325684
+          ],
+          "quaternion": [
+            0,
+            -0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_12": {
+          "position": [
+            -0.10000000149011612,
+            -0.9300000071525574,
+            6.25
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_13": {
+          "position": [
+            -2.549999952316284,
+            -0.9300000071525574,
+            6.28000020980835
           ],
           "quaternion": [
             0,
@@ -1201,9 +1747,35 @@
         },
         "fault_seal": {
           "position": [
-            2.819999933242798,
-            0.44999998807907104,
-            5.320000171661377
+            -2.940000057220459,
+            -1.75,
+            7.210000038146973
+          ],
+          "quaternion": [
+            0,
+            0.7071068286895752,
+            0,
+            0.7071068286895752
+          ]
+        },
+        "lamp_14": {
+          "position": [
+            -0.5,
+            -0.9300000071525574,
+            10.300000190734863
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lamp_15": {
+          "position": [
+            0,
+            -0.9300000071525574,
+            3.140000104904175
           ],
           "quaternion": [
             0,
@@ -1215,21 +1787,8 @@
         "cockpit_door": {
           "position": [
             0,
-            -0.17499999701976776,
-            0.6800000071525574
-          ],
-          "quaternion": [
-            0,
-            0,
-            0,
-            1
-          ]
-        },
-        "cargo_aisle": {
-          "position": [
-            0,
-            -0.9700000286102295,
-            10.600000381469727
+            0.4300000071525574,
+            -11.300000190734863
           ],
           "quaternion": [
             0,
@@ -1238,7 +1797,136 @@
             1
           ]
         }
-      }
+      },
+      "fitted": true,
+      "layout": {
+        "levels": [
+          {
+            "name": "State deck",
+            "floor": -0.48,
+            "walk": {
+              "x0": -4.0,
+              "z0": -17.0,
+              "cell": 0.1,
+              "nx": 80,
+              "nz": 300,
+              "bits": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////8AAAAAAAAP////AAAAAAAAD////wAAAAAAAA////8AAAAAAAAf////gAAAAAAAHwAAD4AAAAAAAB8AAA+AAAAAAAAfAAAPgAAAAAAAHwAAD4AAAAAAAB8AAA+AAAAAAAAfAAAPgAAAAAAAHwAAD4AAAAAAAB8AAA+AAAAAAAAfAAAPgAAAAAAAP/AA/8AAAAAAAD/wAP/AAAAAAAA/8AD/wAAAAAAAP/AA/8AAAAAAAD/wAP/AAAAAAAA/8AD/wAAAAAAAP/AA/8AAAAAAAD/wAP/AAAAAAAA/////wAAAAAAAP////8AAAAAAAD/////AAAAAAAB/////4AAAAAAAf////+AAAAAAAH/////gAAAAAAB/////4AAAAAAAf////+AAAAAAAH/////gAAAAAAB/////4AAAAAAAf////+AAAAAAAH/////gAAAAAAB/////4AAAAAAAf////+AAAAAAAP/////wAAAAAAD/////8AAAAAAA//////AAAAAAAP/////wAAAAAAD/////8AAAAAAA//////AAAAAAAP/////wAAAAAAD/////8AAAAAAA//////AAAAAAAP/////wAAAAAAD/////8AAAAAAAAAP8AAAAAAAAAAAD/AAAAAAAAAAAA/wAAAAAAAAAAAP8AAAAAAAAAf/////4AAAAAAH/////+AAAAAAB//////gAAAAAAf/////4AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAf//////gAAAAAH//////4AAAAAB//////+AAAAAAf//////gAAAAAH//////4AAAAAB//////+AAAAAAf//////gAAAAAP//////8AAAAAD///////AAAAAA///////wAAAAAP//////8AAAAAD///////AAAAAA///////wAAAAAP//////8AAAAAH///////gAAAAB///////4AAAAAf//////+AAAAAH///////gAAAAB///////4AAAAAf//////+AAAAAP///////wAAAAD///////8AAAAA////////AAAAAP///////wAAAAD///////8AAAAA////////AAAAAP///////wAAAAH///////+AAAAB////////gAAAAf///////4AAAAH///////+AAAAB////////gAAAAf///////4AAAAH///////+AAAAD////////wAAAA////////8AAAAP////////AAAAD////////wAAAAAAAAP+AAAAAAAAAAAD/gAAAAAAAAAAA/4AAAAAAAAAAAP+AAAAAAP/g/////g//AAD/4P////4P/wAA/+D////+D/8AAADg/////g8AAAAA4P////4PAAAAAOD////+DwAAAADg/////g8AAAAA4P////4PAAAAAOD////+DwAAAADg/////g8AAAAA4P////4PAAAAAOD////+DwAAAP/g/////g//AAD/4P////4P/wAA/+D////+D/8AAADg/////g8AAAAA4P////4PAAAAAOD////+DwAAAADg/////g8AAAAA4P////4PAAAAAOD////+DwAAAADg/////g8AAAAA4P////4PAAAAAPD////+DwAAAP/w/////g//AAD///////4P/wAA///////+D/8AAP///////g//AAD///////4P/wAA///////+D/8AAP///////g//AAD///////4P/wAA//D////+D/8AAP/w/////g//AAD/4P////4P/wAA/+D////+D/8AAP/g/////g//AAD/4P////4P/wAA/+D////+D/8AAP/g/////g//AAD/4P////4P/wAA/+D////+D/8AAP/g/////w//AAD/4P////8P/wAA/+D/////n/8AAP/g////////AAD/4P///////wAA/+D///////8AAP/g////////AAD/4P///////wAA/+AA//////8AAAPgAP///5/AAAAD4AD///8PwAAAA+AA////D8AAAAPgAP///g/AAAAD4AD///4PwAAAA+AA///+D8AAAAPgAP///g/AAAAD4AD///4PwAAAA+AA///+D8AAAAPgAP///g/AAAAD4AD///4PwAAAA+AA///+D8AAAAPgAP///g/AAAAD4AD///4PwAAAA+AA///+D8AAAAPgAP///g/AAAAD4AD///4PwAAAA+AA///+D8AAAAPgAP///g/AAAAD4AD///4PwAAAA+AA///+D8AAAAPgAP///g/AAAAD4AD///4PwAAA/+D////+D/8AAAAAAAP/4AAAAAAAAAAA/4AAAAAAAAAAAP+AAAAAAAAAAAD/gAAAAAAAAAAA/4AAAAAH///////////gB///////////4Af//////////+AH///////////gB///////////4Af/////////gCAH/////////4AgB/////////+AIAf/////////gCAH/////////4AgB/////////+AIAf/////////gCAH/////////4AgB/////////+AIAf/////////gCAH/////////4AgB/////////+AIAf/////////gCAH/////////4AgB/////////+AIAf/////////gCAH/////////4AgAAAAAD/8AAAAAAAAAAAf+AAAAAAAAAAAH/gAAAAAAAAAAD/8AAAAAAf//////////+AH///////////gB///////////4Af//////////+AH//////8AAP/gB///////AAD/4Af//////wAA/+AH//////8AAP/gB///////AAD/4Af//////wAA/+AH//////8AAP/gB///////AAD/4Af//////wAA/+AH//////8AAP/gB///////AAD/4Af//////wAA/+AH//////8AAP/gB///////AAD/4Af//////wAA/+AH//////8AAP/gB///////AAD/4Af//////wAA/+AH///////////gB///////////4Af//////////+AH///////////gB///////////4Af//////////+AH///////////gB///////////4Af//////////+AH///////////gB///////////4Af//////////+AAAAAAP/wAAAAAAAAAAB/4AAAAAAAAAAAf+AAAAAAAAAAAP/wAAAAAA///////////wAP//////////8AD///////////AA///////////wAP//////////8AB//////////+AAf//////////gAH//////////4AB//////////+AAf////AAP///gAH////wAD///4AB////8AA///+AAf////AAP///gAD////wAD///wAA////8AA///8AAP////AAP///AAD////wAD///wAA////8AA///8AAP////AAP///AAD////wAD///wAAf///8AA///4AAH////AAP//+AAB////wAD///gAAf///8AA///4AAH////AAP//+AAB////wAD///gAAf///8AA///4AAD////AAP//8AAA////wAD///AAAP/////////wAAD/////////8AAA//////////AAAP/////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          },
+          {
+            "name": "Freight undercroft",
+            "floor": -2.62,
+            "walk": {
+              "x0": -4.0,
+              "z0": -6.0,
+              "cell": 0.1,
+              "nx": 80,
+              "nz": 190,
+              "bits": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//////AAAAAAD//////wAAAAAA//////8AAAAAAf//////gAAAAAH//////4AAAAAB//////+AAAAAAf//////gAAAAAH//////4AAAAAB//////+AAAAAAf//////gAAAAAAA////AAAAAAAAAP///wAAAAAAAAD///8AAAAAAAIA////AEAAAAACAP///wBAAAAAAgD///8AQAAAAAIA////AEAAAAACAP///wBAAAAAAgD///8AQAAAAAIA////AEAAAAACAP///wBAAAAAAgD///8AQAAAAAYA////AGAAAAAGAP///wBgAAAABgD///8AYAAAAAYA////AGAAAAAGAP///wBgAAAABgD///8AYAAAAAYA////AGAAAAAGAP///wBgAAAABgD///8AYAAAAAYA////AGAAAAAOAP///wBwAAAADgD///8AcAAAAA4A////AHAAAAAOAP///wBwAAAADgD///8AcAAAAA4A////AHAAAAAOAP///wBwAAAADgD///8AcAAAAA4A////AHAAAAAOAP///wBwAAAAHgD///8AeAAAAB4A////AHgAAAAeAP///wB4AAAAHgD///8AeAAAAB4A////AHgAAAAeAP///wB4AAAAHgD///8AeAAAAB4A////AHgAAAAeAP///wB4AAAAPgD///8AfAAAAD4A////AHwAAAA+AP///wB8AAAAPgD///8AfAAAAD4A////AHwAAAA+AP///wB8AAAAPgD///8AfAAAAD4A////AHwAAAA+AP///wB8AAAAPgD///8AfAAAAH4A////AH4AAAB+AP///wB+AAAAfgD///8AfgAAAH////////4AAAB////////+AAAAf////////gAAAH////////4AAAAAP8H/g/wAAAAAAB+A/wH8AAAAAAAfgP8B/AAAAAAAH4D/AfwAAAAAAD/B/4P+AAAAAP//wf+D//8AAAAH/8H/g///AAAAB//B/4P//wAAAAf/wf+D//8AAAAH/8H/g/+AAAAAB//B/4P/gAAAAAf/wf+D/4AAAAAH/8H/g/+AAAAAB//B/4P/gAAAAAf/wf+D/4AAAAAH/8H/g/+AAAAAB//B/4P/gAAAAAf/wf+D/4AAAAAH/8H/g/+AAAAAB//B/4P/gAAAAAf/wf+D/4AAAAAH/8H/g/+AAAAAB//B/4P/gAAAAAf/wf+D//8AAAAH/8H/g///AAAAB//B/4P//wAAAAf/wf+D//8AAAD//8H/g///AAAA///B/4P//wAAAAA/wf+D/AAAAAAAH4D/A/gAAAAAAB+A/wP4AAAAAAAfgP8D+AAAAAAAP8H/h/wAAAAAAB///////wAAAAAP//////8AAAAAD///////AAAAAA///////wAAA/4P//////8AAAP+D///////AAAD/g///////wAAA/4P//////8AAAP+D///////AAAD/h///////wAAA/8///////8AAAP/////////AAAD/////////wAAA/////////8AAAP/////////AAAD/////////wAAA/////////8AAAP/////////AAAD/z///////wAAA/4f//////8AAAP+D///////AAAD/g///////wAAA/4P//////8AAAP+D///////AAAD/g///////wAAAAAP//////8AAAAAD///////AAAAAA///////wAAAAAf//////8AAAAAH///////AAAAAAAH/+AAAAAAAAAAA//AAAAAAAAAAAP/wAAAAAAAAAAD/8AAAAAAAAAAB//gAAAAAAB////////+AAAAf////////gAAAH////////4AAAB////////+AAAAf////////gAAAD////////wAAAA////////8AAAAP//////APAAAAD//////wDwAAAA//////8A8AAAAP//////APAAAAD//////wDwAAAAf/////8A4AAAAH//////AOAAAAB//////wDgAAAAf/////8A4AAAAH//////AOAAAAB//////wDgAAAAf/////8A4AAAAD//////AMAAAAA//////wDAAAAAP/////8AwAAAAD//////AMAAAAA//////wDAAAAAP/////8AwAAAAD//////AMAAAAA//////wDAAAAAH/////8AgAAAAB//////AIAAAAAf/////wCAAAAAH/////8AgAAAAB//////AIAAAAAf/////wCAAAAAH/////8AgAAAAA//////AAAAAAAP/////wAAAAAAD/////8AAAAAAA//////AAAAAAAP//////8AAAAAD///////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+          }
+        ],
+        "spots": {
+          "seat_1": {
+            "level": 0,
+            "room": "Port suite"
+          },
+          "seat_2": {
+            "level": 0,
+            "room": "Port suite"
+          },
+          "seat_3": {
+            "level": 0,
+            "room": "Starboard suite"
+          },
+          "seat_4": {
+            "level": 0,
+            "room": "Starboard suite"
+          },
+          "coolant": {
+            "level": 0,
+            "room": "Port suite"
+          },
+          "crack": {
+            "level": 0,
+            "room": "Moon court"
+          },
+          "thruster": {
+            "level": 0,
+            "room": "Ring gallery"
+          },
+          "strap": {
+            "level": 1,
+            "room": "Fore cargo vault"
+          },
+          "fuse": {
+            "level": 1,
+            "room": "Steward\u2019s galley"
+          },
+          "scrubber": {
+            "level": 1,
+            "room": "Air plant"
+          },
+          "seal": {
+            "level": 1,
+            "room": "Side airlock"
+          }
+        },
+        "lifts": [
+          {
+            "id": "L1",
+            "decks": [
+              0,
+              1
+            ],
+            "rooms": [
+              "07",
+              "12"
+            ],
+            "position": [
+              -1.23,
+              7.34
+            ],
+            "size": [
+              1.12,
+              1.2
+            ]
+          }
+        ],
+        "door": [
+          0,
+          -11.3
+        ],
+        "spawn": [
+          0,
+          -10.860000000000001
+        ],
+        "eye": [
+          0,
+          0.8300000000000001,
+          -14.6
+        ]
+      },
+      "crates": [
+        [
+          -1.68,
+          -1.7,
+          -1.052,
+          0.595
+        ],
+        [
+          1.68,
+          -1.7,
+          -1.052,
+          0.595
+        ],
+        [
+          1.82,
+          10.55,
+          -1.052,
+          0.488
+        ]
+      ]
     },
     {
       "ship": "rustbucket",

@@ -1,6 +1,6 @@
 # Walkable ship interiors
 
-Open the [fleet blueprints and repair-model handoff](fleet-blueprints/README.md) for the four proposed replacement layouts and the Rustbucket repair models.
+Open the [fleet blueprints and repair-model handoff](fleet-blueprints/README.md) for the four fitted ships, their dimensioned drawings and the Rustbucket repair models.
 
 The lived-in redesign of each deck is described in [the deck briefs](briefs.md).
 
@@ -16,89 +16,32 @@ The fitted Rustbucket has a welded cockpit, stacked dayberths, and a working car
 
 ## Dromedary 400
 
-Industrial tie-down rails, stowage and a freight-handling spine. The [Dromedary concept sheet](dromedary/Dromedary-400-Concept.png) shows the proposed freight deck and living quarters in the raised hump.
+Facing divans and brass coffee service occupy the raised residential deck above the freight hold.
 
-![Dromedary 400, corridor](dromedary/corridor.png)
+![Dromedary 400 furnished interior](dromedary/fitted-room.jpg)
 
-![Dromedary 400, cabin](dromedary/cabin.png)
-
-![Dromedary 400, galley](dromedary/galley.png)
-
-![Dromedary 400, hold](dromedary/hold.png)
-
-![Dromedary 400, engine](dromedary/engine.png)
-
-![Dromedary 400, airlock](dromedary/airlock.png)
-
-![Dromedary 400, scrubber bay](dromedary/scrubber.png)
-
-![Dromedary 400, service alley](dromedary/alley.png)
-
-![Dromedary 400, overview](dromedary/overview.png)
+[Deck cutaway](dromedary/deck-cutaway.jpg) · [Editable Blender model](../../art/ship-interiors/dromedary.blend)
 
 ## Stellar Stoat
 
-Compact foldaway furnishings and a streamlined service tunnel.
+Two bypass passages connect the book-lined captain’s wardroom to the turbine room around a sealed freight pod.
 
-![Stellar Stoat, corridor](stoat/corridor.png)
+![Stellar Stoat furnished interior](stoat/fitted-room.jpg)
 
-![Stellar Stoat, cabin](stoat/cabin.png)
-
-![Stellar Stoat, galley](stoat/galley.png)
-
-![Stellar Stoat, hold](stoat/hold.png)
-
-![Stellar Stoat, engine](stoat/engine.png)
-
-![Stellar Stoat, airlock](stoat/airlock.png)
-
-![Stellar Stoat, scrubber bay](stoat/scrubber.png)
-
-![Stellar Stoat, service alley](stoat/alley.png)
-
-![Stellar Stoat, overview](stoat/overview.png)
+[Deck cutaway](stoat/deck-cutaway.jpg) · [Editable Blender model](../../art/ship-interiors/stoat.blend)
 
 ## Opulent Manatee
 
-Upholstered berths, walnut cabinetry and a brass-trimmed passenger lounge.
+The first-class salon and observation lounge share the promenade deck. Two lifts connect it to the working deck.
 
-![Opulent Manatee, corridor](manatee/corridor.png)
+![Opulent Manatee furnished interior](manatee/fitted-room.jpg)
 
-![Opulent Manatee, cabin](manatee/cabin.png)
-
-![Opulent Manatee, galley](manatee/galley.png)
-
-![Opulent Manatee, hold](manatee/hold.png)
-
-![Opulent Manatee, engine](manatee/engine.png)
-
-![Opulent Manatee, airlock](manatee/airlock.png)
-
-![Opulent Manatee, scrubber bay](manatee/scrubber.png)
-
-![Opulent Manatee, service alley](manatee/alley.png)
-
-![Opulent Manatee, overview](manatee/overview.png)
+[Deck cutaway](manatee/deck-cutaway.jpg) · [Editable Blender model](../../art/ship-interiors/manatee.blend)
 
 ## Quasar Empress
 
-Illuminated structural arches and a ringed reactor gallery.
+The moon court, tea salon and lacquered guest suites occupy the state deck above the two cargo vaults.
 
-![Quasar Empress, corridor](empress/corridor.png)
+![Quasar Empress furnished interior](empress/fitted-room.jpg)
 
-![Quasar Empress, cabin](empress/cabin.png)
-
-![Quasar Empress, galley](empress/galley.png)
-
-![Quasar Empress, hold](empress/hold.png)
-
-![Quasar Empress, engine](empress/engine.png)
-
-![Quasar Empress, airlock](empress/airlock.png)
-
-![Quasar Empress, scrubber bay](empress/scrubber.png)
-
-![Quasar Empress, service alley](empress/alley.png)
-
-![Quasar Empress, overview](empress/overview.png)
-
+[Deck cutaway](empress/deck-cutaway.jpg) · [Editable Blender model](../../art/ship-interiors/empress.blend)

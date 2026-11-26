@@ -73,6 +73,9 @@ pass(`${I.rooms.length} shop rooms (the game has ${want.length} depots, garages 
 
 // ---- cockpits ----
 const SHIPS = ['rustbucket', 'dromedary', 'stoat', 'manatee', 'empress'];
+const plans=JSON.parse(read('docs/ship-interiors/fleet-blueprints/editable/Fleet-Deck-Geometry.json')).ships;
+const planFor=key=>plans.find(s=>s.id===key);
+const helmDoor=plan=>plan.decks[0].doors.find(d=>d.rooms.includes('01')&&d.rooms.includes('02')).center;
 const CK = JSON.parse(read('assets/cockpits/manifest.json'));
 const ANCH = ['panel_main', 'panel_left', 'panel_right', 'panel_pedestal', 'panel_overhead', 'panel_radio', 'stick', 'mug', 'clipboard', 'mascot', 'wiper_left', 'wiper_right', 'lamp_port', 'lamp_starboard', 'glow'];
 for (const key of SHIPS) {
@@ -83,7 +86,9 @@ for (const key of SHIPS) {
   for (const a of ANCH) { if (!names.has(a)) fail(`cockpit ${key}: no ${a} anchor`); else if (!near(nodePos(g.j, a), c.anchors[a]?.position, 0.002)) fail(`cockpit ${key}: ${a} differs between manifest and GLB`); }
   for (const m of ['windshield', 'canopy_left', 'canopy_right', 'door']) if (!names.has(m)) fail(`cockpit ${key}: no ${m} mesh`);
   const ws = g.j.nodes.find(n => n.name === 'windshield'); if (ws && !g.j.meshes[ws.mesh].primitives[0].attributes.TEXCOORD_0) fail(`cockpit ${key}: windshield has no UVs`);
-  const door = nodePos(g.j, 'door'); if (!near(door, [0, -0.175, 0.69], 0.04)) fail(`cockpit ${key}: door not in the doorway (${door})`);
+  const door = nodePos(g.j, 'door'); const plan=planFor(key), pilot=plan?.decks[0].fixtures.find(f=>f.kind==='pilot').center;
+  const expectedDoor=c.fitted?[helmDoor(plan)[0]-pilot[0],-.32,helmDoor(plan)[1]-pilot[1]]:[0,-.175,.69];
+  if (!near(door, expectedDoor, 0.04)) fail(`cockpit ${key}: door not in the doorway (${door})`);
   for (const f of ['space.hdr', 'grade.png']) if (!fs.existsSync(path.join(root, 'assets/cockpits/finish', key, f))) fail(`cockpit ${key}: ${f} missing`);
 }
 pass(`${CK.ships.length} cockpits with ${ANCH.length} anchors each`);
@@ -93,18 +98,49 @@ const DK = JSON.parse(read('assets/ship-interiors/manifest.json'));
 for (const key of SHIPS) {
   const d = DK.ships.find(s => s.ship === key); if (!d) { fail(`deck ${key}: missing`); continue; }
   // a hand-built deck (baked: one image map per room) is far heavier in triangles and lighter in materials
-  const g = common(d, d.baked ? { tris: 220000, meshes: 16, materials: 16, bytes: 9e6 } : { tris: 60000, meshes: 120, materials: 18, bytes: d.light ? 5e6 : 3e6 });
+  const g = common(d, d.layout ? { tris: 100000, meshes: 48, materials: 30, bytes: 6e6 } : d.baked ? { tris: 220000, meshes: 16, materials: 16, bytes: 9e6 } : { tris: 60000, meshes: 120, materials: 18, bytes: d.light ? 5e6 : 3e6 });
   for (const f of Object.values(d.baked || {})) if (!fs.existsSync(path.join(root, f))) fail(`deck ${key}: baked map ${f} missing`);
   for (const [id, r] of Object.entries(d.repairs || {})) { if (!faults[id]) fail(`deck ${key}: repair fitting for unknown fault ${id}`); else if (!near(r.pos, faults[id], 0.05)) fail(`deck ${key}: repair fitting ${id} is not at the game's repair spot`);
     for (const st of ['working', 'broken', 'repaired']) if (!r.models[st] || !fs.existsSync(path.join(root, r.models[st]))) fail(`deck ${key}: repair fitting ${id} has no ${st} model`); }   // a deck with a baked light map also carries its own surface textures
   if (d.light && !fs.existsSync(path.join(root, d.light))) fail(`deck ${key}: light map ${d.light} missing`);
+  if(d.layout){
+    const plan=planFor(key), names=new Set(g.j.nodes.map(n=>n.name));
+    if(d.layout.levels.length!==plan.decks.length) fail(key+' is missing a deck');
+    let seats=0;
+    for(const [i,deck] of plan.decks.entries()){
+      const level=d.layout.levels[i], w=level.walk, bits=Buffer.from(w.bits,'base64');
+      if(level.floor!==deck.floor_y || bits.length!==Math.ceil(w.nx*w.nz/8)) fail(key+' has an invalid walking grid');
+      const start=i===0?d.layout.spawn:plan.lifts.find(l=>l.decks.includes(i)).position;
+      const cell=([x,z])=>Math.floor((z-w.z0)/w.cell)*w.nx+Math.floor((x-w.x0)/w.cell);
+      const open=k=>k>=0&&k<w.nx*w.nz&&(bits[k>>3]&(128>>(k&7)));
+      const first=cell(start), found=new Set(), queue=[];
+      if(open(first)){found.add(first);queue.push(first);}
+      for(let p=0;p<queue.length;p++){const k=queue[p];
+        for(const n of [k-w.nx,k+w.nx,k-1,k+1]) if(open(n)&&!found.has(n)){found.add(n);queue.push(n);}
+      }
+      const reachable=([x,z],radius)=>queue.some(k=>Math.hypot(w.x0+(k%w.nx+.5)*w.cell-x,w.z0+(Math.floor(k/w.nx)+.5)*w.cell-z)<radius);
+      for(const r of deck.rooms){if(!names.has('room_'+r.id)||!reachable(r.label,1.4)) fail(key+' missing or unreachable room '+r.name);}
+      for(const a of deck.anchors){
+        const seat=a.kind.startsWith('seat_'), name=seat?a.kind.replace('seat','passenger'):'fault_'+a.kind;
+        if(!near(nodePos(g.j,name),[a.position[0],level.floor+(seat?0:.87),a.position[1]],.006)||!reachable(a.position,1.2)) fail(key+' misplaced or unreachable '+name);
+        if(seat) seats++; else for(const state of ['working','broken','repaired']) if(!names.has('state_'+a.kind+'_'+state)) fail(key+' missing '+a.kind+' '+state);
+        if(d.layout.spots[a.kind]?.level!==i) fail(key+' interaction on wrong deck '+name);
+      }
+      for(const lift of plan.lifts.filter(l=>l.decks.includes(i))) if(!found.has(cell(lift.position))) fail(key+' inaccessible lift '+lift.id);
+    }
+    if(seats!==plan.passenger_capacity) fail(key+' passenger capacity mismatch');
+    if(!Object.keys(faults).every(id=>names.has('fault_'+id))) fail(key+' missing repair');
+    const [dx,dz]=helmDoor(plan);
+    if(!near(nodePos(g.j,'cockpit_door'),[dx,plan.decks[0].floor_y+.91,dz],.006)) fail(key+' misplaced bridge door');
+    continue;
+  }
   for (const [id, pos] of Object.entries(faults)) if (!near(nodePos(g.j, 'fault_' + id), pos, 0.05)) fail(`deck ${key}: fault_${id} is not at the game's repair spot ${pos}`);
   for (let i = 0; i < 4; i++) if (!near(nodePos(g.j, 'passenger_' + (i + 1)), [-3.8, 0, 1.95 + i * 1.15], 0.05)) fail(`deck ${key}: passenger_${i + 1} is not at a passenger seat`);
   if (!near(nodePos(g.j, 'cockpit_door'), [0, -0.175, 0.68], 0.05)) fail(`deck ${key}: cockpit_door anchor is off the doorway`);
   if (![...g.j.nodes].some(n => /^lamp_/.test(n.name))) fail(`deck ${key}: no lamp markers`);
   for (const f of ['space.hdr', 'grade.png']) if (!fs.existsSync(path.join(root, 'assets/ship-interiors/finish', key, f))) fail(`deck ${key}: ${f} missing`);
 }
-pass(`${DK.ships.length} walkable decks against ${Object.keys(faults).length} repair spots and 4 passenger seats`);
+pass(`${DK.ships.length} walkable decks against ${Object.keys(faults).length} repair spots and blueprint passenger capacities`);
 
 // ---------- character models ----------
 // - all 32 are in the manifest, each file exists and matches its recorded size, is one skinned mesh within budget,

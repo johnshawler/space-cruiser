@@ -75,7 +75,8 @@ const Models = (() => {
       engine(G,M,2.1,0,0.2,8.5,5); engine(G,M,0.9,-2.2,-1.6,8,3.4); engine(G,M,0.9,2.2,-1.6,8,3.4);
       navLight(G,-6.9,-0.6,1,'#ff3020'); navLight(G,6.9,-0.6,1,'#30ff50'); navLight(G,1.8,7.6,4.2,'#ffffff'); gear(G,M,[[-3,-4],[3,-4],[-3,5],[3,5]],3.6); G.userData.h=3; },
     // 1 Dromedary: humped box hauler with container doors, twin nacelles on pylons
-    (G,M)=>{ G.add(rbox(8,6,18,1.1,M.hull)); G.add(rbox(7,3.2,10,1.4,M.hull,0,4,2)); G.add(rbox(6.4,3.6,5.2,1.2,M.trim,0,0.6,-11)); G.add(rbox(8.4,1.0,18.4,0.4,M.trim,0,-1.3,0));
+    (G,M)=>{ // The freight enclosure reaches half a metre farther into the wheelhouse joint around dispatch.
+      G.add(rbox(8,6,18.5,1.1,M.hull,0,0,-0.25)); G.add(rbox(7,3.2,10,1.4,M.hull,0,4,2)); G.add(rbox(6.4,3.6,5.2,1.2,M.trim,0,0.6,-11)); G.add(rbox(8.4,1.0,18.4,0.4,M.trim,0,-1.3,0));
       const ws=rbox(5,1.6,0.35,0.25,M.glass,0,1.95,-13.45); ws.rotation.x=-0.5; G.add(ws); for(const sx of [-1,1]) G.add(rbox(0.3,1.3,2.2,0.12,M.glass,sx*3.15,1.9,-11.6));
       for(let i=0;i<4;i++) G.add(rbox(8.5,5.5,0.6,0.25,M.dark,0,0.25,-6+i*4.2));
       for(const sx of [-1,1]) for(let i=0;i<3;i++){ G.add(box(0.12,3.6,3.2,M.trim,sx*4.03,0.7,-3.9+i*4.2)); G.add(box(0.14,0.12,2.6,M.metal,sx*4.08,1.4,-3.9+i*4.2)); G.add(box(0.14,0.12,2.6,M.metal,sx*4.08,0,-3.9+i*4.2)); }

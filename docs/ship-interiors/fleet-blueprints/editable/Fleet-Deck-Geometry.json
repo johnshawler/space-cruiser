@@ -1,10 +1,10 @@
 {
-  "status": "Proposed redesigns; Rustbucket is an existing reference and remains in its fitted model.",
+  "status": "Fitted fleet redesigns. Rustbucket is recorded separately in its existing fitted model.",
   "units": "metres",
   "axes": "Four new designs use Three.js hull-local X starboard, Y up, Z aft, as in src/05-ships.js before instance transforms. Plan point pairs are [X,Z]. Deck floor provides Y. Convert to Blender [X,-Z,Y]. Relocate first-person origin when integrating.",
   "openings": "Door spans lie on both adjacent polygon edges. OUT is an external hatch; TRUNK is a non-walkable cargo shutter. Lifts are flush walk-on platforms; endpoints are on the listed floor datums. Wall segments adjoining finished decking use the room polygon and remove the specified clear spans.",
   "anchors": "Seat positions are cushion centres in plan. Repair marks locate interaction stations in plan. Detailed socket heights and facing directions must be set during 3D blockout.",
-  "verification": "Sampled 2D connectivity on a 0.16 m grid using a 0.21 m clearance radius, blocking drawn bulkhead walls, furniture and seats. All occupied rooms, lift stops, passenger approaches and seven fault types reachable from cockpit. Exterior pressure envelope, vertical clearances, docking interfaces, game collisions, and animations need blockout and playtesting.",
+  "verification": "Sampled 2D connectivity on a 0.16 m grid using a 0.21 m clearance radius, blocking drawn bulkhead walls, furniture and seats. All occupied rooms, lift stops, passenger approaches and seven fault types reachable from cockpit. The fitted Blender models and game decks use these coordinates. Game navigation checks use the exported collision grids. See the fleet handoff for the exterior fit sample.",
   "ships": [
     {
       "id": "dromedary",

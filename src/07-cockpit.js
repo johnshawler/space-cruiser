@@ -5,8 +5,9 @@ const Cockpit = {
   PX:2200, group:null, hits:[], ctrls:{}, screens:{}, glowMats:[], screenMats:[], gauges:{}, ray:new THREE.Raycaster(), frame:0, drag:null, hover:null,
 
   build(def){
+    const id=SHIPS.indexOf(def), own=Assets.cockpit(id), fittedControls=def===SHIPS[0]||!!(own&&own.fitted);
     if(this.group){ World.cock.remove(this.group); this.group.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ if(o.material.map) o.material.map.dispose(); if(o.material.emissiveMap) o.material.emissiveMap.dispose(); o.material.dispose(); } }); }
-    const g=this.group=new THREE.Group(); World.cock.add(g);
+    const g=this.group=new THREE.Group(); World.cock.add(g); this.bespokeRoom=null;
     this.hits=[]; this.ctrls={}; this.screens={}; this.glowMats=[]; this.screenMats=[]; this.gauges={}; this.strips=[];
     const ck=def.ck, bump=panelBumpTex(), self=this;
     const std=(hex,rough,metal,extra)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:rough,metalness:metal},extra||{}));
@@ -53,7 +54,7 @@ const Cockpit = {
     bx(0.26,0.5,0.44,M.frame,0,-0.88,-0.56);
     // The Rustbucket uses keyboard or touch steering and the live throttle on the pedestal.
     let stickBase=null; this.stick=null;
-    if(def!==SHIPS[0]){
+    if(!fittedControls){
       stickBase=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,0.03,24),M.rubber); stickBase.position.set(0.74,-0.405,-0.5); add(stickBase);
       this.stick=new THREE.Group(); this.stick.position.set(0.74,-0.39,-0.5); g.add(this.stick);
       const st=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.016,0.15,16),M.knob); st.position.y=0.075; add(st,true,this.stick);
@@ -139,7 +140,7 @@ const Cockpit = {
     const screen=(P,x,y,w,h,cw,ch,name,round)=>{
       const cv=makeCanvas(cw,ch), tex=canvasTex(cv), mat=new THREE.MeshBasicMaterial({map:tex});
       // Small readouts sit flush with their bezels to keep the lower row visible from the seat.
-      const flush=name==='radio'||(name==='thr'&&def===SHIPS[0]);
+      const flush=name==='radio'||(name==='thr'&&fittedControls);
       const faceZ=flush?0.0095:0.003;
       const m=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),mat); m.position.set(x,y,faceZ); P.g.add(m);
       const [cx,cy]=P.xy(x,y); P.ctx.fillStyle='#050506'; if(round){ P.ctx.beginPath(); P.ctx.arc(cx,cy,w/2*P.px+10,0,7); P.ctx.fill(); } else P.ctx.fillRect(cx-w/2*P.px-10,cy-h/2*P.px-10,w*P.px+20,h*P.px+20);
@@ -156,7 +157,7 @@ const Cockpit = {
     knob(PC,0.245,0.065,0.03,{id:'target',label:'DESTINATION',wrap:true,min:0,max:PLANETS.length-1,step:1,get:()=>G.target,set:v=>Game.setTarget(v),fmt:v=>PLANETS[v].name});
     button(PC,0.245,-0.07,0.02,{id:'hail',label:'HAIL',color:'#2fd45a',press(){ Comms.hail(); },lit:()=>!!Npc.nearest(7000),tip:'Hail nearest pilot'});
     // The low Rustbucket pedestal puts its handles in front of the throttle readout.
-    if(def===SHIPS[0]) screen(PC,0.157,-0.128,0.158,0.04,400,80,'thr');
+    if(fittedControls) screen(PC,0.157,-0.128,0.158,0.04,400,80,'thr');
     else PC.text(0.13,-0.118,'LONG HAUL FREIGHT SYS',0.0075,'center',true);
     PC.done();
 
@@ -185,7 +186,7 @@ const Cockpit = {
 
     /* ---- pedestal: throttle + warp ---- */
     const PP=panel(0.24,0.44); PP.g.position.set(0,-0.60,-0.56); PP.g.rotation.set(-1.17,0,0);
-    if(def!==SHIPS[0]) screen(PP,0,0.185,0.2,0.04,400,80,'thr');
+    if(!fittedControls) screen(PP,0,0.185,0.2,0.04,400,80,'thr');
     { // throttle lever
       const x=-0.055, y=-0.02, len=0.3, [cx,cy]=PP.xy(x,y), L=len*PP.px;
       for(const c of [PP.ctx,PP.gctx]){ c.fillStyle=c===PP.ctx?'#030304':'#000'; c.fillRect(cx-12,cy-L/2-14,24,L+28); c.fillStyle=c.strokeStyle=c===PP.ctx?'#c9cdd2':'#fff'; c.lineWidth=3;
@@ -248,7 +249,7 @@ const Cockpit = {
 
     this.panels={panel_main:PC.g,panel_left:PL.g,panel_right:PR.g,panel_pedestal:PP.g,panel_overhead:PO.g,panel_radio:PT.g};
     this.drawManifest(); this.frame=0; this.grade=null; this.doorX0=0;
-    const id=SHIPS.indexOf(def), own=Assets.cockpit(id); if(own) this.bespoke(own,g);
+    if(own) this.bespoke(own,g);
     const dk=Assets.deck(id); if(dk) Assets.glb(dk.file).catch(()=>{});   // fetch the walkable deck now, so it's there when you get up
   },
 
@@ -267,21 +268,21 @@ const Cockpit = {
         // a hand-built cockpit comes with every solid surface baked to one image map: it is drawn unlit, as lit in Blender
         if(B.baked&&/^cockpit.shell/.test(o.name)){ const bm=new THREE.MeshBasicMaterial({color:0x101210}); o.material=bm; o.castShadow=o.receiveShadow=false;
           Assets.base().then(b=>new THREE.TextureLoader().load(b+B.baked,t=>{ t.flipY=false; t.encoding=THREE.sRGBEncoding; t.anisotropy=8; bm.map=t; bm.color.set(0xffffff); bm.needsUpdate=true; })); return; }
-        if(B.baked&&!o.geometry.attributes.normal) o.geometry.computeVertexNormals();   // the baked export carries no normals; the glass and door need them
+        if((B.baked||B.fitted)&&!o.geometry.attributes.normal) o.geometry.computeVertexNormals();   // the baked export carries no normals; the glass and door need them
         if(o.name==='windshield'||/^canopy_/.test(o.name)||(m&&m.name==='glass')){ o.material=glass; o.renderOrder=3; o.userData.glass=true; o.castShadow=false; }
         else if(m&&m.isMeshStandardMaterial&&/glow/i.test(m.name)) this.glowMats.push(m); });
       // the stock shell goes; the bespoke one comes in
       for(const o of this.shellParts){ g.remove(o); if(o.geometry) o.geometry.dispose(); } this.shellParts=[]; this.strips=[];
       g.add(room); this.bespokeRoom=room;
       // panels and fittings onto their anchors
-      for(const k in this.panels){ const a=A[k]; if(!a) continue; const pg=this.panels[k]; pg.position.copy(a.position); pg.quaternion.copy(a.quaternion); if(B.baked&&a.scale) pg.scale.copy(a.scale); }
+      for(const k in this.panels){ const a=A[k]; if(!a) continue; const pg=this.panels[k]; pg.position.copy(a.position); pg.quaternion.copy(a.quaternion); if((B.baked||B.fitted)&&a.scale) pg.scale.copy(a.scale); }
       // The hand-built shell supplies its own desk fittings.
-      if(B.baked){ for(const k in this.fit) for(const o of this.fit[k].parts) if(o) o.visible=false; if(this.clipboard) this.clipboard.visible=false; }
+      if(B.baked||B.fitted){ for(const k in this.fit) for(const o of this.fit[k].parts) if(o) o.visible=false; if(this.clipboard) this.clipboard.visible=false; }
       for(const k in this.fit){ const a=A[k]; if(!a) continue; const d=a.position.clone().sub(this.fit[k].home); for(const o of this.fit[k].parts) o.position.add(d); this.fit[k].home.copy(a.position); }
       if(A.clipboard&&this.clipboard) this.clipboard.position.copy(A.clipboard.position);
       if(A.mascot&&this.mascot) this.mascot.position.copy(A.mascot.position);
       // wipers ride the windshield's plane as before, from their own pivots
-      for(const [i,k] of [[0,'wiper_left'],[1,'wiper_right']]){ const a=A[k], w=this.wipers[i]&&this.wipers[i].parent; if(a&&w) w.position.copy(a.position).addScaledVector(this.wiperUp,0.035).addScaledVector(this.wiperN,0.014); }
+      for(const [i,k] of [[0,'wiper_left'],[1,'wiper_right']]){ const a=A[k], w=this.wipers[i]&&this.wipers[i].parent; if(a&&w){ if(B.fitted){ w.position.copy(a.position); w.quaternion.identity(); } else w.position.copy(a.position).addScaledVector(this.wiperUp,0.035).addScaledVector(this.wiperN,0.014); } }
       for(const [i,k] of [[0,'lamp_port'],[1,'lamp_starboard']]){ const a=A[k]; if(!a) continue; if(this.lampMeshes[i]) this.lampMeshes[i].position.copy(a.position).add(new V3(0,-0.002,0)); if(this.cabinLights[i]) this.cabinLights[i].position.copy(a.position).add(new V3(0,-0.08,-0.03)); }
       if(A.glow) this.glowLight.position.copy(A.glow.position);
       // the windshield's tint and grime layers take its shape
@@ -289,7 +290,7 @@ const Cockpit = {
         for(const L of this.wsLayers){ L.geometry=ws.geometry; L.matrixAutoUpdate=false; L.matrix.copy(m); } }
       // the door: its own panel slides instead of the stock one
       const door=room.getObjectByName('door'); if(door){ if(this.door){ g.remove(this.door); this.door.geometry.dispose(); } this.door=door; this.doorX0=door.position.x; }
-      this.grade=B.baked?null:lut;
+      this.grade=B.baked||B.fitted?null:lut;
     }).catch(()=>{});
   },
 

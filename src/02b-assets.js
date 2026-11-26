@@ -58,7 +58,7 @@ const Assets = (() => {
   const SHOP = { depot: 'depot', garage: 'garage', bar: 'cantina' };
   const SHIP_KEYS = ['rustbucket', 'dromedary', 'stoat', 'manatee', 'empress'];
   return {
-    manifests: M, base, glb, env, lut, anchors, slug,
+    enabled: !off, manifests: M, base, glb, env, lut, anchors, slug,
     /* the bespoke room for this shop at this port, if there is one */
     room(P, k) { const s = SHOP[k]; if (!s || !P) return null; const loc = slug(P.name); return M.interiors.rooms.find(r => r.location === loc && r.shop === s) || null; },
     shipKey(id) { return SHIP_KEYS[id] || null; },

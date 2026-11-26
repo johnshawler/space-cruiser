@@ -48,19 +48,23 @@ const Faults = {
   t:45,
   /* how fault-prone this ship is: 1 for the Rustbucket, down to about an eighth for the dearest */
   rate(){ const s=SHIPS[G.shipId]; return s&&s.faults!=null?s.faults:1; },
+  room(id){
+    const deck=Interior.shipId===G.shipId&&Interior.group?Interior.fitted:Assets.enabled&&Assets.deck(G.shipId);
+    return deck?.layout?.spots[id]?.room||FAULT_DEFS[id].where;
+  },
   has(id){ return (G.faults||[]).includes(id); },
   list(){ return G.faults||(G.faults=[]); },
   fuelMul(){ return this.has('coolant')?1.7:1; },
   speedMul(){ return (this.has('thruster')?0.6:1)*(this.has('seal')?0.8:1); },
   lagMul(c){ return c.kind==='pax'?(this.has('scrubber')?2:1):(this.has('strap')?2:1); },
   add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); const d=FAULT_DEFS[id];
-    UI.toast(`⚠ ${d.name} in the ${d.where}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${TouchUI.on?'Tap Walk':'Press L'} to go and fix it.`,'warn');
+    UI.toast(`⚠ ${d.name} in the ${this.room(id)}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${TouchUI.on?'Tap Walk':'Press L'} to go and fix it.`,'warn');
     if(Sfx.ok()){ Sfx.beep(880); setTimeout(()=>Sfx.beep(880),220); } Interior.syncFaults(); this.badge(); },
   /* which faults have been mended on this hull: a mended fitting shows its field repair from then on */
   mended(id){ return (G.fixed||[]).includes(id); },
   fix(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(`Fixed: ${d.name.toLowerCase()}. ${pick((FIX_LINES[id]||[]).concat(FIX_LINES.any))}`,'good'); Interior.syncFaults(); this.badge(); },
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
-  badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(FAULT_DEFS[k].where)}</span></div>`).join(''); },
+  badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(this.room(k))}</span></div>`).join(''); },
   update(dt){
     // something new goes wrong every couple of minutes of flight on the Rustbucket: more often on a battered ship, less on a dearer one
     this.t-=dt*(1+(100-G.hull)/60)*this.rate(); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
@@ -88,14 +92,19 @@ const Interior = {
   OBST:[[0,16.6,1.25],[-1.42,1.55,0.3],[-1.55,18.2,0.45]],   // reactor, the cabin's fore-wall fixture, the engine room seat
   /* A hand-built deck brings its own map of where you can stand (the rectangles, less whatever the model puts in the way)
      and its own free places for crates; both are worked out from the model by art/ship-interiors/import_deck.py */
-  plan(){ const B=Assets.deck(G.shipId); if(!B||!B.walk) return null; if(B._grid) return B;
-    const w=B.walk, raw=atob(w.bits), bits=new Uint8Array(raw.length); for(let i=0;i<raw.length;i++) bits[i]=raw.charCodeAt(i); B._grid=bits; return B; },
+  plan(){ const deck=Assets.deck(G.shipId); return this.fitted || (deck&&deck.walk?deck:null); },
   inside(x,z){ const P=this.plan();
-    if(P){ const w=P.walk, i=Math.floor((x-w.x0)/w.cell), j=Math.floor((z-w.z0)/w.cell); if(i<0||j<0||i>=w.nx||j>=w.nz) return false; const k=j*w.nx+i; return !!(P._grid[k>>3]&(128>>(k&7))); }
+    if(P){
+      const w=P.layout?P.layout.levels[Walk.level].walk:P.walk;
+      if(!w._bytes) w._bytes=Uint8Array.from(atob(w.bits),c=>c.charCodeAt(0));
+      const i=Math.floor((x-w.x0)/w.cell), j=Math.floor((z-w.z0)/w.cell);
+      if(i<0||j<0||i>=w.nx||j>=w.nz) return false;
+      const k=j*w.nx+i; return !!(w._bytes[k>>3]&(128>>(k&7)));
+    }
     for(const r of this.RECTS) if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3]){ for(const o of this.OBST) if(Math.hypot(x-o[0],z-o[1])<o[2]) return false; return true; } return false; },
   build(){
     if(this.group){ World.cock.remove(this.group); this.group.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
-    const g=this.group=new THREE.Group(); g.visible=false; World.cock.add(g); this.shipId=G.shipId; this.lit=false; this.repairs=null; this.fx={}; this.seats=[]; this.pax=[]; this.crates=null; this.crateKey=''; this.paxKey='';
+    const g=this.group=new THREE.Group(); g.visible=false; World.cock.add(g); this.shipId=G.shipId; this.fitted=null; this.helm=null; this.lit=false; this.repairs=null; this.fx={}; this.seats=[]; this.pax=[]; this.crates=null; this.crateKey=''; this.paxKey='';
     const ck=SHIPS[G.shipId].ck, bump=panelBumpTex(), std=(hex,r,m,ex)=>new THREE.MeshStandardMaterial(Object.assign({color:C(hex),roughness:r,metalness:m},ex||{}));
     const M={ wall:std(ck.panel,0.75,0.25,{bumpMap:bump,bumpScale:0.002}), frame:std(ck.frame,0.55,0.55), floor:std('#3a3e44',0.6,0.7,{bumpMap:bump,bumpScale:0.004}), ceil:std('#2a2d32',0.8,0.3),
       trim:std(ck.trim,0.35,0.85), dark:std('#16181c',0.7,0.4), seat:std(ck.leather,0.6,0.05), hazard:std('#ffffff',0.7,0.2,{map:(()=>{ const cv=makeCanvas(256,32), x=cv.getContext('2d'); for(let i=0;i<16;i++){ x.fillStyle=i%2?'#f2c14e':'#1c1c1e'; x.beginPath(); x.moveTo(i*16,0); x.lineTo(i*16+16,0); x.lineTo(i*16,32); x.lineTo(i*16-16,32); x.fill(); } const t=canvasTex(cv); t.wrapS=THREE.RepeatWrapping; t.repeat.set(4,1); return t; })()}),
@@ -179,15 +188,13 @@ const Interior = {
     const own=Assets.deck(G.shipId); if(own) this.bespoke(own,g);
   },
   /* ---------- the ship's own deck ----------
-     Each hull's walkable deck is modelled in Blender on the same plan as the stock one (same rooms, doorways, seats and
-     repair spots, one in each of the seven rooms), so the walking bounds stay. When it has loaded it replaces the stock walls, floors, ceilings and
-     furniture; the seven repair spots, the passengers' places, the crates in the hold and the signs stay, the ceiling
-     lamps move to its light markers, and its own sky and colour grade come with it. */
+     Fleet decks carry their own walking and interaction coordinates. The procedural rooms stay available during loading. */
   bespoke(B, g){
     const dir=`assets/ship-interiors/finish/${B.ship}/`;
     Promise.all([Assets.glb(B.file), Assets.env(dir+'space.hdr').catch(()=>null), Assets.lut(dir+'grade.png').catch(()=>null)]).then(([src,env,lut])=>{
       if(this.group!==g) return;
       const deck=src.clone(true); deck.name='bespoke deck '+B.ship; Assets.prepare(deck,env); const A=Assets.anchors(deck);
+      if(B.layout) return this.fleetDeck(B,deck,g,A);
       if(B.baked) return this.bakedDeck(B,deck,g,A);
       const grime=this.grimeTex();   // dirt, streaks and scratches over every plain surface, so no wall is one flat colour
       deck.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false; if(o.material&&o.material.name==='glass'){ o.renderOrder=5; }
@@ -204,6 +211,41 @@ const Interior = {
       g.add(deck); this.bespokeDeck=deck; this.grade=lut;
       if(B.light) this.lightMapped(B,deck,g);
     }).catch(()=>{});
+  },
+  fleetDeck(B,deck,g,A){
+    const keep=new Set([...Object.values(this.fx).map(f=>f.grp),...this.seats,this.crates]);
+    for(const o of g.children.slice()) if(!keep.has(o)&&!o.isHemisphereLight) g.remove(o);
+    this.fitted=B; this.bespokeDeck=deck; this.grade=null; this.repairs={}; this.lights=[];
+    deck.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false;
+      if(!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
+      if(o.material.emissiveMap&&/^baked /.test(o.material.name)) o.material=new THREE.MeshBasicMaterial({map:o.material.emissiveMap,side:THREE.DoubleSide});
+    });
+    this.seats.forEach((seat,i)=>{
+      for(const c of seat.children.slice()) if(!this.pax.includes(c)) seat.remove(c);
+      const a=A['passenger_'+(i+1)];
+      if(a){ seat.position.copy(a.position); seat.position.y-=FLOOR; seat.quaternion.copy(a.quaternion); seat.rotateY(-Math.PI/2); seat.userData.deck=B.layout.spots['seat_'+(i+1)].level; }
+    });
+    for(const [id,f] of Object.entries(this.fx)){
+      const a=A['fault_'+id]; f.grp.position.copy(a.position); f.grp.quaternion.copy(a.quaternion);
+      const particles=new Set(f.parts.map(p=>p.m));
+      f.grp.traverse(o=>{ if(o.isMesh&&!particles.has(o)) o.visible=false; });
+      const models={}; for(const state of ['working','broken','repaired']) models[state]=deck.getObjectByName('state_'+id+'_'+state);
+      this.repairs[id]={models};
+    }
+    g.add(deck); this.lightSockets=Object.entries(A).filter(([k])=>k.startsWith('lamp_')).map(([,v])=>v.position);
+    for(let i=0;i<2;i++){ const l=new THREE.PointLight(0xffdfbe,1.4,9,1.7); g.add(l); this.lights.push(l); }
+    for(const o of g.children) if(o.isHemisphereLight) o.intensity=.55;
+    this.crateKey=''; this.syncCargo(); this.syncFaults(); Faults.badge();
+    if(Walk.on) Walk.boardFitted();
+  },
+  lightFitted(){
+    const positions=this.lightSockets.slice().sort((a,b)=>a.distanceToSquared(Walk.pos)-b.distanceToSquared(Walk.pos));
+    this.lights.forEach((l,i)=>l.position.copy(positions[i]));
+    if(!this.helm&&Cockpit.bespokeRoom&&Cockpit.panels){
+      this.helm=new THREE.Group(); this.helm.position.set(...this.fitted.layout.eye);
+      for(const panel of Object.values(Cockpit.panels)) this.helm.add(panel.clone(true));
+      this.group.add(this.helm);
+    }
   },
   /* a cushioned passenger seat on a pedestal, with armrests, a headrest and a harness; local +x faces into the cabin */
   seat(sg,M,i){ const rb=Folk.rbox, add=(o,rz)=>{ if(rz) o.rotation.z=rz; sg.add(o); return o; };
@@ -447,15 +489,15 @@ const Interior = {
           for(const mt of [].concat(o.material)) if(mt&&mt.isMeshStandardMaterial){ mt.envMapIntensity=0.12; this.indoor(mt,0.45); } }); grp.add(m); R.models[st]=m; this.syncRepairs(); }).catch(()=>{}); } },
   /* crates in the hold match how full it is; passengers sit in the cabin */
   syncCargo(){
-    const P0=this.plan(), room=P0&&P0.crates?P0.crates.length*2:28, used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*room), key=n+'';
+    const P0=this.plan(), room=P0&&P0.crates?P0.crates.length*(P0.layout?1:2):28, used=holdUsed(), n=Math.round(clamp(used/holdCap(),0,1)*room), key=n+'';
     if(key!==this.crateKey){ this.crateKey=key; if(this.crates) this.group.remove(this.crates); const cg=this.crates=new THREE.Group(); this.group.add(cg); let k=0;
       // plain wood crates: slats inside a darker frame. They take almost nothing from the bright sky map, which made them glow like lamps
       if(!this.crateTex){ const S=256, cv=makeCanvas(S,S), x=cv.getContext('2d'); x.fillStyle='#d8d0c4'; x.fillRect(0,0,S,S);
         for(let i=0;i<5;i++){ x.fillStyle=i%2?'#cfc6b8':'#e2dace'; x.fillRect(0,i*S/5,S,S/5-6); x.fillStyle='#5a4a38'; x.fillRect(0,(i+1)*S/5-6,S,6); }
         for(let i=0;i<260;i++){ const yy=(i*97)%S, xx=(i*53)%S; x.fillStyle=`rgba(${i%3?'60,44,30':'255,244,220'},${0.05+(i%5)*0.02})`; x.fillRect(xx,yy,30+(i*7)%120,1+(i%2)); } for(let i=0;i<5;i++){ x.fillStyle='rgba(40,28,18,0.5)'; x.beginPath(); x.ellipse((i*83+40)%S,(i*131+30)%S,7,4,0,0,7); x.fill(); } this.crateTex=canvasTex(cv); }
       const mats=['#a8743a','#8c5e2a','#b98040','#7a6650'].map(c=>new THREE.MeshStandardMaterial({color:C(c),map:this.crateTex,roughness:0.9,metalness:0,envMapIntensity:0.12}));
-      const P=this.plan(), slots=[]; if(P&&P.crates) for(const [x,z] of P.crates) slots.push([x,z]); else for(const sx of [-1,1]) for(let z=7.9;z<13.9;z+=0.85) slots.push([sx*2.35,z]);
-      for(const [sx0,z] of slots) for(let lvl=0;lvl<2&&k<n;lvl++,k++){ const c=new THREE.Mesh(this.crateGeo(),mats[(k*7)%4]); if(this.lit) this.indoor(c.material,0.5); c.position.set(sx0+Math.sign(sx0)*(lvl?0.05:0),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; cg.add(c); } }
+      const P=this.plan(), slots=[]; if(P&&P.crates) slots.push(...P.crates); else for(const sx of [-1,1]) for(let z=7.9;z<13.9;z+=0.85) slots.push([sx*2.35,z]);
+      for(const [sx0,z,floor,width] of slots) for(let lvl=0;lvl<(P?.layout?1:2)&&k<n;lvl++,k++){ const c=new THREE.Mesh(this.crateGeo(),mats[(k*7)%4]); if(this.lit) this.indoor(c.material,0.5); c.position.set(sx0+Math.sign(sx0)*(lvl?0.05:0),FLOOR+0.39+lvl*0.8,z); c.rotation.y=(k%3-1)*0.05; if(P?.layout){ c.scale.set(width,.42,.72); c.position.set(sx0,floor+.164,z); c.rotation.y=0; } cg.add(c); } }
     const pax=Cargo.pax(), pk=pax.map(p=>p.kind==='escort'?p.vip.seed:p.seed).join(',');
     if(pk!==this.paxKey){ this.paxKey=pk; for(const F of this.pax) F.parent&&F.parent.remove(F); this.pax=[];
       pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.66), S=this.seats[i], U=F.userData;
@@ -464,7 +506,7 @@ const Interior = {
         if(U.model){ const sa=U.seatAt; if(sa){ U.sit(true); F.position.set(0.04-sa.z*0.66,FLOOR+0.49-sa.y*0.66+0.02,sa.x*0.66); } else { F.scale.setScalar(0.42); F.position.set(0.04,FLOOR+0.51,0); } }
         else Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
   update(dt, t){
-    const g=this.group; g.quaternion.copy(G.ship.quat);
+    const g=this.group; g.quaternion.copy(G.ship.quat); if(this.fitted) this.lightFitted();
     for(const id in this.fx){ const f=this.fx[id];
       // working: a steady green light, the scrubber fan turning and its ribbon blowing out into the room
       if(!f.broken){ f.lamp.material.color.setRGB(0.35,1.9,0.7); f.scr.material.color.setScalar(1); if(f.fan) f.fan.rotation.z+=dt*16; if(f.ribbon) f.ribbon.rotation.x=0.9+Math.sin(t*19)*0.25; continue; }
@@ -489,19 +531,39 @@ const Interior = {
 const Walk = {
   on:false, stale:new Set(), pos:new V3(0,EYE,1.2), yaw:Math.PI, pitch:0, tr:0, trDir:0, bob:0, target:null, hold:0, told:false,
   /* L (or Seat) sits you back down, but only from the cockpit doorway */
-  atDoor(){ return this.pos.z<2.1&&Math.abs(this.pos.x)<0.75; },
+  level:0, liftLock:false,
+  boardFitted(){
+    this.level=0; this.liftLock=false;
+    const l=Interior.fitted.layout; this.pos.set(l.spawn[0],l.levels[0].floor+EYE-FLOOR,l.spawn[1]);
+    Cockpit.group.visible=false;
+  },
+  lift(){
+    const layout=Interior.fitted?.layout;
+    if(!layout) return false;
+    const lift=layout.lifts.find(l=>l.decks.includes(this.level)&&Math.abs(this.pos.x-l.position[0])<l.size[0]*.46&&Math.abs(this.pos.z-l.position[1])<l.size[1]*.46);
+    const held=!!G.keys.KeyF; if(!held) this.liftLock=false; if(!lift) return false;
+    const next=lift.decks.find(i=>i!==this.level), prompt=$('prompt');
+    prompt.hidden=false; prompt.innerHTML=`<b>Lift</b><span>${TouchUI.on?'Tap Fix':'Press F'} for the ${esc(layout.levels[next].name)}</span>`;
+    if(held&&!this.liftLock){
+      this.liftLock=true; this.level=next; this.pos.set(lift.position[0],layout.levels[next].floor+EYE-FLOOR,lift.position[1]);
+      Sfx.clunk(); UI.toast(layout.levels[next].name);
+    }
+    this.hold=0; this.target=null; return true;
+  },
+  atDoor(){ if(Interior.fitted){ const [x,z]=Interior.fitted.layout.door; return this.level===0&&Math.hypot(this.pos.x-x,this.pos.z-z)<1.15; } return this.pos.z<2.1&&Math.abs(this.pos.x)<0.75; },
   toggle(){ if(!this.on){ this.enter(); return; } if(this.atDoor()) this.exit(); else { UI.toast(`Walk back to the cockpit door to sit down. It is at the front end of the corridor.`,'warn'); Sfx.deny(); } },
   enter(){
     if(G.mode!=='flight'||this.on) return; const parked=Dlg.open&&Dlg.park(); if(parked) setTimeout(()=>UI.toast('The call will wait. It comes back when you sit down.'),400);
     if(!Interior.group||Interior.shipId!==G.shipId) Interior.build(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,6);
     Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
     this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
+    this.level=0; if(Interior.fitted) this.boardFitted();
     Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); Sfx.clunk();
     if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat at the cockpit door to sit down.':'Walking. W A S D to move, Q and E to turn, drag to look, hold F to fix things, L at the cockpit door to sit down.','good'); }
     TouchUI.sync&&TouchUI.sync(true); },
   exit(instant){
     if(!this.on) return; this.on=false; Radio.cur=null; if(TouchUI.stick.x||TouchUI.stick.y) TouchUI.stale=true; setTimeout(()=>Dlg.flush(),900); document.body.classList.remove('walking'); $('reticle').hidden=true; $('prompt').hidden=true; Cockpit.setDoor(0);
-    if(Interior.group) Interior.group.visible=false; G.head.pos.set(0,0,0); G.head.yaw=G.head.yawT=0; G.head.pitch=G.head.pitchT=G.head.basePitch; if(!instant) Sfx.clunk(); TouchUI.sync&&TouchUI.sync(true); },
+    if(Interior.group) Interior.group.visible=false; if(Cockpit.group) Cockpit.group.visible=true; G.head.pos.set(0,0,0); G.head.yaw=G.head.yawT=0; G.head.pitch=G.head.pitchT=G.head.basePitch; if(!instant) Sfx.clunk(); TouchUI.sync&&TouchUI.sync(true); },
   look(dx, dy){ this.yaw-=dx*0.0042; this.pitch=clamp(this.pitch-dy*0.0042,-1.2,1.2); },
   update(dt, t){
     if(!this.on) return; const K=G.keys, s=G.ship;
@@ -513,16 +575,16 @@ const Walk = {
     const moving=Math.abs(f)+Math.abs(r)>0.05; this.bob+=moving?dt*sp*4.2:0;
     // the ship shakes more at high throttle and in warp
     const shake=(s.throttle>5?(s.throttle-5)*0.0025:0)+s.warpF*0.006;
-    p.y=EYE+(moving?Math.sin(this.bob)*0.03:0)+(Math.random()-0.5)*shake;
+    p.y=(Interior.fitted?Interior.fitted.layout.levels[this.level].floor+EYE-FLOOR:EYE)+(moving?Math.sin(this.bob)*0.03:0)+(Math.random()-0.5)*shake;
     Interior.update(dt,t); if((Game.mk%30)===0) Interior.syncCargo();
-    this.interact(dt);
+    if(!this.lift()) this.interact(dt);
   },
   /* what you are looking at: a fault to fix or a passenger to talk to */
   interact(dt){
     const eye=this.pos, dir=new V3(-Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch));
     let best=null, bs=0;
-    for(const id of Faults.list()){ const q=new V3(...FAULT_DEFS[id].pos), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); const score=dot-d*0.08; if(d<2.6&&(dot>0.72||d<1.1)&&score>bs){ bs=score; best={kind:'fault',id,d}; } }
-    if(!best) for(const F of Interior.pax){ const S=F.parent, q=new V3().setFromMatrixPosition(S.matrix).setY(FLOOR+1.0), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); if(d<3.4&&dot>0.85){ best={kind:'pax',F,d}; break; } }
+    for(const id of Faults.list()){ if(Interior.fitted&&Interior.fitted.layout.spots[id].level!==this.level) continue; const q=Interior.fx[id]?.grp.position||new V3(...FAULT_DEFS[id].pos), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); const score=dot-d*0.08; if(d<2.6&&(dot>0.72||d<1.1)&&score>bs){ bs=score; best={kind:'fault',id,d}; } }
+    if(!best) for(const F of Interior.pax){ const S=F.parent; if(Interior.fitted&&S.userData.deck!==this.level) continue; const q=S.position.clone().setY(S.position.y+FLOOR+1.0), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); if(d<3.4&&dot>0.85){ best={kind:'pax',F,d}; break; } }
     const pr=$('prompt'), K=G.keys, held=!!K.KeyF;
     if(!best){ this.hold=0; this.target=null;
       if(this.atDoor()){ pr.hidden=false; pr.innerHTML=`<b>Cockpit</b><span>${TouchUI.on?'Tap Seat':'Press L'} to sit down</span>`; } else pr.hidden=true; return; }
