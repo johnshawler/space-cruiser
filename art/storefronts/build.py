@@ -605,7 +605,10 @@ manifest={'units':'metres','up':'+Y','front':'+Z','venues':{}}
 gallery='Long-Haul-Storefronts'
 render_folder='storefront-renders'
 specs=[]
-if '--freight' in args:
+freight = '--freight' in args
+if freight and '--expansion' in args:
+    raise ValueError('Choose one storefront collection per build.')
+if freight:
     gallery,render_folder='Freight-Storefronts','freight-renders'
     specs=FREIGHT_SHOPS
     workshop,fit_floor=build_service_workshop,fit_service_floor
@@ -628,8 +631,10 @@ for i,(title,port,key,fn) in enumerate(VENUES):
         fit_floor(spec)
     else:
         fn();stamp_hardware(i);detail_kit(i);marks=make_open_shop(i,title,port,key)
-    if not expansion:forecourt_display(port,key)
-    fixtures=refit_shop(title,port,key)
+        forecourt_display(port,key)
+    # Freight's own workshop, equipment, lights and navigation mast stay in place.
+    # All three collections receive the worn surfaces through material().
+    fixtures=[] if freight else refit_shop(title,port,key)
     finish_meshes()
     original=list(col.objects);game=prepare_game_copy(original)
     game.name=f'{port}-{key}';game['venue']=title;game['shopKey']=key;game['locationKey']=port
@@ -641,9 +646,12 @@ for i,(title,port,key,fn) in enumerate(VENUES):
     for anchor in anchors:anchor.select_set(True)
     bpy.ops.export_scene.gltf(filepath=str(MODELS/filename),export_format='GLB',use_selection=True,export_yup=True,
         export_texcoords=True,export_image_format='JPEG',export_jpeg_quality=82,export_animations=False,export_extras=True,export_cameras=False,export_lights=False,export_normals=True)
-    manifest['venues'].setdefault(port,{})[key]={'name':title,'file':filename,'triangles':tris,'port':PORTS[port],'markers':marks,'lights':fixtures}
-    if key=='depot':
-        manifest['venues'][port][key]['wayfindingMount']='overhead'
+    entry={'name':title,'file':filename,'triangles':tris,'port':PORTS[port],'markers':marks}
+    if not freight:
+        entry['lights']=fixtures
+        if key=='depot':
+            entry['wayfindingMount']='overhead'
+    manifest['venues'].setdefault(port,{})[key]=entry
     bpy.data.objects.remove(game,do_unlink=True)
     lamps=fit_native_lights(fixtures)
     save_one(title,port,key)

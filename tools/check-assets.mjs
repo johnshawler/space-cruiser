@@ -83,6 +83,12 @@ for (const [loc, shops] of Object.entries(fronts)) {
     const file = 'assets/storefronts/' + entry.file;
     const g = glb(file);
     if (g.tris !== entry.triangles || g.tris > 80000) fail(`storefront ${key}: triangle count ${g.tris}`);
+    // Both structural metals share the ship surface recipe in all three Blender collections.
+    for (const name of ['Iron','Steel']) {
+      const finish = g.j.materials.find(m => m.name === name);
+      const pbr = finish?.pbrMetallicRoughness;
+      if (!pbr?.baseColorTexture || !pbr.metallicRoughnessTexture || !finish.normalTexture) fail(`storefront ${key}: incomplete ${name} surface maps`);
+    }
     const markers = [...basicMarkers];
     if (shop === 'depot') {
       markers.push('shelf','stock_door','packing_bench','droid_home');
