@@ -106,6 +106,41 @@ for (const key of SHIPS) {
 }
 pass(`${DK.ships.length} walkable decks against ${Object.keys(faults).length} repair spots and 4 passenger seats`);
 
+// ---------- character models ----------
+// - all 32 are in the manifest, each file exists and matches its recorded size, is one skinned mesh within budget,
+//   and carries its clips (humanoids also their three morph targets)
+// - every design in MODEL_FOR (src/01-data.js) points at a model that exists, and all 50 designs are covered
+{
+  const SP = JSON.parse(read('assets/characters/species/manifest.json')).models, ids = new Set(SP.map(m => m.id));
+  if (SP.length !== 32) fail(`character models: ${SP.length} in the manifest, expected 32`);
+  for (const m of SP) {
+    const file = `assets/characters/species/${m.id}.glb`;
+    if (!fs.existsSync(path.join(root, file))) { fail(`character ${m.id}: ${file} missing`); continue; }
+    const g = glb(file), clips = (g.j.animations || []).map(a => a.name);
+    if (g.bytes !== m.bytes) fail(`character ${m.id}: file is ${g.bytes} bytes, manifest says ${m.bytes}`);
+    if (g.tris > 16000) fail(`character ${m.id}: ${g.tris} triangles is over the 16,000 budget`);
+    if (g.bytes > 2.2e6) fail(`character ${m.id}: ${(g.bytes / 1e6).toFixed(2)} MB is over the 2.2 MB budget`);
+    if (g.meshes !== 1 || (g.j.skins || []).length !== 1) fail(`character ${m.id}: expected one skinned mesh, found ${g.meshes} meshes and ${(g.j.skins || []).length} skins`);
+    const need = m.kind === 'robot' ? ['Idle', 'Travel', 'Operate'] : ['Walk', 'Seat', 'Happy', 'Bored', 'Sad'];
+    for (const c of need) if (!clips.includes(c)) fail(`character ${m.id}: clip ${c} missing`);
+    if (m.kind === 'humanoid') {
+      const names = (g.j.meshes[0].extras && g.j.meshes[0].extras.targetNames) || [];
+      for (const t of ['Happy', 'Bored', 'Sad']) if (!names.includes(t)) fail(`character ${m.id}: morph target ${t} missing`);
+      if (!m.seat) fail(`character ${m.id}: no seat position`);
+    }
+    if (!(m.max[1] > 0.5 && m.max[1] < 3)) fail(`character ${m.id}: height ${m.max[1]} m is out of range`);
+  }
+  const data = read('src/01-data.js').toString(), mf = data.match(/const MODEL_FOR = \{([\s\S]*?)\};/), cf = data.match(/const CAST_FOR = \{([\s\S]*?)\};/);
+  const pairs = t => [...t.matchAll(/(\w+):'([\w-]+)'/g)].map(x => [x[1], x[2]]);
+  const model = new Map(pairs(mf ? mf[1] : '')), used = new Set(model.values());
+  for (const [k, id] of model) if (!ids.has(id)) fail(`MODEL_FOR: ${k} points at ${id}, which has no model`);
+  for (const id of ids) if (!used.has(id)) fail(`character ${id}: no design is played by it`);
+  const cast = fs.readdirSync(path.join(root, 'src/species')).filter(f => /cast:\s*true/.test(read('src/species/' + f).toString())).map(f => f.replace(/\.js$/, ''));
+  for (const k of cast) if (!model.has(k)) fail(`MODEL_FOR: cast design ${k} has no model`);
+  for (const [legacy, k] of pairs(cf ? cf[1] : '')) if (!model.has(k)) fail(`species key ${legacy} (played by ${k}) has no model`);
+  pass(`${SP.length} character models playing ${model.size} cast designs and ${pairs(cf ? cf[1] : '').length} earlier species keys`);
+}
+
 for (const m of ok) console.log('ok   ' + m);
 for (const m of bad) console.log('FAIL ' + m);
 process.exit(bad.length ? 1 : 0);

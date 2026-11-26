@@ -1,0 +1,37 @@
+{
+ "id": "keld",
+ "name": "Keld",
+ "kind": "humanoid",
+ "triangles": 14541,
+ "kb": 1297,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.592,
+  0.0,
+  -0.226
+ ],
+ "max": [
+  0.592,
+  1.612,
+  0.361
+ ],
+ "seat": [
+  -0.018,
+  0.347,
+  0.001
+ ]
+}

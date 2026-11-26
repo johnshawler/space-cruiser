@@ -1,0 +1,24 @@
+{
+ "id": "spoolback",
+ "name": "Spoolback",
+ "kind": "robot",
+ "triangles": 10405,
+ "kb": 1246,
+ "clips": [
+  "Idle",
+  "Travel",
+  "Operate"
+ ],
+ "glow": false,
+ "morphs": [],
+ "min": [
+  -1.039,
+  0.015,
+  -0.655
+ ],
+ "max": [
+  1.039,
+  1.952,
+  1.16
+ ]
+}

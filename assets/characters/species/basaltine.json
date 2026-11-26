@@ -1,0 +1,24 @@
+{
+ "id": "basaltine",
+ "name": "Basaltine",
+ "kind": "robot",
+ "triangles": 10267,
+ "kb": 1486,
+ "clips": [
+  "Idle",
+  "Travel",
+  "Operate"
+ ],
+ "glow": true,
+ "morphs": [],
+ "min": [
+  -0.85,
+  -0.01,
+  -0.484
+ ],
+ "max": [
+  0.85,
+  1.816,
+  0.683
+ ]
+}

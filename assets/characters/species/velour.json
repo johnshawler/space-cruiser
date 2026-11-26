@@ -1,0 +1,24 @@
+{
+ "id": "velour",
+ "name": "Velour",
+ "kind": "robot",
+ "triangles": 10035,
+ "kb": 1154,
+ "clips": [
+  "Idle",
+  "Travel",
+  "Operate"
+ ],
+ "glow": false,
+ "morphs": [],
+ "min": [
+  -0.936,
+  -0.006,
+  -0.58
+ ],
+ "max": [
+  0.751,
+  2.403,
+  0.548
+ ]
+}

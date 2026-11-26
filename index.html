@@ -489,6 +489,7 @@ body.flying #dlg .opt small{font-size:16px}
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script>
 const SPECIES_EXTRA={};
 const ASSET_MANIFESTS={interiors:{
@@ -6207,7 +6208,7 @@ const ASSET_MANIFESTS={interiors:{
       }
     }
   }
-}};
+},species:{"models":[{"id":"basaltine","name":"Basaltine","kind":"robot","triangles":10267,"kb":1486,"clips":["Idle","Travel","Operate"],"glow":true,"morphs":[],"min":[-0.85,-0.01,-0.484],"max":[0.85,1.816,0.683],"bytes":1522440},{"id":"bellwrought","name":"Bellwrought","kind":"robot","triangles":11130,"kb":1107,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.206,-0.008,-0.933],"max":[1.262,2.14,0.933],"bytes":1134588},{"id":"brunn","name":"Brunn","kind":"humanoid","triangles":14120,"kb":1258,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.737,0.0,-0.269],"max":[0.737,1.8,0.438],"seat":[-0.026,0.415,-0.015],"bytes":1288456},{"id":"dathri","name":"Dathri","kind":"humanoid","triangles":14024,"kb":1325,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.466,0.0,-0.221],"max":[0.467,1.509,0.296],"seat":[0.054,0.334,-0.011],"bytes":1357536},{"id":"eskel","name":"Eskel","kind":"humanoid","triangles":13334,"kb":1173,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.397,0.008,-0.187],"max":[0.375,1.915,0.294],"seat":[0.076,0.489,-0.008],"bytes":1201656},{"id":"folio","name":"Folio","kind":"robot","triangles":10415,"kb":1075,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.021,-0.007,-0.343],"max":[1.021,2.272,0.292],"bytes":1101384},{"id":"gimbal","name":"Gimbal","kind":"robot","triangles":10276,"kb":1105,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-0.798,0.004,-0.834],"max":[0.798,2.156,0.834],"bytes":1132220},{"id":"keld","name":"Keld","kind":"humanoid","triangles":14541,"kb":1297,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.592,0.0,-0.226],"max":[0.592,1.612,0.361],"seat":[-0.018,0.347,0.001],"bytes":1328260},{"id":"koruun","name":"Koruun","kind":"humanoid","triangles":13224,"kb":1314,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.63,0.0,-0.285],"max":[0.63,1.482,0.346],"seat":[-0.021,0.226,-0.006],"bytes":1345940},{"id":"lamplume","name":"Lamplume","kind":"robot","triangles":10143,"kb":1236,"clips":["Idle","Travel","Operate"],"glow":true,"morphs":[],"min":[-1.362,0.004,-0.293],"max":[1.472,2.322,0.324],"bytes":1266328},{"id":"latchling","name":"Latchling","kind":"robot","triangles":10533,"kb":1318,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.401,0.004,-0.677],"max":[1.228,1.3,0.737],"bytes":1350168},{"id":"millipress","name":"Millipress","kind":"robot","triangles":11035,"kb":1528,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.783,-0.007,-0.852],"max":[1.709,0.746,0.332],"bytes":1565072},{"id":"mothren","name":"Mothren","kind":"humanoid","triangles":14940,"kb":1612,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":true,"morphs":["Happy","Bored","Sad"],"min":[-0.543,-0.0,-0.184],"max":[0.543,1.423,0.3],"seat":[-0.054,0.283,-0.013],"bytes":1651496},{"id":"mudlark","name":"Mudlark","kind":"robot","triangles":9900,"kb":1278,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.724,-0.055,-0.46],"max":[1.44,1.533,0.46],"bytes":1309656},{"id":"nautil","name":"Nautil","kind":"robot","triangles":10650,"kb":1013,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.015,0.0,-0.577],"max":[1.073,1.655,0.577],"bytes":1038176},{"id":"nemeya","name":"Nemeya","kind":"humanoid","triangles":14030,"kb":1304,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":true,"morphs":["Happy","Bored","Sad"],"min":[-0.416,0.0,-0.177],"max":[0.416,1.773,0.294],"seat":[0.041,0.402,-0.007],"bytes":1335360},{"id":"orrek","name":"Orrek","kind":"humanoid","triangles":13392,"kb":1295,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.746,0.0,-0.291],"max":[0.747,1.81,0.423],"seat":[-0.013,0.37,-0.007],"bytes":1327020},{"id":"pelrin","name":"Pelrin","kind":"humanoid","triangles":13738,"kb":1462,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.45,0.006,-0.18],"max":[0.451,1.414,0.266],"seat":[-0.021,0.281,-0.014],"bytes":1498016},{"id":"prismwake","name":"Prismwake","kind":"robot","triangles":10526,"kb":865,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.364,0.457,-0.823],"max":[1.387,2.023,0.674],"bytes":886148},{"id":"rhovi","name":"Rhovi","kind":"humanoid","triangles":13317,"kb":1289,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.449,0.006,-0.263],"max":[0.446,1.623,0.302],"seat":[0.126,0.404,-0.01],"bytes":1320628},{"id":"robot-cairn","name":"Cairn","kind":"robot","triangles":10484,"kb":1770,"clips":["Idle","Travel","Operate"],"glow":true,"morphs":[],"min":[-1.049,-0.015,-0.629],"max":[1.05,2.086,0.618],"bytes":1812960},{"id":"selvedge","name":"Selvedge","kind":"robot","triangles":9430,"kb":1235,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-0.91,-0.015,-0.191],"max":[1.095,2.18,0.381],"bytes":1264740},{"id":"sovai","name":"Sovai","kind":"humanoid","triangles":14077,"kb":1378,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.372,-0.006,-0.151],"max":[0.381,1.707,0.201],"seat":[-0.019,0.319,-0.01],"bytes":1411140},{"id":"spoolback","name":"Spoolback","kind":"robot","triangles":10405,"kb":1246,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.039,0.015,-0.655],"max":[1.039,1.952,1.16],"bytes":1276808},{"id":"taluun","name":"Taluun","kind":"humanoid","triangles":14481,"kb":1438,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.559,0.013,-0.213],"max":[0.56,1.695,0.35],"seat":[-0.109,0.384,-0.011],"bytes":1472536},{"id":"thimble","name":"Thimble","kind":"robot","triangles":10140,"kb":1101,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-0.736,-0.005,-0.736],"max":[0.736,1.997,0.736],"bytes":1127640},{"id":"trestle","name":"Trestle","kind":"robot","triangles":10552,"kb":1455,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-1.365,-0.014,-0.593],"max":[1.363,1.957,0.606],"bytes":1490532},{"id":"ulnor","name":"Ulnor","kind":"humanoid","triangles":14284,"kb":1248,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.508,0.0,-0.331],"max":[0.507,1.945,0.358],"seat":[0.059,0.434,-0.014],"bytes":1278756},{"id":"ureth","name":"Ureth","kind":"humanoid","triangles":13960,"kb":1192,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.458,0.014,-0.282],"max":[0.459,1.876,0.198],"seat":[0.063,0.42,-0.017],"bytes":1221056},{"id":"velour","name":"Velour","kind":"robot","triangles":10035,"kb":1154,"clips":["Idle","Travel","Operate"],"glow":false,"morphs":[],"min":[-0.936,-0.006,-0.58],"max":[0.751,2.403,0.548],"bytes":1182068},{"id":"vessari","name":"Vessari","kind":"humanoid","triangles":13473,"kb":1354,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.445,0.012,-0.3],"max":[0.445,1.933,0.285],"seat":[0.092,0.453,-0.011],"bytes":1386648},{"id":"zhavet","name":"Zhavet","kind":"humanoid","triangles":12972,"kb":1216,"clips":["Bored","Happy","Reach","Sad","Seat","Stride","Walk"],"glow":false,"morphs":["Happy","Bored","Sad"],"min":[-0.643,0.0,-0.148],"max":[0.639,1.907,0.246],"seat":[0.112,0.51,-0.007],"bytes":1246004}]}};
 // Shared by the fifty cast builders. The animation joints point into the existing
 // sculpture; only the posed limbs and facial controls need new geometry.
 // Bake once per design. Seeds share geometry, never pivots, expressions or paint.
@@ -13428,6 +13429,20 @@ const CAST_FOR = {beepul:'lichen', grondar:'rusk', zkthar:'kipp', blorpax:'neru'
   parasolum:'yarro', pipettle:'plover', pluvindle:'plume', rilloon:'obo', rimebud:'sova', sealump:'cairn', tarestep:'tally', tessettle:'sura',
   timbrelk:'chime', velveteel:'sarra', wickindle:'caelo', whorloo:'kepp', winkmast:'wick'};
 for(const k in CAST_FOR) if(SPECIES[k]&&SPECIES_EXTRA[CAST_FOR[k]]) SPECIES[k]=SPECIES_EXTRA[CAST_FOR[k]];
+/* The Blender characters play everyone. MODEL_FOR maps each of the 50 cast designs to the model that now plays it
+   (assets/characters/species/<id>.glb, drawn by FolkModels in src/08a-folk-models.js); the 30 earlier species keys follow
+   through CAST_FOR. Keys, voices and lines stay, so planets, shops, jobs and saves are untouched; the name and the look
+   change. Several designs share a model. If a model can't be fetched, the design's own hand-built figure stands in. */
+const MODEL_FOR = {aril:'sovai', caelo:'mothren', cairn:'robot-cairn', chime:'bellwrought', crimp:'spoolback', dolly:'millipress', fathom:'nautil', fenn:'nemeya',
+  glint:'prismwake', hush:'velour', ilex:'koruun', iris:'latchling', kepp:'nautil', kiln:'basaltine', kipp:'zhavet', koro:'orrek', latch:'latchling', lichen:'thimble',
+  lyre:'bellwrought', marlo:'brunn', mica:'vessari', myrr:'keld', nacre:'velour', neru:'koruun', nim:'pelrin', obo:'rhovi', orlo:'gimbal', orris:'pelrin',
+  parallax:'gimbal', pavo:'vessari', pinion:'prismwake', plover:'sovai', plume:'mudlark', prong:'trestle', purl:'selvedge', relay:'folio', rivet:'basaltine',
+  rusk:'orrek', sarra:'ulnor', shuttle:'selvedge', silt:'dathri', sova:'ureth', spool:'spoolback', sura:'taluun', tacca:'mothren', tally:'thimble', tempo:'millipress',
+  vela:'eskel', wick:'lamplume', yarro:'taluun'};
+const MODEL_ROBOTS = new Set(['bellwrought','selvedge','gimbal','mudlark','folio','spoolback','lamplume','robot-cairn','latchling','velour','nautil','trestle','prismwake','millipress','basaltine','thimble']);
+for(const k in MODEL_FOR){ const old=SPECIES_EXTRA[k]; if(!old) continue; const id=MODEL_FOR[k], nm=id.replace(/^robot-/,'');
+  const now=Object.assign({},old,{name:nm.charAt(0).toUpperCase()+nm.slice(1),model:id,family:MODEL_ROBOTS.has(id)?'robot':'alien'});
+  for(const key in SPECIES) if(SPECIES[key]===old) SPECIES[key]=now; SPECIES_EXTRA[k]=now; }
 const CAST_PLAYING = new Set(Object.values(CAST_FOR));
 const ALIEN_POOL = SPECIES_KEYS.concat(SPECIES_EXTRA_KEYS.filter(k=>!SPECIES_EXTRA[k].cast||!CAST_PLAYING.has(k)));
 
@@ -13663,7 +13678,11 @@ function drawGlyphs(ctx, str, x, y, h, spKey, color, maxW){
 
 /* ---------- alien portraits (100x100 design space) ---------- */
 /* portraits are rendered from the same 3D models you see in port (Portrait, in the venues file); this flat drawing is only a fallback */
-function drawAlien(ctx, spKey, seed, x, y, s){ const im=typeof Portrait!=='undefined'&&Portrait.get(spKey,seed); if(!im){ drawAlien2D(ctx,spKey,seed,x,y,s); return; }
+function drawAlien(ctx, spKey, seed, x, y, s){
+  // a character model that hasn't been fetched yet: a quiet holding card, and start fetching it
+  const md=portraitPending(spKey); if(md){ FolkModels.ready(md).catch(()=>{}); const S=SPECIES[spKey]; ctx.save(); ctx.translate(x,y); ctx.scale(s/100,s/100); const g=ctx.createLinearGradient(0,0,0,100); g.addColorStop(0,'#0a1620'); g.addColorStop(1,'#1b3442'); ctx.fillStyle=g; ctx.fillRect(0,0,100,100);
+    ctx.fillStyle=S.col; ctx.globalAlpha=0.5; ctx.beginPath(); ctx.arc(50,40,17,0,7); ctx.fill(); ctx.beginPath(); ctx.ellipse(50,92,30,28,0,0,7); ctx.fill(); ctx.restore(); return; }
+  const im=typeof Portrait!=='undefined'&&Portrait.get(spKey,seed); if(!im){ drawAlien2D(ctx,spKey,seed,x,y,s); return; }
   ctx.save(); ctx.translate(x,y); ctx.scale(s/100,s/100); ctx.beginPath(); ctx.rect(0,0,100,100); ctx.clip(); ctx.drawImage(im,0,0,100,100);
   ctx.fillStyle='rgba(120,220,255,.05)'; for(let i=0;i<100;i+=4) ctx.fillRect(0,i,100,1.5); ctx.restore(); }
 function drawAlien2D(ctx, spKey, seed, x, y, s){
@@ -13719,7 +13738,10 @@ function drawAlien2D(ctx, spKey, seed, x, y, s){
   ctx.fillStyle='rgba(120,220,255,.05)'; for(let i=0;i<100;i+=4) ctx.fillRect(0,i,100,1.5);
   ctx.restore();
 }
-function portraitCanvas(spKey, seed, px=128){ const cv=makeCanvas(px,px); drawAlien(cv.getContext('2d'),spKey,seed,0,0,px); return cv; }
+function portraitPending(spKey){ const md=SPECIES[spKey]&&SPECIES[spKey].model; return md&&typeof FolkModels!=='undefined'&&FolkModels.info(md)&&!FolkModels.loaded(md)&&!FolkModels.failed(md)?md:null; }
+function portraitCanvas(spKey, seed, px=128){ const cv=makeCanvas(px,px), x=cv.getContext('2d'), md=portraitPending(spKey); drawAlien(x,spKey,seed,0,0,px);
+  if(md){ const again=()=>{ x.clearRect(0,0,px,px); drawAlien(x,spKey,seed,0,0,px); }; FolkModels.ready(md).then(again,again); }   // the face fills in when the model arrives
+  return cv; }
 
 /* small geometry helpers */
 function beamBetween(a,b,thick,mat,depth){
@@ -13743,7 +13765,7 @@ function lookQuat(dir, up){ const m=new THREE.Matrix4().lookAt(new V3(0,0,0), di
    If nothing loads, every place keeps its hand-built model and the game carries on. */
 const Assets = (() => {
   const FALLBACK = 'https://space-cruiser.johnshawler.com/';
-  const M = (typeof ASSET_MANIFESTS !== 'undefined' && ASSET_MANIFESTS) || { interiors: { rooms: [] }, cockpits: { ships: [] }, decks: { ships: [] } };
+  const M = (typeof ASSET_MANIFESTS !== 'undefined' && ASSET_MANIFESTS) || { interiors: { rooms: [] }, cockpits: { ships: [] }, decks: { ships: [] }, species: { models: [] } };
   const off = /[?&]noassets\b/.test(location.search);
   const cache = new Map();
   let baseP = null;
@@ -13768,6 +13790,7 @@ const Assets = (() => {
       const defs = (gl.parser && gl.parser.json && gl.parser.json.materials) || [], strength = {};
       defs.forEach(d => { const s = d.extensions && d.extensions.KHR_materials_emissive_strength; if (s) strength[d.name] = s.emissiveStrength; });
       gl.scene.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) if (m && strength[m.name] != null && !m.userData.strength) { m.emissiveIntensity = strength[m.name]; m.userData.strength = true; } });
+      gl.scene.userData.clips = gl.animations || [];   // character models carry their actions
       return gl.scene;
     }));
   }
@@ -15250,7 +15273,8 @@ const Cine = {
 
   /* ---------- sequences ---------- */
   ui(on, title, sub){ document.body.classList.toggle('cine',on); $('skip').hidden=!on; if(on) $('keys').hidden=true; if(title){ $('cine-h').textContent=title; $('cine-p').textContent=sub; } $('cine-title').classList.toggle('on',!!title); },
-  startLanding(P){
+  startLanding(P){ { const md=SPECIES[P.species]&&SPECIES[P.species].model; if(md) FolkModels.ready(md).catch(()=>{}); }   // the locals' model, fetched on the way down
+   
     Walk.exit(true); G.mode='landing'; this.mode='A'; $('deep-badge').hidden=true; $('zone-badge').hidden=true; Deep.storm=null; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
     if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     this.buildSurface(P); World.space.add(this.model); this.model.visible=true; this.model.position.set(0,0,0); this.model.rotation.set(0,0,0); this.plasma.visible=false; this.setThrust(0,0);
@@ -15381,6 +15405,109 @@ const Cine = {
     World.fx('uFade',this.fade); World.fx('uFadeCol',this.fadeCol); World.fx('uExposure',this.mode==='A'||this.mode==='B'?1:0.74);
   },
 };
+/* ===================== CHARACTER MODELS ===================== */
+/* The 32 Blender characters (16 humanoids, 16 robots). Each is one skinned mesh with baked picture maps in
+   assets/characters/species/<id>.glb, made by art/characters/game-copies/make_game_copy.py and listed in
+   assets/characters/species/manifest.json (built into the page as ASSET_MANIFESTS.species).
+
+   A species entry with `model:'<id>'` is drawn from its model instead of being built from code. Folk.make stays
+   instant: it returns the usual group with the usual handles (rig, head, arms) straight away, sized from the manifest,
+   and the model drops in when its file arrives. The game goes on driving the same handles:
+     - head: a pivot spliced in above the head bone, so the game's nods and turns work in the character's own axes
+     - arms: the same at each shoulder (Folk.arms, Folk.hold)
+     - walking: the model's own walk (humanoids) or Travel (robots) clip, stepped by the game's stride phase
+     - moods: the Happy / Bored / Sad morph targets, with the head and lid pose that goes with each
+     - sitting: U.sit(true) holds the Seat pose (humanoids); robots park
+   Robots play Idle when standing and Operate when the game raises their arms. */
+const FolkModels = (() => {
+  const LIST = (typeof ASSET_MANIFESTS !== 'undefined' && ASSET_MANIFESTS.species && ASSET_MANIFESTS.species.models) || [];
+  const INFO = {}; for (const m of LIST) INFO[m.id] = m;
+  const file = id => 'assets/characters/species/' + id + '.glb';
+  const bone = (root, n) => root.getObjectByName(n.replace(/[\s]/g, '_').replace(/[\[\]\.:\/]/g, ''));
+  const FACE = /^(Head|Jaw|Neck|Lid|Eye|Ear|Antenna|Comb|Brow|Bell|Muzzle)/;
+  const MOODS = { neutral: {}, happy: { Happy: 1 }, sad: { Sad: 1 }, shock: { Happy: 0.4, Sad: 0.25 }, worried: { Sad: 0.6 }, bored: { Bored: 1 } };
+  /* how big a robot stands in the game: the masters are up to 3.5 m long, the game's people about 1.7 m tall */
+  /* some robots are modelled side-on: quarter turns that point them down the game's forward axis (+z) */
+  const YAW = { lamplume: -1, latchling: -1, nautil: -1, 'robot-cairn': -1, millipress: 1, mudlark: 1 };
+  const span = m => { const a = m.max[0] - m.min[0], b = m.max[2] - m.min[2]; return YAW[m.id] ? [b, a] : [a, b]; };   // [across, along]
+  function fit(m) { if (m.kind !== 'robot') return 1; const [w, d] = span(m); return Math.min(1.7 / m.max[1], 1.7 / w, 2.6 / d, 1); }
+
+  /* a pivot above `b` that turns about the joint in the character's axes, and is the identity at rest (so clips still fit) */
+  function splice(b, P, model) {
+    const par = b.parent; model.updateMatrixWorld(true);
+    const qm = new THREE.Quaternion(), qp = new THREE.Quaternion(); model.getWorldQuaternion(qm); par.getWorldQuaternion(qp);
+    const Q = qp.invert().multiply(qm), A = new THREE.Group(), B = new THREE.Group();
+    A.position.copy(b.position); A.quaternion.copy(Q);
+    B.quaternion.copy(Q).invert(); B.position.copy(b.position).applyQuaternion(B.quaternion).negate();
+    par.add(A); P.position.set(0, 0, 0); P.rotation.set(0, 0, 0); P.scale.set(1, 1, 1); A.add(P); P.add(B); B.add(b);
+  }
+
+  /* called by Folk.make in place of a species' build(T) */
+  function build(T) {
+    const { S, U, rig, head, rand } = T, m = INFO[S.model]; if (!m) return;
+    const k = fit(m) * (0.95 + rand() * 0.1), h = m.max[1] * k, [w0, d0] = span(m), w = w0 * k, d = d0 * k, robot = m.kind === 'robot';
+    // an unseen box the size of the character: portraits, counters and shadows measure it before the model arrives
+    const box = new THREE.Mesh(new THREE.BoxGeometry(w * 0.7, h, d * 0.7), new THREE.MeshBasicMaterial({ visible: false })); box.position.y = h / 2; box.visible = false; box.userData.contact = true; rig.add(box);
+    head.position.y = h * (robot ? 0.95 : 0.88);
+    const arm = sx => { const a = new THREE.Group(); a.position.set(sx * w * 0.4, h * 0.75, 0); a.userData.len = h * 0.32; rig.add(a); return a; };
+    U.arms = [arm(-1), arm(1)]; U.model = S.model; U.robot = robot;
+    const st = { mood: {}, want: {}, seat: 0, walk: 0, op: 0, t: 0 };
+    U.gait = (ph, amt) => { st.ph = ph; st.walk = amt; };
+    U.sit = on => { st.seat = on ? 1 : 0; };
+    U.onMood = mo => { st.want = MOODS[mo] || {}; };
+    U.onArms = (l, r) => { st.opWant = Math.max(l ? l[0] : 0, r ? r[0] : 0) > 0.5 ? 1 : 0; };
+    U.seatAt = m.seat ? { y: (m.seat[1] - m.min[1]) * k, x: (m.seat[0] - (m.min[0] + m.max[0]) / 2) * k, z: m.seat[2] * k } : null;
+    U.tick = t => { st.t = t; if (st.apply) st.apply(); };
+    const attach = src => {
+      const model = THREE.SkeletonUtils.clone(src), clips = src.userData.clips || []; let mesh = null;
+      model.traverse(o => { if (o.isSkinnedMesh) mesh = o; }); if (!mesh) return;
+      mesh.frustumCulled = false; mesh.castShadow = true; mesh.receiveShadow = false;
+      // each individual: a slightly different cast to the colour
+      const mat = mesh.material = mesh.material.clone(); mat.color.setHSL(rand(), 0.16, 0.93); mat.envMapIntensity = 0.25 + 0.6 * (robot ? 1 : 0);
+      mat.skinning = true; mat.morphTargets = !!mesh.morphTargetInfluences; if (mat.map) mat.map.anisotropy = 4;
+      model.scale.setScalar(k); { const yaw = (YAW[m.id] || 0) * Math.PI / 2, c = new THREE.Vector3((m.min[0] + m.max[0]) / 2, 0, robot ? (m.min[2] + m.max[2]) / 2 : 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw); model.rotation.y = yaw; model.position.set(-c.x * k, -m.min[1] * k, -c.z * k); }
+      rig.add(model);
+      const hb = !robot && bone(model, 'Head'), al = bone(model, robot ? 'Arm.1.Upper' : 'UpperArm.R'), ar = bone(model, robot ? 'Arm.2.Upper' : 'UpperArm.L');
+      if (hb) { splice(hb, head, model); U.headY = 0; }
+      if (al && ar && !robot) { for (const [b, P] of [[al, U.arms[0]], [ar, U.arms[1]]]) { const kids = P.children.slice(); splice(b, P, model); for (const c of kids) P.add(c); P.userData.len /= k; } }
+      // clips
+      const mixer = new THREE.AnimationMixer(model), act = {};
+      for (const c of clips) {
+        let clip = c;
+        if (/^(Happy|Bored|Sad)$/.test(c.name)) clip = new THREE.AnimationClip(c.name, c.duration, c.tracks.filter(tr => FACE.test(tr.name) && /quaternion$/.test(tr.name)));
+        const a = mixer.clipAction(clip); a.play(); a.setEffectiveWeight(0); act[c.name] = a;
+      }
+      const dict = mesh.morphTargetDictionary || {}, infl = mesh.morphTargetInfluences || [];
+      st.apply = () => {
+        const e = 0.18;
+        for (const n of ['Happy', 'Bored', 'Sad']) { const v = st.mood[n] = (st.mood[n] || 0) + ((st.want[n] || 0) - (st.mood[n] || 0)) * e; if (dict[n] != null) infl[dict[n]] = v; if (act[n]) act[n].setEffectiveWeight(v); }
+        st.op += ((st.opWant || 0) - st.op) * 0.1;
+        const cyc = ((st.ph || 0) / (Math.PI * 2)) % 1;
+        if (robot) {
+          if (act.Travel) { act.Travel.time = cyc * act.Travel.getClip().duration; act.Travel.setEffectiveWeight(st.walk); }
+          if (act.Operate) { act.Operate.time = (st.t + U.ph) % act.Operate.getClip().duration; act.Operate.setEffectiveWeight(st.op * (1 - st.walk)); }
+          if (act.Idle) { act.Idle.time = (st.t + U.ph) % act.Idle.getClip().duration; act.Idle.setEffectiveWeight(Math.max(0.001, (1 - st.walk) * (1 - st.op))); }
+        } else {
+          if (act.Walk) { act.Walk.time = cyc * act.Walk.getClip().duration; act.Walk.setEffectiveWeight(st.walk * (1 - st.seat)); }
+          if (act.Seat) act.Seat.setEffectiveWeight(st.seat);
+        }
+        mixer.update(0);
+      };
+      st.apply(); U.loaded = true; if (U.onLoad) U.onLoad();
+    };
+    // already fetched: the model is there at once (portraits are rendered in the same breath as Folk.make)
+    if (READY[S.model]) { attach(READY[S.model]); return; }
+    ready(S.model).then(attach).catch(() => {
+      // no model to be had (offline, ?noassets): the design's own hand-built figure stands in
+      try { rig.remove(box); for (const a of U.arms) rig.remove(a); U.arms = []; U.gait = null; U.sit = U.onMood = U.onArms = U.tick = null; U.model = null; U.seatAt = null;
+        const old = S.build || (typeof OriginalFolk !== 'undefined' && OriginalFolk[U.sp]); if (old) { old(T); U.headY = head.position.y; if (U.onFallback) U.onFallback(); } } catch (e) { console.warn('Character fallback failed:', U.sp, e && e.message); }
+    });
+  }
+  const READY = {};
+  const FAILED = {};
+  function ready(id) { return Assets.glb(file(id)).then(src => (READY[id] = src), e => { FAILED[id] = true; throw e; }); }
+  return { build, info: id => INFO[id], list: LIST, file, ready, loaded: id => !!READY[id], failed: id => !!FAILED[id] };
+})();
 /* Three.js builders for the nine homeworld species. Their identities, voices and encounter keys live in 01-data. */
 const OriginalFolk = (() => {
   const sides=[-1,1];
@@ -15919,7 +16046,7 @@ const Folk = (() => {
     const F=new THREE.Group(), lift=new THREE.Group(), rig=new THREE.Group(); F.add(lift); lift.add(rig); const head=new THREE.Group(); rig.add(head);
     const U={rig,lift,low0:0,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
     const iris=IRIS[Math.floor(r()*IRIS.length)];
-    const build=S.build||OriginalFolk[sp];
+    const build=S.model&&FolkModels.info(S.model)?FolkModels.build:(S.build||OriginalFolk[sp]);
     build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
       glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
     U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; });
@@ -15952,13 +16079,13 @@ const Folk = (() => {
     const d=y+U.low0-lowest(F); if(d>0) L.position.y=d/(F.scale.y||1); }
   function hold(F, obj, side=1){ const a=F.userData.arms[side]; if(!a) return obj; F.userData.held=true; obj.position.y=-(a.userData.len||0.4); a.add(obj); return obj; }
   /* expressions: neutral, happy, sad, shock, worried */
-  function mood(F, m){ const U=F.userData; U.mood=m||'neutral'; const M=U.mouth;
+  function mood(F, m){ const U=F.userData; U.mood=m||'neutral'; const M=U.mouth; if(U.onMood) U.onMood(U.mood);
     const P={neutral:{mo:0.55,o:0,bz:0,by:0,lid:-1.0},happy:{mo:1.2,o:0,bz:-0.12,by:0.03,lid:-0.85},sad:{mo:-0.9,o:0,bz:0.32,by:0.0,lid:-0.62},shock:{mo:0,o:1,bz:-0.05,by:0.08,lid:-1.45},worried:{mo:-0.45,o:0,bz:0.38,by:0.03,lid:-0.8}}[U.mood]||{};
     U.lidOpen=P.lid; for(const l of U.lids) l.rotation.x=P.lid;
     if(M){ M.arc.visible=!P.o; M.o.visible=!!P.o; const k=P.mo; M.arc.rotation.z=k>=0?Math.PI:0; M.arc.scale.set(0.6+Math.abs(k)*0.55,0.4+Math.abs(k)*0.6,1); M.arc.position.y=k>=0?0:-0.06*M.s; }
     for(const b of U.brows){ b.b.rotation.z=b.side*P.bz; b.b.position.y=b.y+P.by; }
     if(U.beak) U.beak.rotation.x=P.o?0.45:P.mo>1?0.2:0; }
-  function blink(F, t){ const U=F.userData, ph=(t+U.ph)%4.3, cl=ph<0.14?Math.sin(ph/0.14*Math.PI):0;
+  function blink(F, t){ const U=F.userData; if(U.tick) U.tick(t); const ph=(t+U.ph)%4.3, cl=ph<0.14?Math.sin(ph/0.14*Math.PI):0;
     for(const e of U.eyes) e.scale.y=(1-cl*0.88)*(e.userData.sy||1);
     for(const l of U.lids) l.rotation.x=lerp(U.lidOpen,Math.PI/2+0.05,cl);
     // eyes dart about now and then, like they are thinking
@@ -15971,7 +16098,7 @@ const Folk = (() => {
   function rest(F){ const U=F.userData; if(U.gait) walk(F,0,0); U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
-  function arms(F, l, r){ const A=F.userData.arms; if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
+  function arms(F, l, r){ const A=F.userData.arms; if(F.userData.onArms) F.userData.onArms(l,r); if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
   return {make, hold, blink, walk, rest, arms, mood, ground, sph, cyl, bx, rbox};
 })();
 
@@ -15993,8 +16120,9 @@ const Portrait = (() => {
     const cv=makeCanvas(S,S), x=cv.getContext('2d'), bg=x.createLinearGradient(0,0,0,S); bg.addColorStop(0,'#0a1620'); bg.addColorStop(1,'#1b3442'); x.fillStyle=bg; x.fillRect(0,0,S,S);
     const glow=x.createRadialGradient(S*0.5,S*0.42,S*0.05,S*0.5,S*0.45,S*0.6); glow.addColorStop(0,'rgba(127,214,255,.18)'); glow.addColorStop(1,'rgba(127,214,255,0)'); x.fillStyle=glow; x.fillRect(0,0,S,S);
     R.setClearColor(0x000000,0); R.clear(); R.render(scn,cam); x.drawImage(R.domElement,0,0);
-    scn.remove(F); F.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); return cv; }
-  return { get(sp, seed){ const k=sp+':'+(seed|0); let c=cache.get(k); if(c){ cache.delete(k); cache.set(k,c); return c; } c=render(sp,seed); if(!c) return null; cache.set(k,c); if(cache.size>160) cache.delete(cache.keys().next().value); return c; } };
+    scn.remove(F); if(!F.userData.model) F.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); return cv; }
+  return { get(sp, seed){ const md=SPECIES[sp]&&SPECIES[sp].model; if(md&&FolkModels.info(md)&&!FolkModels.loaded(md)&&!FolkModels.failed(md)) return null;   // not fetched yet: see drawAlien
+      const k=sp+':'+(seed|0); let c=cache.get(k); if(c){ cache.delete(k); cache.set(k,c); return c; } c=render(sp,seed); if(!c) return null; cache.set(k,c); if(cache.size>160) cache.delete(cache.keys().next().value); return c; } };
 })();
 
 /* ---------- the sets ---------- */
@@ -19250,7 +19378,8 @@ const Interior = {
       pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.66), S=this.seats[i], U=F.userData;
         // sit hips on the cushion (species without legs just settle into it), legs forward, hands on the armrests
         const hip=U.legs[0]?U.legs[0].position.y*0.66:0.06; F.position.set(0.04,FLOOR+0.49-hip+0.02,0); F.rotation.y=Math.PI/2; for(const l of U.legs) l.rotation.x=-1.45;
-        Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
+        if(U.model){ const sa=U.seatAt; if(sa){ U.sit(true); F.position.set(0.04-sa.z*0.66,FLOOR+0.49-sa.y*0.66+0.02,sa.x*0.66); } else { F.scale.setScalar(0.42); F.position.set(0.04,FLOOR+0.51,0); } }
+        else Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
   update(dt, t){
     const g=this.group; g.quaternion.copy(G.ship.quat);
     for(const id in this.fx){ const f=this.fx[id];
@@ -19825,7 +19954,8 @@ Game.boot();
       if (SPECIES[key].cast) Folk.arms(figure,null,[.45+.14*Math.sin(elapsed*5),2.38+.29*Math.sin(elapsed*7)]);
       else Folk.arms(figure,[.3,2.6],[.3,2.6]);
     }
-    figure.position.y=seated ? .47 : 0;
+    const fu=figure.userData; if (fu.sit) fu.sit(seated&&!!fu.seatAt);
+    figure.position.y=seated ? (fu.seatAt ? .47-fu.seatAt.y : fu.model ? .49 : .47) : 0;
     if (seated) for (const leg of figure.userData.legs) {
       leg.rotation.x=-1.45;
       if (leg.userData.foot) leg.userData.foot.rotation.x=0;

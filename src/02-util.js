@@ -115,7 +115,11 @@ function drawGlyphs(ctx, str, x, y, h, spKey, color, maxW){
 
 /* ---------- alien portraits (100x100 design space) ---------- */
 /* portraits are rendered from the same 3D models you see in port (Portrait, in the venues file); this flat drawing is only a fallback */
-function drawAlien(ctx, spKey, seed, x, y, s){ const im=typeof Portrait!=='undefined'&&Portrait.get(spKey,seed); if(!im){ drawAlien2D(ctx,spKey,seed,x,y,s); return; }
+function drawAlien(ctx, spKey, seed, x, y, s){
+  // a character model that hasn't been fetched yet: a quiet holding card, and start fetching it
+  const md=portraitPending(spKey); if(md){ FolkModels.ready(md).catch(()=>{}); const S=SPECIES[spKey]; ctx.save(); ctx.translate(x,y); ctx.scale(s/100,s/100); const g=ctx.createLinearGradient(0,0,0,100); g.addColorStop(0,'#0a1620'); g.addColorStop(1,'#1b3442'); ctx.fillStyle=g; ctx.fillRect(0,0,100,100);
+    ctx.fillStyle=S.col; ctx.globalAlpha=0.5; ctx.beginPath(); ctx.arc(50,40,17,0,7); ctx.fill(); ctx.beginPath(); ctx.ellipse(50,92,30,28,0,0,7); ctx.fill(); ctx.restore(); return; }
+  const im=typeof Portrait!=='undefined'&&Portrait.get(spKey,seed); if(!im){ drawAlien2D(ctx,spKey,seed,x,y,s); return; }
   ctx.save(); ctx.translate(x,y); ctx.scale(s/100,s/100); ctx.beginPath(); ctx.rect(0,0,100,100); ctx.clip(); ctx.drawImage(im,0,0,100,100);
   ctx.fillStyle='rgba(120,220,255,.05)'; for(let i=0;i<100;i+=4) ctx.fillRect(0,i,100,1.5); ctx.restore(); }
 function drawAlien2D(ctx, spKey, seed, x, y, s){
@@ -171,7 +175,10 @@ function drawAlien2D(ctx, spKey, seed, x, y, s){
   ctx.fillStyle='rgba(120,220,255,.05)'; for(let i=0;i<100;i+=4) ctx.fillRect(0,i,100,1.5);
   ctx.restore();
 }
-function portraitCanvas(spKey, seed, px=128){ const cv=makeCanvas(px,px); drawAlien(cv.getContext('2d'),spKey,seed,0,0,px); return cv; }
+function portraitPending(spKey){ const md=SPECIES[spKey]&&SPECIES[spKey].model; return md&&typeof FolkModels!=='undefined'&&FolkModels.info(md)&&!FolkModels.loaded(md)&&!FolkModels.failed(md)?md:null; }
+function portraitCanvas(spKey, seed, px=128){ const cv=makeCanvas(px,px), x=cv.getContext('2d'), md=portraitPending(spKey); drawAlien(x,spKey,seed,0,0,px);
+  if(md){ const again=()=>{ x.clearRect(0,0,px,px); drawAlien(x,spKey,seed,0,0,px); }; FolkModels.ready(md).then(again,again); }   // the face fills in when the model arrives
+  return cv; }
 
 /* small geometry helpers */
 function beamBetween(a,b,thick,mat,depth){

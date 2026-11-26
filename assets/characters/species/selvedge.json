@@ -1,0 +1,24 @@
+{
+ "id": "selvedge",
+ "name": "Selvedge",
+ "kind": "robot",
+ "triangles": 9430,
+ "kb": 1235,
+ "clips": [
+  "Idle",
+  "Travel",
+  "Operate"
+ ],
+ "glow": false,
+ "morphs": [],
+ "min": [
+  -0.91,
+  -0.015,
+  -0.191
+ ],
+ "max": [
+  1.095,
+  2.18,
+  0.381
+ ]
+}

@@ -1,0 +1,24 @@
+{
+ "id": "thimble",
+ "name": "Thimble",
+ "kind": "robot",
+ "triangles": 10140,
+ "kb": 1101,
+ "clips": [
+  "Idle",
+  "Travel",
+  "Operate"
+ ],
+ "glow": false,
+ "morphs": [],
+ "min": [
+  -0.736,
+  -0.005,
+  -0.736
+ ],
+ "max": [
+  0.736,
+  1.997,
+  0.736
+ ]
+}

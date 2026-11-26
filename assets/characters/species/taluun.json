@@ -1,0 +1,37 @@
+{
+ "id": "taluun",
+ "name": "Taluun",
+ "kind": "humanoid",
+ "triangles": 14481,
+ "kb": 1438,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.559,
+  0.013,
+  -0.213
+ ],
+ "max": [
+  0.56,
+  1.695,
+  0.35
+ ],
+ "seat": [
+  -0.109,
+  0.384,
+  -0.011
+ ]
+}
