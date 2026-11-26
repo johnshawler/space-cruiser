@@ -71,6 +71,35 @@ for (const r of I.rooms) {
 for (const k of want) if (!have.has(k)) fail(`room ${k}: the game has this shop but the manifest has no room`);
 pass(`${I.rooms.length} shop rooms (the game has ${want.length} depots, garages and cantinas at ${new Set(want.map(k => k.split('/')[0])).size} ports)`);
 
+// ---- playable storefronts ----
+const fronts = JSON.parse(read('assets/storefronts/manifest.json')).venues;
+const locationsWithFronts = new Set();
+const basicMarkers = ['entrance','counter','keeper','customer','nameplate','signpost','crew_a','crew_b','camera_shop','camera_target','light_key','light_fill'];
+for (const [loc, shops] of Object.entries(fronts)) {
+  for (const [shop, entry] of Object.entries(shops)) {
+    const key = loc + '/' + shop;
+    locationsWithFronts.add(key);
+    if (!shopsAt[loc]?.includes(shop)) fail(`storefront ${key}: no matching venue`);
+    const file = 'assets/storefronts/' + entry.file;
+    const g = glb(file);
+    if (g.tris !== entry.triangles || g.tris > 80000) fail(`storefront ${key}: triangle count ${g.tris}`);
+    for (const marker of basicMarkers) {
+      if (!entry.markers[marker]) fail(`storefront ${key}: missing ${marker}`);
+    }
+    for (const [marker, position] of Object.entries(entry.markers)) {
+      if (!near(nodePos(g.j, marker), position, 0.002)) fail(`storefront ${key}: misplaced ${marker}`);
+    }
+    if (!fs.existsSync(path.join(root, 'art/storefronts/models', loc + '-' + shop + '.blend'))) fail(`storefront ${key}: missing Blender source`);
+  }
+}
+for (const [loc, shops] of Object.entries(shopsAt)) {
+  for (const shop of shops) {
+    const key = loc + '/' + shop;
+    if (!have.has(key) && !locationsWithFronts.has(key)) fail(`shop ${key}: no authored environment`);
+  }
+}
+pass(`${locationsWithFronts.size} playable storefronts, every other shop has a bespoke room`);
+
 // ---- cockpits ----
 const SHIPS = ['rustbucket', 'dromedary', 'stoat', 'manatee', 'empress'];
 const plans=JSON.parse(read('docs/ship-interiors/fleet-blueprints/editable/Fleet-Deck-Geometry.json')).ships;

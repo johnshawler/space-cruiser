@@ -1,27 +1,32 @@
 # Long Haul storefront models
 
-This collection contains sixteen individually editable, open-front shops across nine planets and four research stations. The render sheet below shows the finished geometry. Names, locations, services and shop keys come from the [game venue definitions](../../../src/08b-venues.js).
+This collection contains thirty individually editable, open-front shops across nine planets and four research stations. The two render sheets show the finished geometry. Names, locations, services and shop keys come from the [game venue definitions](../../../src/08b-venues.js).
 
 ## Blender models and game exports
 
-[Open the model proof at full resolution](storefront-model-proof.jpg) · [Editable Blender master](../../../art/storefronts/Long-Haul-Storefronts.blend) · [Sixteen GLBs and manifest](../../../assets/storefronts/)
+[Open the model proof at full resolution](storefront-model-proof.jpg) · [Original sixteen in Blender](../../../art/storefronts/Long-Haul-Storefronts.blend) · [Game models and manifest](../../../assets/storefronts/)
 
 ![Sixteen rendered storefront models](storefront-model-proof.jpg)
 
+[Fourteen additional shops in Blender](../../../art/storefronts/Market-Storefronts.blend) · [Full-resolution render sheet](market-storefronts.jpg)
+
+![Fourteen new storefronts, labeled by shop and location](market-storefronts.jpg)
+
 [Shop-to-port list, individual Blender files, GLBs and marker guide](shop-to-port.md)
 
-Each model has an open sales floor, a service counter facing the viewer, space behind it for a keeper and two crew, and a workshop or display fitting specific to the trade. The standalone Blender files keep architectural assemblies, sign lettering and named placement empties editable. Texture images are packed. The combined master arranges every shop on one review grid. Each GLB carries the same placement nodes as its standalone source.
+Each model has an open sales floor, a service counter facing the viewer, space behind it for a keeper and two crew, and a workshop or display fitting specific to the trade. The standalone Blender files keep architectural assemblies, sign lettering and named placement empties editable. Texture images are packed. Each master arranges its shops on a review grid. Each GLB carries the same placement nodes as its standalone source.
 
-The port builder matches a venue by location and shop key, loads its GLB through `Assets.glb`, and places the entrance against the pad-facing side of the shop. The storefront is visible during landing and takeoff. Docking switches to the existing interior and its interactive counter. A missing file, an unmodeled venue or `?noassets` uses the existing port. Use a branch preview serving both the HTML and the assets to review this change.
+The game has 46 shops at 13 ports. It loads a storefront by location and shop key and uses it as the playable shop. The keeper, crew and transaction controls come from the game. All eight cantinas and every shipyard, assay office, paint shop and outfitter have storefronts. Ten depots and six garages still use their individually modeled rooms. The `?oldshops` option shows the earlier interiors with the storefronts outside during approach and takeoff.
 
 Rebuild the models with Blender 4.5 LTS from the repository root:
 
 ```sh
 blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py -- "$PWD" --render
+blender -b --factory-startup --python-exit-code 1 -P art/storefronts/build.py -- "$PWD" --expansion --render
 bash build.sh
 ```
 
-The optional render pass writes individual views under `build/storefront-renders/`.
+The optional render pass writes individual views under `build/storefront-renders/` and `build/market-renders/`.
 
 ## Original venue concept sheet
 

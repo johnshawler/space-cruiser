@@ -151,6 +151,142 @@
             -0.85
           ]
         }
+      },
+      "yard": {
+        "name": "Gently Used Hulls",
+        "file": "verdanthia-yard.glb",
+        "triangles": 25976,
+        "port": "Vendorhaven",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.6,
+            0,
+            -3
+          ],
+          "crew_b": [
+            3.3,
+            0,
+            -3
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "bar": {
+        "name": "The Coin Slot",
+        "file": "verdanthia-bar.glb",
+        "triangles": 20812,
+        "port": "Vendorhaven",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.55,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.35,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
       }
     },
     "dunemoor": {
@@ -347,6 +483,74 @@
             3.35,
             0,
             -3.9
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "bar": {
+        "name": "The Rubber Stamp",
+        "file": "dunemoor-bar.glb",
+        "triangles": 21460,
+        "port": "Bureau Nine",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.55,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.35,
+            0,
+            -3.6
           ],
           "camera_shop": [
             0,
@@ -589,6 +793,142 @@
             -3.4
           ]
         }
+      },
+      "assay": {
+        "name": "The Crouton Exchange",
+        "file": "sloshwell-assay.glb",
+        "triangles": 24778,
+        "port": "Ladle Harbor",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            0,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.2,
+            0,
+            -3.7
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "bar": {
+        "name": "The Bottomless Bowl",
+        "file": "sloshwell-bar.glb",
+        "triangles": 25932,
+        "port": "Ladle Harbor",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.55,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.35,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
       }
     },
     "jovexa": {
@@ -637,6 +977,74 @@
             3.3,
             0,
             -3
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "livery": {
+        "name": "Shimmer & Shine",
+        "file": "jovexa-livery.glb",
+        "triangles": 29924,
+        "port": "The Drift",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.25,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.35,
+            0,
+            -3.9
           ],
           "camera_shop": [
             0,
@@ -797,6 +1205,74 @@
             -3.4
           ]
         }
+      },
+      "outfit": {
+        "name": "Hard Rock Outfitters",
+        "file": "scorchmaw-outfit.glb",
+        "triangles": 28644,
+        "port": "Port Gneiss",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.2,
+            0,
+            -3.9
+          ],
+          "crew_b": [
+            3,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
       }
     },
     "toxibloom": {
@@ -845,6 +1321,74 @@
             3.3,
             0,
             -3.8
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "bar": {
+        "name": "The Damp Log",
+        "file": "toxibloom-bar.glb",
+        "triangles": 22164,
+        "port": "Mellow Hollow",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.55,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.35,
+            0,
+            -3.6
           ],
           "camera_shop": [
             0,
@@ -1075,6 +1619,142 @@
             -3.4
           ]
         }
+      },
+      "yard": {
+        "name": "Wing & Prayer Motors",
+        "file": "amethyne-yard.glb",
+        "triangles": 29700,
+        "port": "Bargain Roost",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.6,
+            0,
+            -3
+          ],
+          "crew_b": [
+            3.3,
+            0,
+            -3
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "outfit": {
+        "name": "Shiny Things Emporium",
+        "file": "amethyne-outfit.glb",
+        "triangles": 33000,
+        "port": "Bargain Roost",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.2,
+            0,
+            -3.9
+          ],
+          "crew_b": [
+            3,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
       }
     },
     "candara": {
@@ -1121,6 +1801,142 @@
           ],
           "crew_b": [
             3,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "assay": {
+        "name": "The Sunken Scale",
+        "file": "candara-assay.glb",
+        "triangles": 23106,
+        "port": "Port Lament",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            0,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.2,
+            0,
+            -3.7
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "bar": {
+        "name": "The Sunk Cost",
+        "file": "candara-bar.glb",
+        "triangles": 23752,
+        "port": "Port Lament",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.55,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.35,
             0,
             -3.6
           ],
@@ -1285,6 +2101,74 @@
             -3.4
           ]
         }
+      },
+      "bar": {
+        "name": "The Final Blink",
+        "file": "beacon-far-wink-bar.glb",
+        "triangles": 17580,
+        "port": "The Last Light",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            -0.55,
+            0,
+            -3.6
+          ],
+          "crew_b": [
+            2.35,
+            0,
+            -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
       }
     },
     "brrrindle": {
@@ -1333,6 +2217,74 @@
             2.35,
             0,
             -3.6
+          ],
+          "camera_shop": [
+            0,
+            5.6,
+            11.5
+          ],
+          "camera_target": [
+            0,
+            2.1,
+            -2.6
+          ],
+          "light_key": [
+            -6.79,
+            3.3,
+            -3.4
+          ],
+          "light_fill": [
+            6.79,
+            3.3,
+            -3.4
+          ]
+        }
+      },
+      "assay": {
+        "name": "Snowball Assay",
+        "file": "brrrindle-assay.glb",
+        "triangles": 24702,
+        "port": "Fort Snuggle",
+        "markers": {
+          "entrance": [
+            0,
+            0,
+            2.32
+          ],
+          "counter": [
+            0,
+            1.05,
+            0
+          ],
+          "keeper": [
+            -1.55,
+            0,
+            -0.85
+          ],
+          "customer": [
+            0,
+            0,
+            1.3
+          ],
+          "nameplate": [
+            0,
+            0.52,
+            0.47
+          ],
+          "signpost": [
+            3.4,
+            3.3,
+            0.7
+          ],
+          "crew_a": [
+            0,
+            0,
+            -4
+          ],
+          "crew_b": [
+            3.2,
+            0,
+            -3.7
           ],
           "camera_shop": [
             0,
