@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
   echo '<script>'
   echo 'const SPECIES_EXTRA={};'
   # the bespoke models' manifests (the models themselves load when first needed)
-  printf 'const ASSET_MANIFESTS={interiors:%s,cockpits:%s,decks:%s,species:%s};\n' "$(cat assets/interiors/manifest.json)" "$(cat assets/cockpits/manifest.json)" "$(cat assets/ship-interiors/manifest.json)" "$(cat assets/characters/species/manifest.json)"
+  printf 'const ASSET_MANIFESTS={interiors:%s,cockpits:%s,decks:%s,storefronts:%s,species:%s};\n' "$(cat assets/interiors/manifest.json)" "$(cat assets/cockpits/manifest.json)" "$(cat assets/ship-interiors/manifest.json)" "$(cat assets/storefronts/manifest.json)" "$(cat assets/characters/species/manifest.json)"
   cat src/species/*.js 2>/dev/null
   sh tools/bundle-residents.sh
   cat art/scene-finish.js

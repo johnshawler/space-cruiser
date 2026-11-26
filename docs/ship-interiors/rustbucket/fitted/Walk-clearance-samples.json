@@ -1,0 +1,98 @@
+{
+  "RB / Copper sink drain repair": [
+    [
+      1.19,
+      4.21,
+      -0.55
+    ]
+  ],
+  "RB / Oven face": [
+    [
+      2.71,
+      4.21,
+      -0.23
+    ]
+  ],
+  "RB / Winch operator switchbox": [
+    [
+      -1.21,
+      11.15,
+      -0.37
+    ]
+  ],
+  "RB / Shelf brace": [
+    [
+      -2.06,
+      17.39,
+      -0.28
+    ]
+  ],
+  "RB / Fold-down service shelf": [
+    [
+      -2.06,
+      17.59,
+      -0.2
+    ],
+    [
+      -2.06,
+      17.77,
+      -0.2
+    ]
+  ],
+  "RB / Pocket flap": [
+    [
+      1.19,
+      5.34,
+      0.37
+    ]
+  ],
+  "RB / Suit / articulated sleeve.002": [
+    [
+      1.38,
+      5.34,
+      0.12
+    ]
+  ],
+  "RB / Suit / creased trouser leg.002": [
+    [
+      1.57,
+      5.34,
+      0.03
+    ]
+  ],
+  "RB / Wrist seal.003": [
+    [
+      1.76,
+      5.34,
+      -0.0
+    ]
+  ],
+  "RB / Pocket flap.002": [
+    [
+      1.95,
+      5.34,
+      0.32
+    ]
+  ],
+  "RB / Wrist seal.006": [
+    [
+      2.14,
+      5.34,
+      -0.0
+    ]
+  ],
+  "RB / Suit / aluminium neck seal.003": [
+    [
+      2.33,
+      5.34,
+      0.59
+    ]
+  ],
+  "RB / Wrist seal.007": [
+    [
+      2.52,
+      5.34,
+      -0.0
+    ]
+  ]
+}

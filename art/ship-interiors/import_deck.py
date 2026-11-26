@@ -10,7 +10,7 @@ the game draws it unlit, exactly as lit in Blender.
     Blender -b --python art/ship-interiors/rustbucket.py              # all three
 
 The source file is opened with scripts switched off. Working files go in IMPORT_WORK (a temporary folder by default)."""
-import bpy,sys,os,math,json,struct,time,tempfile,base64
+import bpy,bmesh,re,sys,os,math,json,struct,time,tempfile,base64
 import numpy as np
 from pathlib import Path
 from mathutils import Vector,Matrix
@@ -23,6 +23,7 @@ RECTS=[[-0.35,0.35,0.9,1.3],[-0.6,0.6,0.95,6.9],[-1.25,-0.5,3.2,4.0],[-3.15,-1.1
        [-0.5,0.5,13.8,14.7],[-2.1,2.1,14.5,18.65],[-1.25,-0.5,6.2,6.8],[-3.1,-1.15,6.1,6.9],[0.5,1.25,5.85,6.35],[1.15,2.65,5.3,6.9],[2.5,3.3,5.85,6.35],[3.15,3.7,5.3,6.9],
        [-2.8,-2.0,14.8,15.4],[-3.1,-2.7,14.5,18.1],[2.0,2.8,14.8,15.4],[2.7,3.1,14.5,18.1]]
 FAULTS={'coolant':(-3.,-.35,1.55),'thruster':(1.3,.35,18.85),'fuse':(2.45,.45,1.46),'scrubber':(-3.,.95,5.86),'crack':(-.86,.55,5.15),'strap':(1.55,.1,10.6),'seal':(2.82,.45,5.32)}
+VARIANTS=r' / (working|broken|repaired)$';STATION='RB station /'
 SHINE=.15;ATLAS=2048;CELL=.05;GX0,GX1,GZ0,GZ1=-4.6,4.2,.5,19.3
 def work():
     p=Path(os.environ.get('IMPORT_WORK') or Path(tempfile.gettempdir())/'long-haul-import');p.mkdir(parents=True,exist_ok=True);return p
@@ -96,9 +97,11 @@ def walking(objs,key):
     bits=np.packbits(reach.ravel())
     return {'x0':GX0,'z0':GZ0,'cell':CELL,'nx':nx,'nz':nz,'bits':base64.b64encode(bits.tobytes()).decode()},[c[:2] for c in crates if c[2]],report
 
-def prep(src,key,budget,cockpit=False):
+def prep(src,key,budget,cockpit=False,drop=None):
     bpy.ops.wm.open_mainfile(filepath=str(src),use_scripts=False)
     sc=bpy.data.scenes[0];bpy.context.window.scene=sc;t0=time.time()
+    if drop:      # lettering and plates the game copy is to go without
+        for o in [o for o in sc.objects if re.search(drop,o.name)]:bpy.data.objects.remove(o,do_unlink=True)
     rooms={}
     for coll in sc.collection.children:
         for o in coll.objects:
@@ -109,6 +112,16 @@ def prep(src,key,budget,cockpit=False):
             elif coll.name.startswith('Overhead') and not cockpit:
                 c=sum((o.matrix_world@Vector(b) for b in o.bound_box),Vector())/8;o['room']=room_at(c.x,-c.y)
             if o.get('room'):rooms.setdefault(o['room'],[]).append(o)
+    # Swappable fittings (the working, broken and repaired form of each repair station) are shown by the game one at a
+    # time, so none of them belongs in the rooms or in their baked light. Fixed parts filed with a station (the two
+    # lengths of heater pipe either side of the coupling) do belong.
+    for coll in list(bpy.data.collections):
+        if re.search(VARIANTS,coll.name):
+            for o in list(coll.objects):bpy.data.objects.remove(o,do_unlink=True)
+        elif coll.name.startswith(STATION) and not cockpit:
+            for o in coll.objects:
+                if o.type=='MESH' and len(o.data.polygons) and sc in o.users_scene:
+                    c=sum((o.matrix_world@Vector(b) for b in o.bound_box),Vector())/8;o['room']=room_at(c.x,-c.y);rooms.setdefault(o['room'],[]).append(o)
     objs=[o for r in rooms.values() for o in r]
     print('IMPORT source',len(objs),'objects',sum(tris_of(o.data) for o in objs),'triangles',{k:len(v) for k,v in rooms.items()})
     if not cockpit:
@@ -123,6 +136,13 @@ def prep(src,key,budget,cockpit=False):
         c=a*(40+700*d)
         if d<.045:c=min(c,14)
         return min(t,max(c,12))
+    # Bedding lying flat is a thin closed shell. Cut down, its underside pokes up through its top, so the underside, which
+    # nobody can see, goes first.
+    for n,(m,d,u) in meshes.items():
+        o=u[0];dim=o.dimensions
+        if not any(k in (x.name if x else '').lower() for x in m.materials for k in('quilt','blanket','curtain')) or dim.z>.35*max(dim.x,dim.y):continue
+        bm=bmesh.new();bm.from_mesh(m);R=o.matrix_world.to_3x3();dead=[f for f in bm.faces if (R@f.normal).normalized().z<-.25]
+        bmesh.ops.delete(bm,geom=dead,context='FACES');bm.to_mesh(m);bm.free();m.update()
     tt={n:tris_of(m) for n,(m,d,u) in meshes.items()};lo,hi=.02,8.
     for _ in range(30):
         a=(lo+hi)/2;tot=sum(cap(a,d,tt[n])*len(u) for n,(m,d,u) in meshes.items())
@@ -140,7 +160,9 @@ def prep(src,key,budget,cockpit=False):
         if ratio<.5 and tt[n]>600:
             # bedding, curtains and suits are subdivided thin shells: collapsing edges folds them through themselves, so
             # step them back down their subdivision levels instead
-            for it in(2,4,6):
+            # bedding is the thinnest: past one level its top and underside cut through each other
+            soft=any(k in (x.name if x else '').lower() for x in m.materials for k in('quilt','blanket'))
+            for it in((2,) if soft else (2,4,6)):
                 me=cut(decimate_type='UNSUBDIV',iterations=it)
                 if tris_of(me)>tris_of(new or m)*.45:bpy.data.meshes.remove(me);break
                 if new:bpy.data.meshes.remove(new)
@@ -242,6 +264,12 @@ def welded(name,obs):
     me=bpy.data.meshes.new(name);me.from_pydata(P[first].tolist(),[],inv.reshape(-1,3).tolist());me.update()
     uv=me.uv_layers.new(name='UVMap');loops=np.empty(len(me.loops),np.int32);me.loops.foreach_get('vertex_index',loops);uv.data.foreach_set('uv',U[first][loops].ravel())
     return me
+def repairs(key):
+    """The swappable repair fittings that come ready-made beside the deck: where each goes and its three models."""
+    d=ROOT/'assets'/'ship-interiors'/(key+'-repairs');mf=d/'manifest.json'
+    if not mf.exists():return None
+    m=json.loads(mf.read_text());base='assets/ship-interiors/'+key+'-repairs/'
+    return {s['fault_id']:{'pos':s['game_position'],'yaw':s['game_rotation_y_radians'],'models':{k:base+v['file'] for k,v in s['states'].items()}} for s in m['stations']}
 def export(key,title):
     bpy.ops.wm.open_mainfile(filepath=str(work()/(key+'-game.blend')),use_scripts=False)
     sc=bpy.data.scenes[0];bpy.context.window.scene=sc;out=[];finish=ROOT/'assets'/'ship-interiors'/'finish'/key;finish.mkdir(parents=True,exist_ok=True)
@@ -262,7 +290,7 @@ def export(key,title):
     anchors={n['name']:{'position':n.get('translation',[0,0,0]),'quaternion':n.get('rotation',[0,0,0,1])} for n in g['nodes'] if 'mesh' not in n}
     plan=json.loads((work()/(key+'-plan.json')).read_text())
     stat=dict(ship=key,name=title,file='assets/ship-interiors/'+key+'.glb',triangles=tri,meshes=len(g['meshes']),materials=len(g['materials']),bytes=len(b),anchors=anchors,
-              baked={m['name']:'assets/ship-interiors/finish/'+key+'/'+m['name'].replace(' ','-')+'.jpg' for m in g['meshes']},walk=plan['walk'],crates=plan['crates'])
+              repairs=repairs(key),baked={m['name']:'assets/ship-interiors/finish/'+key+'/'+m['name'].replace(' ','-')+'.jpg' for m in g['meshes']},walk=plan['walk'],crates=plan['crates'])
     mf=ROOT/'assets'/'ship-interiors'/'manifest.json';data=json.loads(mf.read_text());data['ships']=[s for s in data['ships'] if s['ship']!=key]+[stat];mf.write_text(json.dumps(data,indent=2)+'\n')
     print('IMPORT exported',tri,'triangles',len(b),'bytes; maps',sum((finish/(m['name'].replace(' ','-')+'.jpg')).stat().st_size for m in g['meshes']),'bytes')
 
@@ -290,10 +318,10 @@ def export_cockpit(key,title,panels=None):
     mf=ROOT/'assets'/'cockpits'/'manifest.json';data=json.loads(mf.read_text());data['ships']=[x for x in data['ships'] if x['ship']!=key]+[stat];mf.write_text(json.dumps(data,indent=2)+'\n')
     print('IMPORT cockpit exported',tri,'triangles',len(b),'bytes',sorted(n['name'] for n in g['nodes']))
 
-def build(path,src,title,budget=200000,panels=None):
+def build(path,src,title,budget=200000,panels=None,drop=None):
     key=Path(path).stem;args=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
     stage=args[0] if args else 'all'
-    if stage in('prep','all'):prep(src,key,budget)
+    if stage in('prep','all'):prep(src,key,budget,False,drop)
     if stage in('bake','all'):bake(key,args[1] if len(args)>1 else None)
     if stage in('export','all'):export(key,title)
     if stage in('cockpit-prep','all'):prep(src,key,38000,True)

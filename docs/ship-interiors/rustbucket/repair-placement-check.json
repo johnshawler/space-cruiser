@@ -1,0 +1,86 @@
+{
+  "coolant": {
+    "visible": {
+      "working": 24,
+      "broken": 26,
+      "repaired": 34
+    },
+    "portal_hits": {
+      "working": 0,
+      "broken": 0,
+      "repaired": 0
+    }
+  },
+  "thruster": {
+    "visible": {
+      "working": 36,
+      "broken": 32,
+      "repaired": 47
+    },
+    "portal_hits": {
+      "working": 0,
+      "broken": 0,
+      "repaired": 0
+    }
+  },
+  "fuse": {
+    "visible": {
+      "working": 66,
+      "broken": 62,
+      "repaired": 74
+    },
+    "portal_hits": {
+      "working": 0,
+      "broken": 0,
+      "repaired": 0
+    }
+  },
+  "scrubber": {
+    "visible": {
+      "working": 33,
+      "broken": 59,
+      "repaired": 43
+    },
+    "portal_hits": {
+      "working": 0,
+      "broken": 0,
+      "repaired": 0
+    }
+  },
+  "crack": {
+    "visible": {
+      "working": 16,
+      "broken": 32,
+      "repaired": 40
+    },
+    "portal_hits": {
+      "working": 0,
+      "broken": 0,
+      "repaired": 0
+    }
+  },
+  "strap": {
+    "visible": {
+      "working": 26,
+      "broken": 33,
+      "repaired": 39
+    },
+    "portal_hits": {
+      "working": 0,
+      "broken": 0,
+      "repaired": 0
+    }
+  },
+  "seal": {
+    "visible": {
+      "working": 37,
+      "broken": 37,
+      "repaired": 49
+    },
+    "portal_hits": {
+      "working": 0,
+      "broken": 0,
+      "repaired": 0
+    }
+  }
+}
