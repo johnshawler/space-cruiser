@@ -94,7 +94,9 @@ for (const key of SHIPS) {
   const d = DK.ships.find(s => s.ship === key); if (!d) { fail(`deck ${key}: missing`); continue; }
   // a hand-built deck (baked: one image map per room) is far heavier in triangles and lighter in materials
   const g = common(d, d.baked ? { tris: 220000, meshes: 16, materials: 16, bytes: 9e6 } : { tris: 60000, meshes: 120, materials: 18, bytes: d.light ? 5e6 : 3e6 });
-  for (const f of Object.values(d.baked || {})) if (!fs.existsSync(path.join(root, f))) fail(`deck ${key}: baked map ${f} missing`);   // a deck with a baked light map also carries its own surface textures
+  for (const f of Object.values(d.baked || {})) if (!fs.existsSync(path.join(root, f))) fail(`deck ${key}: baked map ${f} missing`);
+  for (const [id, r] of Object.entries(d.repairs || {})) { if (!faults[id]) fail(`deck ${key}: repair fitting for unknown fault ${id}`); else if (!near(r.pos, faults[id], 0.05)) fail(`deck ${key}: repair fitting ${id} is not at the game's repair spot`);
+    for (const st of ['working', 'broken', 'repaired']) if (!r.models[st] || !fs.existsSync(path.join(root, r.models[st]))) fail(`deck ${key}: repair fitting ${id} has no ${st} model`); }   // a deck with a baked light map also carries its own surface textures
   if (d.light && !fs.existsSync(path.join(root, d.light))) fail(`deck ${key}: light map ${d.light} missing`);
   for (const [id, pos] of Object.entries(faults)) if (!near(nodePos(g.j, 'fault_' + id), pos, 0.05)) fail(`deck ${key}: fault_${id} is not at the game's repair spot ${pos}`);
   for (let i = 0; i < 4; i++) if (!near(nodePos(g.j, 'passenger_' + (i + 1)), [-3.8, 0, 1.95 + i * 1.15], 0.05)) fail(`deck ${key}: passenger_${i + 1} is not at a passenger seat`);

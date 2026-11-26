@@ -220,9 +220,7 @@ def dress(r,k,ROOMS,rich=False):
     def scrub_cab(m,w=1.5,h=1.2,u=-2.55):  # the scrubber's body, against the bay's fore wall under the fan
         wb(BF,u,F+h/2,0,w,h,.18,m,.02)
     low()
-    # ---- on every hull: bezels at the seven repair spots, covers on the ceiling lamps, sliders, worn thresholds
-    for f,u,y,d in [(KF,-2.95,.07,.14),(GF,2.5,1.03,.16),(BF,-2.15,.83,.14),(EA,.5,.8,.14),(AP,5.37,.95,.18),(('x',1.53,-1),10.85,.65,.1)]:hood(f,u,y,d)
-    hood(CP,5.10,.28,.1,False);b(1.57,-.2,10.85,.05,1.55,.05,'Steel',.004)
+    # ---- on every hull: covers on the ceiling lamps, sliders, worn thresholds (the repair spots' status screens and their bezels are gone)
     top()
     for name,(a,bb,c,d) in ROOMS.items():
         cx=(a+bb)/2;cz=(c+d)/2;w=min(1.1,(bb-a)*.6)
