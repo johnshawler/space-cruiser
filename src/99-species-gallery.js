@@ -245,7 +245,8 @@
       if (SPECIES[key].cast) Folk.arms(figure,null,[.45+.14*Math.sin(elapsed*5),2.38+.29*Math.sin(elapsed*7)]);
       else Folk.arms(figure,[.3,2.6],[.3,2.6]);
     }
-    figure.position.y=seated ? .47 : 0;
+    const fu=figure.userData; if (fu.sit) fu.sit(seated&&!!fu.seatAt);
+    figure.position.y=seated ? (fu.seatAt ? .47-fu.seatAt.y : fu.model ? .49 : .47) : 0;
     if (seated) for (const leg of figure.userData.legs) {
       leg.rotation.x=-1.45;
       if (leg.userData.foot) leg.userData.foot.rotation.x=0;

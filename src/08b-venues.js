@@ -139,7 +139,7 @@ const Folk = (() => {
     const F=new THREE.Group(), lift=new THREE.Group(), rig=new THREE.Group(); F.add(lift); lift.add(rig); const head=new THREE.Group(); rig.add(head);
     const U={rig,lift,low0:0,head,eyes:[],lids:[],looks:[],brows:[],mouth:null,legs:[],arms:[],tent:[],body,dark,light,base:null,kind:K,sp,hand:null,ph:r()*10,mood:'neutral',moodK:0,lidOpen:-1.0,headY:0};
     const iris=IRIS[Math.floor(r()*IRIS.length)];
-    const build=S.build||OriginalFolk[sp];
+    const build=S.model&&FolkModels.info(S.model)?FolkModels.build:(S.build||OriginalFolk[sp]);
     build({S,rand:r,hsl,iris,rig,head,U,body,dark,light,browM,sph,cyl,bx,rbox,limb,eye,brow,mouth,blush,phys,catchM,
       glow:(hex,k)=>new THREE.MeshBasicMaterial({color:HDR(hex,k==null?2:k)})});
     U.base=body.color.clone(); U.headY=head.position.y; F.scale.setScalar(scale); F.userData=U; U.low0=Math.min(0,lowest(F)); F.traverse(o=>{ if(o.isMesh&&!o.material.isMeshBasicMaterial) o.castShadow=true; });
@@ -172,13 +172,13 @@ const Folk = (() => {
     const d=y+U.low0-lowest(F); if(d>0) L.position.y=d/(F.scale.y||1); }
   function hold(F, obj, side=1){ const a=F.userData.arms[side]; if(!a) return obj; F.userData.held=true; obj.position.y=-(a.userData.len||0.4); a.add(obj); return obj; }
   /* expressions: neutral, happy, sad, shock, worried */
-  function mood(F, m){ const U=F.userData; U.mood=m||'neutral'; const M=U.mouth;
+  function mood(F, m){ const U=F.userData; U.mood=m||'neutral'; const M=U.mouth; if(U.onMood) U.onMood(U.mood);
     const P={neutral:{mo:0.55,o:0,bz:0,by:0,lid:-1.0},happy:{mo:1.2,o:0,bz:-0.12,by:0.03,lid:-0.85},sad:{mo:-0.9,o:0,bz:0.32,by:0.0,lid:-0.62},shock:{mo:0,o:1,bz:-0.05,by:0.08,lid:-1.45},worried:{mo:-0.45,o:0,bz:0.38,by:0.03,lid:-0.8}}[U.mood]||{};
     U.lidOpen=P.lid; for(const l of U.lids) l.rotation.x=P.lid;
     if(M){ M.arc.visible=!P.o; M.o.visible=!!P.o; const k=P.mo; M.arc.rotation.z=k>=0?Math.PI:0; M.arc.scale.set(0.6+Math.abs(k)*0.55,0.4+Math.abs(k)*0.6,1); M.arc.position.y=k>=0?0:-0.06*M.s; }
     for(const b of U.brows){ b.b.rotation.z=b.side*P.bz; b.b.position.y=b.y+P.by; }
     if(U.beak) U.beak.rotation.x=P.o?0.45:P.mo>1?0.2:0; }
-  function blink(F, t){ const U=F.userData, ph=(t+U.ph)%4.3, cl=ph<0.14?Math.sin(ph/0.14*Math.PI):0;
+  function blink(F, t){ const U=F.userData; if(U.tick) U.tick(t); const ph=(t+U.ph)%4.3, cl=ph<0.14?Math.sin(ph/0.14*Math.PI):0;
     for(const e of U.eyes) e.scale.y=(1-cl*0.88)*(e.userData.sy||1);
     for(const l of U.lids) l.rotation.x=lerp(U.lidOpen,Math.PI/2+0.05,cl);
     // eyes dart about now and then, like they are thinking
@@ -191,7 +191,7 @@ const Folk = (() => {
   function rest(F){ const U=F.userData; if(U.gait) walk(F,0,0); U.rig.position.set(0,0,0); U.rig.rotation.set(0,0,0); U.rig.scale.set(1,1,1); U.head.rotation.set(0,0,0);
     for(const l of U.legs) l.rotation.set(0,0,0); for(const a of U.arms) a.rotation.set(0,0,0); U.body.color.copy(U.base); mood(F,'neutral'); }
   /* arm pose: [forward, outward] in radians, per side */
-  function arms(F, l, r){ const A=F.userData.arms; if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
+  function arms(F, l, r){ const A=F.userData.arms; if(F.userData.onArms) F.userData.onArms(l,r); if(!A[0]) return; if(l){ A[0].rotation.x=-l[0]; A[0].rotation.z=-l[1]; } if(r){ A[1].rotation.x=-r[0]; A[1].rotation.z=r[1]; } }
   return {make, hold, blink, walk, rest, arms, mood, ground, sph, cyl, bx, rbox};
 })();
 
@@ -213,8 +213,9 @@ const Portrait = (() => {
     const cv=makeCanvas(S,S), x=cv.getContext('2d'), bg=x.createLinearGradient(0,0,0,S); bg.addColorStop(0,'#0a1620'); bg.addColorStop(1,'#1b3442'); x.fillStyle=bg; x.fillRect(0,0,S,S);
     const glow=x.createRadialGradient(S*0.5,S*0.42,S*0.05,S*0.5,S*0.45,S*0.6); glow.addColorStop(0,'rgba(127,214,255,.18)'); glow.addColorStop(1,'rgba(127,214,255,0)'); x.fillStyle=glow; x.fillRect(0,0,S,S);
     R.setClearColor(0x000000,0); R.clear(); R.render(scn,cam); x.drawImage(R.domElement,0,0);
-    scn.remove(F); F.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); return cv; }
-  return { get(sp, seed){ const k=sp+':'+(seed|0); let c=cache.get(k); if(c){ cache.delete(k); cache.set(k,c); return c; } c=render(sp,seed); if(!c) return null; cache.set(k,c); if(cache.size>160) cache.delete(cache.keys().next().value); return c; } };
+    scn.remove(F); if(!F.userData.model) F.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); return cv; }
+  return { get(sp, seed){ const md=SPECIES[sp]&&SPECIES[sp].model; if(md&&FolkModels.info(md)&&!FolkModels.loaded(md)&&!FolkModels.failed(md)) return null;   // not fetched yet: see drawAlien
+      const k=sp+':'+(seed|0); let c=cache.get(k); if(c){ cache.delete(k); cache.set(k,c); return c; } c=render(sp,seed); if(!c) return null; cache.set(k,c); if(cache.size>160) cache.delete(cache.keys().next().value); return c; } };
 })();
 
 /* ---------- the sets ---------- */

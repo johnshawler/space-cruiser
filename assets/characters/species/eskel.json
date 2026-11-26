@@ -1,0 +1,37 @@
+{
+ "id": "eskel",
+ "name": "Eskel",
+ "kind": "humanoid",
+ "triangles": 13334,
+ "kb": 1173,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.397,
+  0.008,
+  -0.187
+ ],
+ "max": [
+  0.375,
+  1.915,
+  0.294
+ ],
+ "seat": [
+  0.076,
+  0.489,
+  -0.008
+ ]
+}

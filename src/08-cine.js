@@ -148,7 +148,8 @@ const Cine = {
 
   /* ---------- sequences ---------- */
   ui(on, title, sub){ document.body.classList.toggle('cine',on); $('skip').hidden=!on; if(on) $('keys').hidden=true; if(title){ $('cine-h').textContent=title; $('cine-p').textContent=sub; } $('cine-title').classList.toggle('on',!!title); },
-  startLanding(P){
+  startLanding(P){ { const md=SPECIES[P.species]&&SPECIES[P.species].model; if(md) FolkModels.ready(md).catch(()=>{}); }   // the locals' model, fetched on the way down
+   
     Walk.exit(true); G.mode='landing'; this.mode='A'; $('deep-badge').hidden=true; $('zone-badge').hidden=true; Deep.storm=null; this.t=0; this.P=P; this.landed=false; $('tooltip').hidden=true; Comms.close(true); G.ship.warp=false; G.ship.warpF=0;
     if(this.modelId!==G.shipId||!this.model) this.setModel(G.shipId);
     this.buildSurface(P); World.space.add(this.model); this.model.visible=true; this.model.position.set(0,0,0); this.model.rotation.set(0,0,0); this.plasma.visible=false; this.setThrust(0,0);

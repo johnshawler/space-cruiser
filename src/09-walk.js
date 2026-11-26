@@ -454,7 +454,8 @@ const Interior = {
       pax.slice(0,this.seats.length).forEach((p,i)=>{ const sp=p.kind==='escort'?p.vip.sp:p.sp, seed=p.kind==='escort'?p.vip.seed:p.seed, F=Folk.make(sp,seed,0.66), S=this.seats[i], U=F.userData;
         // sit hips on the cushion (species without legs just settle into it), legs forward, hands on the armrests
         const hip=U.legs[0]?U.legs[0].position.y*0.66:0.06; F.position.set(0.04,FLOOR+0.49-hip+0.02,0); F.rotation.y=Math.PI/2; for(const l of U.legs) l.rotation.x=-1.45;
-        Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
+        if(U.model){ const sa=U.seatAt; if(sa){ U.sit(true); F.position.set(0.04-sa.z*0.66,FLOOR+0.49-sa.y*0.66+0.02,sa.x*0.66); } else { F.scale.setScalar(0.42); F.position.set(0.04,FLOOR+0.51,0); } }
+        else Folk.arms(F,[0.55,0.28],[0.55,0.28]); S.add(F); U.cargo=p; U.wave=0; U.waved=false; this.pax.push(F); }); } },
   update(dt, t){
     const g=this.group; g.quaternion.copy(G.ship.quat);
     for(const id in this.fx){ const f=this.fx[id];

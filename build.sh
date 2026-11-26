@@ -6,13 +6,13 @@ cd "$(dirname "$0")"
   cat src/head.html
   cat src/body.html
   echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>'
-  for f in postprocessing/EffectComposer shaders/CopyShader postprocessing/ShaderPass shaders/LuminosityHighPassShader postprocessing/UnrealBloomPass shaders/FXAAShader shaders/SSRShader postprocessing/SSRPass lights/LightProbeGenerator utils/BufferGeometryUtils objects/Reflector loaders/GLTFLoader loaders/RGBELoader; do
+  for f in postprocessing/EffectComposer shaders/CopyShader postprocessing/ShaderPass shaders/LuminosityHighPassShader postprocessing/UnrealBloomPass shaders/FXAAShader shaders/SSRShader postprocessing/SSRPass lights/LightProbeGenerator utils/BufferGeometryUtils objects/Reflector loaders/GLTFLoader loaders/RGBELoader utils/SkeletonUtils; do
     echo "<script src=\"https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/$f.js\"></script>"
   done
   echo '<script>'
   echo 'const SPECIES_EXTRA={};'
   # the bespoke models' manifests (the models themselves load when first needed)
-  printf 'const ASSET_MANIFESTS={interiors:%s,cockpits:%s,decks:%s};\n' "$(cat assets/interiors/manifest.json)" "$(cat assets/cockpits/manifest.json)" "$(cat assets/ship-interiors/manifest.json)"
+  printf 'const ASSET_MANIFESTS={interiors:%s,cockpits:%s,decks:%s,species:%s};\n' "$(cat assets/interiors/manifest.json)" "$(cat assets/cockpits/manifest.json)" "$(cat assets/ship-interiors/manifest.json)" "$(cat assets/characters/species/manifest.json)"
   cat src/species/*.js 2>/dev/null
   sh tools/bundle-residents.sh
   cat art/scene-finish.js

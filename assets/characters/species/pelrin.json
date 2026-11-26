@@ -1,0 +1,37 @@
+{
+ "id": "pelrin",
+ "name": "Pelrin",
+ "kind": "humanoid",
+ "triangles": 13738,
+ "kb": 1462,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.45,
+  0.006,
+  -0.18
+ ],
+ "max": [
+  0.451,
+  1.414,
+  0.266
+ ],
+ "seat": [
+  -0.021,
+  0.281,
+  -0.014
+ ]
+}

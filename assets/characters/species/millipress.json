@@ -1,0 +1,24 @@
+{
+ "id": "millipress",
+ "name": "Millipress",
+ "kind": "robot",
+ "triangles": 11035,
+ "kb": 1528,
+ "clips": [
+  "Idle",
+  "Travel",
+  "Operate"
+ ],
+ "glow": false,
+ "morphs": [],
+ "min": [
+  -1.783,
+  -0.007,
+  -0.852
+ ],
+ "max": [
+  1.709,
+  0.746,
+  0.332
+ ]
+}

@@ -1,0 +1,37 @@
+{
+ "id": "mothren",
+ "name": "Mothren",
+ "kind": "humanoid",
+ "triangles": 14940,
+ "kb": 1612,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": true,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.543,
+  -0.0,
+  -0.184
+ ],
+ "max": [
+  0.543,
+  1.423,
+  0.3
+ ],
+ "seat": [
+  -0.054,
+  0.283,
+  -0.013
+ ]
+}

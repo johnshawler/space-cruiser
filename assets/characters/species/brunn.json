@@ -1,0 +1,37 @@
+{
+ "id": "brunn",
+ "name": "Brunn",
+ "kind": "humanoid",
+ "triangles": 14120,
+ "kb": 1258,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.737,
+  0.0,
+  -0.269
+ ],
+ "max": [
+  0.737,
+  1.8,
+  0.438
+ ],
+ "seat": [
+  -0.026,
+  0.415,
+  -0.015
+ ]
+}

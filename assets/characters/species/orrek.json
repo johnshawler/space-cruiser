@@ -1,0 +1,37 @@
+{
+ "id": "orrek",
+ "name": "Orrek",
+ "kind": "humanoid",
+ "triangles": 13392,
+ "kb": 1295,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.746,
+  0.0,
+  -0.291
+ ],
+ "max": [
+  0.747,
+  1.81,
+  0.423
+ ],
+ "seat": [
+  -0.013,
+  0.37,
+  -0.007
+ ]
+}

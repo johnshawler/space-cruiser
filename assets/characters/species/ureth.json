@@ -1,0 +1,37 @@
+{
+ "id": "ureth",
+ "name": "Ureth",
+ "kind": "humanoid",
+ "triangles": 13960,
+ "kb": 1192,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.458,
+  0.014,
+  -0.282
+ ],
+ "max": [
+  0.459,
+  1.876,
+  0.198
+ ],
+ "seat": [
+  0.063,
+  0.42,
+  -0.017
+ ]
+}

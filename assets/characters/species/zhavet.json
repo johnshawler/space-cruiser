@@ -1,0 +1,37 @@
+{
+ "id": "zhavet",
+ "name": "Zhavet",
+ "kind": "humanoid",
+ "triangles": 12972,
+ "kb": 1216,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.643,
+  0.0,
+  -0.148
+ ],
+ "max": [
+  0.639,
+  1.907,
+  0.246
+ ],
+ "seat": [
+  0.112,
+  0.51,
+  -0.007
+ ]
+}

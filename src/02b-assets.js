@@ -9,7 +9,7 @@
    If nothing loads, every place keeps its hand-built model and the game carries on. */
 const Assets = (() => {
   const FALLBACK = 'https://space-cruiser.johnshawler.com/';
-  const M = (typeof ASSET_MANIFESTS !== 'undefined' && ASSET_MANIFESTS) || { interiors: { rooms: [] }, cockpits: { ships: [] }, decks: { ships: [] } };
+  const M = (typeof ASSET_MANIFESTS !== 'undefined' && ASSET_MANIFESTS) || { interiors: { rooms: [] }, cockpits: { ships: [] }, decks: { ships: [] }, species: { models: [] } };
   const off = /[?&]noassets\b/.test(location.search);
   const cache = new Map();
   let baseP = null;
@@ -34,6 +34,7 @@ const Assets = (() => {
       const defs = (gl.parser && gl.parser.json && gl.parser.json.materials) || [], strength = {};
       defs.forEach(d => { const s = d.extensions && d.extensions.KHR_materials_emissive_strength; if (s) strength[d.name] = s.emissiveStrength; });
       gl.scene.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) if (m && strength[m.name] != null && !m.userData.strength) { m.emissiveIntensity = strength[m.name]; m.userData.strength = true; } });
+      gl.scene.userData.clips = gl.animations || [];   // character models carry their actions
       return gl.scene;
     }));
   }

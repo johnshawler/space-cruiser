@@ -1,0 +1,37 @@
+{
+ "id": "koruun",
+ "name": "Koruun",
+ "kind": "humanoid",
+ "triangles": 13224,
+ "kb": 1314,
+ "clips": [
+  "Bored",
+  "Happy",
+  "Reach",
+  "Sad",
+  "Seat",
+  "Stride",
+  "Walk"
+ ],
+ "glow": false,
+ "morphs": [
+  "Happy",
+  "Bored",
+  "Sad"
+ ],
+ "min": [
+  -0.63,
+  0.0,
+  -0.285
+ ],
+ "max": [
+  0.63,
+  1.482,
+  0.346
+ ],
+ "seat": [
+  -0.021,
+  0.226,
+  -0.006
+ ]
+}
