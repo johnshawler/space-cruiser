@@ -279,14 +279,14 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port .card .tag,#port .ticket .tag{font-size:15px;padding:1px 7px;margin-left:6px}
 /* Low service tickets leave the port name visible across the counter face, including at 800 × 600. */
 #port-body.garage-services{gap:8px;padding:6px 10px max(7px,env(safe-area-inset-bottom,0px));background:transparent}
-#port .garage-services .card{width:min(385px,calc(50vw - 18px));display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:center;gap:3px 10px;padding:7px 10px;border-top-width:2px}
+#port .garage-services .card{box-sizing:border-box;width:min(385px,calc(50vw - 18px));display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:center;gap:3px 10px;padding:7px 10px;border-top-width:2px}
 #port .garage-services .head{gap:6px}
 #port .garage-services .head canvas{width:24px;height:24px;flex-basis:24px}
 #port .garage-services h3{font-size:23px}
 #port .garage-services p,#port .garage-services .meta{grid-column:1;font-size:19px;line-height:1.13}
 #port .garage-services .right{grid-column:2;grid-row:1 / span 3;align-self:center;flex-direction:column;gap:2px;margin:0}
 #port .garage-services .pay{font-size:26px;margin:0}
-#port .garage-services .btn{font-size:20px;padding:5px 12px;min-height:44px}
+#port .garage-services .btn{font-size:20px;padding:5px 12px;min-height:44px;max-width:7em;white-space:normal;line-height:1.15}
 @media(max-width:600px){#port .garage-services .card{width:min(385px,calc(100vw - 36px))}}
 /* a job ticket, popped up over its model on the shelf */
 #port-card{position:absolute;left:0;top:0;transform:translate(-50%,-100%);width:min(460px,calc(100vw - 32px));z-index:2;background:#101b25;border:2px solid var(--amber);padding:14px 16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 40px rgba(0,0,0,.55)}
@@ -20018,7 +20018,16 @@ const Cine = {
   strip(){ const b=$('port-body'); return !b||$('port').hidden||b.classList.contains('empty')?0:b.offsetHeight; },
   /* the shop is always framed as if the price tags were showing, so the view doesn't zoom in when the counter is bare:
      the last real height of the strip, or a typical one until a strip has been seen at this window size */
-  frameStrip(){ const s=this.strip(), H=World.h, guess=clamp(Math.round(H*0.26),160,260); if(!this.lastStrip||this.lastStrip.H!==H) this.lastStrip={s:guess,H}; this.lastStrip.s=Math.max(this.lastStrip.s,s); return this.lastStrip.s; },
+  frameStrip(){
+    const H=World.h, W=World.w, strip=this.strip(), garage=UI.tab==='garage';
+    const key=garage?'garageFrame':'lastStrip';
+    if(!this[key]||this[key].H!==H||this[key].W!==W) this[key]={s:clamp(Math.round(H*0.26),160,260),H,W};
+    // The counter face projects below the framed region. Keep the plate clear even when the
+    // partial-repair offer wraps, and use the same framing regardless of the shop visited first.
+    const needed=garage?strip+Math.ceil((H-strip)*0.15):strip;
+    this[key].s=Math.max(this[key].s,needed);
+    return this[key].s;
+  },
   region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const s=this.frameStrip();
     return {w:W,h:Math.max(1,H-s),ox:0,oy:s/2}; },
   update(dt, time){

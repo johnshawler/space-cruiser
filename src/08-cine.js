@@ -201,7 +201,16 @@ const Cine = {
   strip(){ const b=$('port-body'); return !b||$('port').hidden||b.classList.contains('empty')?0:b.offsetHeight; },
   /* the shop is always framed as if the price tags were showing, so the view doesn't zoom in when the counter is bare:
      the last real height of the strip, or a typical one until a strip has been seen at this window size */
-  frameStrip(){ const s=this.strip(), H=World.h, guess=clamp(Math.round(H*0.26),160,260); if(!this.lastStrip||this.lastStrip.H!==H) this.lastStrip={s:guess,H}; this.lastStrip.s=Math.max(this.lastStrip.s,s); return this.lastStrip.s; },
+  frameStrip(){
+    const H=World.h, W=World.w, strip=this.strip(), garage=UI.tab==='garage';
+    const key=garage?'garageFrame':'lastStrip';
+    if(!this[key]||this[key].H!==H||this[key].W!==W) this[key]={s:clamp(Math.round(H*0.26),160,260),H,W};
+    // The counter face projects below the framed region. Keep the plate clear even when the
+    // partial-repair offer wraps, and use the same framing regardless of the shop visited first.
+    const needed=garage?strip+Math.ceil((H-strip)*0.15):strip;
+    this[key].s=Math.max(this[key].s,needed);
+    return this[key].s;
+  },
   region(){ const W=World.w, H=World.h, el=$('port'); if(!el||el.hidden) return {w:W,h:H,ox:0,oy:0}; const s=this.frameStrip();
     return {w:W,h:Math.max(1,H-s),ox:0,oy:s/2}; },
   update(dt, time){
