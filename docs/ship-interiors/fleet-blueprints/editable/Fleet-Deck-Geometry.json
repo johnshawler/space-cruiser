@@ -1,0 +1,3215 @@
+{
+  "status": "Proposed redesigns; Rustbucket is an existing reference and remains in its fitted model.",
+  "units": "metres",
+  "axes": "Four new designs use Three.js hull-local X starboard, Y up, Z aft, as in src/05-ships.js before instance transforms. Plan point pairs are [X,Z]. Deck floor provides Y. Convert to Blender [X,-Z,Y]. Relocate first-person origin when integrating.",
+  "openings": "Door spans lie on both adjacent polygon edges. OUT is an external hatch; TRUNK is a non-walkable cargo shutter. Lifts are flush walk-on platforms; endpoints are on the listed floor datums. Wall segments adjoining finished decking use the room polygon and remove the specified clear spans.",
+  "anchors": "Seat positions are cushion centres in plan. Repair marks locate interaction stations in plan. Detailed socket heights and facing directions must be set during 3D blockout.",
+  "verification": "Sampled 2D connectivity on a 0.16 m grid using a 0.21 m clearance radius, blocking drawn bulkhead walls, furniture and seats. All occupied rooms, lift stops, passenger approaches and seven fault types reachable from cockpit. Exterior pressure envelope, vertical clearances, docking interfaces, game collisions, and animations need blockout and playtesting.",
+  "ships": [
+    {
+      "id": "dromedary",
+      "name": "Dromedary 400",
+      "price": 4500,
+      "cargo_units": 14,
+      "passenger_capacity": 2,
+      "style": "Middle Eastern cozy",
+      "concept": "A family hauler with a home in its hump. Side loading keeps container traffic below the passenger majlis.",
+      "materials": "Levantine flatweave, indigo wool and warm copper pass from hand to hand. The riveted steel and yellow gantry belong to the freight business.",
+      "decks": [
+        {
+          "name": "Freight deck",
+          "floor_y": 0,
+          "clear_height": 2.3,
+          "brief": "The pilot steps into a transverse dispatch room. A sliding freight door opens onto two sled rails. The starboard side hatch loads the hold directly, and a separate crew lift rises into the hump.",
+          "rooms": [
+            {
+              "id": "01",
+              "name": "Wheelhouse",
+              "use": "flight",
+              "polygon": [
+                [
+                  -2.1,
+                  -12.8
+                ],
+                [
+                  2.1,
+                  -12.8
+                ],
+                [
+                  2.1,
+                  -9
+                ],
+                [
+                  -2.1,
+                  -9
+                ]
+              ],
+              "label": [
+                0.0,
+                -10.9
+              ]
+            },
+            {
+              "id": "02",
+              "name": "Dispatch room",
+              "use": "service",
+              "polygon": [
+                [
+                  -3.55,
+                  -9
+                ],
+                [
+                  3.55,
+                  -9
+                ],
+                [
+                  3.55,
+                  -6.4
+                ],
+                [
+                  -3.55,
+                  -6.4
+                ]
+              ],
+              "label": [
+                -0.5,
+                -7.7
+              ]
+            },
+            {
+              "id": "03",
+              "name": "Freight hold",
+              "use": "freight",
+              "polygon": [
+                [
+                  -3.55,
+                  -6.4
+                ],
+                [
+                  3.55,
+                  -6.4
+                ],
+                [
+                  3.55,
+                  4.2
+                ],
+                [
+                  -3.55,
+                  4.2
+                ]
+              ],
+              "label": [
+                0,
+                -1
+              ]
+            },
+            {
+              "id": "04",
+              "name": "Airlock",
+              "use": "service",
+              "polygon": [
+                [
+                  1.55,
+                  4.2
+                ],
+                [
+                  3.55,
+                  4.2
+                ],
+                [
+                  3.55,
+                  6.4
+                ],
+                [
+                  1.55,
+                  6.4
+                ]
+              ],
+              "label": [
+                2.55,
+                5.300000000000001
+              ]
+            },
+            {
+              "id": "05",
+              "name": "Lift lobby",
+              "use": "route",
+              "polygon": [
+                [
+                  -0.6,
+                  4.2
+                ],
+                [
+                  1.55,
+                  4.2
+                ],
+                [
+                  1.55,
+                  6.4
+                ],
+                [
+                  -0.6,
+                  6.4
+                ]
+              ],
+              "label": [
+                0.4,
+                6.03
+              ]
+            },
+            {
+              "id": "06",
+              "name": "Filter workshop",
+              "use": "service",
+              "polygon": [
+                [
+                  -3.55,
+                  4.2
+                ],
+                [
+                  -0.6,
+                  4.2
+                ],
+                [
+                  -0.6,
+                  6.4
+                ],
+                [
+                  -3.55,
+                  6.4
+                ]
+              ],
+              "label": [
+                -2.0749999999999997,
+                5.300000000000001
+              ]
+            },
+            {
+              "id": "07",
+              "name": "Engine shop",
+              "use": "engineering",
+              "polygon": [
+                [
+                  -3.55,
+                  6.4
+                ],
+                [
+                  3.55,
+                  6.4
+                ],
+                [
+                  3.55,
+                  8.4
+                ],
+                [
+                  -3.55,
+                  8.4
+                ]
+              ],
+              "label": [
+                0.6,
+                7.6
+              ]
+            }
+          ],
+          "doors": [
+            {
+              "rooms": [
+                "01",
+                "02"
+              ],
+              "center": [
+                0,
+                -9
+              ],
+              "span_axis": "x",
+              "clear_width": 1.05
+            },
+            {
+              "rooms": [
+                "02",
+                "03"
+              ],
+              "center": [
+                0,
+                -6.4
+              ],
+              "span_axis": "x",
+              "clear_width": 1.9
+            },
+            {
+              "rooms": [
+                "03",
+                "04"
+              ],
+              "center": [
+                2.4,
+                4.2
+              ],
+              "span_axis": "x",
+              "clear_width": 1.15
+            },
+            {
+              "rooms": [
+                "03",
+                "05"
+              ],
+              "center": [
+                0.5,
+                4.2
+              ],
+              "span_axis": "x",
+              "clear_width": 1.15
+            },
+            {
+              "rooms": [
+                "03",
+                "06"
+              ],
+              "center": [
+                -1.75,
+                4.2
+              ],
+              "span_axis": "x",
+              "clear_width": 1.15
+            },
+            {
+              "rooms": [
+                "05",
+                "07"
+              ],
+              "center": [
+                0.4,
+                6.4
+              ],
+              "span_axis": "x",
+              "clear_width": 1.1
+            },
+            {
+              "rooms": [
+                "06",
+                "07"
+              ],
+              "center": [
+                -1.6,
+                6.4
+              ],
+              "span_axis": "x",
+              "clear_width": 1.1
+            },
+            {
+              "rooms": [
+                "03",
+                "OUT"
+              ],
+              "center": [
+                3.55,
+                -1.4
+              ],
+              "span_axis": "z",
+              "clear_width": 2.2
+            },
+            {
+              "rooms": [
+                "04",
+                "OUT"
+              ],
+              "center": [
+                3.55,
+                5.35
+              ],
+              "span_axis": "z",
+              "clear_width": 1.1
+            }
+          ],
+          "fixtures": [
+            {
+              "room": "01",
+              "kind": "pilot",
+              "center": [
+                0,
+                -11.7
+              ],
+              "width": 0.65,
+              "length": 0.85
+            },
+            {
+              "room": "02",
+              "kind": "desk",
+              "center": [
+                2,
+                -7.8
+              ],
+              "width": 1.4,
+              "length": 0.55
+            },
+            {
+              "room": "03",
+              "kind": "rack",
+              "center": [
+                -2.65,
+                -1.4
+              ],
+              "width": 0.95,
+              "length": 8
+            },
+            {
+              "room": "03",
+              "kind": "rack",
+              "center": [
+                2.65,
+                -4.25
+              ],
+              "width": 0.95,
+              "length": 2.4
+            },
+            {
+              "room": "03",
+              "kind": "rack",
+              "center": [
+                2.65,
+                2.2
+              ],
+              "width": 0.95,
+              "length": 2.4
+            },
+            {
+              "room": "06",
+              "kind": "filter",
+              "center": [
+                -3.03,
+                5.2
+              ],
+              "width": 0.72,
+              "length": 1.1
+            },
+            {
+              "room": "07",
+              "kind": "drive",
+              "center": [
+                -2.65,
+                7.63
+              ],
+              "width": 1.15,
+              "length": 0.83
+            },
+            {
+              "room": "07",
+              "kind": "drive",
+              "center": [
+                2.63,
+                7.63
+              ],
+              "width": 1.15,
+              "length": 0.83
+            }
+          ],
+          "anchors": [
+            {
+              "room": "02",
+              "kind": "crack",
+              "position": [
+                -2.95,
+                -8.72
+              ]
+            },
+            {
+              "room": "03",
+              "kind": "strap",
+              "position": [
+                2.38,
+                0.92
+              ]
+            },
+            {
+              "room": "04",
+              "kind": "seal",
+              "position": [
+                3.18,
+                4.67
+              ]
+            },
+            {
+              "room": "06",
+              "kind": "scrubber",
+              "position": [
+                -2.53,
+                5.2
+              ]
+            },
+            {
+              "room": "07",
+              "kind": "thruster",
+              "position": [
+                2.1,
+                7.35
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Hump deck",
+          "floor_y": 2.55,
+          "clear_height": 2.12,
+          "brief": "The lift opens aft into the boot lobby. Two window divans form the passenger majlis forward. The crew bunk and compact coffee galley flank the landing, so nobody sleeps beside the loading rail.",
+          "rooms": [
+            {
+              "id": "08",
+              "name": "Passenger majlis",
+              "use": "living",
+              "polygon": [
+                [
+                  -2.85,
+                  -2.35
+                ],
+                [
+                  2.85,
+                  -2.35
+                ],
+                [
+                  2.85,
+                  1.25
+                ],
+                [
+                  -2.85,
+                  1.25
+                ]
+              ],
+              "label": [
+                0.25,
+                -1.45
+              ]
+            },
+            {
+              "id": "09",
+              "name": "Crew bunk",
+              "use": "living",
+              "polygon": [
+                [
+                  -2.85,
+                  1.25
+                ],
+                [
+                  -0.55,
+                  1.25
+                ],
+                [
+                  -0.55,
+                  4.05
+                ],
+                [
+                  -2.85,
+                  4.05
+                ]
+              ],
+              "label": [
+                -1.55,
+                2.5
+              ]
+            },
+            {
+              "id": "10",
+              "name": "Coffee galley",
+              "use": "living",
+              "polygon": [
+                [
+                  -0.55,
+                  1.25
+                ],
+                [
+                  2.85,
+                  1.25
+                ],
+                [
+                  2.85,
+                  4.05
+                ],
+                [
+                  -0.55,
+                  4.05
+                ]
+              ],
+              "label": [
+                0.75,
+                2.5
+              ]
+            },
+            {
+              "id": "11",
+              "name": "Boot lobby",
+              "use": "route",
+              "polygon": [
+                [
+                  -0.6,
+                  4.05
+                ],
+                [
+                  2.85,
+                  4.05
+                ],
+                [
+                  2.85,
+                  6.5
+                ],
+                [
+                  -0.6,
+                  6.5
+                ]
+              ],
+              "label": [
+                1.82,
+                5.5
+              ]
+            },
+            {
+              "id": "12",
+              "name": "Washroom",
+              "use": "service",
+              "polygon": [
+                [
+                  -2.85,
+                  4.05
+                ],
+                [
+                  -0.6,
+                  4.05
+                ],
+                [
+                  -0.6,
+                  6.5
+                ],
+                [
+                  -2.85,
+                  6.5
+                ]
+              ],
+              "label": [
+                -1.65,
+                5.4
+              ]
+            }
+          ],
+          "doors": [
+            {
+              "rooms": [
+                "08",
+                "09"
+              ],
+              "center": [
+                -1.45,
+                1.25
+              ],
+              "span_axis": "x",
+              "clear_width": 1.0
+            },
+            {
+              "rooms": [
+                "08",
+                "10"
+              ],
+              "center": [
+                0.75,
+                1.25
+              ],
+              "span_axis": "x",
+              "clear_width": 1.1
+            },
+            {
+              "rooms": [
+                "10",
+                "11"
+              ],
+              "center": [
+                0.8,
+                4.05
+              ],
+              "span_axis": "x",
+              "clear_width": 1.1
+            },
+            {
+              "rooms": [
+                "09",
+                "10"
+              ],
+              "center": [
+                -0.55,
+                2.7
+              ],
+              "span_axis": "z",
+              "clear_width": 0.95
+            },
+            {
+              "rooms": [
+                "11",
+                "12"
+              ],
+              "center": [
+                -0.6,
+                5.55
+              ],
+              "span_axis": "z",
+              "clear_width": 0.9
+            }
+          ],
+          "fixtures": [
+            {
+              "room": "08",
+              "kind": "divan",
+              "center": [
+                -2.38,
+                -0.43
+              ],
+              "width": 0.7,
+              "length": 2.22
+            },
+            {
+              "room": "08",
+              "kind": "divan",
+              "center": [
+                2.38,
+                -0.43
+              ],
+              "width": 0.7,
+              "length": 2.22
+            },
+            {
+              "room": "09",
+              "kind": "berth",
+              "center": [
+                -2.43,
+                2.68
+              ],
+              "width": 0.7,
+              "length": 2.04
+            },
+            {
+              "room": "10",
+              "kind": "counter",
+              "center": [
+                2.45,
+                2.72
+              ],
+              "width": 0.62,
+              "length": 2.05
+            },
+            {
+              "room": "12",
+              "kind": "basin",
+              "center": [
+                -2.34,
+                4.55
+              ],
+              "width": 0.65,
+              "length": 0.6
+            }
+          ],
+          "anchors": [
+            {
+              "room": "08",
+              "kind": "seat_1",
+              "position": [
+                -2.38,
+                -0.55
+              ]
+            },
+            {
+              "room": "08",
+              "kind": "seat_2",
+              "position": [
+                2.38,
+                -0.55
+              ]
+            },
+            {
+              "room": "08",
+              "kind": "coolant",
+              "position": [
+                -0.65,
+                -2.08
+              ]
+            },
+            {
+              "room": "10",
+              "kind": "fuse",
+              "position": [
+                1.91,
+                3.5
+              ]
+            }
+          ]
+        }
+      ],
+      "lifts": [
+        {
+          "id": "L1",
+          "decks": [
+            0,
+            1
+          ],
+          "rooms": [
+            "05",
+            "11"
+          ],
+          "position": [
+            0.42,
+            5.22
+          ],
+          "size": [
+            1.12,
+            1.28
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stoat",
+      "name": "Stellar Stoat",
+      "price": 16000,
+      "cargo_units": 30,
+      "passenger_capacity": 3,
+      "style": "TNG-era captain’s quarters",
+      "concept": "A streamlined courier organized around a quiet private wardroom and a cargo capsule with two bypasses.",
+      "materials": "Soft clay upholstery, ash joinery and carpeted wall returns recall the domestic warmth of a TNG captain’s quarters. Teal belts and a teardrop turbine carry the courier identity aft.",
+      "decks": [
+        {
+          "name": "Courier deck",
+          "floor_y": -0.95,
+          "clear_height": 2.15,
+          "brief": "The bubble cockpit opens into the captain’s wardroom. Two shoulder passages wrap a sealed cargo capsule and reunite at the turbine. Either route reaches the engine while the cargo doors are shut.",
+          "rooms": [
+            {
+              "id": "01",
+              "name": "Bubble cockpit",
+              "use": "flight",
+              "polygon": [
+                [
+                  -1.7,
+                  -10
+                ],
+                [
+                  1.7,
+                  -10
+                ],
+                [
+                  2.15,
+                  -6.3
+                ],
+                [
+                  -2.15,
+                  -6.3
+                ]
+              ],
+              "label": [
+                0.0,
+                -8.15
+              ]
+            },
+            {
+              "id": "02",
+              "name": "Captain’s wardroom",
+              "use": "living",
+              "polygon": [
+                [
+                  -2.15,
+                  -6.3
+                ],
+                [
+                  2.15,
+                  -6.3
+                ],
+                [
+                  3,
+                  -2.8
+                ],
+                [
+                  -3,
+                  -2.8
+                ]
+              ],
+              "label": [
+                0.2,
+                -4.85
+              ]
+            },
+            {
+              "id": "03",
+              "name": "Port passage",
+              "use": "route",
+              "polygon": [
+                [
+                  -3,
+                  -2.8
+                ],
+                [
+                  -0.87,
+                  -2.8
+                ],
+                [
+                  -0.87,
+                  5.6
+                ],
+                [
+                  -3,
+                  5.6
+                ],
+                [
+                  -3,
+                  4.8
+                ],
+                [
+                  -2.07,
+                  4.8
+                ],
+                [
+                  -2.07,
+                  0.1
+                ],
+                [
+                  -3,
+                  0.1
+                ]
+              ],
+              "label": [
+                -1.39,
+                2.92
+              ]
+            },
+            {
+              "id": "04",
+              "name": "Sealed cargo pod",
+              "use": "freight",
+              "polygon": [
+                [
+                  -0.87,
+                  -2.8
+                ],
+                [
+                  0.87,
+                  -2.8
+                ],
+                [
+                  0.87,
+                  5.6
+                ],
+                [
+                  -0.87,
+                  5.6
+                ]
+              ],
+              "label": [
+                0,
+                2.5
+              ]
+            },
+            {
+              "id": "05",
+              "name": "Starboard passage",
+              "use": "route",
+              "polygon": [
+                [
+                  0.87,
+                  -2.8
+                ],
+                [
+                  3,
+                  -2.8
+                ],
+                [
+                  3,
+                  -2.15
+                ],
+                [
+                  2.05,
+                  -2.15
+                ],
+                [
+                  2.05,
+                  0.28
+                ],
+                [
+                  3,
+                  0.28
+                ],
+                [
+                  3,
+                  5.6
+                ],
+                [
+                  0.87,
+                  5.6
+                ]
+              ],
+              "label": [
+                2.3,
+                2.6
+              ]
+            },
+            {
+              "id": "06",
+              "name": "Crew galley / berth",
+              "use": "living",
+              "polygon": [
+                [
+                  -3.76,
+                  0.1
+                ],
+                [
+                  -2.07,
+                  0.1
+                ],
+                [
+                  -2.07,
+                  4.8
+                ],
+                [
+                  -3.76,
+                  4.8
+                ]
+              ],
+              "label": [
+                -2.83,
+                3.87
+              ]
+            },
+            {
+              "id": "07",
+              "name": "Cross passage",
+              "use": "route",
+              "polygon": [
+                [
+                  -3,
+                  5.6
+                ],
+                [
+                  3,
+                  5.6
+                ],
+                [
+                  3,
+                  7.2
+                ],
+                [
+                  -3,
+                  7.2
+                ]
+              ],
+              "label": [
+                0,
+                6.4
+              ]
+            },
+            {
+              "id": "08",
+              "name": "Turbine room",
+              "use": "engineering",
+              "polygon": [
+                [
+                  -3,
+                  7.2
+                ],
+                [
+                  3,
+                  7.2
+                ],
+                [
+                  2,
+                  10.25
+                ],
+                [
+                  -2,
+                  10.25
+                ]
+              ],
+              "label": [
+                -0.8,
+                8.65
+              ]
+            },
+            {
+              "id": "09",
+              "name": "Pressure lock",
+              "use": "service",
+              "polygon": [
+                [
+                  2.05,
+                  -2.15
+                ],
+                [
+                  3.53,
+                  -2.15
+                ],
+                [
+                  3.53,
+                  0.28
+                ],
+                [
+                  2.05,
+                  0.28
+                ]
+              ],
+              "label": [
+                2.85,
+                -0.9
+              ]
+            }
+          ],
+          "doors": [
+            {
+              "rooms": [
+                "01",
+                "02"
+              ],
+              "center": [
+                0,
+                -6.3
+              ],
+              "span_axis": "x",
+              "clear_width": 1.05
+            },
+            {
+              "rooms": [
+                "02",
+                "03"
+              ],
+              "center": [
+                -2.25,
+                -2.8
+              ],
+              "span_axis": "x",
+              "clear_width": 1.03
+            },
+            {
+              "rooms": [
+                "02",
+                "05"
+              ],
+              "center": [
+                2.25,
+                -2.8
+              ],
+              "span_axis": "x",
+              "clear_width": 1.03
+            },
+            {
+              "rooms": [
+                "03",
+                "04"
+              ],
+              "center": [
+                -0.87,
+                1.3
+              ],
+              "span_axis": "z",
+              "clear_width": 1.35
+            },
+            {
+              "rooms": [
+                "04",
+                "05"
+              ],
+              "center": [
+                0.87,
+                3.5
+              ],
+              "span_axis": "z",
+              "clear_width": 1.35
+            },
+            {
+              "rooms": [
+                "03",
+                "06"
+              ],
+              "center": [
+                -2.07,
+                2.6
+              ],
+              "span_axis": "z",
+              "clear_width": 2.15
+            },
+            {
+              "rooms": [
+                "03",
+                "07"
+              ],
+              "center": [
+                -2.28,
+                5.6
+              ],
+              "span_axis": "x",
+              "clear_width": 1.02
+            },
+            {
+              "rooms": [
+                "05",
+                "07"
+              ],
+              "center": [
+                2.28,
+                5.6
+              ],
+              "span_axis": "x",
+              "clear_width": 1.02
+            },
+            {
+              "rooms": [
+                "07",
+                "08"
+              ],
+              "center": [
+                0,
+                7.2
+              ],
+              "span_axis": "x",
+              "clear_width": 1.35
+            },
+            {
+              "rooms": [
+                "05",
+                "09"
+              ],
+              "center": [
+                2.05,
+                -0.9
+              ],
+              "span_axis": "z",
+              "clear_width": 1
+            },
+            {
+              "rooms": [
+                "09",
+                "OUT"
+              ],
+              "center": [
+                3.53,
+                -0.9
+              ],
+              "span_axis": "z",
+              "clear_width": 1
+            }
+          ],
+          "fixtures": [
+            {
+              "room": "01",
+              "kind": "pilot",
+              "center": [
+                0,
+                -8.8
+              ],
+              "width": 0.6,
+              "length": 0.8
+            },
+            {
+              "room": "02",
+              "kind": "desk",
+              "center": [
+                1.37,
+                -5.8
+              ],
+              "width": 0.9,
+              "length": 0.42
+            },
+            {
+              "room": "04",
+              "kind": "rack",
+              "center": [
+                -0.51,
+                -1.42
+              ],
+              "width": 0.44,
+              "length": 1.8
+            },
+            {
+              "room": "04",
+              "kind": "rack",
+              "center": [
+                0.52,
+                1.82
+              ],
+              "width": 0.44,
+              "length": 1.58
+            },
+            {
+              "room": "06",
+              "kind": "berth",
+              "center": [
+                -3.46,
+                2.56
+              ],
+              "width": 0.46,
+              "length": 1.95
+            },
+            {
+              "room": "07",
+              "kind": "filter",
+              "center": [
+                -2.62,
+                6.78
+              ],
+              "width": 0.45,
+              "length": 0.52
+            },
+            {
+              "room": "08",
+              "kind": "turbine",
+              "center": [
+                0.8,
+                8.7
+              ],
+              "width": 1.18,
+              "length": 1.45
+            }
+          ],
+          "anchors": [
+            {
+              "room": "02",
+              "kind": "seat_1",
+              "position": [
+                -1.72,
+                -5.55
+              ]
+            },
+            {
+              "room": "02",
+              "kind": "seat_2",
+              "position": [
+                -1.92,
+                -4.48
+              ]
+            },
+            {
+              "room": "02",
+              "kind": "seat_3",
+              "position": [
+                1.9,
+                -4.23
+              ]
+            },
+            {
+              "room": "02",
+              "kind": "coolant",
+              "position": [
+                -0.9,
+                -3.15
+              ]
+            },
+            {
+              "room": "03",
+              "kind": "crack",
+              "position": [
+                -2.81,
+                -0.5
+              ]
+            },
+            {
+              "room": "04",
+              "kind": "strap",
+              "position": [
+                0.52,
+                4.45
+              ]
+            },
+            {
+              "room": "05",
+              "kind": "fuse",
+              "position": [
+                2.78,
+                1.25
+              ]
+            },
+            {
+              "room": "07",
+              "kind": "scrubber",
+              "position": [
+                -2.12,
+                6.7
+              ]
+            },
+            {
+              "room": "08",
+              "kind": "thruster",
+              "position": [
+                1.25,
+                9.36
+              ]
+            },
+            {
+              "room": "09",
+              "kind": "seal",
+              "position": [
+                3.27,
+                -0.22
+              ]
+            }
+          ]
+        }
+      ],
+      "lifts": []
+    },
+    {
+      "id": "manatee",
+      "name": "Opulent Manatee",
+      "price": 52000,
+      "cargo_units": 60,
+      "passenger_capacity": 4,
+      "style": "Streamline Art Deco",
+      "concept": "A liner with a port-side promenade and a lounge directly under the observation dome. Staff and baggage travel on a separate working deck.",
+      "materials": "Bookmatched walnut, stepped bronze, oxblood club chairs and opal glass mark the passenger spaces. Cream enamel gives way to steel grating below.",
+      "decks": [
+        {
+          "name": "Promenade deck",
+          "floor_y": 0.25,
+          "clear_height": 2.38,
+          "brief": "The forward lift opens into a reception hall. The port promenade stays beside the windows and leads directly to the dome lounge. Staff use an enclosed starboard passage and the aft lift to serve the pantry.",
+          "rooms": [
+            {
+              "id": "01",
+              "name": "Pilot salon",
+              "use": "flight",
+              "polygon": [
+                [
+                  -2.25,
+                  -15.2
+                ],
+                [
+                  2.25,
+                  -15.2
+                ],
+                [
+                  2.8,
+                  -11
+                ],
+                [
+                  -2.8,
+                  -11
+                ]
+              ],
+              "label": [
+                0.0,
+                -13.1
+              ]
+            },
+            {
+              "id": "02",
+              "name": "Reception hall",
+              "use": "living",
+              "polygon": [
+                [
+                  -3.4,
+                  -11
+                ],
+                [
+                  3.4,
+                  -11
+                ],
+                [
+                  3.85,
+                  -7
+                ],
+                [
+                  -3.85,
+                  -7
+                ]
+              ],
+              "label": [
+                0.7,
+                -9.3
+              ]
+            },
+            {
+              "id": "03",
+              "name": "Port promenade",
+              "use": "route",
+              "polygon": [
+                [
+                  -4.05,
+                  -7
+                ],
+                [
+                  -2.25,
+                  -7
+                ],
+                [
+                  -2.25,
+                  1
+                ],
+                [
+                  -4.05,
+                  1
+                ]
+              ],
+              "label": [
+                -3.15,
+                -2.5
+              ]
+            },
+            {
+              "id": "04",
+              "name": "First-class salon",
+              "use": "living",
+              "polygon": [
+                [
+                  -2.25,
+                  -7
+                ],
+                [
+                  2.55,
+                  -7
+                ],
+                [
+                  2.55,
+                  1
+                ],
+                [
+                  -2.25,
+                  1
+                ]
+              ],
+              "label": [
+                0.45,
+                -3.7
+              ]
+            },
+            {
+              "id": "05",
+              "name": "Stewards’ passage",
+              "use": "route",
+              "polygon": [
+                [
+                  2.55,
+                  -7
+                ],
+                [
+                  4.05,
+                  -7
+                ],
+                [
+                  4.05,
+                  1
+                ],
+                [
+                  2.55,
+                  1
+                ]
+              ],
+              "label": [
+                3.32,
+                -2.6
+              ]
+            },
+            {
+              "id": "06",
+              "name": "Observation lounge",
+              "use": "living",
+              "polygon": [
+                [
+                  -4.05,
+                  1
+                ],
+                [
+                  2.55,
+                  1
+                ],
+                [
+                  2.55,
+                  6.3
+                ],
+                [
+                  -4.05,
+                  6.3
+                ]
+              ],
+              "label": [
+                -1.45,
+                4.2
+              ]
+            },
+            {
+              "id": "07",
+              "name": "China pantry",
+              "use": "service",
+              "polygon": [
+                [
+                  2.55,
+                  1
+                ],
+                [
+                  4.05,
+                  1
+                ],
+                [
+                  4.05,
+                  6.3
+                ],
+                [
+                  2.55,
+                  6.3
+                ]
+              ],
+              "label": [
+                3.29,
+                3.55
+              ]
+            },
+            {
+              "id": "08",
+              "name": "Aft lift foyer",
+              "use": "route",
+              "polygon": [
+                [
+                  -3.8,
+                  6.3
+                ],
+                [
+                  3.8,
+                  6.3
+                ],
+                [
+                  3.8,
+                  9.55
+                ],
+                [
+                  -3.8,
+                  9.55
+                ]
+              ],
+              "label": [
+                0.1,
+                8.15
+              ]
+            }
+          ],
+          "doors": [
+            {
+              "rooms": [
+                "01",
+                "02"
+              ],
+              "center": [
+                0,
+                -11
+              ],
+              "span_axis": "x",
+              "clear_width": 1.23
+            },
+            {
+              "rooms": [
+                "02",
+                "03"
+              ],
+              "center": [
+                -3.04,
+                -7
+              ],
+              "span_axis": "x",
+              "clear_width": 1.18
+            },
+            {
+              "rooms": [
+                "02",
+                "04"
+              ],
+              "center": [
+                0,
+                -7
+              ],
+              "span_axis": "x",
+              "clear_width": 1.4
+            },
+            {
+              "rooms": [
+                "02",
+                "05"
+              ],
+              "center": [
+                3.03,
+                -7
+              ],
+              "span_axis": "x",
+              "clear_width": 0.96
+            },
+            {
+              "rooms": [
+                "03",
+                "04"
+              ],
+              "center": [
+                -2.25,
+                -3.7
+              ],
+              "span_axis": "z",
+              "clear_width": 1.4
+            },
+            {
+              "rooms": [
+                "03",
+                "06"
+              ],
+              "center": [
+                -3.12,
+                1
+              ],
+              "span_axis": "x",
+              "clear_width": 1.25
+            },
+            {
+              "rooms": [
+                "04",
+                "06"
+              ],
+              "center": [
+                0,
+                1
+              ],
+              "span_axis": "x",
+              "clear_width": 1.45
+            },
+            {
+              "rooms": [
+                "05",
+                "07"
+              ],
+              "center": [
+                3.31,
+                1
+              ],
+              "span_axis": "x",
+              "clear_width": 1.02
+            },
+            {
+              "rooms": [
+                "06",
+                "07"
+              ],
+              "center": [
+                2.55,
+                4.1
+              ],
+              "span_axis": "z",
+              "clear_width": 1.0
+            },
+            {
+              "rooms": [
+                "06",
+                "08"
+              ],
+              "center": [
+                -0.5,
+                6.3
+              ],
+              "span_axis": "x",
+              "clear_width": 1.35
+            },
+            {
+              "rooms": [
+                "07",
+                "08"
+              ],
+              "center": [
+                3.13,
+                6.3
+              ],
+              "span_axis": "x",
+              "clear_width": 1.02
+            }
+          ],
+          "fixtures": [
+            {
+              "room": "01",
+              "kind": "pilot",
+              "center": [
+                0,
+                -13.5
+              ],
+              "width": 0.82,
+              "length": 0.95
+            },
+            {
+              "room": "02",
+              "kind": "desk",
+              "center": [
+                2.65,
+                -9
+              ],
+              "width": 0.7,
+              "length": 2
+            },
+            {
+              "room": "04",
+              "kind": "cabinet",
+              "center": [
+                2.18,
+                -3.4
+              ],
+              "width": 0.5,
+              "length": 3.5
+            },
+            {
+              "room": "06",
+              "kind": "table",
+              "center": [
+                0,
+                3
+              ],
+              "width": 0.94,
+              "length": 0.94
+            },
+            {
+              "room": "07",
+              "kind": "counter",
+              "center": [
+                3.8,
+                3.65
+              ],
+              "width": 0.39,
+              "length": 2.55
+            }
+          ],
+          "anchors": [
+            {
+              "room": "04",
+              "kind": "seat_1",
+              "position": [
+                -1.6,
+                -5.75
+              ]
+            },
+            {
+              "room": "04",
+              "kind": "seat_2",
+              "position": [
+                -0.46,
+                -5.75
+              ]
+            },
+            {
+              "room": "04",
+              "kind": "seat_3",
+              "position": [
+                -1.6,
+                -1.0
+              ]
+            },
+            {
+              "room": "04",
+              "kind": "seat_4",
+              "position": [
+                -0.46,
+                -1.0
+              ]
+            },
+            {
+              "room": "04",
+              "kind": "coolant",
+              "position": [
+                1.8,
+                -6.67
+              ]
+            },
+            {
+              "room": "03",
+              "kind": "crack",
+              "position": [
+                -3.83,
+                -4.95
+              ]
+            },
+            {
+              "room": "07",
+              "kind": "fuse",
+              "position": [
+                3.78,
+                5.57
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Working deck",
+          "floor_y": -2.1,
+          "clear_height": 2.12,
+          "brief": "Freight arrives through the port baggage lock. The long starboard service passage connects both lifts to engineering, so a steward can cross the ship without threading through cases or a passenger salon.",
+          "rooms": [
+            {
+              "id": "09",
+              "name": "Baggage receiving",
+              "use": "service",
+              "polygon": [
+                [
+                  -3.4,
+                  -10.2
+                ],
+                [
+                  3.4,
+                  -10.2
+                ],
+                [
+                  3.4,
+                  -6.5
+                ],
+                [
+                  -3.4,
+                  -6.5
+                ]
+              ],
+              "label": [
+                0.3,
+                -8.9
+              ]
+            },
+            {
+              "id": "10",
+              "name": "Baggage lock",
+              "use": "service",
+              "polygon": [
+                [
+                  -4,
+                  -6.5
+                ],
+                [
+                  -1.55,
+                  -6.5
+                ],
+                [
+                  -1.55,
+                  -3.7
+                ],
+                [
+                  -4,
+                  -3.7
+                ]
+              ],
+              "label": [
+                -3.05,
+                -5.05
+              ]
+            },
+            {
+              "id": "11",
+              "name": "Luggage hold",
+              "use": "freight",
+              "polygon": [
+                [
+                  -1.55,
+                  -6.5
+                ],
+                [
+                  1.6,
+                  -6.5
+                ],
+                [
+                  1.6,
+                  5.8
+                ],
+                [
+                  -4,
+                  5.8
+                ],
+                [
+                  -4,
+                  -3.7
+                ],
+                [
+                  -1.55,
+                  -3.7
+                ]
+              ],
+              "label": [
+                -1.15,
+                2
+              ]
+            },
+            {
+              "id": "12",
+              "name": "Service passage",
+              "use": "route",
+              "polygon": [
+                [
+                  1.6,
+                  -6.5
+                ],
+                [
+                  3.55,
+                  -6.5
+                ],
+                [
+                  3.55,
+                  6.5
+                ],
+                [
+                  1.6,
+                  6.5
+                ]
+              ],
+              "label": [
+                2.59,
+                -0.7
+              ]
+            },
+            {
+              "id": "13",
+              "name": "Crew bunkroom",
+              "use": "living",
+              "polygon": [
+                [
+                  -3.55,
+                  5.8
+                ],
+                [
+                  -0.5,
+                  5.8
+                ],
+                [
+                  -0.5,
+                  9.55
+                ],
+                [
+                  -3.55,
+                  9.55
+                ]
+              ],
+              "label": [
+                -1.8,
+                8.15
+              ]
+            },
+            {
+              "id": "14",
+              "name": "Plant & scrubber",
+              "use": "service",
+              "polygon": [
+                [
+                  -0.5,
+                  5.8
+                ],
+                [
+                  1.6,
+                  5.8
+                ],
+                [
+                  1.6,
+                  9.55
+                ],
+                [
+                  -0.5,
+                  9.55
+                ]
+              ],
+              "label": [
+                0.48,
+                7.7
+              ]
+            },
+            {
+              "id": "15",
+              "name": "Aft lift lobby",
+              "use": "route",
+              "polygon": [
+                [
+                  1.6,
+                  6.5
+                ],
+                [
+                  3.55,
+                  6.5
+                ],
+                [
+                  3.55,
+                  9.55
+                ],
+                [
+                  1.6,
+                  9.55
+                ]
+              ],
+              "label": [
+                2.6,
+                7.12
+              ]
+            },
+            {
+              "id": "16",
+              "name": "Engine gallery",
+              "use": "engineering",
+              "polygon": [
+                [
+                  -3.55,
+                  9.55
+                ],
+                [
+                  3.55,
+                  9.55
+                ],
+                [
+                  3.15,
+                  13.9
+                ],
+                [
+                  -3.15,
+                  13.9
+                ]
+              ],
+              "label": [
+                -1.45,
+                12.08
+              ]
+            }
+          ],
+          "doors": [
+            {
+              "rooms": [
+                "09",
+                "10"
+              ],
+              "center": [
+                -2.17,
+                -6.5
+              ],
+              "span_axis": "x",
+              "clear_width": 1.05
+            },
+            {
+              "rooms": [
+                "09",
+                "11"
+              ],
+              "center": [
+                0,
+                -6.5
+              ],
+              "span_axis": "x",
+              "clear_width": 1.4
+            },
+            {
+              "rooms": [
+                "09",
+                "12"
+              ],
+              "center": [
+                2.55,
+                -6.5
+              ],
+              "span_axis": "x",
+              "clear_width": 1.2
+            },
+            {
+              "rooms": [
+                "10",
+                "OUT"
+              ],
+              "center": [
+                -4,
+                -5.05
+              ],
+              "span_axis": "z",
+              "clear_width": 1.55
+            },
+            {
+              "rooms": [
+                "10",
+                "11"
+              ],
+              "center": [
+                -1.55,
+                -5.05
+              ],
+              "span_axis": "z",
+              "clear_width": 1.45
+            },
+            {
+              "rooms": [
+                "11",
+                "12"
+              ],
+              "center": [
+                1.6,
+                2.3
+              ],
+              "span_axis": "z",
+              "clear_width": 1.3
+            },
+            {
+              "rooms": [
+                "11",
+                "13"
+              ],
+              "center": [
+                -2.1,
+                5.8
+              ],
+              "span_axis": "x",
+              "clear_width": 1.05
+            },
+            {
+              "rooms": [
+                "12",
+                "15"
+              ],
+              "center": [
+                2.63,
+                6.5
+              ],
+              "span_axis": "x",
+              "clear_width": 1.15
+            },
+            {
+              "rooms": [
+                "15",
+                "14"
+              ],
+              "center": [
+                1.6,
+                8.0
+              ],
+              "span_axis": "z",
+              "clear_width": 1.0
+            },
+            {
+              "rooms": [
+                "14",
+                "16"
+              ],
+              "center": [
+                0.47,
+                9.55
+              ],
+              "span_axis": "x",
+              "clear_width": 1.04
+            },
+            {
+              "rooms": [
+                "15",
+                "16"
+              ],
+              "center": [
+                2.5,
+                9.55
+              ],
+              "span_axis": "x",
+              "clear_width": 1.17
+            }
+          ],
+          "fixtures": [
+            {
+              "room": "11",
+              "kind": "rack",
+              "center": [
+                -3.3,
+                0.95
+              ],
+              "width": 0.8,
+              "length": 7.8
+            },
+            {
+              "room": "11",
+              "kind": "rack",
+              "center": [
+                0.75,
+                -0.15
+              ],
+              "width": 0.65,
+              "length": 8.5
+            },
+            {
+              "room": "13",
+              "kind": "berth",
+              "center": [
+                -3.02,
+                7.48
+              ],
+              "width": 0.74,
+              "length": 2.04
+            },
+            {
+              "room": "14",
+              "kind": "filter",
+              "center": [
+                0.1,
+                8.94
+              ],
+              "width": 0.67,
+              "length": 0.65
+            },
+            {
+              "room": "16",
+              "kind": "reactor",
+              "center": [
+                0.55,
+                11.9
+              ],
+              "width": 1.85,
+              "length": 1.85
+            }
+          ],
+          "anchors": [
+            {
+              "room": "10",
+              "kind": "seal",
+              "position": [
+                -3.66,
+                -4.07
+              ]
+            },
+            {
+              "room": "11",
+              "kind": "strap",
+              "position": [
+                0.43,
+                4.85
+              ]
+            },
+            {
+              "room": "14",
+              "kind": "scrubber",
+              "position": [
+                0.63,
+                8.75
+              ]
+            },
+            {
+              "room": "16",
+              "kind": "thruster",
+              "position": [
+                2.25,
+                12.65
+              ]
+            }
+          ]
+        }
+      ],
+      "lifts": [
+        {
+          "id": "L1",
+          "decks": [
+            0,
+            1
+          ],
+          "rooms": [
+            "02",
+            "09"
+          ],
+          "position": [
+            -2.28,
+            -8.54
+          ],
+          "size": [
+            1.3,
+            1.5
+          ]
+        },
+        {
+          "id": "L2",
+          "decks": [
+            0,
+            1
+          ],
+          "rooms": [
+            "08",
+            "15"
+          ],
+          "position": [
+            2.55,
+            8.33
+          ],
+          "size": [
+            1.18,
+            1.32
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empress",
+      "name": "Quasar Empress",
+      "price": 180000,
+      "cargo_units": 120,
+      "passenger_capacity": 4,
+      "style": "East Asian flagship",
+      "concept": "A Japanese imperial-villa sequence inside a needle hull. The forecourt frames a ceremonial view into the ship’s actual ring station. Freight travels beneath the state rooms.",
+      "materials": "Smoked hinoki lattice, black urushi lacquer and shell inlay lead into spare pearl-toned engineering. The exterior ring stays outside the pressure hull.",
+      "decks": [
+        {
+          "name": "State deck",
+          "floor_y": -0.48,
+          "clear_height": 2.22,
+          "brief": "An axial procession leads from the command canopy through a receiving room and moon court to the ring gallery. Two private suites open off the court. The display garden stays to port of the walking line.",
+          "rooms": [
+            {
+              "id": "01",
+              "name": "Command canopy",
+              "use": "flight",
+              "polygon": [
+                [
+                  -1.65,
+                  -16.4
+                ],
+                [
+                  1.65,
+                  -16.4
+                ],
+                [
+                  2.12,
+                  -11.3
+                ],
+                [
+                  -2.12,
+                  -11.3
+                ]
+              ],
+              "label": [
+                0.0,
+                -13.85
+              ]
+            },
+            {
+              "id": "02",
+              "name": "Receiving room",
+              "use": "living",
+              "polygon": [
+                [
+                  -2.12,
+                  -11.3
+                ],
+                [
+                  2.12,
+                  -11.3
+                ],
+                [
+                  2.9,
+                  -6.1
+                ],
+                [
+                  -2.9,
+                  -6.1
+                ]
+              ],
+              "label": [
+                0.2,
+                -8.4
+              ]
+            },
+            {
+              "id": "03",
+              "name": "Moon court",
+              "use": "route",
+              "polygon": [
+                [
+                  -1.8,
+                  -6.1
+                ],
+                [
+                  1.8,
+                  -6.1
+                ],
+                [
+                  1.8,
+                  1.9
+                ],
+                [
+                  -1.8,
+                  1.9
+                ]
+              ],
+              "label": [
+                0.45,
+                -2
+              ]
+            },
+            {
+              "id": "04",
+              "name": "Port suite",
+              "use": "living",
+              "polygon": [
+                [
+                  -3.42,
+                  -6.1
+                ],
+                [
+                  -1.8,
+                  -6.1
+                ],
+                [
+                  -1.8,
+                  1.9
+                ],
+                [
+                  -3.42,
+                  1.9
+                ]
+              ],
+              "label": [
+                -2.62,
+                -2.4
+              ]
+            },
+            {
+              "id": "05",
+              "name": "Starboard suite",
+              "use": "living",
+              "polygon": [
+                [
+                  1.8,
+                  -6.1
+                ],
+                [
+                  3.42,
+                  -6.1
+                ],
+                [
+                  3.42,
+                  1.9
+                ],
+                [
+                  1.8,
+                  1.9
+                ]
+              ],
+              "label": [
+                2.6,
+                -2.4
+              ]
+            },
+            {
+              "id": "06",
+              "name": "Tea salon",
+              "use": "living",
+              "polygon": [
+                [
+                  -3.7,
+                  1.9
+                ],
+                [
+                  3.7,
+                  1.9
+                ],
+                [
+                  3.7,
+                  4.5
+                ],
+                [
+                  -3.7,
+                  4.5
+                ]
+              ],
+              "label": [
+                -1.8,
+                3.22
+              ]
+            },
+            {
+              "id": "07",
+              "name": "Ring gallery",
+              "use": "engineering",
+              "polygon": [
+                [
+                  -3.7,
+                  4.5
+                ],
+                [
+                  3.7,
+                  4.5
+                ],
+                [
+                  3.7,
+                  8.3
+                ],
+                [
+                  -3.7,
+                  8.3
+                ]
+              ],
+              "label": [
+                -1.6,
+                6.55
+              ]
+            },
+            {
+              "id": "08",
+              "name": "Private dining",
+              "use": "living",
+              "polygon": [
+                [
+                  -3.7,
+                  8.3
+                ],
+                [
+                  3.7,
+                  8.3
+                ],
+                [
+                  3.2,
+                  12
+                ],
+                [
+                  -3.2,
+                  12
+                ]
+              ],
+              "label": [
+                -1.1,
+                10.05
+              ]
+            }
+          ],
+          "doors": [
+            {
+              "rooms": [
+                "01",
+                "02"
+              ],
+              "center": [
+                0,
+                -11.3
+              ],
+              "span_axis": "x",
+              "clear_width": 1.26
+            },
+            {
+              "rooms": [
+                "02",
+                "03"
+              ],
+              "center": [
+                0.45,
+                -6.1
+              ],
+              "span_axis": "x",
+              "clear_width": 1.35
+            },
+            {
+              "rooms": [
+                "03",
+                "04"
+              ],
+              "center": [
+                -1.8,
+                -3.04
+              ],
+              "span_axis": "z",
+              "clear_width": 1.13
+            },
+            {
+              "rooms": [
+                "03",
+                "05"
+              ],
+              "center": [
+                1.8,
+                -1.1
+              ],
+              "span_axis": "z",
+              "clear_width": 1.13
+            },
+            {
+              "rooms": [
+                "03",
+                "06"
+              ],
+              "center": [
+                0.45,
+                1.9
+              ],
+              "span_axis": "x",
+              "clear_width": 1.35
+            },
+            {
+              "rooms": [
+                "06",
+                "07"
+              ],
+              "center": [
+                0,
+                4.5
+              ],
+              "span_axis": "x",
+              "clear_width": 1.53
+            },
+            {
+              "rooms": [
+                "07",
+                "08"
+              ],
+              "center": [
+                0,
+                8.3
+              ],
+              "span_axis": "x",
+              "clear_width": 1.53
+            }
+          ],
+          "fixtures": [
+            {
+              "room": "01",
+              "kind": "pilot",
+              "center": [
+                0,
+                -14.6
+              ],
+              "width": 0.8,
+              "length": 0.98
+            },
+            {
+              "room": "03",
+              "kind": "garden",
+              "center": [
+                -1.24,
+                0.29
+              ],
+              "width": 0.62,
+              "length": 2.15
+            },
+            {
+              "room": "04",
+              "kind": "berth",
+              "center": [
+                -3.01,
+                0.35
+              ],
+              "width": 0.55,
+              "length": 1.93
+            },
+            {
+              "room": "05",
+              "kind": "berth",
+              "center": [
+                3.01,
+                0.35
+              ],
+              "width": 0.55,
+              "length": 1.93
+            },
+            {
+              "room": "06",
+              "kind": "counter",
+              "center": [
+                2.95,
+                3.45
+              ],
+              "width": 0.55,
+              "length": 1.45
+            },
+            {
+              "room": "07",
+              "kind": "core",
+              "center": [
+                1.64,
+                6.0
+              ],
+              "width": 1.3,
+              "length": 1.55
+            },
+            {
+              "room": "08",
+              "kind": "table",
+              "center": [
+                0.3,
+                10.4
+              ],
+              "width": 1.05,
+              "length": 1.65
+            }
+          ],
+          "anchors": [
+            {
+              "room": "04",
+              "kind": "seat_1",
+              "position": [
+                -2.84,
+                -5.14
+              ]
+            },
+            {
+              "room": "04",
+              "kind": "seat_2",
+              "position": [
+                -2.84,
+                -3.94
+              ]
+            },
+            {
+              "room": "05",
+              "kind": "seat_3",
+              "position": [
+                2.84,
+                -5.14
+              ]
+            },
+            {
+              "room": "05",
+              "kind": "seat_4",
+              "position": [
+                2.84,
+                -3.94
+              ]
+            },
+            {
+              "room": "04",
+              "kind": "coolant",
+              "position": [
+                -2.14,
+                0.99
+              ]
+            },
+            {
+              "room": "03",
+              "kind": "crack",
+              "position": [
+                1.53,
+                -4.58
+              ]
+            },
+            {
+              "room": "07",
+              "kind": "thruster",
+              "position": [
+                2.7,
+                7.35
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Freight undercroft",
+          "floor_y": -2.62,
+          "clear_height": 1.99,
+          "brief": "The ring-station lift lands in a transverse transfer room. Fore and aft vaults open independently for freight handling. The galley sends meals up the same lift to private dining via the gallery.",
+          "rooms": [
+            {
+              "id": "09",
+              "name": "Fore cargo vault",
+              "use": "freight",
+              "polygon": [
+                [
+                  -2.25,
+                  -5.6
+                ],
+                [
+                  2.25,
+                  -5.6
+                ],
+                [
+                  3,
+                  1.65
+                ],
+                [
+                  -3,
+                  1.65
+                ]
+              ],
+              "label": [
+                -0.4,
+                -2.1
+              ]
+            },
+            {
+              "id": "10",
+              "name": "Steward’s galley",
+              "use": "living",
+              "polygon": [
+                [
+                  -3,
+                  1.65
+                ],
+                [
+                  -0.76,
+                  1.65
+                ],
+                [
+                  -0.76,
+                  4.55
+                ],
+                [
+                  -3,
+                  4.55
+                ]
+              ],
+              "label": [
+                -1.4,
+                3.05
+              ]
+            },
+            {
+              "id": "11",
+              "name": "Air plant",
+              "use": "service",
+              "polygon": [
+                [
+                  0.76,
+                  1.65
+                ],
+                [
+                  3,
+                  1.65
+                ],
+                [
+                  3,
+                  4.55
+                ],
+                [
+                  0.76,
+                  4.55
+                ]
+              ],
+              "label": [
+                1.5,
+                3.1
+              ]
+            },
+            {
+              "id": "12",
+              "name": "Transfer room",
+              "use": "route",
+              "polygon": [
+                [
+                  -3,
+                  4.55
+                ],
+                [
+                  3,
+                  4.55
+                ],
+                [
+                  3,
+                  8.05
+                ],
+                [
+                  -3,
+                  8.05
+                ],
+                [
+                  -3,
+                  7.55
+                ],
+                [
+                  -1.88,
+                  7.55
+                ],
+                [
+                  -1.88,
+                  5
+                ],
+                [
+                  -3,
+                  5
+                ]
+              ],
+              "label": [
+                -0.1,
+                6.25
+              ]
+            },
+            {
+              "id": "13",
+              "name": "Side airlock",
+              "use": "service",
+              "polygon": [
+                [
+                  -3.25,
+                  5
+                ],
+                [
+                  -1.88,
+                  5
+                ],
+                [
+                  -1.88,
+                  7.55
+                ],
+                [
+                  -3.25,
+                  7.55
+                ]
+              ],
+              "label": [
+                -2.55,
+                6.28
+              ]
+            },
+            {
+              "id": "14",
+              "name": "Aft cargo vault",
+              "use": "freight",
+              "polygon": [
+                [
+                  -3,
+                  8.05
+                ],
+                [
+                  3,
+                  8.05
+                ],
+                [
+                  2.38,
+                  12.6
+                ],
+                [
+                  -2.38,
+                  12.6
+                ]
+              ],
+              "label": [
+                -0.5,
+                10.3
+              ]
+            },
+            {
+              "id": "15",
+              "name": "Vault throat",
+              "use": "freight",
+              "polygon": [
+                [
+                  -0.76,
+                  1.65
+                ],
+                [
+                  0.76,
+                  1.65
+                ],
+                [
+                  0.76,
+                  4.55
+                ],
+                [
+                  -0.76,
+                  4.55
+                ]
+              ],
+              "label": [
+                0,
+                3.14
+              ]
+            }
+          ],
+          "doors": [
+            {
+              "rooms": [
+                "09",
+                "10"
+              ],
+              "center": [
+                -1.4,
+                1.65
+              ],
+              "span_axis": "x",
+              "clear_width": 1.1
+            },
+            {
+              "rooms": [
+                "09",
+                "11"
+              ],
+              "center": [
+                1.45,
+                1.65
+              ],
+              "span_axis": "x",
+              "clear_width": 1.1
+            },
+            {
+              "rooms": [
+                "10",
+                "12"
+              ],
+              "center": [
+                -1.4,
+                4.55
+              ],
+              "span_axis": "x",
+              "clear_width": 1.15
+            },
+            {
+              "rooms": [
+                "11",
+                "12"
+              ],
+              "center": [
+                1.35,
+                4.55
+              ],
+              "span_axis": "x",
+              "clear_width": 1.13
+            },
+            {
+              "rooms": [
+                "12",
+                "13"
+              ],
+              "center": [
+                -1.88,
+                6.26
+              ],
+              "span_axis": "z",
+              "clear_width": 1.25
+            },
+            {
+              "rooms": [
+                "13",
+                "OUT"
+              ],
+              "center": [
+                -3.25,
+                6.26
+              ],
+              "span_axis": "z",
+              "clear_width": 1.25
+            },
+            {
+              "rooms": [
+                "12",
+                "14"
+              ],
+              "center": [
+                0,
+                8.05
+              ],
+              "span_axis": "x",
+              "clear_width": 1.75
+            },
+            {
+              "rooms": [
+                "09",
+                "TRUNK"
+              ],
+              "center": [
+                0,
+                -5.6
+              ],
+              "span_axis": "x",
+              "clear_width": 1.55
+            },
+            {
+              "rooms": [
+                "09",
+                "15"
+              ],
+              "center": [
+                0,
+                1.65
+              ],
+              "span_axis": "x",
+              "clear_width": 1.32
+            },
+            {
+              "rooms": [
+                "15",
+                "12"
+              ],
+              "center": [
+                0,
+                4.55
+              ],
+              "span_axis": "x",
+              "clear_width": 1.32
+            }
+          ],
+          "fixtures": [
+            {
+              "room": "09",
+              "kind": "rack",
+              "center": [
+                -1.68,
+                -1.7
+              ],
+              "width": 0.61,
+              "length": 5.1
+            },
+            {
+              "room": "09",
+              "kind": "rack",
+              "center": [
+                1.68,
+                -1.7
+              ],
+              "width": 0.61,
+              "length": 5.1
+            },
+            {
+              "room": "10",
+              "kind": "counter",
+              "center": [
+                -2.65,
+                3.05
+              ],
+              "width": 0.46,
+              "length": 1.8
+            },
+            {
+              "room": "11",
+              "kind": "filter",
+              "center": [
+                2.55,
+                3
+              ],
+              "width": 0.63,
+              "length": 1.1
+            },
+            {
+              "room": "14",
+              "kind": "rack",
+              "center": [
+                1.82,
+                10.55
+              ],
+              "width": 0.5,
+              "length": 2.87
+            }
+          ],
+          "anchors": [
+            {
+              "room": "09",
+              "kind": "strap",
+              "position": [
+                0.85,
+                -4.85
+              ]
+            },
+            {
+              "room": "10",
+              "kind": "fuse",
+              "position": [
+                -1.03,
+                2.14
+              ]
+            },
+            {
+              "room": "11",
+              "kind": "scrubber",
+              "position": [
+                1.97,
+                3.1
+              ]
+            },
+            {
+              "room": "13",
+              "kind": "seal",
+              "position": [
+                -2.94,
+                7.21
+              ]
+            }
+          ]
+        }
+      ],
+      "lifts": [
+        {
+          "id": "L1",
+          "decks": [
+            0,
+            1
+          ],
+          "rooms": [
+            "07",
+            "12"
+          ],
+          "position": [
+            -1.23,
+            7.34
+          ],
+          "size": [
+            1.12,
+            1.2
+          ]
+        }
+      ]
+    }
+  ]
+}

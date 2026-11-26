@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1152" height="738" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1152 738" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1152" height="738"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-738)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1152" height="738" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(97%,96%,94%); fill-rule: evenodd;"/>
+			<rect x="0" y="615" width="1152" height="123" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<rect x="0" y="615" width="1152" height="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(59%,50%,37%); fill-rule: evenodd;"/>
+			<text x="36" y="707" style="font-family: Mono; font-size: 10px;fill: rgb(71%,83%,83%); stroke:none;" transform="translate(0,1414) scale(1,-1)">LONG HAUL   /   FLEET ARCHITECTURE</text>
+			<text x="35" y="664" style="font-family: Title; font-size: 34px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1328) scale(1,-1)">Five ships, five ways to move aboard</text>
+			<text x="37" y="636" style="font-family: Sans; font-size: 13px;fill: rgb(89%,91%,89%); stroke:none;" transform="translate(0,1272) scale(1,-1)">One existing deck and four proposed interiors, arranged by purchase price.</text>
+			<text x="36" y="587" style="font-family: Mono; font-size: 10px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1174) scale(1,-1)">SHIP / PRICE NEW</text>
+			<text x="310" y="587" style="font-family: Mono; font-size: 10px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1174) scale(1,-1)">DECK FOOTPRINTS</text>
+			<text x="535" y="587" style="font-family: Mono; font-size: 10px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1174) scale(1,-1)">HOW THE SHIP WORKS</text>
+			<path d="M 36,573 L 1116,573 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="545" style="font-family: Title; font-size: 17px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,1090) scale(1,-1)">Rustbucket Mk I</text>
+			<text x="36" y="522" style="font-family: Mono; font-size: 11px;fill: rgb(53%,34%,23%); stroke:none;" transform="translate(0,1044) scale(1,-1)">Free starter</text>
+			<polygon points="347.6607 532.9167, 347.6607 542.131, 380.9345 542.131, 380.9345 532.9167" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="351.244 515, 351.244 532.9167, 373.7679 532.9167, 373.7679 515" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="351.244 542.131, 351.244 558, 369.6726 558, 369.6726 542.131" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="373.7679 515, 373.7679 532.9167, 380.9345 532.9167, 380.9345 515" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="369.6726 542.131, 369.6726 558, 380.9345 558, 380.9345 542.131" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="380.9345 520.119, 380.9345 554.9286, 416.7679 554.9286, 416.7679 520.119" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<polygon points="416.7679 525.2381, 416.7679 549.8095, 441.3393 549.8095, 441.3393 525.2381" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(78%,80%,86%); fill-rule: evenodd;"/>
+			<polygon points="416.7679 520.119, 416.7679 525.2381, 441.3393 525.2381, 441.3393 520.119" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="416.7679 549.8095, 416.7679 554.9286, 441.3393 554.9286, 441.3393 549.8095" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<text x="535" y="548" style="font-family: Bold; font-size: 13px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,1096) scale(1,-1)">Existing fitted deck</text>
+			<text x="535" y="528" style="font-family: Sans; font-size: 12px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1056) scale(1,-1)">A central corridor feeds a full-width cargo hold. The finished Rustbucket is the reference for the fleet.</text>
+			<path d="M 36,490 L 1116,490 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="462" style="font-family: Title; font-size: 17px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,924) scale(1,-1)">Dromedary 400</text>
+			<text x="36" y="439" style="font-family: Mono; font-size: 11px;fill: rgb(58%,32%,16%); stroke:none;" transform="translate(0,878) scale(1,-1)">4,500 credits</text>
+			<polygon points="367.6268 460.6761, 367.6268 471.3239, 377.2606 471.3239, 377.2606 460.6761" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(74%,86%,89%); fill-rule: evenodd;"/>
+			<polygon points="377.2606 457, 377.2606 475, 383.8521 475, 383.8521 457" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="383.8521 457, 383.8521 475, 410.7254 475, 410.7254 457" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<polygon points="410.7254 469.9296, 410.7254 475, 416.3028 475, 416.3028 469.9296" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="410.7254 464.4789, 410.7254 469.9296, 416.3028 469.9296, 416.3028 464.4789" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="410.7254 457, 410.7254 464.4789, 416.3028 464.4789, 416.3028 457" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="416.3028 457, 416.3028 475, 421.3732 475, 421.3732 457" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(78%,80%,86%); fill-rule: evenodd;"/>
+			<polygon points="380.5263 431, 380.5263 449, 391.8947 449, 391.8947 431" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="391.8947 431, 391.8947 438.2632, 400.7368 438.2632, 400.7368 431" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="391.8947 438.2632, 391.8947 449, 400.7368 449, 400.7368 438.2632" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="400.7368 438.1053, 400.7368 449, 408.4737 449, 408.4737 438.1053" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="400.7368 431, 400.7368 438.1053, 408.4737 438.1053, 408.4737 431" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<text x="535" y="465" style="font-family: Bold; font-size: 13px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,930) scale(1,-1)">Middle Eastern cozy</text>
+			<text x="535" y="445" style="font-family: Sans; font-size: 12px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,890) scale(1,-1)">A family hauler with a home in its hump. Side loading keeps container traffic below the passenger majlis.</text>
+			<path d="M 36,407 L 1116,407 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="379" style="font-family: Title; font-size: 17px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,758) scale(1,-1)">Stellar Stoat</text>
+			<text x="36" y="356" style="font-family: Mono; font-size: 11px;fill: rgb(15%,45%,43%); stroke:none;" transform="translate(0,712) scale(1,-1)">16,000 credits</text>
+			<polygon points="334.7778 361.1509, 334.7778 381.2058, 356.6022 383.8601, 356.6022 358.4966" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(74%,86%,89%); fill-rule: evenodd;"/>
+			<polygon points="356.6022 358.4966, 356.6022 383.8601, 377.2469 388.8738, 377.2469 353.4829" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="377.2469 353.4829, 377.2469 366.0466, 426.7942 366.0466, 426.7942 353.4829, 422.0754 353.4829, 422.0754 358.9684, 394.3525 358.9684, 394.3525 353.4829" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="377.2469 366.0466, 377.2469 376.31, 426.7942 376.31, 426.7942 366.0466" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<polygon points="377.2469 376.31, 377.2469 388.8738, 381.0809 388.8738, 381.0809 383.2702, 395.4143 383.2702, 395.4143 388.8738, 426.7942 388.8738, 426.7942 376.31" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="394.3525 349, 394.3525 358.9684, 422.0754 358.9684, 422.0754 349" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="426.7942 353.4829, 426.7942 388.8738, 436.2318 388.8738, 436.2318 353.4829" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="436.2318 353.4829, 436.2318 388.8738, 454.2222 382.9753, 454.2222 359.3813" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(78%,80%,86%); fill-rule: evenodd;"/>
+			<polygon points="381.0809 383.2702, 381.0809 392, 395.4143 392, 395.4143 383.2702" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<text x="535" y="382" style="font-family: Bold; font-size: 13px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,764) scale(1,-1)">TNG-era captain’s quarters</text>
+			<text x="535" y="362" style="font-family: Sans; font-size: 12px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,724) scale(1,-1)">A streamlined courier organized around a quiet private wardroom and a cargo capsule with two bypasses.</text>
+			<path d="M 36,324 L 1116,324 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="296" style="font-family: Title; font-size: 17px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,592) scale(1,-1)">Opulent Manatee</text>
+			<text x="36" y="273" style="font-family: Mono; font-size: 11px;fill: rgb(54%,37%,20%); stroke:none;" transform="translate(0,546) scale(1,-1)">52,000 credits</text>
+			<polygon points="367 295, 367 305, 376.3333 306.2222, 376.3333 293.7778" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(74%,86%,89%); fill-rule: evenodd;"/>
+			<polygon points="376.3333 292.4444, 376.3333 307.5556, 385.2222 308.5556, 385.2222 291.4444" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="385.2222 291, 385.2222 295, 403 295, 403 291" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="385.2222 295, 385.2222 305.6667, 403 305.6667, 403 295" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="385.2222 305.6667, 385.2222 309, 403 309, 403 305.6667" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="403 291, 403 305.6667, 414.7778 305.6667, 414.7778 291" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="403 305.6667, 403 309, 414.7778 309, 414.7778 305.6667" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="414.7778 291.5556, 414.7778 308.4444, 422 308.4444, 422 291.5556" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="365.7715 266.4305, 365.7715 282.6424, 374.5927 282.6424, 374.5927 266.4305" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="374.5927 265, 374.5927 270.8411, 381.2682 270.8411, 381.2682 265" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="374.5927 270.8411, 374.5927 278.351, 403.9172 278.351, 403.9172 265, 381.2682 265, 381.2682 270.8411" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<polygon points="374.5927 278.351, 374.5927 283, 405.5861 283, 405.5861 278.351" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="403.9172 266.0728, 403.9172 273.3444, 412.8576 273.3444, 412.8576 266.0728" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="403.9172 273.3444, 403.9172 278.351, 412.8576 278.351, 412.8576 273.3444" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="405.5861 278.351, 405.5861 283, 412.8576 283, 412.8576 278.351" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="412.8576 266.0728, 412.8576 283, 423.2285 282.0464, 423.2285 267.0265" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(78%,80%,86%); fill-rule: evenodd;"/>
+			<text x="535" y="299" style="font-family: Bold; font-size: 13px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,598) scale(1,-1)">Streamline Art Deco</text>
+			<text x="535" y="279" style="font-family: Sans; font-size: 12px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,558) scale(1,-1)">A liner with a port-side promenade and a lounge directly under the observation dome. Staff and baggage</text>
+			<text x="535" y="264" style="font-family: Sans; font-size: 12px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,528) scale(1,-1)">travel on a separate working deck.</text>
+			<path d="M 36,241 L 1116,241 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="213" style="font-family: Title; font-size: 17px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,426) scale(1,-1)">Quasar Empress</text>
+			<text x="36" y="190" style="font-family: Mono; font-size: 11px;fill: rgb(40%,29%,40%); stroke:none;" transform="translate(0,380) scale(1,-1)">180,000 credits</text>
+			<polygon points="359.9595 212.9865, 359.9595 221.0135, 372.3649 222.1568, 372.3649 211.8432" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(74%,86%,89%); fill-rule: evenodd;"/>
+			<polygon points="372.3649 211.8432, 372.3649 222.1568, 385.0135 224.0541, 385.0135 209.9459" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="385.0135 212.6216, 385.0135 221.3784, 404.473 221.3784, 404.473 212.6216" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="385.0135 208.6811, 385.0135 212.6216, 404.473 212.6216, 404.473 208.6811" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="385.0135 221.3784, 385.0135 225.3189, 404.473 225.3189, 404.473 221.3784" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="404.473 208, 404.473 226, 410.7973 226, 410.7973 208" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="410.7973 208, 410.7973 226, 420.0405 226, 420.0405 208" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(78%,80%,86%); fill-rule: evenodd;"/>
+			<polygon points="420.0405 208, 420.0405 226, 429.0405 224.7838, 429.0405 209.2162" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="368.292 184.88, 368.292 197.84, 389.172 200, 389.172 182.72" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<polygon points="389.172 182.72, 389.172 189.1712, 397.524 189.1712, 397.524 182.72" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="389.172 193.5488, 389.172 200, 397.524 200, 397.524 193.5488" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="397.524 182.72, 397.524 200, 407.604 200, 407.604 182.72, 406.164 182.72, 406.164 185.9456, 398.82 185.9456, 398.82 182.72" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="398.82 182, 398.82 185.9456, 406.164 185.9456, 406.164 182" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="407.604 182.72, 407.604 200, 420.708 198.2144, 420.708 184.5056" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<polygon points="389.172 189.1712, 389.172 193.5488, 397.524 193.5488, 397.524 189.1712" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 0.55; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<text x="535" y="216" style="font-family: Bold; font-size: 13px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,432) scale(1,-1)">East Asian flagship</text>
+			<text x="535" y="196" style="font-family: Sans; font-size: 12px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,392) scale(1,-1)">A Japanese imperial-villa sequence inside a needle hull. The forecourt frames a ceremonial view into the</text>
+			<text x="535" y="181" style="font-family: Sans; font-size: 12px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,362) scale(1,-1)">ship’s actual ring station. Freight travels beneath the state rooms.</text>
+			<path d="M 36,158 L 1116,158 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="133" style="font-family: Mono; font-size: 10px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,266) scale(1,-1)">DRAWING BASIS</text>
+			<text x="36" y="112" style="font-family: Sans; font-size: 11.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,224) scale(1,-1)">Hulls and ship capacities follow the integration branch. The four redesigns use hull-local metres. Deck links, wall openings and</text>
+			<text x="36" y="96" style="font-family: Sans; font-size: 11.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,192) scale(1,-1)">passenger and repair approaches were checked on a 0.16 m grid with a 0.21 m clearance radius. Hull fit, overhead clearance</text>
+			<text x="36" y="80" style="font-family: Sans; font-size: 11.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,160) scale(1,-1)">and gameplay still need a 3D blockout.</text>
+			<text x="745" y="133" style="font-family: Mono; font-size: 10px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,266) scale(1,-1)">SOURCE SET</text>
+			<text x="745" y="112" style="font-family: Sans; font-size: 11px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,224) scale(1,-1)">Game hulls and capacities in src/05-ships.js, src/01-data.js and</text>
+			<text x="745" y="96" style="font-family: Sans; font-size: 11px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,192) scale(1,-1)">src/09-cargo.js. Existing deck geometry in art/ship-interiors/build_deck.py.</text>
+			<text x="745" y="80" style="font-family: Sans; font-size: 11px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,160) scale(1,-1)">Drawings show walkable footprints only.</text>
+			<path d="M 36,41 L 1116,41 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="20" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,40) scale(1,-1)">LONG HAUL  /  INTERIOR DESIGN</text>
+			<text x="1073.9931640625" y="20" style="font-family: Mono; font-size: 10px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,40) scale(1,-1)">01 / 09</text>
+		</g>
+	</g>
+</svg>

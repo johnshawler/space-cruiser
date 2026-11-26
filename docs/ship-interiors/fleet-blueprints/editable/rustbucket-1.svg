@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1152" height="738" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1152 738" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1152" height="738"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-738)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1152" height="738" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(97%,96%,94%); fill-rule: evenodd;"/>
+			<rect x="0" y="615" width="1152" height="123" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<rect x="0" y="615" width="1152" height="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(53%,34%,23%); fill-rule: evenodd;"/>
+			<text x="36" y="707" style="font-family: Mono; font-size: 10px;fill: rgb(71%,83%,83%); stroke:none;" transform="translate(0,1414) scale(1,-1)">LONG HAUL   /   FITTED SHIP REFERENCE</text>
+			<text x="35" y="664" style="font-family: Title; font-size: 34px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1328) scale(1,-1)">Rustbucket Mk I</text>
+			<text x="37" y="636" style="font-family: Sans; font-size: 13px;fill: rgb(89%,91%,89%); stroke:none;" transform="translate(0,1272) scale(1,-1)">Existing main deck   /   Existing reference</text>
+			<text x="36" y="590" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1180) scale(1,-1)">FORE  &lt;</text>
+			<text x="386.696044921875" y="590" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1180) scale(1,-1)">STARBOARD</text>
+			<text x="756.5947265625" y="590" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1180) scale(1,-1)">&gt;  AFT</text>
+			<path d="M 132.178571,300.904762 L 688.821429,300.904762 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 132.178571,330.666667 L 688.821429,330.666667 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 132.178571,360.428571 L 688.821429,360.428571 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 132.178571,390.190476 L 688.821429,390.190476 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 132.178571,419.952381 L 688.821429,419.952381 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 132.178571,449.714286 L 688.821429,449.714286 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 132.178571,479.47619 L 688.821429,479.47619 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 132.178571,509.238095 L 688.821429,509.238095 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 132.178571,539 L 688.821429,539 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 147.107143,545 L 147.107143,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 176.869048,545 L 176.869048,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 206.630952,545 L 206.630952,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 236.392857,545 L 236.392857,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 266.154762,545 L 266.154762,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 295.916667,545 L 295.916667,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 325.678571,545 L 325.678571,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 355.440476,545 L 355.440476,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 385.202381,545 L 385.202381,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 414.964286,545 L 414.964286,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 444.72619,545 L 444.72619,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 474.488095,545 L 474.488095,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 504.25,545 L 504.25,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 534.011905,545 L 534.011905,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 563.77381,545 L 563.77381,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 593.535714,545 L 593.535714,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 623.297619,545 L 623.297619,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 653.059524,545 L 653.059524,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<path d="M 682.821429,545 L 682.821429,283 Z" style="stroke: rgb(85%,88%,85%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<polygon points="138.1786 393.1667, 138.1786 446.7381, 331.631 446.7381, 331.631 393.1667" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<polygon points="159.0119 289, 159.0119 393.1667, 289.9643 393.1667, 289.9643 289" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="159.0119 446.7381, 159.0119 539, 266.1548 539, 266.1548 446.7381" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<polygon points="289.9643 289, 289.9643 393.1667, 331.631 393.1667, 331.631 289" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="266.1548 446.7381, 266.1548 539, 331.631 539, 331.631 446.7381" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="331.631 318.7619, 331.631 521.1429, 539.9643 521.1429, 539.9643 318.7619" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<polygon points="539.9643 348.5238, 539.9643 491.381, 682.8214 491.381, 682.8214 348.5238" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(78%,80%,86%); fill-rule: evenodd;"/>
+			<polygon points="539.9643 318.7619, 539.9643 348.5238, 682.8214 348.5238, 682.8214 318.7619" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<polygon points="539.9643 491.381, 539.9643 521.1429, 682.8214 521.1429, 682.8214 491.381" style="stroke: rgb(6%,16%,22%); stroke-linecap: round; stroke-width: 1.65; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<path d="M 138.178571,407.452381 L 138.178571,432.452381 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 138.178571,407.452381 L 138.178571,432.452381 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 135.678571,407.452381 L 140.678571,407.452381 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 135.678571,432.452381 L 140.678571,432.452381 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 206.630952,393.166667 L 242.345238,393.166667 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 206.630952,393.166667 L 242.345238,393.166667 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 206.630952,395.666667 L 206.630952,390.666667 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 242.345238,395.666667 L 242.345238,390.666667 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 191.75,446.738095 L 227.464286,446.738095 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 191.75,446.738095 L 227.464286,446.738095 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 191.75,449.238095 L 191.75,444.238095 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 227.464286,449.238095 L 227.464286,444.238095 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 295.916667,393.166667 L 325.678571,393.166667 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 295.916667,393.166667 L 325.678571,393.166667 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 295.916667,395.666667 L 295.916667,390.666667 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 325.678571,395.666667 L 325.678571,390.666667 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 284.011905,446.738095 L 313.77381,446.738095 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 284.011905,446.738095 L 313.77381,446.738095 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 284.011905,449.238095 L 284.011905,444.238095 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 313.77381,449.238095 L 313.77381,444.238095 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 331.630952,393.166667 L 331.630952,446.738095 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 331.630952,393.166667 L 331.630952,446.738095 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 329.130952,393.166667 L 334.130952,393.166667 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 329.130952,446.738095 L 334.130952,446.738095 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 539.964286,396.142857 L 539.964286,443.761905 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 539.964286,396.142857 L 539.964286,443.761905 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 537.464286,396.142857 L 542.464286,396.142857 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 537.464286,443.761905 L 542.464286,443.761905 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 551.869048,348.52381 L 581.630952,348.52381 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 551.869048,348.52381 L 581.630952,348.52381 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 551.869048,351.02381 L 551.869048,346.02381 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 581.630952,351.02381 L 581.630952,346.02381 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 551.869048,491.380952 L 581.630952,491.380952 Z" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 551.869048,491.380952 L 581.630952,491.380952 Z" style="stroke: rgb(27%,54%,57%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 551.869048,493.880952 L 551.869048,488.880952 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<path d="M 581.630952,493.880952 L 581.630952,488.880952 Z" style="stroke: rgb(17%,42%,46%); stroke-linecap: butt; stroke-width: 1.1;"/>
+			<circle cx="175.3809523809524" cy="306.8571428571429" r="5.6" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(13%,40%,44%); fill-rule: evenodd;"/>
+			<text x="173.4066115606399" y="304.3071428571429" style="font-family: Bold; font-size: 7.1px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,608) scale(1,-1)">1</text>
+			<circle cx="209.6071428571429" cy="306.8571428571429" r="5.6" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(13%,40%,44%); fill-rule: evenodd;"/>
+			<text x="207.63280203683038" y="304.3071428571429" style="font-family: Bold; font-size: 7.1px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,608) scale(1,-1)">2</text>
+			<rect x="156.2761904761905" y="325.8666666666667" width="14.400000000000006" height="9.600000000000023" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(65%,32%,24%); fill-rule: evenodd;"/>
+			<text x="159.39552641369048" y="328.1166666666667" style="font-family: Mono; font-size: 6.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,656) scale(1,-1)">CL</text>
+			<rect x="671.1571428571428" y="453.8428571428571" width="14.399999999999977" height="9.600000000000023" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(65%,32%,24%); fill-rule: evenodd;"/>
+			<text x="674.2764787946429" y="456.0928571428571" style="font-family: Mono; font-size: 6.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,912) scale(1,-1)">TH</text>
+			<rect x="153.59761904761908" y="488.06904761904764" width="14.400000000000006" height="9.600000000000023" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(65%,32%,24%); fill-rule: evenodd;"/>
+			<text x="156.71695498511906" y="490.31904761904764" style="font-family: Mono; font-size: 6.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,980) scale(1,-1)">FU</text>
+			<rect x="284.55" y="325.8666666666667" width="14.399999999999977" height="9.600000000000023" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(65%,32%,24%); fill-rule: evenodd;"/>
+			<text x="287.6693359375" y="328.1166666666667" style="font-family: Mono; font-size: 6.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,656) scale(1,-1)">AS</text>
+			<rect x="263.4190476190476" y="389.5571428571429" width="14.399999999999977" height="9.600000000000023" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(65%,32%,24%); fill-rule: evenodd;"/>
+			<text x="266.5383835565476" y="391.8071428571429" style="font-family: Mono; font-size: 6.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,783) scale(1,-1)">HC</text>
+			<rect x="425.62142857142857" y="461.2833333333333" width="14.399999999999977" height="9.600000000000023" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(65%,32%,24%); fill-rule: evenodd;"/>
+			<text x="428.7407645089286" y="463.5333333333333" style="font-family: Mono; font-size: 6.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,927) scale(1,-1)">CS</text>
+			<rect x="268.47857142857146" y="499.08095238095234" width="14.399999999999977" height="9.600000000000023" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(65%,32%,24%); fill-rule: evenodd;"/>
+			<text x="271.59790736607147" y="501.33095238095234" style="font-family: Mono; font-size: 6.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1002) scale(1,-1)">SE</text>
+			<circle cx="234.60714285714283" cy="421.73809523809524" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="229.92638113839283" y="419.1380952380952" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,838) scale(1,-1)">01</text>
+			<circle cx="223.29761904761907" cy="342.57142857142856" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="218.61685732886906" y="339.97142857142853" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,679) scale(1,-1)">02</text>
+			<circle cx="212.58333333333334" cy="493.1666666666667" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="207.90257161458334" y="490.5666666666667" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,981) scale(1,-1)">03</text>
+			<circle cx="311.3928571428571" cy="342.57142857142856" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="306.71209542410713" y="339.97142857142853" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,679) scale(1,-1)">04</text>
+			<circle cx="298.29761904761904" cy="493.1666666666667" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="293.61685732886906" y="490.5666666666667" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,981) scale(1,-1)">05</text>
+			<circle cx="435.20238095238096" cy="418.76190476190476" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="430.521619233631" y="416.16190476190474" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,832) scale(1,-1)">06</text>
+			<circle cx="611.3928571428571" cy="419.95238095238096" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="606.7120954241071" y="417.35238095238094" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,834) scale(1,-1)">07</text>
+			<circle cx="611.3928571428571" cy="333.04761904761904" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="606.7120954241071" y="330.447619047619" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,660) scale(1,-1)">08</text>
+			<circle cx="611.3928571428571" cy="505.66666666666663" r="7.5" style="stroke: rgb(97%,96%,94%); stroke-linecap: butt; stroke-width: 0.75; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<text x="606.7120954241071" y="503.06666666666666" style="font-family: Mono; font-size: 7.8px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,1006) scale(1,-1)">09</text>
+			<path d="M 138.178571,272 L 682.821429,272 Z" style="stroke: rgb(27%,37%,41%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<path d="M 138.178571,275 L 138.178571,269 Z" style="stroke: rgb(27%,37%,41%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<path d="M 682.821429,275 L 682.821429,269 Z" style="stroke: rgb(27%,37%,41%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<text x="394.29736328125" y="260.0" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,520) scale(1,-1)">18.3 m</text>
+			<path d="M 123.178571,539 L 123.178571,289 Z" style="stroke: rgb(27%,37%,41%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<path d="M 120.178571,539 L 126.178571,539 Z" style="stroke: rgb(27%,37%,41%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<path d="M 120.178571,289 L 126.178571,289 Z" style="stroke: rgb(27%,37%,41%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<text x="107.17661830357144" y="546.0" style="font-family: Mono; font-size: 8px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1092) scale(1,-1)">8.4 m</text>
+			<rect x="694.4761904761905" y="234" width="29.761904761904702" height="3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,16%,22%); fill-rule: evenodd;"/>
+			<rect x="724.2380952380952" y="234" width="29.761904761904816" height="3" style="stroke: rgb(6%,16%,22%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(97%,96%,94%); fill-rule: evenodd;"/>
+			<text x="694.4761904761905" y="241" style="font-family: Mono; font-size: 7.5px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,482) scale(1,-1)">0</text>
+			<text x="740.497802734375" y="241" style="font-family: Mono; font-size: 7.5px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,482) scale(1,-1)">2 m</text>
+			<text x="400.1982421875" y="233" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,466) scale(1,-1)">PORT</text>
+			<path d="M 811,598 L 811,58 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="832" y="584" style="font-family: Mono; font-size: 11px;fill: rgb(53%,34%,23%); stroke:none;" transform="translate(0,1168) scale(1,-1)">ROOM SCHEDULE</text>
+			<text x="1050.689208984375" y="563" style="font-family: Mono; font-size: 8.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1126) scale(1,-1)">BEAM × LENGTH</text>
+			<rect x="833" y="543" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<text x="844" y="544" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1088) scale(1,-1)">01</text>
+			<text x="866" y="544" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,1088) scale(1,-1)">Corridor</text>
+			<text x="1065.691650390625" y="544" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1088) scale(1,-1)">1.8 × 6.5</text>
+			<rect x="833" y="519" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<text x="844" y="520" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1040) scale(1,-1)">02</text>
+			<text x="866" y="520" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,1040) scale(1,-1)">Passenger cabin</text>
+			<text x="1065.691650390625" y="520" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,1040) scale(1,-1)">3.5 × 4.4</text>
+			<rect x="833" y="495" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<text x="844" y="496" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,992) scale(1,-1)">03</text>
+			<text x="866" y="496" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,992) scale(1,-1)">Galley and bunk</text>
+			<text x="1065.691650390625" y="496" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,992) scale(1,-1)">3.1 × 3.6</text>
+			<rect x="833" y="471" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<text x="844" y="472" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,944) scale(1,-1)">04</text>
+			<text x="866" y="472" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,944) scale(1,-1)">Scrubber bay</text>
+			<text x="1065.691650390625" y="472" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,944) scale(1,-1)">3.5 × 1.4</text>
+			<rect x="833" y="447" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<text x="844" y="448" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,896) scale(1,-1)">05</text>
+			<text x="866" y="448" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,896) scale(1,-1)">Airlock</text>
+			<text x="1065.691650390625" y="448" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,896) scale(1,-1)">3.1 × 2.2</text>
+			<rect x="833" y="423" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<text x="844" y="424" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,848) scale(1,-1)">06</text>
+			<text x="866" y="424" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,848) scale(1,-1)">Cargo hold</text>
+			<text x="1077.093505859375" y="424" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,848) scale(1,-1)">6.8 × 7</text>
+			<rect x="833" y="399" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(78%,80%,86%); fill-rule: evenodd;"/>
+			<text x="844" y="400" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,800) scale(1,-1)">07</text>
+			<text x="866" y="400" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,800) scale(1,-1)">Engine room</text>
+			<text x="1065.691650390625" y="400" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,800) scale(1,-1)">4.8 × 4.8</text>
+			<rect x="833" y="375" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<text x="844" y="376" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,752) scale(1,-1)">08</text>
+			<text x="866" y="376" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,752) scale(1,-1)">Port service alley</text>
+			<text x="1077.093505859375" y="376" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,752) scale(1,-1)">1 × 4.8</text>
+			<rect x="833" y="351" width="5" height="12" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<text x="844" y="352" style="font-family: Mono; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,704) scale(1,-1)">09</text>
+			<text x="866" y="352" style="font-family: Bold; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,704) scale(1,-1)">Starboard service alley</text>
+			<text x="1077.093505859375" y="352" style="font-family: Mono; font-size: 9.5px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,704) scale(1,-1)">1 × 4.8</text>
+			<path d="M 832,336 L 1116,336 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="833" y="314" style="font-family: Mono; font-size: 10px;fill: rgb(53%,34%,23%); stroke:none;" transform="translate(0,628) scale(1,-1)">DECK DATUM</text>
+			<text x="833" y="292" style="font-family: Sans; font-size: 11px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,584) scale(1,-1)">Floor -0.97 m. Nominal clear height 2.3 m. Room sizes</text>
+			<text x="833" y="276" style="font-family: Sans; font-size: 11px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,552) scale(1,-1)">give the bounding spans in metres.</text>
+			<text x="833" y="244" style="font-family: Mono; font-size: 10px;fill: rgb(53%,34%,23%); stroke:none;" transform="translate(0,488) scale(1,-1)">REPAIR LOCATIONS</text>
+			<text x="834" y="224" style="font-family: Mono; font-size: 9.8px;fill: rgb(65%,32%,24%); stroke:none;" transform="translate(0,448) scale(1,-1)">CL</text>
+			<text x="862" y="224" style="font-family: Sans; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,448) scale(1,-1)">Coolant leak</text>
+			<text x="1077.19384765625" y="224" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,448) scale(1,-1)">Room 02</text>
+			<text x="834" y="207" style="font-family: Mono; font-size: 9.8px;fill: rgb(65%,32%,24%); stroke:none;" transform="translate(0,414) scale(1,-1)">TH</text>
+			<text x="862" y="207" style="font-family: Sans; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,414) scale(1,-1)">Thruster fault</text>
+			<text x="1077.19384765625" y="207" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,414) scale(1,-1)">Room 07</text>
+			<text x="834" y="190" style="font-family: Mono; font-size: 9.8px;fill: rgb(65%,32%,24%); stroke:none;" transform="translate(0,380) scale(1,-1)">FU</text>
+			<text x="862" y="190" style="font-family: Sans; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,380) scale(1,-1)">Blown fuse</text>
+			<text x="1077.19384765625" y="190" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,380) scale(1,-1)">Room 03</text>
+			<text x="834" y="173" style="font-family: Mono; font-size: 9.8px;fill: rgb(65%,32%,24%); stroke:none;" transform="translate(0,346) scale(1,-1)">AS</text>
+			<text x="862" y="173" style="font-family: Sans; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,346) scale(1,-1)">Air scrubber</text>
+			<text x="1077.19384765625" y="173" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,346) scale(1,-1)">Room 04</text>
+			<text x="834" y="156" style="font-family: Mono; font-size: 9.8px;fill: rgb(65%,32%,24%); stroke:none;" transform="translate(0,312) scale(1,-1)">HC</text>
+			<text x="862" y="156" style="font-family: Sans; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,312) scale(1,-1)">Hull crack</text>
+			<text x="1077.19384765625" y="156" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,312) scale(1,-1)">Room 01</text>
+			<text x="834" y="139" style="font-family: Mono; font-size: 9.8px;fill: rgb(65%,32%,24%); stroke:none;" transform="translate(0,278) scale(1,-1)">CS</text>
+			<text x="862" y="139" style="font-family: Sans; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,278) scale(1,-1)">Cargo strap</text>
+			<text x="1077.19384765625" y="139" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,278) scale(1,-1)">Room 06</text>
+			<text x="834" y="122" style="font-family: Mono; font-size: 9.8px;fill: rgb(65%,32%,24%); stroke:none;" transform="translate(0,244) scale(1,-1)">SE</text>
+			<text x="862" y="122" style="font-family: Sans; font-size: 11px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,244) scale(1,-1)">Airlock seal</text>
+			<text x="1077.19384765625" y="122" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,244) scale(1,-1)">Room 05</text>
+			<path d="M 36,213 L 788,213 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="188" style="font-family: Mono; font-size: 10px;fill: rgb(53%,34%,23%); stroke:none;" transform="translate(0,376) scale(1,-1)">WALKING THE DECK</text>
+			<text x="36" y="163" style="font-family: Sans; font-size: 14px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,326) scale(1,-1)">The finished tug provides the starting point. Its narrow centre passage serves the cabin and galley before feeding the</text>
+			<text x="36" y="144" style="font-family: Sans; font-size: 14px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,288) scale(1,-1)">hold and aft engine room. The cockpit lies forward of room 01. Two of the four modeled passenger pads are active in</text>
+			<text x="36" y="125" style="font-family: Sans; font-size: 14px;fill: rgb(6%,16%,22%); stroke:none;" transform="translate(0,250) scale(1,-1)">the starter ship.</text>
+			<path d="M 36,108 L 788,108 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<rect x="36" y="82" width="11" height="8" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(74%,86%,89%); fill-rule: evenodd;"/>
+			<text x="53" y="82" style="font-family: Sans; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,164) scale(1,-1)">Flight</text>
+			<rect x="155" y="82" width="11" height="8" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(94%,83%,70%); fill-rule: evenodd;"/>
+			<text x="172" y="82" style="font-family: Sans; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,164) scale(1,-1)">Living</text>
+			<rect x="274" y="82" width="11" height="8" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(83%,87%,81%); fill-rule: evenodd;"/>
+			<text x="291" y="82" style="font-family: Sans; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,164) scale(1,-1)">Service</text>
+			<rect x="393" y="82" width="11" height="8" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(83%,85%,88%); fill-rule: evenodd;"/>
+			<text x="410" y="82" style="font-family: Sans; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,164) scale(1,-1)">Freight</text>
+			<rect x="512" y="82" width="11" height="8" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(78%,80%,86%); fill-rule: evenodd;"/>
+			<text x="529" y="82" style="font-family: Sans; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,164) scale(1,-1)">Engineering</text>
+			<rect x="631" y="82" width="11" height="8" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(94%,92%,86%); fill-rule: evenodd;"/>
+			<text x="648" y="82" style="font-family: Sans; font-size: 9.2px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,164) scale(1,-1)">Passage</text>
+			<text x="36" y="60" style="font-family: Sans; font-size: 10px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,120) scale(1,-1)">Dashed lines = door openings    /    Teal circles = passenger seats    /    L = lift    /    Red tags = repairs</text>
+			<path d="M 36,41 L 1116,41 Z" style="stroke: rgb(72%,77%,76%); stroke-linecap: butt; stroke-width: 0.75;"/>
+			<text x="36" y="20" style="font-family: Mono; font-size: 9px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,40) scale(1,-1)">LONG HAUL  /  INTERIOR DESIGN</text>
+			<text x="1073.9931640625" y="20" style="font-family: Mono; font-size: 10px;fill: rgb(27%,37%,41%); stroke:none;" transform="translate(0,40) scale(1,-1)">02 / 09</text>
+		</g>
+	</g>
+</svg>

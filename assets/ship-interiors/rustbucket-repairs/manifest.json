@@ -1,0 +1,283 @@
+{
+  "ship": "rustbucket",
+  "source_revision": "8f156a73be7c80144347d71f617453710ffc15cd",
+  "axes": "glTF, metres, X starboard, Y up, Z aft. Parent once at game_position, then apply game_rotation_y_radians. Each state file is local to the fault anchor.",
+  "states": [
+    "working",
+    "broken",
+    "repaired"
+  ],
+  "stations": [
+    {
+      "fault_id": "coolant",
+      "part": "Cabin heater coupling",
+      "room": "Passenger cabin",
+      "game_position": [
+        -3,
+        -0.35,
+        1.55
+      ],
+      "game_rotation_y_radians": 0.0,
+      "default_state": "working",
+      "source_meshes_superseded": [
+        "Cabin heater line",
+        "Heater compression collar",
+        "Heater compression collar",
+        "Heater compression collar"
+      ],
+      "states": {
+        "working": {
+          "file": "glb/coolant-working.glb",
+          "triangles": 1024,
+          "components": 24
+        },
+        "broken": {
+          "file": "glb/coolant-broken.glb",
+          "triangles": 1624,
+          "components": 27
+        },
+        "repaired": {
+          "file": "glb/coolant-repaired.glb",
+          "triangles": 1656,
+          "components": 34
+        }
+      }
+    },
+    {
+      "fault_id": "thruster",
+      "part": "Thruster injector panel",
+      "room": "Engine room",
+      "game_position": [
+        1.3,
+        0.35,
+        18.85
+      ],
+      "game_rotation_y_radians": 3.141592653589793,
+      "default_state": "working",
+      "source_meshes_superseded": [
+        "Aft thruster service board",
+        "Drive return hydraulic coupling",
+        "Drive return hydraulic coupling",
+        "Drive return hydraulic coupling",
+        "Braided thruster return",
+        "Braided thruster return",
+        "Braided thruster return"
+      ],
+      "states": {
+        "working": {
+          "file": "glb/thruster-working.glb",
+          "triangles": 2136,
+          "components": 36
+        },
+        "broken": {
+          "file": "glb/thruster-broken.glb",
+          "triangles": 3396,
+          "components": 36
+        },
+        "repaired": {
+          "file": "glb/thruster-repaired.glb",
+          "triangles": 2744,
+          "components": 48
+        }
+      }
+    },
+    {
+      "fault_id": "fuse",
+      "part": "Radio fuse bank",
+      "room": "Galley",
+      "game_position": [
+        2.45,
+        0.45,
+        1.46
+      ],
+      "game_rotation_y_radians": 0.0,
+      "default_state": "working",
+      "source_meshes_superseded": [
+        "Galley fuse panel",
+        "Fuse socket",
+        "Porcelain fuse",
+        "Fuse socket",
+        "Porcelain fuse",
+        "Fuse socket",
+        "Porcelain fuse",
+        "Fuse socket",
+        "Porcelain fuse",
+        "Fuse socket",
+        "Porcelain fuse",
+        "Fuse socket",
+        "Porcelain fuse"
+      ],
+      "states": {
+        "working": {
+          "file": "glb/fuse-working.glb",
+          "triangles": 3744,
+          "components": 66
+        },
+        "broken": {
+          "file": "glb/fuse-broken.glb",
+          "triangles": 3980,
+          "components": 63
+        },
+        "repaired": {
+          "file": "glb/fuse-repaired.glb",
+          "triangles": 4128,
+          "components": 74
+        }
+      }
+    },
+    {
+      "fault_id": "scrubber",
+      "part": "Scrubber intake fan",
+      "room": "Scrubber bay",
+      "game_position": [
+        -3,
+        0.95,
+        5.86
+      ],
+      "game_rotation_y_radians": 0.0,
+      "default_state": "working",
+      "source_meshes_superseded": [
+        "Axial fan housing",
+        "Pressed impeller blade",
+        "Pressed impeller blade",
+        "Pressed impeller blade",
+        "Pressed impeller blade",
+        "Pressed impeller blade",
+        "Pressed impeller blade",
+        "Pressed impeller blade",
+        "Finger guard crosswire",
+        "Finger guard crosswire",
+        "Concentric finger guard",
+        "Concentric finger guard",
+        "Concentric finger guard"
+      ],
+      "states": {
+        "working": {
+          "file": "glb/scrubber-working.glb",
+          "triangles": 3166,
+          "components": 33
+        },
+        "broken": {
+          "file": "glb/scrubber-broken.glb",
+          "triangles": 7248,
+          "components": 63
+        },
+        "repaired": {
+          "file": "glb/scrubber-repaired.glb",
+          "triangles": 4214,
+          "components": 43
+        }
+      }
+    },
+    {
+      "fault_id": "crack",
+      "part": "Pressure-hull plate",
+      "room": "Corridor",
+      "game_position": [
+        -0.86,
+        0.55,
+        5.15
+      ],
+      "game_rotation_y_radians": 1.5707963267948966,
+      "default_state": "working",
+      "source_meshes_superseded": [
+        "Stitched bulkhead leak",
+        "Leak stitch screw",
+        "Leak stitch screw",
+        "Stitched bulkhead leak",
+        "Leak stitch screw",
+        "Leak stitch screw",
+        "Stitched bulkhead leak",
+        "Leak stitch screw",
+        "Leak stitch screw",
+        "Stitched bulkhead leak",
+        "Leak stitch screw",
+        "Leak stitch screw"
+      ],
+      "states": {
+        "working": {
+          "file": "glb/crack-working.glb",
+          "triangles": 768,
+          "components": 16
+        },
+        "broken": {
+          "file": "glb/crack-broken.glb",
+          "triangles": 1136,
+          "components": 32
+        },
+        "repaired": {
+          "file": "glb/crack-repaired.glb",
+          "triangles": 1832,
+          "components": 40
+        }
+      }
+    },
+    {
+      "fault_id": "strap",
+      "part": "Freight lash & ratchet",
+      "room": "Cargo hold",
+      "game_position": [
+        1.55,
+        0.1,
+        10.6
+      ],
+      "game_rotation_y_radians": 0.0,
+      "default_state": "working",
+      "source_meshes_superseded": [
+        "Cargo strap tensioner / starboard",
+        "Cargo strap tensioner / starboard",
+        "Woven freight ratchet strap"
+      ],
+      "states": {
+        "working": {
+          "file": "glb/strap-working.glb",
+          "triangles": 1096,
+          "components": 26
+        },
+        "broken": {
+          "file": "glb/strap-broken.glb",
+          "triangles": 1174,
+          "components": 34
+        },
+        "repaired": {
+          "file": "glb/strap-repaired.glb",
+          "triangles": 1396,
+          "components": 39
+        }
+      }
+    },
+    {
+      "fault_id": "seal",
+      "part": "Inner-hatch seal valve",
+      "room": "Airlock",
+      "game_position": [
+        2.82,
+        0.45,
+        5.32
+      ],
+      "game_rotation_y_radians": -1.5707963267948966,
+      "default_state": "working",
+      "source_meshes_superseded": [
+        "Service seal inspection panel",
+        "Seal isolation handle"
+      ],
+      "states": {
+        "working": {
+          "file": "glb/seal-working.glb",
+          "triangles": 2672,
+          "components": 40
+        },
+        "broken": {
+          "file": "glb/seal-broken.glb",
+          "triangles": 2740,
+          "components": 41
+        },
+        "repaired": {
+          "file": "glb/seal-repaired.glb",
+          "triangles": 3440,
+          "components": 56
+        }
+      }
+    }
+  ]
+}

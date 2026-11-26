@@ -406,13 +406,15 @@ Not built, or built differently:
 
 ## The Rustbucket is now hand-built
 
-The Rustbucket's cockpit and all nine deck spaces come from a hand-built Blender model, `art/ship-interiors/source/Rustbucket-Mk-I.blend`, fitted to the plan above. The generated Rustbucket deck and its trial finish are retired.
+The Rustbucket's cockpit and all nine deck spaces come from a hand-built Blender model, `art/ship-interiors/source/Rustbucket-Repair-States.blend`, fitted to the plan above. The generated Rustbucket deck and its trial finish are retired.
 
 - **Game copy.** `art/ship-interiors/import_deck.py` cuts the model from about 1,030,000 triangles to about 213,000 for the deck and 34,000 for the cockpit, and bakes every surface (materials and lamp light together) to one image map per room. The game draws these unlit, as lit in Blender.
 - **Walking.** The importer maps what is solid in the model and removes it from the game's walking rectangles. The result travels in the manifest (`walk`).
 - **Crates.** The game stacks crates only where the model leaves the floor clear (`crates` in the manifest): four places on the port side.
-- **Repair props.** The seven repair points are unchanged. Where the model already draws the working fitting (the scrubber's fans, the straps on the cargo cases) the game shows only its status screen and the broken state.
-- **Signs.** None of the game's own signs, posters or lettered boards are shown on this deck; the model has its own.
+- **Repair fittings.** Each of the seven repair points shows one hand-built fitting from `assets/ship-interiors/rustbucket-repairs/`: broken while its fault is active, repaired once it has been mended on this hull, otherwise working. The game still supplies the sounds, smoke, steam and sparks. Repair history is kept in the save (`fixed`) and cleared when the player changes hull. The three forms of each fitting are left out of the baked rooms; the two fixed lengths of heater pipe either side of the cabin coupling are kept.
+- **No status screens.** The small screen beside each repair point is no longer shown on any ship; the fitting itself shows its state.
+- **No room signage.** Nothing names a room or points the way, on any ship: the game's door and direction signs are gone, and the Rustbucket's game copy leaves out the model's corridor signs, hatch legends, room stencils and room plates (`ROOM_LETTERING` in `art/ship-interiors/rustbucket.py`). Labels on equipment and cargo stay.
+- **Bedding.** Flat bedding loses its hidden underside before it is cut down, so its top surface stays clean.
 - **Cockpit.** The game's glass, sliding door and named points are kept. The live instrument faces sit on the hand-built console: the main face spans the two scopes, the side faces cover the key clusters, the pedestal face lies on the desk.
 
 Sizes: deck model 5.8 MB plus 2.7 MB of image maps; cockpit 0.9 MB plus 0.3 MB.

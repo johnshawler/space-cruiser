@@ -1,34 +1,22 @@
 # Walkable ship interiors
 
+Open the [fleet blueprints and repair-model handoff](fleet-blueprints/README.md) for the four proposed replacement layouts and the Rustbucket repair models.
+
 The lived-in redesign of each deck is described in [the deck briefs](briefs.md).
 
 The complete fleet archive includes the native Blender scenes, game models, ship manifests and full-size views. Open `gallery.html` after extraction.
 
 ## Rustbucket Mk I
 
-Exposed service lines, patched berths and a repair gantry.
+The fitted Rustbucket has a welded cockpit, stacked dayberths, and a working cargo gantry. The [cutaway](rustbucket/fitted/deck-cutaway.jpg) shows how the rooms connect. The [repair fittings](rustbucket/repair-states.jpg) show working, broken and repaired states for the seven fault stations.
 
-![Rustbucket Mk I, corridor](rustbucket/corridor.png)
+![Rustbucket fitted room views](rustbucket/fitted/room-proof.jpg)
 
-![Rustbucket Mk I, cabin](rustbucket/cabin.png)
-
-![Rustbucket Mk I, galley](rustbucket/galley.png)
-
-![Rustbucket Mk I, hold](rustbucket/hold.png)
-
-![Rustbucket Mk I, engine](rustbucket/engine.png)
-
-![Rustbucket Mk I, airlock](rustbucket/airlock.png)
-
-![Rustbucket Mk I, scrubber bay](rustbucket/scrubber.png)
-
-![Rustbucket Mk I, service alley](rustbucket/alley.png)
-
-![Rustbucket Mk I, overview](rustbucket/overview.png)
+[Individual room renders and original Rustbucket blueprint](rustbucket/fitted/)
 
 ## Dromedary 400
 
-Industrial tie-down rails, stowage and a freight-handling spine.
+Industrial tie-down rails, stowage and a freight-handling spine. The [Dromedary concept sheet](dromedary/Dromedary-400-Concept.png) shows the proposed freight deck and living quarters in the raised hump.
 
 ![Dromedary 400, corridor](dromedary/corridor.png)
 
@@ -113,3 +101,4 @@ Illuminated structural arches and a ringed reactor gallery.
 ![Quasar Empress, service alley](empress/alley.png)
 
 ![Quasar Empress, overview](empress/overview.png)
+
