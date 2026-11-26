@@ -46,6 +46,8 @@ const FAULT_SPOTS = {
 };
 const Faults = {
   t:45,
+  /* how fault-prone this ship is: 1 for the Rustbucket, down to about an eighth for the dearest */
+  rate(){ const s=SHIPS[G.shipId]; return s&&s.faults!=null?s.faults:1; },
   has(id){ return (G.faults||[]).includes(id); },
   list(){ return G.faults||(G.faults=[]); },
   fuelMul(){ return this.has('coolant')?1.7:1; },
@@ -60,8 +62,8 @@ const Faults = {
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
   badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(FAULT_DEFS[k].where)}</span></div>`).join(''); },
   update(dt){
-    // something new goes wrong every couple of minutes of flight, more often on a battered ship
-    this.t-=dt*(1+(100-G.hull)/60); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
+    // something new goes wrong every couple of minutes of flight on the Rustbucket: more often on a battered ship, less on a dearer one
+    this.t-=dt*(1+(100-G.hull)/60)*this.rate(); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
     if(this.has('crack')){ G.hull=Math.max(0,G.hull-dt*0.1); if(G.hull<=0) Hull.breach(); }
     if(this.has('scrubber')) G.sys.dirt=Math.min(1,G.sys.dirt+dt*0.01);
   },
