@@ -760,7 +760,56 @@ const Venues = (() => {
     }
   }
 
+  // This is the public entrance on the pad-facing side of the shop. Keep it
+  // outside the room subtree so the indoor bake, mirrors and click targets
+  // continue to use only the walk-in set.
+  function loadStorefront(V) {
+    const catalog = Assets.manifests.storefronts;
+    const port = catalog && catalog.venues[Assets.slug(V.P.name)];
+    const entry = port && port[V.k];
+    if (!entry) return;
+    Assets.glb('assets/storefronts/' + entry.file).then(source => {
+      if (!Venues.list.includes(V)) return;
+      const front = source.clone(true);
+      // Surface teardown owns its geometry and materials. The cached original
+      // must still be usable on the next visit to the same planet.
+      front.traverse(o => {
+        if (!o.isMesh) return;
+        o.geometry = o.geometry.clone();
+        o.material = Array.isArray(o.material) ? o.material.map(m => m.clone()) : o.material.clone();
+      });
+      const bounds = new THREE.Box3().setFromObject(front);
+      const size = bounds.getSize(new V3());
+      const room = V.room;
+      // A shipyard gets a sales pavilion at the entrance to its larger hangar.
+      const width = V.k === 'yard' ? 42 : room.x1 - room.x0;
+      const scale = width / size.x;
+      front.scale.setScalar(scale);
+      const forward = room.z1 - bounds.min.z * scale;
+      const centre = (room.x0 + room.x1) / 2;
+      front.position.copy(V.root.localToWorld(new V3(centre, -bounds.min.y * scale, forward)));
+      front.quaternion.copy(V.root.quaternion);
+      front.name = 'Storefront: ' + entry.name;
+      Assets.prepare(front, null);
+      // The entrance has its own foundation, including on the cloud platforms.
+      const foundation = new THREE.Mesh(
+        new THREE.BoxGeometry(size.x * .97, .38, size.z * .97),
+        new THREE.MeshStandardMaterial({color: 0x49505a, roughness: .85}));
+      const middle = bounds.getCenter(new V3());
+      foundation.position.set(middle.x, bounds.min.y - .19, middle.z);
+      front.add(foundation);
+      front.visible = Venues.outside;
+      V.storefront = front;
+      V.scn.add(front);
+    }).catch(() => {}); // The procedural port still works when an asset is unavailable.
+  }
+
   const api = {
+    outside:true,
+    showStorefronts(visible) {
+      this.outside = visible;
+      for (const v of this.list) if (v.storefront) v.storefront.visible = visible;
+    },
     active:null, moving:false, list:[],
     defs(P){ return VENUES[P.idx]||[VENUES[0][0]]; },
     has(P,k){ return this.defs(P).some(d=>d.k===k); },
@@ -771,7 +820,7 @@ const Venues = (() => {
     /* each place gets its own spot somewhere around the port, a few hundred metres from the pad and from each other,
        on a terrace cut into the ground (or a platform on a cloud world) with its own neighbourhood behind it */
     build(scn, P, cloud, padMat, hAt, liq){
-      this.list=[]; this.active=null; this.pending=[]; const defs=this.defs(P), n=defs.length, r0=mulberry32(P.idx*313+7), base=r0()*6.283;
+      this.list=[]; this.outside=true; this.active=null; this.pending=[]; const defs=this.defs(P), n=defs.length, r0=mulberry32(P.idx*313+7), base=r0()*6.283;
       defs.forEach((d,i)=>{ const a=base+i/n*6.283+(r0()-0.5)*0.3, rad=d.k==='depot'?240:300+((i*2)%3)*130+r0()*60;
         const root=new THREE.Group(), pos=new V3(Math.cos(a)*rad,0,Math.sin(a)*rad), dir=pos.clone().normalize().negate(); root.rotation.y=Math.atan2(dir.x,dir.z)+(r0()-0.5)*0.5;
         // sit the terrace on the highest ground it covers so nothing pokes through; the showroom pad counts too
@@ -797,7 +846,7 @@ const Venues = (() => {
           Bake.decals(V);   // oil, scuffs and drink rings on the floor
           Bake.floorMirror(V); });   // reflections on the floor (high quality only)
         V.P=P; V.scn=scn; V.bespoke=Assets.room(P,d.k); if(V.bespoke) bespoke(V);   // this port's own room, modelled in Blender, replaces the stock one when it arrives
-        this.list.push(V); });
+        this.list.push(V); loadStorefront(V); });
       // last of all, every material in the port is compiled in one go, with all the shops showing: otherwise each one
       // compiles the first time it comes into view, which stutters the descent and again the takeoff
       this.pending.push(()=>{ const r=World.renderer, cam=Cine.cam; if(!r||!cam) return; const vis=this.list.map(v=>v.root.visible); this.list.forEach(v=>v.root.visible=true);
