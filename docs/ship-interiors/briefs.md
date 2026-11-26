@@ -392,7 +392,7 @@ All five decks are dressed by `art/ship-interiors/dress.py`, room by room, from 
 - **On every hull:** a hooded steel bezel at each of the seven repair spots, a wire cage on every working-room ceiling lamp and a fabric shade on the cabin and galley lamps, sliders parked open beside the cabin, galley, hold and engine room doorways, worn threshold plates, a console under the engine room dials, and a seat in the engine room.
 - **Per hull:** the hardware, most of the three repairs and three to five clutter items in each room.
 - **Lettered boards** are drawn by the game, not modelled, so the words stay sharp: four to six per hull, such as "DOOR STICKS, KICK HERE" and "THINGS TO FIX WHEN RICH". They are listed in `DECK_NOTES` in `src/09-walk.js`.
-- **Against the toy-block look:** every deck model carries baked shading, so parts darken where they meet walls, floor and each other, and the game lays a layer of streaks, blotches and scratches over every plain surface.
+- **Against the toy-block look:** every deck model carries baked shading, so parts darken where they meet walls, floor and each other, and the game lays a layer of streaks, blotches and scratches over every plain surface. Mugs, buckets, stools, pots and boots are turned shapes; coats, curtains, towels, tarps, blankets and bedding are draped cloth; suits have rounded limbs, gloves and boots; crates carry battens.
 
 Not built, or built differently:
 
@@ -402,4 +402,17 @@ Not built, or built differently:
 - **Light and air effects are not built:** flicker, steam, haze, frost patterns and warmer or cooler lamps. The new rooms still borrow light from their neighbours.
 - **Small items left out:** most things under about 0.1 m, such as the pencil in the buckle and the tape labels on mugs.
 - **The engine room seat blocks walking** on every hull (one more entry in `Interior.OBST`).
-- **Each deck file is now 2.2 to 2.7 MB,** up from about 0.6 MB, so the deck size limit in `tools/check-assets.mjs` went from 1.5 MB to 3 MB.
+- **Each deck file is now 2.4 to 3.0 MB,** up from about 0.6 MB, so the deck size limit in `tools/check-assets.mjs` went from 1.5 MB to 3 MB.
+
+## The Rustbucket is now hand-built
+
+The Rustbucket's cockpit and all nine deck spaces come from a hand-built Blender model, `art/ship-interiors/source/Rustbucket-Mk-I.blend`, fitted to the plan above. The generated Rustbucket deck and its trial finish are retired.
+
+- **Game copy.** `art/ship-interiors/import_deck.py` cuts the model from about 1,030,000 triangles to about 213,000 for the deck and 34,000 for the cockpit, and bakes every surface (materials and lamp light together) to one image map per room. The game draws these unlit, as lit in Blender.
+- **Walking.** The importer maps what is solid in the model and removes it from the game's walking rectangles. The result travels in the manifest (`walk`).
+- **Crates.** The game stacks crates only where the model leaves the floor clear (`crates` in the manifest): four places on the port side.
+- **Repair props.** The seven repair points are unchanged. Where the model already draws the working fitting (the scrubber's fans, the straps on the cargo cases) the game shows only its status screen and the broken state.
+- **Signs.** None of the game's own signs, posters or lettered boards are shown on this deck; the model has its own.
+- **Cockpit.** The game's glass, sliding door and named points are kept. The live instrument faces sit on the hand-built console: the main face spans the two scopes, the side faces cover the key clusters, the pedestal face lies on the desk.
+
+Sizes: deck model 5.8 MB plus 2.7 MB of image maps; cockpit 0.9 MB plus 0.3 MB.

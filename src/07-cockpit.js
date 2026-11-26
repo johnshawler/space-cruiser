@@ -254,13 +254,19 @@ const Cockpit = {
       const room=src.clone(true); room.name='bespoke cockpit '+B.ship; Assets.prepare(room,env); const A=Assets.anchors(room);
       const glass=this.M.canopy;
       room.traverse(o=>{ if(!o.isMesh) return; const m=o.material;
+        // a hand-built cockpit comes with every solid surface baked to one image map: it is drawn unlit, as lit in Blender
+        if(B.baked&&/^cockpit.shell/.test(o.name)){ const bm=new THREE.MeshBasicMaterial({color:0x101210}); o.material=bm; o.castShadow=o.receiveShadow=false;
+          Assets.base().then(b=>new THREE.TextureLoader().load(b+B.baked,t=>{ t.flipY=false; t.encoding=THREE.sRGBEncoding; t.anisotropy=8; bm.map=t; bm.color.set(0xffffff); bm.needsUpdate=true; })); return; }
+        if(B.baked&&!o.geometry.attributes.normal) o.geometry.computeVertexNormals();   // the baked export carries no normals; the glass and door need them
         if(o.name==='windshield'||/^canopy_/.test(o.name)||(m&&m.name==='glass')){ o.material=glass; o.renderOrder=3; o.userData.glass=true; o.castShadow=false; }
         else if(m&&m.isMeshStandardMaterial&&/glow/i.test(m.name)) this.glowMats.push(m); });
       // the stock shell goes; the bespoke one comes in
       for(const o of this.shellParts){ g.remove(o); if(o.geometry) o.geometry.dispose(); } this.shellParts=[]; this.strips=[];
       g.add(room); this.bespokeRoom=room;
       // panels and fittings onto their anchors
-      for(const k in this.panels){ const a=A[k]; if(!a) continue; const pg=this.panels[k]; pg.position.copy(a.position); pg.quaternion.copy(a.quaternion); }
+      for(const k in this.panels){ const a=A[k]; if(!a) continue; const pg=this.panels[k]; pg.position.copy(a.position); pg.quaternion.copy(a.quaternion); if(B.baked&&a.scale) pg.scale.copy(a.scale); }
+      // a hand-built cockpit draws its own sticks, mug and paperwork
+      if(B.baked){ for(const k in this.fit) for(const o of this.fit[k].parts) if(o) o.visible=false; if(this.clipboard) this.clipboard.visible=false; }
       for(const k in this.fit){ const a=A[k]; if(!a) continue; const d=a.position.clone().sub(this.fit[k].home); for(const o of this.fit[k].parts) o.position.add(d); this.fit[k].home.copy(a.position); }
       if(A.clipboard&&this.clipboard) this.clipboard.position.copy(A.clipboard.position);
       if(A.mascot&&this.mascot) this.mascot.position.copy(A.mascot.position);
@@ -273,7 +279,7 @@ const Cockpit = {
         for(const L of this.wsLayers){ L.geometry=ws.geometry; L.matrixAutoUpdate=false; L.matrix.copy(m); } }
       // the door: its own panel slides instead of the stock one
       const door=room.getObjectByName('door'); if(door){ if(this.door){ g.remove(this.door); this.door.geometry.dispose(); } this.door=door; this.doorX0=door.position.x; }
-      this.grade=lut;
+      this.grade=B.baked?null:lut;
     }).catch(()=>{});
   },
 

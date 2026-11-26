@@ -77,7 +77,8 @@ const CK = JSON.parse(read('assets/cockpits/manifest.json'));
 const ANCH = ['panel_main', 'panel_left', 'panel_right', 'panel_pedestal', 'panel_overhead', 'panel_radio', 'stick', 'mug', 'clipboard', 'mascot', 'wiper_left', 'wiper_right', 'lamp_port', 'lamp_starboard', 'glow'];
 for (const key of SHIPS) {
   const c = CK.ships.find(s => s.ship === key); if (!c) { fail(`cockpit ${key}: missing`); continue; }
-  const g = common(c, { tris: 60000, meshes: 80, materials: 14, bytes: 1.5e6 }); if (!g) continue;
+  const g = common(c, { tris: 60000, meshes: 80, materials: 14, bytes: 1.5e6 });
+  if (c.baked && !fs.existsSync(path.join(root, c.baked))) fail(`cockpit ${c.ship}: baked map ${c.baked} missing`); if (!g) continue;
   const names = new Set(g.j.nodes.map(n => n.name));
   for (const a of ANCH) { if (!names.has(a)) fail(`cockpit ${key}: no ${a} anchor`); else if (!near(nodePos(g.j, a), c.anchors[a]?.position, 0.002)) fail(`cockpit ${key}: ${a} differs between manifest and GLB`); }
   for (const m of ['windshield', 'canopy_left', 'canopy_right', 'door']) if (!names.has(m)) fail(`cockpit ${key}: no ${m} mesh`);
@@ -91,7 +92,10 @@ pass(`${CK.ships.length} cockpits with ${ANCH.length} anchors each`);
 const DK = JSON.parse(read('assets/ship-interiors/manifest.json'));
 for (const key of SHIPS) {
   const d = DK.ships.find(s => s.ship === key); if (!d) { fail(`deck ${key}: missing`); continue; }
-  const g = common(d, { tris: 60000, meshes: 120, materials: 16, bytes: 3e6 });   // room dressing and baked shading roughly quadrupled the bare decks if (!g) continue;
+  // a hand-built deck (baked: one image map per room) is far heavier in triangles and lighter in materials
+  const g = common(d, d.baked ? { tris: 220000, meshes: 16, materials: 16, bytes: 9e6 } : { tris: 60000, meshes: 120, materials: 18, bytes: d.light ? 5e6 : 3e6 });
+  for (const f of Object.values(d.baked || {})) if (!fs.existsSync(path.join(root, f))) fail(`deck ${key}: baked map ${f} missing`);   // a deck with a baked light map also carries its own surface textures
+  if (d.light && !fs.existsSync(path.join(root, d.light))) fail(`deck ${key}: light map ${d.light} missing`);
   for (const [id, pos] of Object.entries(faults)) if (!near(nodePos(g.j, 'fault_' + id), pos, 0.05)) fail(`deck ${key}: fault_${id} is not at the game's repair spot ${pos}`);
   for (let i = 0; i < 4; i++) if (!near(nodePos(g.j, 'passenger_' + (i + 1)), [-3.8, 0, 1.95 + i * 1.15], 0.05)) fail(`deck ${key}: passenger_${i + 1} is not at a passenger seat`);
   if (!near(nodePos(g.j, 'cockpit_door'), [0, -0.175, 0.68], 0.05)) fail(`deck ${key}: cockpit_door anchor is off the doorway`);

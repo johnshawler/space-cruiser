@@ -39,7 +39,7 @@ const Assets = (() => {
   }
   /* named empties (anchors and light markers) in a loaded model, in the model's own frame */
   function anchors(root) { const out = {}; root.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(root.matrixWorld).invert();
-    root.traverse(o => { if (o === root || o.isMesh || !o.name) return; const m = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(); m.decompose(p, q, s); out[o.name] = { position: p, quaternion: q, node: o }; });
+    root.traverse(o => { if (o === root || o.isMesh || !o.name) return; const m = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(); m.decompose(p, q, s); out[o.name] = { position: p, quaternion: q, node: o , scale: s }; });
     return out; }
   /* an HDR sky as a reflection and fill-light map */
   function env(path) {
