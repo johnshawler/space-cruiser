@@ -26,6 +26,16 @@ Each species has **Happy**, **Bored** and **Sad** pose assets with portrait thum
 
 Expressions animate the face and head independently of the body. Apply the body pose first, then the expression, or adjust the sliders during a walk or a seated shot. Taluun’s eyestalks rise for Happy and droop for Sad. Pelrin changes its ear carriage, Brunn draws the corners of its muzzle, and Nemeya lifts or contracts the rim of its bell. The bored poses use asymmetric posture and, where the sculpt has eyes, a partly closed upper lid.
 
+## Animated performances
+
+[Four-up motion reel](../art/characters/humanoid-species/motion/Long-Haul-Humanoids-in-Motion.mp4) · [Editable animated Blender scenes](../art/characters/humanoid-species/motion/Long-Haul-Humanoid-Motion.blend)
+
+Choose a species in the Scene selector and play frames 1–336 at 24 fps. Frames 1–96 show its walk, 97–144 show the descent onto a stool, and 145–210 show the seated reach and pickup. The camera cuts to the face at frame 211 for Happy, Bored, and Sad. The hands, sample, cameras, visibility changes and expression sliders are keyed. The original neutral asset collection remains in the separate studio master.
+
+Each rig has a **Walk cycle** action with forward root motion and a **Motion study** action for the full performance. The cycle repeats its root translation with an offset. Feet are solved from held world-space contacts, and the pelvis moves toward the loaded leg. The catalog gives each species’ stride length and cycle timing. Preserve the original rig and bake evaluated IK before runtime export. The animated stool and pickup are demonstration props.
+
+The rendered reel lasts 56 seconds and has four 14-second chapters in proof-sheet order. Verification measured the moving character’s actual weighted sole vertices throughout support and checked the sample lift and all three facial peaks. Across the set, maximum measured planted-sole drift was below 0.1 mm.
+
 ## Using the source in the game
 
 Append the species' character collection to retain the armature, meshes, weights, constraints and materials. Append the three body actions and three facial expression actions separately to use their presets in another Blender file. The [catalog](../art/characters/humanoid-species/catalog.json) records scene, collection, rig, action names, dimensions and polygon counts for all sixteen species.
@@ -58,4 +68,18 @@ blender -b authoring/Rebuilt-Rigged-Humanoid-Species.blend --python-exit-code 1 
 blender -b authoring/Rebuilt-Rigged-Humanoid-Species.blend --python-exit-code 1 -P authoring/expression_rig.py -- --output authoring/Expression-Rigs.blend
 blender -b authoring/Expression-Rigs.blend --python-exit-code 1 -P authoring/expression_proofs.py -- --renders authoring/expression-renders --output authoring/Rebuilt-Humanoid-Expressions.blend
 blender -b authoring/Rebuilt-Humanoid-Expressions.blend --python-exit-code 1 -P authoring/verify_expressions.py -- --report authoring/expression-verification.json
+```
+
+
+### Rebuilding the animation and reel
+
+From the species directory, use the expressive studio master and an empty output directory. Native Blender playback and rendering use the animated master’s cameras. The four-up reel renderer uses macOS OpenGL, the evaluated Blender mesh positions and normals, the packed pigmentation and relief textures, and the underlying eyelid settings. The reel compositor requires FFmpeg, FFprobe, Pillow, NumPy and the macOS DIN and Arial Narrow fonts.
+
+```sh
+mkdir -p motion-work/tiles
+blender -b Long-Haul-Humanoid-Species.blend --python-exit-code 1 -P authoring/motion/humanoid_motion.py -- --output motion-work/Motion.blend --report motion-work/spec.json
+blender -b motion-work/Motion.blend --python-exit-code 1 -P authoring/motion/verify_motion.py -- motion-work/spec.json motion-work/checks.json
+clang++ -std=c++17 -dynamiclib -O3 -Wno-deprecated-declarations -framework OpenGL authoring/motion/preview_gpu.cpp -o authoring/motion/preview_gpu.dylib
+blender -b motion-work/Motion.blend --python-exit-code 1 -P authoring/motion/render_motion.py -- --dir motion-work/tiles
+python3 authoring/motion/assemble.py --tiles motion-work/tiles --output motion-work/Humanoids-in-Motion.mp4
 ```

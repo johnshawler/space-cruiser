@@ -34,6 +34,12 @@
           "Taluun | Bored",
           "Taluun | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Taluun | Walk cycle",
+        "performance": "Taluun | Motion study",
+        "walkCycleFrames": 33,
+        "strideMetres": 0.7055
       }
     },
     {
@@ -66,6 +72,12 @@
           "Orrek | Bored",
           "Orrek | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Orrek | Walk cycle",
+        "performance": "Orrek | Motion study",
+        "walkCycleFrames": 41,
+        "strideMetres": 0.5336
       }
     },
     {
@@ -98,6 +110,12 @@
           "Vessari | Bored",
           "Vessari | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Vessari | Walk cycle",
+        "performance": "Vessari | Motion study",
+        "walkCycleFrames": 29,
+        "strideMetres": 1.0704
       }
     },
     {
@@ -130,6 +148,12 @@
           "Mothren | Bored",
           "Mothren | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Mothren | Walk cycle",
+        "performance": "Mothren | Motion study",
+        "walkCycleFrames": 27,
+        "strideMetres": 0.4916
       }
     },
     {
@@ -162,6 +186,12 @@
           "Ureth | Bored",
           "Ureth | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Ureth | Walk cycle",
+        "performance": "Ureth | Motion study",
+        "walkCycleFrames": 40,
+        "strideMetres": 0.8403
       }
     },
     {
@@ -194,6 +224,12 @@
           "Keld | Bored",
           "Keld | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Keld | Walk cycle",
+        "performance": "Keld | Motion study",
+        "walkCycleFrames": 38,
+        "strideMetres": 0.5524
       }
     },
     {
@@ -226,6 +262,12 @@
           "Sovai | Bored",
           "Sovai | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Sovai | Walk cycle",
+        "performance": "Sovai | Motion study",
+        "walkCycleFrames": 32,
+        "strideMetres": 0.7911
       }
     },
     {
@@ -258,6 +300,12 @@
           "Brunn | Bored",
           "Brunn | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Brunn | Walk cycle",
+        "performance": "Brunn | Motion study",
+        "walkCycleFrames": 43,
+        "strideMetres": 0.6259
       }
     },
     {
@@ -290,6 +338,12 @@
           "Pelrin | Bored",
           "Pelrin | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Pelrin | Walk cycle",
+        "performance": "Pelrin | Motion study",
+        "walkCycleFrames": 26,
+        "strideMetres": 0.633
       }
     },
     {
@@ -322,6 +376,12 @@
           "Zhavet | Bored",
           "Zhavet | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Zhavet | Walk cycle",
+        "performance": "Zhavet | Motion study",
+        "walkCycleFrames": 34,
+        "strideMetres": 1.0636
       }
     },
     {
@@ -354,6 +414,12 @@
           "Koruun | Bored",
           "Koruun | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Koruun | Walk cycle",
+        "performance": "Koruun | Motion study",
+        "walkCycleFrames": 37,
+        "strideMetres": 0.3974
       }
     },
     {
@@ -386,6 +452,12 @@
           "Eskel | Bored",
           "Eskel | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Eskel | Walk cycle",
+        "performance": "Eskel | Motion study",
+        "walkCycleFrames": 36,
+        "strideMetres": 0.9858
       }
     },
     {
@@ -418,6 +490,12 @@
           "Rhovi | Bored",
           "Rhovi | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Rhovi | Walk cycle",
+        "performance": "Rhovi | Motion study",
+        "walkCycleFrames": 28,
+        "strideMetres": 0.6509
       }
     },
     {
@@ -450,6 +528,12 @@
           "Nemeya | Bored",
           "Nemeya | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Nemeya | Walk cycle",
+        "performance": "Nemeya | Motion study",
+        "walkCycleFrames": 39,
+        "strideMetres": 0.7397
       }
     },
     {
@@ -482,6 +566,12 @@
           "Dathri | Bored",
           "Dathri | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Dathri | Walk cycle",
+        "performance": "Dathri | Motion study",
+        "walkCycleFrames": 37,
+        "strideMetres": 0.5752
       }
     },
     {
@@ -514,9 +604,17 @@
           "Ulnor | Bored",
           "Ulnor | Sad"
         ]
+      },
+      "animation": {
+        "walk": "Ulnor | Walk cycle",
+        "performance": "Ulnor | Motion study",
+        "walkCycleFrames": 42,
+        "strideMetres": 0.9263
       }
     }
   ],
   "poseProof": "proofs/Long-Haul-Species-Rig-Poses.jpg",
-  "expressionProof": "proofs/Long-Haul-Humanoid-Expression-Sheet.jpg"
+  "expressionProof": "proofs/Long-Haul-Humanoid-Expression-Sheet.jpg",
+  "animatedSource": "motion/Long-Haul-Humanoid-Motion.blend",
+  "motionReel": "motion/Long-Haul-Humanoids-in-Motion.mp4"
 }
