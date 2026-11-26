@@ -294,15 +294,16 @@ def export(key,title):
     mf=ROOT/'assets'/'ship-interiors'/'manifest.json';data=json.loads(mf.read_text());data['ships']=[s for s in data['ships'] if s['ship']!=key]+[stat];mf.write_text(json.dumps(data,indent=2)+'\n')
     print('IMPORT exported',tri,'triangles',len(b),'bytes; maps',sum((finish/(m['name'].replace(' ','-')+'.jpg')).stat().st_size for m in g['meshes']),'bytes')
 
-def export_cockpit(key,title,panels=None):
+def export_cockpit(key,title,panels=None,fittings=None):
     """The cockpit keeps the game's own glass, sliding door and named points, taken from the cockpit model already in
     the repository; everything solid is replaced by the baked copy of the hand-built cockpit."""
     bpy.ops.wm.open_mainfile(filepath=str(work()/(key+'-cockpit.blend')),use_scripts=False)
     sc=bpy.data.scenes[0];bpy.context.window.scene=sc
     obs=[o for o in sc.objects if o.type=='MESH' and o.get('room')=='cockpit'];me=welded('cockpit shell',obs)
     jpg=ROOT/'assets'/'cockpits'/'finish'/key/'cockpit.jpg';jpg.parent.mkdir(parents=True,exist_ok=True);jpg.write_bytes((work()/(key+'-cockpit.jpg')).read_bytes())
-    mat=bpy.data.materials.new('baked cockpit');mat.use_nodes=True;p=mat.node_tree.nodes.get('Principled BSDF');t=mat.node_tree.nodes.new('ShaderNodeTexImage')
-    t.image=bpy.data.images.load(str(jpg));mat.node_tree.links.new(t.outputs['Color'],p.inputs['Base Color']);p.inputs['Roughness'].default_value=1
+    mat=bpy.data.materials.new('baked cockpit');mat.use_nodes=True;p=mat.node_tree.nodes.get('Principled BSDF')
+    # The runtime loads the baked JPEG separately. Only the instant print needs an embedded texture.
+    p.inputs['Roughness'].default_value=1
     me.materials.append(mat);shell=bpy.data.objects.new('cockpit shell',me);sc.collection.objects.link(shell)
     glb=ROOT/'assets'/'cockpits'/(key+'.glb');before=set(bpy.data.objects);bpy.ops.import_scene.gltf(filepath=str(glb))
     donor=[o for o in bpy.data.objects if o not in before];keep=[o for o in donor if o.type=='EMPTY' or o.name=='windshield' or o.name=='door' or o.name.startswith('canopy_')]
@@ -310,7 +311,11 @@ def export_cockpit(key,title,panels=None):
         if panels and o.name in panels:
             pos,tx,ty,k=panels[o.name];o.matrix_world=Matrix.Translation(Vector((pos[0],-pos[2],pos[1])))@Matrix.Rotation(math.pi/2,4,'X')@Matrix.Rotation(ty,4,'Y')@Matrix.Rotation(tx,4,'X')@Matrix.Rotation(math.pi/2,4,'X').inverted()@Matrix.Scale(k,4)
     only(keep+[shell])
-    bpy.ops.export_scene.gltf(filepath=str(glb),export_format='GLB',use_selection=True,export_normals=False,export_animations=False,export_extras=True,export_image_format='NONE')
+    if fittings:
+        before=set(bpy.data.objects);bpy.ops.import_scene.gltf(filepath=str(fittings))
+        only(keep+[shell]+[ob for ob in bpy.data.objects if ob not in before])
+    bpy.ops.export_scene.gltf(filepath=str(glb),export_format='GLB',use_selection=True,export_normals=False,
+                              export_animations=False,export_extras=True,export_image_format='AUTO' if fittings else 'NONE')
     b=glb.read_bytes();g=json.loads(b[20:20+struct.unpack_from('<I',b,12)[0]])
     tri=sum(g['accessors'][p['indices']]['count']//3 for m in g['meshes'] for p in m['primitives'])
     anchors={n['name']:{'position':n.get('translation',[0,0,0]),'quaternion':n.get('rotation',[0,0,0,1])} for n in g['nodes'] if 'mesh' not in n}
@@ -318,12 +323,12 @@ def export_cockpit(key,title,panels=None):
     mf=ROOT/'assets'/'cockpits'/'manifest.json';data=json.loads(mf.read_text());data['ships']=[x for x in data['ships'] if x['ship']!=key]+[stat];mf.write_text(json.dumps(data,indent=2)+'\n')
     print('IMPORT cockpit exported',tri,'triangles',len(b),'bytes',sorted(n['name'] for n in g['nodes']))
 
-def build(path,src,title,budget=200000,panels=None,drop=None):
+def build(path,src,title,budget=200000,panels=None,drop=None,cockpit_drop=None,cockpit_fittings=None):
     key=Path(path).stem;args=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
     stage=args[0] if args else 'all'
     if stage in('prep','all'):prep(src,key,budget,False,drop)
     if stage in('bake','all'):bake(key,args[1] if len(args)>1 else None)
     if stage in('export','all'):export(key,title)
-    if stage in('cockpit-prep','all'):prep(src,key,38000,True)
+    if stage in('cockpit-prep','all'):prep(src,key,38000,True,cockpit_drop)
     if stage in('cockpit-bake','all'):bake(key,None,True)
-    if stage in('cockpit-export','all'):export_cockpit(key,title,panels)
+    if stage in('cockpit-export','all'):export_cockpit(key,title,panels,cockpit_fittings)

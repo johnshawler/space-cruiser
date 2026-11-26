@@ -83,7 +83,7 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .ledger .tot{border-top:1px solid var(--line);padding-top:6px;color:var(--good)}
 
 /* Comms */
-#comms{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(4% + env(safe-area-inset-bottom,0px));width:min(1180px,calc(100% - 32px));z-index:12;background:var(--glass);border:1px solid var(--line);border-top:2px solid var(--cyan);padding:20px 22px;display:grid;grid-template-columns:160px 1fr;gap:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#comms{box-sizing:border-box;--comms-bottom:calc(clamp(48px,14vh,128px) + env(safe-area-inset-bottom,0px));position:absolute;left:50%;transform:translateX(-50%);bottom:var(--comms-bottom);max-height:calc(100% - var(--comms-bottom) - env(safe-area-inset-top,0px) - 12px);overflow:auto;width:min(1180px,calc(100% - 32px));z-index:12;background:var(--glass);border:1px solid var(--line);border-top:2px solid var(--cyan);padding:20px 22px;display:grid;grid-template-columns:160px minmax(0,1fr);gap:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #comms canvas#comms-face{width:160px;height:160px;border:1px solid var(--line)}
 #comms .who{font-family:var(--mono);font-size:24px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
 #comms-glyph{display:block;width:100%;height:44px;margin:6px 0}
@@ -197,7 +197,7 @@ body.touch #title dl div{white-space:normal}
 @media (max-width:640px){
   #title{background:linear-gradient(0deg,rgba(2,4,8,.94) 0%,rgba(2,4,8,.6) 70%,rgba(2,4,8,.2) 100%);padding-left:max(16px,env(safe-area-inset-left,0px))}
   .card{grid-template-columns:48px 1fr}.card canvas{width:48px;height:48px}.card .right{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
-  #comms{grid-template-columns:64px 1fr}#comms canvas#comms-face{width:64px;height:64px}
+  #comms{grid-template-columns:64px minmax(0,1fr)}#comms canvas#comms-face{width:64px;height:64px}
 }
 @media (prefers-reduced-motion:reduce){.lb,#cine-title,#fade{transition:none}.toast{animation-duration:5s;animation-timing-function:step-end}}
 /* wide but short screens (laptop browser windows, tablets sideways, phones sideways): one-line title and height-aware text */
@@ -2987,10 +2987,10 @@ const ASSET_MANIFESTS={interiors:{
       "ship": "rustbucket",
       "name": "Rustbucket Mk I",
       "file": "assets/cockpits/rustbucket.glb",
-      "triangles": 33592,
-      "meshes": 5,
-      "materials": 3,
-      "bytes": 896956,
+      "triangles": 31966,
+      "meshes": 10,
+      "materials": 8,
+      "bytes": 1049256,
       "anchors": {
         "panel_main": {
           "position": [
@@ -3007,28 +3007,28 @@ const ASSET_MANIFESTS={interiors:{
         },
         "panel_left": {
           "position": [
-            -0.6299999952316284,
-            -0.14000000059604645,
-            -0.7400000095367432
+            -0.407,
+            -0.12,
+            -0.607
           ],
           "quaternion": [
-            -0.024802332744002342,
-            0.12463577091693878,
-            0.0031165312975645065,
-            0.991887629032135
+            -0.09433474873044728,
+            0.10433458206461393,
+            0.009941711287711824,
+            0.9900082891289534
           ]
         },
         "panel_right": {
           "position": [
-            0.6299999952316284,
-            -0.14000000059604645,
-            -0.7400000095367432
+            0.407,
+            -0.12,
+            -0.607
           ],
           "quaternion": [
-            -0.024802332744002342,
-            -0.12463577091693878,
-            -0.0031165312975645065,
-            0.991887629032135
+            -0.09433474873044728,
+            -0.10433458206461393,
+            -0.009941711287711824,
+            0.9900082891289534
           ]
         },
         "panel_pedestal": {
@@ -3060,14 +3060,14 @@ const ASSET_MANIFESTS={interiors:{
         "panel_radio": {
           "position": [
             0,
-            -0.02199999988079071,
-            -1.0049999952316284
+            0.18,
+            -0.94
           ],
           "quaternion": [
-            -0.09983339160680771,
-            0,
-            0,
-            0.9950041770935059
+            0.047482140035779614,
+            0.0,
+            -0.0,
+            0.9988720870950507
           ]
         },
         "stick": {
@@ -14793,11 +14793,13 @@ const Cockpit = {
     };
     const screen=(P,x,y,w,h,cw,ch,name,round)=>{
       const cv=makeCanvas(cw,ch), tex=canvasTex(cv), mat=new THREE.MeshBasicMaterial({map:tex});
-      const m=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),mat); m.position.set(x,y,0.003); P.g.add(m);
+      // Set the radio readout just inside its bezel so the lower rim clears the signal meter.
+      const faceZ=name==='radio'?0.0095:0.003;
+      const m=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),mat); m.position.set(x,y,faceZ); P.g.add(m);
       const [cx,cy]=P.xy(x,y); P.ctx.fillStyle='#050506'; if(round){ P.ctx.beginPath(); P.ctx.arc(cx,cy,w/2*P.px+10,0,7); P.ctx.fill(); } else P.ctx.fillRect(cx-w/2*P.px-10,cy-h/2*P.px-10,w*P.px+20,h*P.px+20);
       if(round){ const bz=new THREE.Mesh(new THREE.TorusGeometry(w/2*1.03,w*0.022,10,48),M.rubber); bz.position.set(x,y,0.006); add(bz,false,P.g); }
       else { const t=0.008; bx(w+2*t,t,0.012,M.rubber,x,y+h/2+t/2,0.004,P.g); bx(w+2*t,t,0.012,M.rubber,x,y-h/2-t/2,0.004,P.g); bx(t,h,0.012,M.rubber,x-w/2-t/2,y,0.004,P.g); bx(t,h,0.012,M.rubber,x+w/2+t/2,y,0.004,P.g); }
-      const gl=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),M.screenGlass); gl.position.set(x,y,0.0065); gl.renderOrder=3; P.g.add(gl);
+      const gl=new THREE.Mesh(round?new THREE.CircleGeometry(w/2,48):new THREE.PlaneGeometry(w,h),M.screenGlass); gl.position.set(x,y,faceZ+0.0035); gl.renderOrder=3; P.g.add(gl);
       this.screenMats.push(mat); return this.screens[name]={cv,ctx:cv.getContext('2d'),tex,mat,w:cw,h:ch,mesh:m};
     };
 
