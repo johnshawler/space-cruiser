@@ -5,7 +5,7 @@
   <div id="cine-title"><h2 id="cine-h"></h2><p id="cine-p"></p></div>
   <button id="skip" hidden>Skip ▸ Space</button>
   <div id="tooltip" hidden></div>
-  <div id="keys" hidden><span class="kb-only">? Help · M Map · I Hold · B Scoop · L Walk · P Autopilot</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
+  <div id="keys" hidden><span class="kb-only">? Help · O Pedia · M Map · I Hold · B Scoop · L Walk · P Autopilot</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
   <div id="caption" hidden aria-live="polite"></div>
 
   <div id="touch" aria-label="Touch controls">
@@ -89,6 +89,12 @@
     <footer id="map-foot"></footer>
   </section>
 
+  <section id="pedia" hidden aria-label="Haul-O-Pedia">
+    <div class="box">
+      <header><h1>Haul-O-Pedia</h1><span class="sub">Everything, explained</span><button class="big ghost" id="pedia-close">Close · Esc</button></header>
+      <div class="cols"><nav id="pedia-nav" aria-label="Pages"></nav><article id="pedia-body" tabindex="0"></article></div>
+    </div>
+  </section>
   <section id="ending" hidden aria-live="polite"><div id="ending-body"></div></section>
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
@@ -98,6 +104,7 @@
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
       <button class="big ghost" id="btn-continue" hidden>Continue</button>
+      <button class="big ghost" id="btn-pedia">Haul-O-Pedia</button>
     </div>
     <dl class="touch-only">
       <div><dt>Left stick</dt><dd>Steer</dd></div>
@@ -167,6 +174,7 @@
       <p class="note">Point at your destination, set throttle, press Z. The drive drops out by itself near a planet. Fly on toward it and the port brings you down automatically. Deliveries pay on landing.</p>
       <p class="note">Side work: answer maydays (or don't), mine the asteroid fields on the map and sell the ore at an assay office, take risky contraband runs, or escort nervous VIPs. Your reputation changes what people pay you and how hard customs look at you.</p>
       <p class="gfx-row"><button class="btn" id="gfx-toggle"></button> <span id="gfx-note"></span></p>
+      <button class="big ghost" id="help-pedia">Open the Haul-O-Pedia</button>
       <button class="big" id="help-close">Back to the cockpit</button>
     </div>
   </section>

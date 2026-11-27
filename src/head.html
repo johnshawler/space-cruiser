@@ -43,6 +43,30 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #keys{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:4;font-family:var(--mono);font-size:22px;letter-spacing:.14em;color:var(--dim);opacity:.85;pointer-events:none;text-transform:uppercase}
 
 /* Title */
+#pedia{position:absolute;inset:0;z-index:40;background:rgba(2,4,8,.93);display:flex;padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 12px max(12px,env(safe-area-inset-left,0px))}
+#pedia[hidden]{display:none}
+#pedia .box{flex:1;min-width:0;min-height:0;box-sizing:border-box;display:flex;flex-direction:column;border:1px solid var(--line);border-top:3px solid var(--amber);background:var(--glass);padding:16px 20px}
+#pedia header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+#pedia h1{font-family:var(--display);letter-spacing:.14em;text-transform:uppercase;margin:0;font-size:40px;color:var(--amber)}
+#pedia header .sub{flex:1;font-family:var(--mono);font-size:22px;color:var(--dim);letter-spacing:.08em}
+#pedia .cols{flex:1;min-width:0;min-height:0;display:flex;gap:20px;padding-top:14px}
+#pedia-nav{flex:0 0 300px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.pnav{flex:0 0 auto;font:24px/1.15 var(--display);letter-spacing:.06em;text-align:left;min-height:48px;padding:8px 14px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:2px;cursor:pointer}
+.pnav em{font:18px var(--mono);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:#1a1206;background:var(--amber);padding:2px 8px;margin-left:10px;border-radius:2px;vertical-align:middle}
+.pmore{font:20px var(--mono);color:var(--dim);letter-spacing:.06em;padding:10px 4px}
+.pnav:hover{background:var(--glass-2)}.pnav.on{border-color:var(--amber);color:var(--amber);background:rgba(255,180,84,.1)}
+#pedia-body{flex:1;min-width:0;overflow:auto;padding-right:10px;font-size:25px;line-height:1.42}
+#pedia-body h2{font-family:var(--display);font-size:38px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px}
+#pedia-body h3{font-family:var(--mono);font-size:22px;letter-spacing:.16em;text-transform:uppercase;color:#7fd6ff;margin:24px 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+#pedia-body p{margin:0 0 .7em;max-width:38em}
+.pdl{margin:0;display:grid;gap:2px}.pdl>div{display:grid;grid-template-columns:minmax(200px,30%) 1fr;gap:16px;padding:7px 0;border-bottom:1px solid rgba(220,237,243,.08)}
+.pdl dt{color:var(--amber)}.pdl dd{margin:0}
+.ptbl{overflow-x:auto;margin:6px 0 12px}.ptbl table{border-collapse:collapse;width:100%;font-size:22px}
+.ptbl th{font-family:var(--mono);font-weight:400;font-size:20px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:left;padding:6px 14px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.ptbl td{padding:8px 14px 8px 0;border-bottom:1px solid rgba(220,237,243,.08);vertical-align:top}.ptbl td.k{color:var(--amber);white-space:nowrap}
+.pkeys dl{margin:0 0 10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:0 24px;font-size:22px}
+.pkeys dl>div{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:5px 0;border-bottom:1px solid rgba(220,237,243,.08)}.pkeys dt{font-family:var(--mono);color:var(--amber)}.pkeys dd{margin:0}
+@media (max-width:900px){#pedia .cols{flex-direction:column;gap:10px}#pedia-nav{flex:0 0 auto;flex-direction:row;flex-wrap:wrap;max-height:34vh}.pnav{font-size:20px;min-height:44px;padding:6px 10px}#pedia h1{font-size:30px}#pedia header .sub{display:none}#pedia-body{font-size:22px}.pdl>div{grid-template-columns:1fr;gap:2px}}
 #ending{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:center;overflow-y:auto;padding:min(6vh,56px) max(6vw,env(safe-area-inset-right,0px)) min(6vh,56px) max(6vw,env(safe-area-inset-left,0px));background:linear-gradient(90deg,rgba(2,6,10,.96),rgba(2,6,10,.92) 60%,rgba(2,6,10,.8))}
 #ending[hidden]{display:none}
 #ending-body{max-width:1000px}
@@ -151,6 +175,8 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 .mrow .p{grid-column:2/4;font-family:var(--mono);font-size:22px;color:var(--dim);letter-spacing:.06em}
 .mrow .b{grid-column:2/4;display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
 .mrow em{font-style:normal;font-family:var(--mono);font-size:20px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border:1px solid var(--line);color:var(--dim)}
+.btn.rep{letter-spacing:.08em}.btn.rep b{font-weight:400;margin-left:6px;font-variant-numeric:tabular-nums}
+.btn.rep.r0,.btn.rep.r1{color:#ff8f7a;border-color:#ff8f7a}.btn.rep.r3{color:var(--good);border-color:var(--good)}.btn.rep.r4,.btn.rep.r5{color:var(--amber);border-color:var(--amber)}
 .mshops{margin:-2px 0 6px 54px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .mshops.none{font:20px var(--mono);color:var(--dim);letter-spacing:.06em;opacity:.75}
 .mshop{font:22px var(--mono);letter-spacing:.1em;text-transform:uppercase;min-height:44px;padding:6px 14px;background:transparent;color:var(--cyan);border:1px solid var(--cyan);border-radius:2px;cursor:pointer}

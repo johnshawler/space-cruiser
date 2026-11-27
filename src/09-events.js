@@ -43,10 +43,52 @@ const PIRATE = [
 ];
 
 /* ---------- reputation and hull ---------- */
+/* One number from -100 to 100 and six names for where it puts you. Everything that reads it goes through here, so the
+   standing sheet (Rep.show) can say exactly what your name is doing for you, and it is always true.
+   You earn it by doing the job well: on time, in one piece, and stopping for people in trouble. You lose it by being
+   late, careless or caught. A bad name is a way of playing too: honest work dries up and the back-room work comes looking. */
+const REP_TIERS = [
+  {min:-100,name:'Notorious',say:'Customs know your hull by sight. So does everyone with something to hide.'},
+  {min:-40,name:'Shady',say:'People check their pockets after shaking your hand.'},
+  {min:-10,name:'Unknown',say:'Nobody has heard of you. That is not the worst thing to be.'},
+  {min:15,name:'Decent',say:'You turn up, and so does the cargo. Word is getting round.'},
+  {min:40,name:'Trusted',say:'Clients ask for you by name, and spell it right.'},
+  {min:70,name:'Legendary',say:'They tell stories about your deliveries. Some of them are true.'}];
 const Rep = {
-  label(v){ v=v==null?G.rep:v; return v<-40?'Notorious':v<-10?'Shady':v<15?'Unknown':v<40?'Decent':v<70?'Trusted':'Legendary'; },
-  add(d, why){ if(!d) return; G.rep=clamp(Math.round(G.rep+d),-100,100); UI.toast(`${why?why+'. ':''}Reputation ${d>0?'+':''}${d} (${this.label()})`, d>0?'good':'warn'); },
-  payMul(){ return 1+G.rep/400; },
+  tierOf(v){ v=v==null?G.rep:v; let k=0; REP_TIERS.forEach((t,i)=>{ if(v>=t.min) k=i; }); return k; },
+  label(v){ return REP_TIERS[this.tierOf(v)].name; },
+  signed(v){ v=v==null?G.rep:v; return (v>0?'+':'')+v; },
+  /* quiet: the caller reports it (a delivery says so on its own line) */
+  add(d, why, quiet){ d=Math.round(d); if(!d) return 0; const was=G.rep||0, t0=this.tierOf(was);
+    if(d>0&&was>=70) d=Math.max(1,Math.ceil(d/2));   // the last stretch to the top is slower: legends are not made by routine
+    G.rep=clamp(was+d,-100,100); const got=G.rep-was; if(!got) return 0; Pedia.learn('rep');
+    (G.repLog||(G.repLog=[])).unshift({d:got,why:why||'Reputation'}); G.repLog.length=Math.min(G.repLog.length,8);
+    if(!quiet) UI.toast(`${why?why+'. ':''}Reputation ${got>0?'+':''}${got} (${this.label()})`, got>0?'good':'warn');
+    const t1=this.tierOf(); if(t1!==t0) setTimeout(()=>UI.toast(`${t1>t0?'Your name is rising':'Your name is sinking'}: you are now ${REP_TIERS[t1].name}. ${REP_TIERS[t1].say}`,t1>t0?'good':'warn'),quiet?900:1600);
+    return got; },
+  /* how a finished job reflects on you: on time and whole is the job done properly */
+  delivery(c){ const f=Cargo.factor(c), dmg=c.dmg||0; let d=f>=1?2:f>=0.65?0:-2; if(dmg>=0.3) d-=1; else if(dmg>=0.1&&d>0) d=1; return d; },
+  deliveryWhy(c,d){ const f=Cargo.factor(c), dmg=c.dmg||0; return d>0?(dmg>=0.1?'Delivered on time, a little knocked about':'Delivered on time and in one piece'):f<0.65?(dmg>=0.3?'Delivered very late and damaged':'Delivered very late'):dmg>=0.3?'Delivered damaged':'Delivered late'; },
+  /* ---- what your name does ---- */
+  payMul(){ return 1+G.rep/400; },                                              // new contracts pay 75% to 125%
+  customsMul(){ return G.rep<0?1+(-G.rep)/120:1-G.rep/250; },                   // a bad name is searched harder, a good one waved through
+  bribeTake(){ return clamp(0.6+G.rep/400,0.35,0.85); },                        // an officer takes a quiet fee from someone they think is clean
+  repairPrice(){ return Math.round([7,6,5,5,4,3][this.tierOf()]*Econ.scale()); },                        // credits a point of hull, at any garage
+  vips(){ return G.rep>=-10; },                                                 // nobody hands a VIP to a hauler with a bad name
+  paxMax(){ return [0,1,3,3,3,3][this.tierOf()]; },                             // how many people will ask for a ride at a cantina
+  contraChance(){ return [1,0.85,0.6,0.5,0.35,0.25][this.tierOf()]; },          // how often the back room has something for you
+  contraMul(){ return [1.25,1.1,1,1,1,1][this.tierOf()]; },                     // and what they pay someone they trust to keep quiet
+  /* the standing sheet: where you are, what it is doing, how to move it, and what moved it lately */
+  show(){ Pedia.learn('rep',true); const k=this.tierOf(), T=REP_TIERS[k], up=REP_TIERS[k+1], dn=REP_TIERS[k], pct=v=>(v>=0?'+':'')+Math.round(v*100)+'%';
+    Specs.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click(); $('specs-name').textContent=`Your standing: ${T.name}`; $('specs-tag').textContent=T.say;
+    const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`;
+    const ladder=REP_TIERS.map((t,i)=>`${i===k?'You are here: ':''}${t.name} (${i<REP_TIERS.length-1?t.min+' to '+(REP_TIERS[i+1].min-1):t.min+' to 100'})`);
+    let html=dl('Where you stand',[['Reputation',`${this.signed()} on a scale of -100 to +100`],['Next name up',up?`${up.name} at ${this.signed(up.min)} (${up.min-G.rep} to go)`:'There is no higher name'],['Next name down',k>0?`${REP_TIERS[k-1].name} below ${this.signed(dn.min)}`:'There is no lower name'],['The ladder',ladder.join(' · ')]]);
+    html+=dl('What it is doing for you now',[['Pay on new contracts',pct(this.payMul()-1)],['Customs searches',pct(this.customsMul()-1)+(this.customsMul()<1?' (waved through more often)':this.customsMul()>1?' (searched harder)':'')],['A quiet fee is accepted',Math.round(this.bribeTake()*100)+'% of the time'],['Hull repairs',`${this.repairPrice()} cr a point (${Math.round(5*Econ.scale())} is the usual rate for this ship)`],['VIP escort contracts',this.vips()?'Offered':'Not offered: nobody trusts you with one'],['Passengers at cantinas',this.paxMax()?`Up to ${this.paxMax()} asking at a time`:'None will fly with you'],['Back-room contracts',`Offered ${Math.round(this.contraChance()*100)}% of the time${this.contraMul()>1?', paying '+pct(this.contraMul()-1):''}`]]);
+    html+=dl('How to raise it',[['Deliver on time and in one piece','+2'],['Finish a rescue','+6'],['Bring a VIP in safely','+5'],['Recover cargo you lost','+2']]);
+    html+=dl('How to lose it',[['Deliver very late','-2'],['Deliver badly damaged','-1 more'],['Dump cargo or a passenger','-2'],['Fly past a mayday','-3'],['Lose a VIP contract','-6 to -8'],['Get caught with contraband','-6 to -10'],['Flee customs, or bribe badly','-4 to -6']]);
+    const log=G.repLog||[]; html+=dl('Lately',log.length?log.map(e=>[e.why,(e.d>0?'+':'')+e.d]):[['Nothing yet','Go and deliver something']]);
+    $('specs-body').innerHTML=html; },
 };
 const Hull = {
   hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Math.random()<0.35*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
@@ -66,7 +108,13 @@ const Econ = {
     return `<span class="risk r${k}">${R.name} risk${R.mul>1?' · pays ×'+R.mul:''}</span> · ${pct>100?'<b class="warnf">more than a full tank</b>':'about '+pct+'% of a tank'}`; },
   /* just the risk, without the fuel estimate (used on job tickets) */
   riskLine(A, B){ const k=routeRisk(A,B), R=RISK[k]; return `<span class="risk r${k}">${R.name} risk${R.mul>1?' · pays ×'+R.mul:''}</span>`; },
-  fuelPrice(P){ return P&&P.station?6:3; },
+  /* Running costs keep pace with the ship. A bigger hull earns more a trip (its hold sets the size of its contracts),
+     so fuel, repairs, tows and wages are priced by the same measure and stay about the same share of what a trip makes. */
+  scale(i){ return SHIPS[i==null?G.shipId:i].hold/SHIPS[0].hold; },
+  /* what a unit of cargo pays over a distance in light-seconds, before the goods, the risk and your name are counted.
+     A long haul pays more than a short one, but not out of all proportion to the extra minute it takes. */
+  unitPay(dist){ return 80+dist*24; },
+  fuelPrice(P){ return Math.round((P&&P.station?6:3)*this.scale()); },
 };
 
 /* ---------- waypoints: a temporary nav target that outranks the planet destination ---------- */
@@ -275,7 +323,7 @@ const Mining = {
 /* ---------- contraband ---------- */
 const Customs = {
   armed:false, t:0, cur:null,
-  risk(P, mult){ const strict=STRICT[P.species]||0.3; return clamp(strict*0.55*(mult||1)*(G.up.hidden?0.5:1)*(1+Math.max(0,-G.rep)/120),0.03,0.85); },
+  risk(P, mult){ const strict=STRICT[P.species]||0.3; return clamp(strict*0.55*(mult||1)*(G.up.hidden?0.5:1)*Rep.customsMul(),0.03,0.85); },
   illegal(){ return G.cargo.filter(c=>c.illegal); },
   arm(){ this.armed=this.illegal().length>0&&Math.random()<0.7; this.t=rnd(25,60); this.cur=null; },
   caught(items, where){
@@ -303,7 +351,7 @@ const Customs = {
     const s=G.ship, sp=Math.random()<0.6?'zkthar':pick(['beepul','ooloo','momwump']), seed=Math.floor(Math.random()*1e9), fwd=new V3(0,0,-1).applyQuaternion(s.quat);
     if(s.warp) Game.dropWarp('A customs cutter yanks you out of warp','warn',true);
     const n=Ev.npc('customs',s.pos.clone().addScaledVector(fwd,1500).add(Ev.around(new V3(),300)),{sp,seed,name:alienName(sp,seed),ship:'Customs '+shipName(seed)});
-    const items=this.illegal(), worth=items.reduce((a,c)=>a+c.pay,0), r=clamp(0.42*(G.up.hidden?0.5:1)*(1+Math.max(0,-G.rep)/120),0.05,0.9), bribe=Math.round(worth*0.22/10)*10, take=clamp(0.75-Math.max(0,G.rep)/300,0.4,0.85);
+    const items=this.illegal(), worth=items.reduce((a,c)=>a+c.pay,0), r=clamp(0.42*(G.up.hidden?0.5:1)*Rep.customsMul(),0.05,0.9), bribe=Math.round(worth*0.22/10)*10, take=Rep.bribeTake();
     const esc=clamp(0.28+G.shipId*0.09+(Game.canWarp()===true?0.15:0),0.15,0.85);
     const done=()=>{ Ev.dismiss(n); this.cur=null; };
     this.cur=n;

@@ -23,7 +23,9 @@ const Mech = {
   tier(m){ return MECH_TIERS.find(k=>k.key===(m||G.mech).skill)||MECH_TIERS[1]; },
   /* who is looking for work at this port: the same face each visit */
   offer(P){ const r=mulberry32(P.idx*977+13), sp=ALIEN_POOL[Math.floor(r()*ALIEN_POOL.length)], seed=P.idx*211+7, T=MECH_TIERS[(P.idx*7+3)%3];
-    return {sp, seed, name:alienName(sp,seed), skill:T.key, fee:T.fee, wage:T.wage}; },
+    return {sp, seed, name:alienName(sp,seed), skill:T.key, fee:Math.round(T.fee*Econ.scale()/10)*10, wage:T.wage}; },
+  /* what a repair costs in the ship you are flying: a bigger ship is a bigger job */
+  wage(m){ return Math.round((m||G.mech).wage*Econ.scale()); },
   hire(c){ G.credits-=c.fee; G.mech={sp:c.sp, seed:c.seed, name:c.name, skill:c.skill, wage:c.wage}; this.reset(); },
   fire(){ G.mech=null; this.reset(); },
   reset(){ this.st='idle'; this.job=null; this.t=0; this.path=null; this.told=''; this.drop(); if(typeof Faults!=='undefined'&&$('fault-badge')) Faults.badge(); },
@@ -38,7 +40,7 @@ const Mech = {
       if(this.st!=='idle') UI.toast(`🔧 ${m.name}: ${pick(MECH_LINES.beaten)}`); this.leave(); return; }
     if(this.st==='idle'){
       if(!L.length){ this.told=''; return; }
-      if(G.credits<m.wage){ if(this.told!=='unpaid'){ this.told='unpaid'; UI.toast(`🔧 ${m.name} wants ${fmtCr(m.wage)} before going near it (${FAULT_DEFS[L[0]].name.toLowerCase()}). ${pick(MECH_LINES.unpaid)}`,'warn'); } return; }
+      if(G.credits<this.wage(m)){ if(this.told!=='unpaid'){ this.told='unpaid'; UI.toast(`🔧 ${m.name} wants ${fmtCr(this.wage(m))} before going near it (${FAULT_DEFS[L[0]].name.toLowerCase()}). ${pick(MECH_LINES.unpaid)}`,'warn'); } return; }
       this.told=''; this.job=L[0]; this.st='going'; this.path=null; this.T=this.t=this.legTime(); Faults.badge();
       UI.toast(`🔧 ${m.name} is off to the ${Faults.room(this.job)}: ${FAULT_DEFS[this.job].name.toLowerCase()}.`); return; }
     if(this.st==='going'||this.st==='back'){ this.t-=dt; if(this.t<=0){ if(this.st==='going'){ this.st='work'; this.T=this.t=tier.time; this.path=null; this.botched=false; Faults.badge(); } else { this.st='idle'; this.job=null; this.path=null; } } return; }
@@ -47,7 +49,7 @@ const Mech = {
       if(this.t>0) return;
       if(!this.botched&&Math.random()<tier.botch){ this.botched=true; this.T=this.t=tier.time*0.6;   // one mishap a job is funny; two is a chore
         this.told=''; if(Sfx.ok()) Sfx.clunk(); UI.toast(`🔧 ${m.name} is still at it (${FAULT_DEFS[this.job].name.toLowerCase()}). ${pick(MECH_LINES.botch)}`,'warn'); return; }
-      const id=this.job; G.credits=Math.max(0,G.credits-m.wage); this.job=null; Faults.fix(id,m); this.leave(); } },
+      const id=this.job; const w=this.wage(m); G.credits=Math.max(0,G.credits-w); this.job=null; Faults.fix(id,{name:m.name,wage:w}); this.leave(); } },
   leave(){ this.job=null; this.st='back'; this.path=null; this.T=this.t=this.legTime(); Faults.badge(); },
   /* how long a walk takes: from the real route when the deck is there to measure, a fair guess when it is not */
   legTime(){ const p=this.route(); if(p){ this.path=p; return Math.max(2.5,p.len/1.25); } return 8; },
@@ -110,6 +112,6 @@ const Mech = {
   aim(eye, dir){ const F=this.F; if(!F||!F.visible||!G.mech||(Interior.fitted&&this.level!==Walk.level)) return null; const q=new V3(); F.getWorldPosition(q); Interior.group.worldToLocal(q); q.y+=0.75; const to=q.sub(eye), d=to.length(), dot=to.normalize().dot(dir); return d<3.2&&dot>0.85?{kind:'mech',d}:null; },
   prompt(pr, held){ const m=G.mech, T=this.tier(m); pr.hidden=false; pr.innerHTML=`<b>${esc(m.name)}</b><span>Your mechanic · ${TouchUI.on?'Tap Fix':'Press F'} to chat${this.status()?' · '+esc(this.st==='work'?'working':'on the way'):''}</span>`;
     if(held&&!this.chatLock){ this.chatLock=true; setTimeout(()=>{ this.chatLock=false; },2500);
-      const line=G.credits<m.wage&&Faults.list().length?`I am owed ${m.wage} credits a job. I checked. I have a little book.`:pick(MECH_LINES[this.st==='work'?'working':this.st==='going'?'going':'idle']);
+      const line=G.credits<this.wage(m)&&Faults.list().length?`I am owed ${this.wage(m)} credits a job. I checked. I have a little book.`:pick(MECH_LINES[this.st==='work'?'working':this.st==='going'?'going':'idle']);
       Radio.play({sp:m.sp,seed:m.seed,name:`${m.name} · ${T.label} mechanic`,english:line}); } },
 };

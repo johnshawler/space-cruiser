@@ -14,7 +14,7 @@ const Restaurant = {
   /* how far a ship gets on a full tank at warp */
   range(i){ const s=SHIPS[i]; return s.fuel/1.5*s.warp; },
   dist(){ return Math.max(0,RESTAURANT.pos.distanceTo(G.ship.pos)-RESTAURANT.r); },
-  course(){
+  course(){ Pedia.learn('end');
     if(!this.canReach()){ UI.toast(`The chart will not plot it. Only a ${SHIPS[this.top()].name} carries the fuel to reach ${RESTAURANT.short}.`,'warn'); if(Sfx.ok()) Sfx.beep(330); return false; }
     const R=RESTAURANT; Nav.set({name:R.short.toUpperCase(),sub:'End of the galaxy · '+R.port,pos:R.pos.clone(),dropR:R.dropR,arriveR:R.arriveR,kind:'restaurant',onArrive:()=>this.arrive()});
     UI.toast(`Course laid in for ${R.name}. It is a long way. Fill the tanks first.`,'good'); return true; },
