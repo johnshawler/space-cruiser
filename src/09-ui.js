@@ -23,10 +23,10 @@ const UI = {
   due(P){ return P?G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='ore'):[]; },
   payFor(c){ return c.kind==='escort'?Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5:c.pay; },
   deliver(c, P, quiet){
-    let pay, name, rd=0, rw=''; const end=Story.ending(c,P);
+    let pay, name, rd=0, rw=''; let end=Story.ending(c,P);
     if(c.kind==='escort'){ const r=Escort.land(P); if(!r){ Cockpit.drawManifest(); this.render(); return 0; } pay=r.pay; name=c.vip.title; }
     else { const i=G.cargo.indexOf(c); if(i<0) return 0; G.cargo.splice(i,1); pay=c.pay; name=c.kind==='pax'?c.good:`${c.qty}× ${c.good}`; if(c.kind!=='contra'&&c.kind!=='ore'){ rd=Rep.delivery(c); rw=Rep.deliveryWhy(c,rd); rd=Rep.add(rd,rw,true); } Situ.delivered(c,P); }
-    G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay; this.tell(end);
+    end=Career.delivered(c,P,end); G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay; this.tell(end); Career.counted();
     if(!quiet){ Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); Venues.react('cash'); this.paidFx(pay); UI.toast(`${c.kind==='pax'||c.kind==='escort'?'Seen off':'Delivered'}: ${name} · +${fmtCr(pay)}${rd?` · reputation ${rd>0?'+':''}${rd} (${rw.toLowerCase()})`:''}`,rd<0?'warn':'good'); Cockpit.drawManifest(); Game.save(); this.render(); }
     return pay; },
   deliverAll(P){ const due=this.due(P); let sum=0; for(const c of due) sum+=this.deliver(c,P,true); if(!due.length) return;
@@ -57,17 +57,17 @@ const UI = {
   focusJob(j){ if(this.tab!=='depot') this.go('depot'); this.openTicket(j); },
   openTicket(j){ const P=this.P; if(!P||G.jobs.indexOf(j)<0) return; this.ticket=j; const box=$('port-card'); box.innerHTML=''; box.hidden=false; box.className='ticket'+(j.kind==='contra'?' shady':'');
     const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos), rk=Econ.risk(P,T), rtag=rk>=2?`<span class="tag r${rk}">${RISK[rk].name.toUpperCase()} RISK</span>`:'';
-    let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty); const needs=j.kind||Rep.trusts(j.mul)?null:REP_TIERS[Rep.goodTier(j.mul)];
+    let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty); const needs=j.kind||Rep.trusts(j.mul)?null:REP_TIERS[Rep.goodTier(j.mul)], jl=j.kind?null:j.lic||(j.fragile?'fragile':null), lk=jl?Career.needs(jl):null;
     if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · needs a free seat`; }
     else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.riskLine(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
-    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.sit?'<span class="tag">'+esc(j.sit)+'</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${needs?`<span class="tag bad">NEEDS A ${needs.name.toUpperCase()} NAME</span>`:''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
+    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.sit?'<span class="tag">'+esc(j.sit)+'</span>':''}${jl?`<span class="tag bad">${LICENCES[jl].tag} ${Pedia.pct(LICENCES[jl].mul-1)}</span>`:''}${lk?`<span class="tag bad">NEEDS THE ${lk.lic.toUpperCase()} LICENCE</span>`:''}${needs?`<span class="tag bad">NEEDS A ${needs.name.toUpperCase()} NAME</span>`:''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to,lic:jl}))}`; }
     const x=el('button','close','✕'); x.setAttribute('aria-label','Close'); x.onclick=()=>{ Sfx.click(); this.closeTicket(); }; box.appendChild(x);
-    box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div>${needs?`<p class="lbl">The client only hands this to a hauler known as ${needs.name}. You are ${Rep.label()}, ${needs.min-G.rep} short. Plain cargo, delivered on time, builds a name fastest.</p>`:''}<p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
-    const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat&&!needs;
-    const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',needs?'Not yet':busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
+    box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div>${needs?`<p class="lbl">The client only hands this to a hauler known as ${needs.name}. You are ${Rep.label()}, ${needs.min-G.rep} short. Plain cargo, delivered on time, builds a name fastest.</p>`:''}${lk?`<p class="lbl">This needs the ${lk.lic} licence. It comes with the rank of ${lk.rank}: ${lk.left} more deliver${lk.left===1?'y':'ies'} of any kind.</p>`:''}<p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
+    const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat&&!needs&&!lk;
+    const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',needs||lk?'Not yet':busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
     b.onclick=()=>{ this.closeTicket(); if(j.kind==='contra'){ Customs.load(j,P); return; }
       if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100,story:j.story});
-      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story,cat:j.cat,ends:j.ends,mul:j.mul}); Venues.fetch(j.good,j); }
+      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story,cat:j.cat,ends:j.ends,mul:j.mul,lic:jl,chain:j.chain,step:j.step}); Venues.fetch(j.good,j); }
       G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
     r.appendChild(b); box.appendChild(r); Venues.hopShelf(j); if(Sfx.ok()) Sfx.click(); },
   closeTicket(){ this.ticket=null; const b=$('port-card'); if(b){ b.hidden=true; b.innerHTML=''; } },

@@ -92,13 +92,14 @@ const Rep = {
     Specs.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click(); $('specs-name').textContent=`Your standing: ${T.name}`; $('specs-tag').textContent=T.say;
     const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.filter(Boolean).map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`;
     let html=dl('Where you stand',[['Reputation',this.signed()],['Next name up',up?`${up.name}, ${up.min-G.rep} to go`:'There is no higher name']]);
+    html+=dl('Your career',Career.sheet())+Career.barHtml();
     html+=dl('What it is doing for you',[['Pay on new contracts',pct(this.payMul()-1)],['Cargo clients trust you with',this.cargoLine()],K('garage')&&['Hull repairs',`${this.repairPrice()} cr a point`],K('customs')&&['Customs searches',this.customsMul()<1?'Waved through more often':this.customsMul()>1?'Searched harder':'The usual'],K('bar')&&['Passengers',this.paxMax()?'Will fly with you':'None will fly with you'],K('escort')&&['VIP escorts',this.vips()?'Offered':'Not offered']]);
     const log=(G.repLog||[]).slice(0,4); html+=dl('Lately',log.length?log.map(e=>[e.why,(e.d>0?'+':'')+e.d]):[['Nothing yet','Go and deliver something']]);
     html+=`<p class="note">How a name is earned and lost is in the Haul-O-Pedia. Press O.</p>`;
     $('specs-body').innerHTML=html; },
 };
 const Hull = {
-  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Faults.list().length<Faults.MAX&&Math.random()<0.35*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
+  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; n=Career.knock(n); G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Faults.list().length<Faults.MAX&&Math.random()<0.35*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
     UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
   breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
 };

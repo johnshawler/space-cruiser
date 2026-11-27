@@ -56,8 +56,9 @@ const Restaurant = {
   /* ---------- the ending ---------- */
   ending(){
     const s=G.ship; s.throttle=0; s.warp=false; G.sys.autopilot=false; if(typeof Walk!=='undefined') Walk.exit(true); if(SysMap.open) SysMap.close(); if(Sfx.ok()){ Sfx.cash(); Sfx.beep(660); setTimeout(()=>Sfx.beep(880),260); }
-    const first=!G.won; G.won=true; const st=G.stats||{deliveries:0,earned:0}, mins=Math.round((G.playTime||0)/60), time=mins<60?`${mins} min`:`${Math.floor(mins/60)} h ${mins%60} min`;
+    const first=!G.won; G.won=true; Career.check(true); const st=G.stats||{deliveries:0,earned:0}, mins=Math.round((G.playTime||0)/60), time=mins<60?`${mins} min`:`${Math.floor(mins/60)} h ${mins%60} min`;
     const rows=[['Time at the helm',time],['Deliveries made',String(st.deliveries||0)],['Credits earned',fmtCr(st.earned||0)],['Ship',SHIPS[G.shipId].name+(G.paint?' in '+G.paint.name:'')],['Ports visited',`${(G.seen||[]).length} of ${PLANETS.length}`]];
+    { const sc=Career.score(); rows.push(['Career rank',Career.name()],['Trips taken',String(sc.trips)],['Milestones',`${sc.ok} of ${sc.of}`],['The Diner\'s verdict',`${sc.s} out of 100: ${sc.title}`]); }
     if(G.mech) rows.push(['Mechanic',`${G.mech.name}, who has already found something to fix in the kitchen`]);
     $('ending-body').innerHTML=`<div class="eyebrow">The end of the galaxy · last orders</div><h1>You <span>made it</span></h1>
       <p class="pitch">${esc(RESTAURANT.name)} has one table by the window, and it has been holding it for you. Nobody here asks what you were carrying. The soup is hot. Out past the glass is everything you ever flew past, all at once and very small.</p>

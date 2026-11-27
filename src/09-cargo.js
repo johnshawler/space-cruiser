@@ -14,7 +14,7 @@ const Cargo = {
   seats(){ return this.hullSeats()-(G.mech?1:0); },
   pax(){ return G.cargo.filter(c=>c.kind==='pax'||c.kind==='escort'); },
   decays(c){ return c.to>=0&&c.kind!=='ore'&&c.kind!=='escort'&&!c.quest; },
-  est(c){ const from=c.from>=0?PLANETS[c.from]:(World.nearest||PLANETS[0]), d=from.pos.distanceTo(PLANETS[c.to].pos); return Math.round(d/SHIPS[G.shipId].warp*2.2+150); },
+  est(c){ const from=c.from>=0?PLANETS[c.from]:(World.nearest||PLANETS[0]), d=from.pos.distanceTo(PLANETS[c.to].pos); return Math.round((d/SHIPS[G.shipId].warp*2.2+150)*Career.estMul(c)); },
   stamp(c){ if(!this.decays(c)||c.est!=null) return; c.est=this.est(c); c.el=0; if(c.pay0==null) c.pay0=c.pay; },
   stampAll(){ for(const c of G.cargo) this.stamp(c); },
   factor(c){ if(!this.decays(c)||c.est==null) return 1; const late=Math.max(0,c.el-c.est); return clamp(1-0.5*late/c.est,0.3,1); },
@@ -23,7 +23,7 @@ const Cargo = {
   tick(dt){
     for(const c of G.cargo){ this.stamp(c); if(!this.decays(c)) continue; const was=c.el<=c.est; c.el+=dt*Faults.lagMul(c); c.pay=this.value(c);
       if(was&&c.el>c.est&&!c.told){ c.told=1; UI.toast(c.kind==='pax'?`${c.good} is now running late. Their fare is dropping.`:`${c.qty}× ${c.good} is now late. The pay is dropping.`,'warn'); } } },
-  label(c){ if(!this.decays(c)||c.est==null) return ''; const l=this.left(c), fr=c.fragile?` · fragile, ${Math.round((1-(c.dmg||0))*100)}% intact`:''; return (l>0?`on time for ${fmtTime(l)} more`:`late, pay down to ${fmtCr(c.pay)} from ${fmtCr(c.pay0)}`)+fr; },
+  label(c){ if(!this.decays(c)||c.est==null) return ''; const l=this.left(c), fr=c.fragile?` · fragile, ${Math.round((1-(c.dmg||0))*100)}% intact`:c.lic==='livestock'?` · livestock, ${Math.round((1-(c.dmg||0))*100)}% calm`:c.lic==='express'?' · express':c.lic==='hazard'?' · hazardous':''; return (l>0?`on time for ${fmtTime(l)} more`:`late, pay down to ${fmtCr(c.pay)} from ${fmtCr(c.pay0)}`)+fr; },
 };
 /* hold capacity: the ship's hold, plus one unit under the false floor if a hidden compartment is fitted */
 const holdCap=()=>SHIPS[G.shipId].hold+(G.up&&G.up.hidden?1:0);
