@@ -17,14 +17,15 @@ const FAULT_DEFS = {
 };
 /* what there is to say after a repair: a few for each fault, and some that fit anything */
 const FIX_LINES = {
-  any:['Nobody saw you hit it with the spanner.','The manual said to call a professional. You are the nearest thing for several light-seconds.','It was not the red wire. It was never the red wire.','You have one screw left over. The ship seems fine without it.','That should hold until it does not.','You did not fix it so much as persuade it.','The warranty expired at roughly the moment you touched it.','It is now the most reliable part of the ship. This is not a compliment to the ship.','You fixed it by turning it off and on again. Nobody needs to know.','The tape was meant to be temporary. So was the last tape.','You gave it a stern look and a firm twist. It was mostly the twist.','Somewhere a qualified engineer has just shuddered and does not know why.'],
-  coolant:['The puddle is now purely decorative.','The pipe has stopped hissing. It still looks cross.','You tightened it until it stopped, then one more for luck.'],
-  thruster:['The thruster coughs twice and settles, like an uncle after dinner.','It fires in the right order again. The order was the whole problem.','You cleared out something that may once have been a sandwich.'],
-  fuse:['The radio crackles back to life. You almost miss the quiet.','You replaced the fuse with a slightly less blown fuse.','The fuse box smells of toast. That is new, but it works.'],
-  scrubber:['The air no longer tastes of feet.','The scrubber hums again. It was full of fluff, as everything eventually is.','Fresh air. Well, air. Well, less of whatever that was.'],
+  any:['Nobody saw you hit it with the spanner.','The manual said to call a professional. You are the nearest thing for several light-seconds.','It was not the red wire. It was never the red wire.','You have one screw left over. The ship seems fine without it.','That should hold until it does not.','You did not fix it so much as persuade it.','The warranty expired at roughly the moment you touched it.','It is now the most reliable part of the ship. This is not a compliment to the ship.','You fixed it by turning it off and on again. Nobody needs to know.','The tape was meant to be temporary. So was the last tape.','You gave it a stern look and a firm twist. It was mostly the twist.','Somewhere a qualified engineer has just shuddered and does not know why.',
+    'It works. You are choosing not to ask why.','You tightened the loose thing and loosened the tight thing. One of those was right.','The noise has stopped. A different, quieter noise has started. You call that progress.','You have filed this under fixed. The filing system is your memory.','There was a label that said do not force. You forced it. It needed forcing.','It is held together by hope and a bolt from something else.','You fixed it with the wrong tool, which makes it a skill.','You are fairly sure that part was meant to come off.','The ship made a small grateful sound. Or a settling sound. Hard to say.','You found the fault by smell. You are not proud of that.','A proper repair would take a week and a dry dock. This took a thumb.','You wiped your hands on your trousers and declared it done.','It will do. It has always done.','The diagram was upside down the whole time. It still helped.','You put it back the way you found it, only working.','Fixed, in the sense that it is no longer your most urgent problem.','You hummed while you worked. The ship did not join in.','Three taps and a kind word. The kind word was optional.','You have invented a new technique. You will not be able to repeat it.','The part was fine. The part next to it was the liar.','You fixed it before your tea went cold. A personal best.','There is now a dent shaped like your decision.','It only needed someone to believe in it, and a new washer.','You wedged it with a folded delivery note. The delivery note is load-bearing now.','You read step one, guessed steps two to nine, and were mostly right.','Good as new, if new had been through a lot.','The previous owner fixed it the same way. You found their tape under your tape.','It was loose. Everything on this ship is loose. This one mattered.','You closed the panel quickly, before it could change its mind.','No sparks, no smoke, no smell. You stand there a moment, suspicious.','You have earned a biscuit. There are no biscuits. You have earned the idea of one.','It took one hand. The other held the torch, and your nerve.','You apologised to it first. That seemed to help.','The fix is not in the manual. The manual has been quietly wrong for years.','You used the big spanner, for morale.','The gauge has gone back to a colour you approve of.','It clicked. Clicking is good. You have decided clicking is good.','You stepped back to admire it and hit your head. Worth it.','That is one fewer thing rattling. The census of rattles continues.','You fixed it the honest way: slowly, and with complaining.'],
+  coolant:['The puddle is now purely decorative.','The pipe has stopped hissing. It still looks cross.','You tightened it until it stopped, then one more for luck.','The leak has stopped. The floor will remember.','You clamped the pipe. It hissed once more, out of spite.','Coolant is staying in the cooling. A simple dream, achieved.','The drip has gone. You miss its company very slightly.','You found the split, and a second split hiding behind it.'],
+  thruster:['The thruster coughs twice and settles, like an uncle after dinner.','It fires in the right order again. The order was the whole problem.','You cleared out something that may once have been a sandwich.','All the thrusters agree on a direction again.','It had been firing in a sulk. You talked it round.','You scraped out the nozzle. Nobody should see what came out.','The misfire has gone. The ship no longer flies with a limp.','It lit first time. You both looked surprised.'],
+  fuse:['The radio crackles back to life. You almost miss the quiet.','You replaced the fuse with a slightly less blown fuse.','The fuse box smells of toast. That is new, but it works.','New fuse. The old one goes in the drawer with its ancestors.','The radio is back. It has nothing new to say.','You found a fuse that fits. It is from something. It fits.','Power restored. The radio clears its throat.','The box no longer buzzes. You did not like the buzz.'],
+  scrubber:['The air no longer tastes of feet.','The scrubber hums again. It was full of fluff, as everything eventually is.','Fresh air. Well, air. Well, less of whatever that was.','The fan turns. The air stops arguing with you.','You pulled out a sock. Nobody aboard owns that sock.','It breathes again. So do you, more willingly.','Unjammed. The thing that jammed it has been thrown away with ceremony.','The ribbon on the vent is flapping. A small flag of victory.'],
   crack:['The patch is ugly, airtight and mostly straight.','You sealed it with something from the galley. Best not to say what.','Space is back on the outside, where it belongs.'],
-  seal:['The hissing has stopped. The silence is somehow louder.','You packed the seal with something rubbery from a drawer. It is holding.','The inside is staying inside again.'],
-  strap:['The knot is not in any manual. It is holding anyway.','The cargo has stopped sliding about and started sulking.','Strapped down tight. The crates look almost grateful.'],
+  seal:['The hissing has stopped. The silence is somehow louder.','You packed the seal with something rubbery from a drawer. It is holding.','The inside is staying inside again.','The door is airtight again. It was a matter of opinion for a while.','You reseated the seal. It had wandered.','No more whistle. You had started to harmonise with it.','Greased, pressed and shut. The airlock sulks, sealed.','The leak was the width of a hair. You have used a great deal of sealant.'],
+  strap:['The knot is not in any manual. It is holding anyway.','The cargo has stopped sliding about and started sulking.','Strapped down tight. The crates look almost grateful.','Buckled down. The cargo can stop exploring.','You retied it with a knot your uncle swore by.','The crates are back in a row and pretending nothing happened.','New strap, old buckle, firm tug.','Nothing is sliding. You check twice, because it was sliding a lot.'],
 };
 /* where each repair spot's status screen and particles sit, relative to the spot, and which way it faces */
 /* Hand-lettered boards, one set per hull: [text ('|' breaks the line), style, width, height, x, y, z, quarter turns].
@@ -36,6 +37,10 @@ const DECK_NOTES = {
   manatee:[['SERVICE','brass',0.5,0.18,0.888,0.44,1.6,-1],['PLEASE DO NOT|TIP THE SCRUBBER','brass',0.9,0.45,-2.7,0.42,7.188,2],['DAYS SINCE|LAST INCIDENT:','brass',0.9,0.5,-0.5,0.45,18.988,2],['CLOAKROOM|TICKETS','brass',0.46,0.4,0.912,0.35,6.9,1],['STAFF','brass',0.5,0.2,-2.3,0.3,16.1,1],['STAFF','brass',0.5,0.2,2.3,0.3,16.1,-1]],
   empress:[['PAINT ME','paint',0.5,0.3,0.868,0.3,4.15,-1],['DO NOT BORROW|FROM THE GOOD ONE','paper',1.0,0.5,-2.75,0.42,7.188,2],['MIND THE STEP|IT IS DECORATIVE','paper',0.46,0.5,0.912,0.35,6.9,1],['THINGS TO FIX|WHEN RICH','paper',0.9,0.5,-0.5,0.45,18.988,2],['STOP','paint',0.5,0.25,0.8,1.02,9.352,0]],
 };
+/* Lines are dealt from a shuffled deck, not picked at random: one does not come round again until every other line in
+   its deck has been used, and a reshuffle never puts the last one dealt straight back on top. */
+const Deck = { d:{}, last:{},
+  deal(key, arr){ let q=this.d[key]; if(!q||!q.length){ q=this.d[key]=arr.slice(); for(let i=q.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [q[i],q[j]]=[q[j],q[i]]; } if(q.length>1&&q[q.length-1]===this.last[key]) q.unshift(q.pop()); } return this.last[key]=q.pop(); } };
 const FAULT_SPOTS = {
   coolant:{label:'COOLANT',bad:'LEAK',rot:-Math.PI/2,ry:Math.PI/2,scr:[-0.1,0.42,0],emit:[-0.03,0,0]},
   thruster:{label:'THRUSTERS',bad:'MISFIRE',ry:Math.PI,scr:[-0.75,0.45,0.1],emit:[0,0.45,0.02]},
@@ -46,8 +51,8 @@ const FAULT_SPOTS = {
   seal:{label:'AIRLOCK SEAL',bad:'LEAKING',rot:-Math.PI/2,ry:0,scr:[0,0.5,0.03],emit:[0.1,-0.05,0.1]},
 };
 const Faults = {
-  t:45,
-  /* how fault-prone this ship is: 1 for the Rustbucket, down to about an eighth for the dearest */
+  t:90,
+  /* how fault-prone this ship is: a half for the Rustbucket (a fault about every four minutes), down to about an eighth for the dearest */
   rate(){ const s=SHIPS[G.shipId]; return s&&s.faults!=null?s.faults:1; },
   room(id){
     const deck=Interior.shipId===G.shipId&&Interior.group?Interior.fitted:Assets.enabled&&Assets.deck(G.shipId);
@@ -64,13 +69,13 @@ const Faults = {
   /* which faults have been mended on this hull: a mended fitting shows its field repair from then on */
   mended(id){ return (G.fixed||[]).includes(id); },
   /* by: the hired mechanic, when it was their work and not yours */
-  fix(id, by){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(by?`🔧 ${by.name} fixed it for ${fmtCr(by.wage)}: ${d.name.toLowerCase()}. ${pick(MECH_LINES.fixed)}`:`Fixed: ${d.name.toLowerCase()}. ${pick((FIX_LINES[id]||[]).concat(FIX_LINES.any))}`,'good'); Interior.syncFaults(); this.badge(); },
+  fix(id, by){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(by?`🔧 ${by.name} fixed it for ${fmtCr(by.wage)}: ${d.name.toLowerCase()}. ${Deck.deal('mech',MECH_LINES.fixed)}`:`Fixed: ${d.name.toLowerCase()}. ${FIX_LINES[id]&&Math.random()<0.35?Deck.deal('fix:'+id,FIX_LINES[id]):Deck.deal('fix',FIX_LINES.any)}`,'good'); Interior.syncFaults(); this.badge(); },
   /* what a garage does to a fault nobody aboard can mend */
   weld(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return false; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); Interior.syncFaults(); this.badge(); return true; },
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
   badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(this.room(k))}${Mech.job===k&&Mech.status()?' · 🔧 '+esc(Mech.status()):''}</span></div>`).join(''); },
   update(dt){
-    // something new goes wrong every couple of minutes of flight on the Rustbucket: more often on a battered ship, less on a dearer one
+    // something new goes wrong about every four minutes of flight on the Rustbucket: more often on a battered ship, less on a dearer one
     this.t-=dt*(1+(100-G.hull)/60)*this.rate(); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
     if(this.has('crack')){ G.hull=Math.max(0,G.hull-dt*0.1); if(G.hull<=0) Hull.breach(); }
     if(this.has('scrubber')) G.sys.dirt=Math.min(1,G.sys.dirt+dt*0.01);
@@ -456,8 +461,7 @@ const Interior = {
       for(let i=0;i<3;i++){ const k=Sp(bad,0.06,fluff,-0.2+i*0.18,-0.3-(i%2)*0.08,-0.2); k.scale.set(1,1.6,1); }
       B(bad,0.07,0.07,0.02,std('#c0392b',0.5,0.2),0.3,0.16,-0.165);
       add(12,'#9aa0a6',0.09); }
-    else if(id==='crack'){ // the corridor wall; cracked and frosting over, or covered by a riveted patch plate once it is fixed
-      const pl=B(ok,0.025,0.46,0.56,steel,0.012,0,0); for(let i=0;i<10;i++){ const a=i/10*6.283; Sp(ok,0.016,rivet,0.03,Math.sin(a)*0.19,Math.cos(a)*0.24); } B(ok,0.004,0.05,0.62,yellow,0.026,0.2,0).rotation.x=0.35;
+    else if(id==='crack'){ // the corridor wall: cracked and frosting over, or plain hull. A garage welds a crack flush, so there is no patch plate to see
       const cv2=makeCanvas(256,256), x2=cv2.getContext('2d'); x2.strokeStyle='#050505'; x2.lineWidth=5; x2.beginPath(); let px=128,py=20; x2.moveTo(px,py); for(let i=0;i<9;i++){ px+=(Math.random()-0.5)*60; py+=24; x2.lineTo(px,py); } x2.stroke(); x2.lineWidth=2.5; for(let k=0;k<5;k++){ x2.beginPath(); x2.moveTo(128+(Math.random()-0.5)*40,40+k*40); x2.lineTo(128+(Math.random()-0.5)*160,60+k*40); x2.stroke(); }
       decal(bad,0.8,0.7,c=>{ const g=c.createRadialGradient(128,128,10,128,128,124); g.addColorStop(0,'rgba(235,248,255,.85)'); g.addColorStop(0.6,'rgba(220,240,255,.35)'); g.addColorStop(1,'rgba(220,240,255,0)'); c.fillStyle=g; c.fillRect(0,0,256,256); },0.022,0,0,Math.PI/2);
       crack=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.9),new THREE.MeshBasicMaterial({map:canvasTex(cv2),transparent:true,depthWrite:false})); crack.rotation.y=Math.PI/2; crack.position.x=0.03; crack.renderOrder=5; bad.add(crack);
@@ -485,9 +489,11 @@ const Interior = {
   /* A hand-built deck can bring its own fitting for each repair station in three forms: working, broken and repaired.
      Exactly one shows: broken while the fault is active, repaired once it has been mended on this hull, else working.
      The game keeps the sounds and the smoke, steam and sparks */
-  syncRepairs(){ for(const id in this.repairs||{}){ const R=this.repairs[id], st=Faults.has(id)?'broken':Faults.mended(id)?'repaired':'working'; for(const k in R.models) R.models[k].visible=k===st; } },
+  syncRepairs(){ for(const id in this.repairs||{}){ const R=this.repairs[id], st=Faults.has(id)?'broken':Faults.mended(id)&&!FAULT_DEFS[id].garage?'repaired':'working'; /* a garage weld leaves no field repair behind */ for(const k in R.models) R.models[k].visible=k===st; } },
   fitRepairs(B,g){ this.repairs={};
-    for(const id in B.repairs){ const d=B.repairs[id], f=this.fx[id]; if(!f) continue; const grp=new THREE.Group(); grp.position.set(...d.pos); grp.rotation.y=d.yaw||0; g.add(grp); const R=this.repairs[id]={grp,models:{}};
+    for(const id in B.repairs){ const d=B.repairs[id], f=this.fx[id]; if(!f) continue;
+      if(FAULT_DEFS[id].garage) continue;   // a hull crack is drawn straight on the wall: no fitting, and no plate over it
+      const grp=new THREE.Group(); grp.position.set(...d.pos); grp.rotation.y=d.yaw||0; g.add(grp); const R=this.repairs[id]={grp,models:{}};
       // the game's own stand-in fitting goes; its particles stay
       const face=f.scr.parent, keep=new Set(f.parts.map(p=>p.m)); f.grp.traverse(o=>{ if(!o.isMesh||keep.has(o)) return; for(let q=o;q;q=q.parent) if(q===face) return; o.visible=false; }); if(f.fan) f.fan.visible=false;
       // the fittings are live-lit; they are dimmed to sit back against the baked walls
@@ -563,7 +569,7 @@ const Walk = {
     if(G.mode!=='flight'||this.on) return; const parked=Dlg.open&&Dlg.park(); if(parked) setTimeout(()=>UI.toast('The call will wait. It comes back when you sit down.'),400);
     if(!Interior.group||Interior.shipId!==G.shipId) Interior.build(); Radio.cur=null; Radio.wait=Math.max(Radio.wait,6);
     Comms.close(true); if(SysMap.open) SysMap.close(); Cockpit.zoomOut(); Cockpit.setDoor(1);
-    this.on=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
+    this.on=true; $('tooltip').hidden=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
     this.level=0; if(Interior.fitted) this.boardFitted();
     Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); Sfx.clunk();
     if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat at the cockpit door to sit down.':'Walking. W A S D to move, Q and E to turn, drag to look, hold F to fix things, L at the cockpit door to sit down.','good'); }

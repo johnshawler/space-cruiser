@@ -298,6 +298,10 @@ const Cockpit = {
   /* ---------- per-frame ---------- */
   setDoor(v){ this.doorT=v; if(Sfx.ok()) Sfx.hiss(0.4,0.08); },
   update(dt, t){
+    /* a control's label is only true while the pointer is still on that control. The pointer events clear it when the
+       mouse moves; this clears it when anything else changes instead: you stand up, the view turns or zooms, a screen
+       opens over the cockpit, or it has simply been up a while. */
+    { const tip=$('tooltip'); if(tip&&!tip.hidden&&!this.drag&&(Walk.on||G.mode!=='flight'||Pedia.open||SysMap.open||Hold.open||Specs.open||Dlg.open&&!Dlg.mini||!$('help').hidden||performance.now()-(this.tipAt||0)>4000||Math.abs(G.head.yaw+G.head.pitch*3+G.head.fov*0.1-(this.tipView||0))>0.02)){ tip.hidden=true; this.hover=null; } }
     const s=G.ship, sys=G.sys, pw=sys.power?1:0, def=SHIPS[G.shipId]; this.frame++;
     if(this.door) this.door.position.x=damp(this.door.position.x,(this.doorX0||0)+(this.doorT?0.86:0),9,dt);
     for(const id in this.ctrls){ const c=this.ctrls[id];
@@ -474,7 +478,7 @@ const Cockpit = {
     const tip=$('tooltip');
     const nd=e=>{ const r=cv.getBoundingClientRect(); return new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); };
     const showTip=(c,e)=>{ if(!c){ tip.hidden=true; cv.style.cursor=this.drag&&this.drag.look?'grabbing':'default'; return; } const v=c.get?c.get():null; tip.innerHTML=c.label+(c.fmt&&v!==null?' <b>'+c.fmt(v)+'</b>':c.type==='switch'&&v!==null?' <b>'+(v?'ON':'OFF')+'</b>':c.tip?' <b>'+c.tip+'</b>':'');
-      tip.hidden=false; const r=cv.getBoundingClientRect(); tip.style.left=Math.min(e.clientX-r.left+16,r.width-tip.offsetWidth-8)+'px'; tip.style.top=(e.clientY-r.top+18)+'px'; cv.style.cursor='pointer'; };
+      tip.hidden=false; this.tipAt=performance.now(); this.tipView=G.head.yaw+G.head.pitch*3+G.head.fov*0.1; const r=cv.getBoundingClientRect(); tip.style.left=Math.min(e.clientX-r.left+16,r.width-tip.offsetWidth-8)+'px'; tip.style.top=(e.clientY-r.top+18)+'px'; cv.style.cursor='pointer'; };
     cv.addEventListener('pointerdown',e=>{ this.lastType=e.pointerType; if(G.mode!=='flight'||e.button!==0) return; Sfx.init(); cv.focus(); const c=Walk.on?null:this.pick(nd(e));
       this.drag=c?{c,x:e.clientX,y:e.clientY,moved:0,acc:0,start:c.get?c.get():0}:{look:true,x:e.clientX,y:e.clientY,moved:0}; if(c&&c.type==='button'){ c.down=1.4; } try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
     cv.addEventListener('pointermove',e=>{ if(G.mode!=='flight'){ tip.hidden=true; return; } const d=this.drag;

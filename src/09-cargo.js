@@ -255,7 +255,7 @@ const Calls = {
 /* ---------- ship specs: one list of categories, used everywhere a ship's specs are shown ---------- */
 const Specs = {
   open:false,
-  reliability(f){ return f>=0.9?'Breaks down often':f>=0.6?'Fair':f>=0.35?'Good':f>=0.2?'Very good':'Rarely breaks down'; },
+  reliability(f){ return f>=0.45?'Breaks down often':f>=0.35?'Fair':f>=0.25?'Good':f>=0.15?'Very good':'Rarely breaks down'; },
   handling(t){ return t<0.85?'Sluggish':t<0.95?'Steady':t<1.05?'Nimble':'Agile'; },
   /* the same categories, in the same order, for every ship */
   rows(i){ const s=SHIPS[i]; return [
