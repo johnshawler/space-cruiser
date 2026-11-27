@@ -313,6 +313,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port .card canvas{width:52px;height:52px;flex:0 0 52px;display:block;border:1px solid var(--line)}
 #port .card h3,#port .ticket h3{font-family:var(--display);font-size:23px;letter-spacing:.03em;margin:0;line-height:1.15;font-weight:600}
 #port .card p{margin:0;color:var(--dim);font-size:19px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#port .card.news{width:min(560px,calc(100vw - 40px))}#port .card.news p{-webkit-line-clamp:6;line-height:1.35;color:var(--ink)}#port .card.news b{color:var(--amber);font-weight:600}
 #port .card .meta,#port .ticket .meta{font-family:var(--mono);font-size:18px;color:var(--ink);letter-spacing:.03em;line-height:1.3}
 #port .card .meta i,#port .ticket .meta i{font-style:normal;color:var(--amber)}
 #port .card .right,#port .ticket .right{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto}
@@ -459,7 +460,7 @@ body.flying #dlg .opt small{font-size:16px}
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.40</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.44</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -22909,7 +22910,7 @@ const Econ = {
   /* what a unit of cargo pays over a distance in light-seconds, before the goods, the risk and your name are counted.
      A long haul pays more than a short one, but not out of all proportion to the extra minute it takes. */
   unitPay(dist){ return 80+dist*24; },
-  fuelPrice(P){ return Math.round((P&&P.station?6:3)*this.scale()); },
+  fuelPrice(P){ return Math.round((P&&P.station?6:3)*this.scale()*Situ.costMul(P)); },
 };
 
 /* ---------- waypoints: a temporary nav target that outranks the planet destination ---------- */
@@ -23347,7 +23348,7 @@ const SysMap = {
     $('map-sub').innerHTML=`Destination <b>${esc(T.name)}</b> · ${docked&&G.docked===T.idx?'docked here':fmtDist(dT)+' · '+this.eta(dT)}`;
     const rows=PLANETS.slice().sort((a,b)=>a.orbit-b.orbit).map(P=>{
       const here=docked&&G.docked===P.idx, n=this.cargoFor(P.idx), col=this.colors(P);
-      let tags=''; if(P.idx===G.target&&!Nav.wp) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Paying +50%</em>'; if(here) tags+='<em>Docked</em>';
+      let tags=''; if(P.idx===G.target&&!Nav.wp) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Rush order: paying +50%</em>'; { const st=Situ.at(P.idx); if(st) tags+=`<em class="h">${esc(Situ.label({s:st}))}</em>`; } if(here) tags+='<em>Docked</em>';
       return `<button class="mrow${P.idx===G.target&&!Nav.wp?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})${P.station?';border-radius:30%':''}"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${P.station?'research station · <b class="risk r'+P.risk+'">'+RISK[P.risk].name+' risk</b>':esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>${this.shops(P)}`;
     });
     FIELDS.forEach(F=>{ const tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx; rows.push(`<button class="mrow${tg?' tg':''}" data-i="${100+F.idx}"><i style="background:radial-gradient(circle at 35% 35%,#e8dcc8,${F.col} 60%,#3a3040);border-radius:30%"></i><span class="n">${esc(F.name)}</span><span class="d">${fmtDist(Math.max(0,F.pos.distanceTo(G.ship.pos)-F.R))}</span><span class="p">Asteroid field · ${esc(F.ore)}</span>${tg?'<span class="b"><em class="t">Waypoint</em></span>':''}</button>`); });
@@ -23595,7 +23596,7 @@ const Mech = {
       written in as you meet it. See a fault and the Faults page appears; walk into a cantina and the mechanic is in the
       book. What you know is kept in the save (G.know: 1 = new and unread, 2 = read). */
 const PEDIA_TOPICS = {
-  ports:'Ports and shops', garage:'Garages and hull repairs', bar:'Cantinas: passengers, mechanics and tips', ships:'Ships', outfit:'Ship fittings',
+  ports:'Ports and shops', news:'Port news', garage:'Garages and hull repairs', bar:'Cantinas: passengers, mechanics and tips', ships:'Ships', outfit:'Ship fittings',
   rep:'Reputation', faults:'Faults and repairs', crack:'Hull cracks', tow:'Tows', fragile:'Fragile cargo', storm:'Meteor storms',
   escort:'VIP escorts', customs:'Customs and contraband', mayday:'Maydays', deep:'Deep space', mining:'Mining', end:'The end of the galaxy' };
 const Pedia = {
@@ -23665,6 +23666,13 @@ const Pedia = {
       +T.h('The kinds of shop you have found')+T.dl(Object.keys(VENUE_TABS).filter(k=>kinds.has(k)).map(k=>[VENUE_TABS[k],what[k]||'']))
       +T.h('The ports you have landed at')+T.tbl(['World','Port','Who lives there','Kind','Shops'],PLANETS.slice().sort((a,b)=>a.orbit-b.orbit).filter(P=>seen.includes(P.idx)).map(P=>[P.name,P.port,SPECIES[P.species].name,P.station?`Research station, ${RISK[P.risk].name.toLowerCase()} risk`:'Planet',Venues.defs(P).map(d=>VENUE_TABS[d.k]).join(', ')]))
       +T.p(unseen?`${unseen} more place${unseen===1?'':'s'} on the map that you have not landed at yet.`:'You have landed everywhere there is a port.'); }},
+
+    {t:'Port news', need:'news', f:()=>{ const L=Situ.list(), log=G.sitLog||[]; return T.p('Every so often a port falls into a situation. It changes what pays there, and some of them end early because of what you deliver. The news is on a card in every Cargo depot, and on the map. Time is counted in your landings.')
+      +T.h('In the news now')+(L.length||G.hot!=null?T.dl(L.map(e=>[e.P.name,Situ.label(e)+'. '+Situ.effect(e)]).concat(G.hot!=null?[[PLANETS[G.hot].name,'Rush order. All deliveries there pay +50%.']]:[])):T.p('All quiet. It will not last.'))
+      +T.h('The kinds of situation')+T.tbl(['Situation','What it does','Ends early if you'],[['Shortage','One kind of cargo pays +60% delivered there','Deliver enough of it'],['Glut','One kind of cargo pays 30% less delivered there','It just runs out'],['Festival','Passengers going there pay +50%','It just runs out'],['Quarantine','No passengers in or out, and small comforts pay double','Deliver enough small comforts'],['Dock strike','Fuel and repairs there cost +50%','Deliver the strike pay'],['Boom','Every contract out of there pays +25%','It just runs out'],['Rush order','All deliveries there pay +50%. You hear of these in cantinas and on the radio','Land there']])
+      +T.p('Ending one yourself earns 3 reputation and a line in the news. Ignoring one costs nothing: it runs its course.'+((G.stats&&G.stats.fixed)?` You have ended ${G.stats.fixed} so far.`:''))
+      +T.h('The four kinds of cargo')+T.dl(Object.keys(SIT_CATS).map(k=>[SIT_CATS[k][0].toUpperCase()+SIT_CATS[k].slice(1),GOODS.filter(g=>GOOD_CAT[g[0]]===k).map(g=>g[0]).join(', ')]))
+      +(log.length?T.h('Recent headlines')+T.dl(log.map((t,i)=>[i?'Earlier':'Latest',t])):''); }},
 
     {t:'Running costs', f:()=>T.p('These are the prices for the ship you are flying now, the '+SHIPS[G.shipId].name+'.')
       +T.dl([['Fuel',`${Econ.fuelPrice(PLANETS[0])} cr a unit at a planet`+(seen.some(i=>PLANETS[i].station)?`, ${Econ.fuelPrice({station:true})} cr at a far station`:'')],['A full tank',fmtCr(SHIPS[G.shipId].fuel*Econ.fuelPrice(PLANETS[0]))],K('garage')&&['Hull repair',K('rep')?`${Rep.repairPrice()} cr a point at your reputation (${T.asRep(0,()=>Rep.repairPrice())} cr is the usual rate)`:`${Rep.repairPrice()} cr a point`],K('crack')&&['Welding a hull crack',fmtCr(Math.round(40*Econ.scale()))],K('tow')&&['A tow, out of fuel',`${fmtCr(Math.round(150*Econ.scale()/10)*10)} near the worlds`+(K('deep')?`, up to ${fmtCr(Math.round(150*3.6*Econ.scale()/10)*10)} in the far dark`:'')],K('tow')&&K('faults')&&['A tow, after a hull breach',`From ${fmtCr(Math.round(400*Econ.scale()/10)*10)}, and it leaves you at 25% hull`],K('garage')&&['Canopy wash','20 cr'],['If you are broke','The dockmaster will top a dry tank up to 40% for nothing, with a sigh.']])},
@@ -23785,6 +23793,90 @@ const Restaurant = {
     $('ending').hidden=false; Game.save();
     $('ending-stay').onclick=()=>{ $('ending').hidden=true; G.fuel=SHIPS[G.shipId].fuel; Game.save(); UI.toast('The house has filled your tanks. It is the least they could do, and they did check.','good'); const g=$('gl'); if(g) g.focus(); };
     $('ending-new').onclick=()=>{ $('ending').hidden=true; Game.newGame(); }; $('ending-stay').focus(); },
+};
+/* ===================== PORT NEWS: THE WORLD ANSWERS BACK ===================== */
+/* Every so often a port falls into a named situation. It changes what pays there, the news says so, and some of them
+   end early because of what you deliver, with a line in the news saying it was you.
+   It is a small table and a counter, not a simulation. Time is counted in your landings ("trips"), so nothing moves
+   while the game is closed. One situation a port at most; about three in the system at once.
+   Kept in the save as G.situ: { portIndex: {k, cat, left, need, done} }, with G.sitLog for the last few headlines.
+   The old "hot tip" is still G.hot (several things set it); it now runs out after a few trips like everything else. */
+const SIT_CATS = {food:'food and drink', comforts:'small comforts', household:'household goods', science:'scientific supplies'};
+const GOOD_CAT = {
+  'Self-Heating Soup Bricks':'food','Dehydrated Water':'food','Fermented Starlight':'food','Decaf Plasma':'food','Sentient Cheese (Mild)':'food','Certified Pre-Chewed Gum':'food','Antimatter Sprinkles':'food',
+  'Unlicensed Nostalgia':'comforts','Second-Hand Sunsets':'comforts','Emotional Support Asteroids':'comforts','Bottled Uncomfortable Silence':'comforts','Slightly Used Tomorrows':'comforts','Glow-in-the-Dark Shadows':'comforts',
+  'Mildly Cursed Furniture':'household','Quantum Socks (Unpaired)':'household','Zero-G Hair Gel':'household','Recreational Bubble Wrap':'household','Bulk Googly Eyes':'household','Haunted Rubber Ducks':'household','Screaming Cactus Seedlings':'household',
+  'Artisanal Gravity (Small Batch)':'science','Left-Handed Wormholes':'science','Novelty Oversized Atoms':'science','Pre-Owned Moon Dust':'science','Tax-Deductible Fog':'science','Organic Free-Range Static':'science' };
+/* name: what the map and tags call it. trips: how long it lasts if nobody ends it. fix: can deliveries end it?
+   start/over/fixed: the headlines. greet: what the cargo keeper says while it lasts. */
+const SITS = {
+  shortage:{name:'Shortage', trips:[5,7], w:3, fix:true, needsCat:true,
+    start:(P,c)=>`${P.port} has run short of ${c}. Deliveries of it there pay 60% over the odds.`, over:(P,c)=>`The shortage of ${c} at ${P.port} has passed. Somebody found a cupboard.`, fixed:(P,c,who)=>`The shortage of ${c} at ${P.port} is over, thanks to the ${who}.`,
+    greet:c=>`We are out of ${c}. Completely. I have checked behind everything.`},
+  glut:{name:'Glut', trips:[3,5], w:2, needsCat:true,
+    start:(P,c)=>`${P.port} is drowning in ${c}. Bring more and they will pay you 30% less to take it off you.`, over:(P,c)=>`The glut of ${c} at ${P.port} has cleared. Most of it was eaten, sat on or lost.`,
+    greet:c=>`Please. No more ${c}. We are using it as furniture.`},
+  festival:{name:'Festival', trips:[3,5], w:2,
+    start:P=>`It is festival week at ${P.port}. Passengers going there are paying half as much again.`, over:P=>`The festival at ${P.port} is over. The cleaning has begun.`,
+    greet:()=>`Festival week. Everybody is very happy and nobody is at work.`},
+  quarantine:{name:'Quarantine', trips:[4,6], w:1.5, fix:true, cat:'comforts',
+    start:(P,c)=>`${P.port} is under quarantine: a sniffle, they say. No passengers in or out. ${c[0].toUpperCase()+c.slice(1)} for the bored pay double.`, over:(P)=>`The quarantine at ${P.port} has lifted. It was a sniffle.`, fixed:(P,c,who)=>`The quarantine at ${P.port} lifted early. Morale held, thanks to the ${who}.`,
+    greet:()=>`Stand over there, please. Further. It is only a sniffle, but it is a very official sniffle.`},
+  strike:{name:'Dock strike', trips:[3,5], w:1.5, fix:true,
+    start:P=>`The dockers at ${P.port} are on strike. Fuel and repairs there cost half as much again until somebody brings the strike pay.`, over:P=>`The dock strike at ${P.port} is over. Nobody can remember what it was about.`, fixed:(P,c,who)=>`The dock strike at ${P.port} is settled. The strike pay arrived aboard the ${who}.`,
+    greet:()=>`I am not working. I am standing here in a personal capacity.`},
+  boom:{name:'Boom', trips:[3,5], w:2,
+    start:P=>`Business is booming at ${P.port}. Every contract out of there pays 25% more.`, over:P=>`The boom at ${P.port} has settled down. The bunting stays up.`,
+    greet:()=>`Business has never been better. I have bought a second hat.`},
+};
+const Situ = {
+  all(){ return G.situ||(G.situ={}); },
+  at(i){ return (G.situ||{})[i]||null; },
+  cat(s){ return SIT_CATS[s.cat]||''; },
+  list(){ return Object.keys(this.all()).map(i=>({i:+i,s:G.situ[i],P:PLANETS[+i]})).filter(e=>e.P&&SITS[e.s.k]); },
+  log(text){ (G.sitLog||(G.sitLog=[])).unshift(text); G.sitLog.length=Math.min(G.sitLog.length,6); },
+  /* ---- what a situation does ---- */
+  /* a cargo contract of this kind, from here to there */
+  payMul(cat, from, to){ const a=this.at(to), b=this.at(from); let m=1;
+    if(a&&a.k==='shortage'&&a.cat===cat) m*=1.6; if(a&&a.k==='quarantine'&&a.cat===cat) m*=2; if(a&&a.k==='glut'&&a.cat===cat) m*=0.7; if(b&&b.k==='boom') m*=1.25; return m; },
+  /* the label a job card wears */
+  tag(cat, from, to){ const a=this.at(to), b=this.at(from);
+    if(a&&a.k==='shortage'&&a.cat===cat) return 'SHORTAGE +60%'; if(a&&a.k==='quarantine'&&a.cat===cat) return 'QUARANTINE ×2'; if(a&&a.k==='glut'&&a.cat===cat) return 'GLUT −30%'; if(b&&b.k==='boom') return 'BOOM +25%'; return ''; },
+  paxMul(to){ const a=this.at(to); return a&&a.k==='festival'?1.5:1; },
+  paxOk(from, to){ const a=this.at(from), b=this.at(to); return !(a&&a.k==='quarantine')&&!(b&&b.k==='quarantine'); },
+  /* fuel and repairs at a port */
+  costMul(P){ const a=P&&P.idx!=null?this.at(P.idx):null; return a&&a.k==='strike'?1.5:1; },
+  /* a short label for the map and the news card */
+  label(e){ const s=e.s, D=SITS[s.k]; return D.name+(s.cat&&D.needsCat?': '+this.cat(s):'')+(D.fix&&s.need?` · ${Math.min(s.done,s.need)} of ${s.need}`:'')+` · ${s.left} trip${s.left===1?'':'s'} left`; },
+  effect(e){ const s=e.s, c=this.cat(s); return {shortage:`Deliveries of ${c} there pay +60%. Bring ${s.need} units to end it.`, glut:`Deliveries of ${c} there pay 30% less.`, festival:'Passengers going there pay +50%.', quarantine:`No passengers in or out. ${c[0]?c[0].toUpperCase()+c.slice(1):''} pay double. Bring ${s.need} units to end it.`, strike:'Fuel and repairs there cost +50%. Deliver the strike pay to end it.', boom:'Contracts out of there pay +25%.'}[s.k]; },
+
+  /* ---- how they come and go: once each landing ---- */
+  start(i, k){ const D=SITS[k], P=PLANETS[i], hold=holdCap(), s={k,left:D.trips[0]+Math.floor(Math.random()*(D.trips[1]-D.trips[0]+1)),done:0,need:0};
+    if(D.needsCat) s.cat=pick(Object.keys(SIT_CATS)); else if(D.cat) s.cat=D.cat;
+    if(k==='shortage') s.need=Math.max(6,Math.round(hold*1.5)); if(k==='quarantine') s.need=Math.max(4,Math.round(hold*0.75)); if(k==='strike') s.need=1;
+    this.all()[i]=s; const text=D.start(P,this.cat(s)); this.log(text); return text; },
+  tick(P){ const A=this.all(), out=[], first=G.sitDay==null; G.sitDay=(G.sitDay||0)+1; Pedia.learn('news');
+    for(const e of this.list()){ e.s.left--; if(e.s.left<=0){ const t=SITS[e.s.k].over(e.P,this.cat(e.s)); delete A[e.i]; this.log(t); out.push(t); } }
+    // the hot tip is a rush order with an end, like everything else
+    if(G.hot!=null){ if(G.hotSeen!==G.hot){ G.hotSeen=G.hot; G.hotLeft=4; } else if(--G.hotLeft<=0){ const t=`The rush at ${PLANETS[G.hot].port} is over. Deliveries there pay the usual rate again.`; G.hot=null; G.hotSeen=null; this.log(t); out.push(t); } } else G.hotSeen=null;
+    // about three going at once; a brand-new save starts with two so there is news on the first day
+    const want=first?2:3; let n=this.list().length, guard=0;
+    while(n<want&&guard++<6&&(first||Math.random()<0.55)){ const free=PLANETS.map(p=>p.idx).filter(i=>!A[i]&&i!==G.hot); if(!free.length) break;
+      const keys=Object.keys(SITS).filter(k=>!this.list().some(e=>e.s.k===k)||k==='shortage'), tot=keys.reduce((a,k)=>a+SITS[k].w,0); let r=Math.random()*tot, k=keys[0]; for(const q of keys){ r-=SITS[q].w; if(r<=0){ k=q; break; } }
+      out.push(this.start(pick(free),k)); n++; }
+    return out; },
+  /* what a delivery here does about it */
+  delivered(c, P){ const s=this.at(P.idx); if(!s||!SITS[s.k].fix||c.kind) return;
+    if(s.k==='strike'){ if(c.ends!=='strike') return; s.done=s.need; } else if(c.cat===s.cat) s.done+=c.qty; else return;
+    if(s.done<s.need){ UI.toast(`📰 ${SITS[s.k].name} at ${P.port}: ${s.done} of ${s.need} delivered.`,'good'); return; }
+    const who=SHIPS[G.shipId].name, text=SITS[s.k].fixed(P,this.cat(s),who); delete this.all()[P.idx]; this.log(text); G.stats.fixed=(G.stats.fixed||0)+1;
+    setTimeout(()=>{ UI.toast('📰 '+text,'good'); Rep.add(3,`You ended the ${SITS[s.k].name.toLowerCase()} at ${P.port}`); },700); },
+  /* a troubled port elsewhere that this board could send something to */
+  wanted(pi){ return this.list().filter(e=>e.i!==pi&&(e.s.k==='shortage'||e.s.k==='quarantine')); },
+  strikeAway(pi){ return this.list().find(e=>e.i!==pi&&e.s.k==='strike'&&!G.cargo.some(c=>c.ends==='strike'&&c.to===e.i)); },
+  goodOf(cat){ return pick(GOODS.filter(g=>GOOD_CAT[g[0]]===cat)); },
+  restore(d){ G.situ={}; const src=d&&d.situ; if(src&&typeof src==='object') for(const i in src){ const s=src[i]; if(PLANETS[+i]&&s&&SITS[s.k]) G.situ[i]={k:s.k,cat:SIT_CATS[s.cat]?s.cat:undefined,left:Math.max(1,s.left|0),need:s.need|0,done:s.done|0}; }
+    G.sitLog=Array.isArray(d&&d.sitLog)?d.sitLog.slice(0,6):[]; G.sitDay=d&&d.sitDay!=null?d.sitDay:null; G.hotLeft=d&&d.hotLeft||4; G.hotSeen=G.hot!=null?G.hot:null; },
 };
 /* ===================== STORIES ===================== */
 /* Every job has a sender, a recipient and a reason. You read the reason when you pick the job up, and you get the
@@ -23975,7 +24067,7 @@ const UI = {
   deliver(c, P, quiet){
     let pay, name, rd=0, rw=''; const end=Story.ending(c,P);
     if(c.kind==='escort'){ const r=Escort.land(P); if(!r){ Cockpit.drawManifest(); this.render(); return 0; } pay=r.pay; name=c.vip.title; }
-    else { const i=G.cargo.indexOf(c); if(i<0) return 0; G.cargo.splice(i,1); pay=c.pay; name=c.kind==='pax'?c.good:`${c.qty}× ${c.good}`; if(c.kind!=='contra'&&c.kind!=='ore'){ rd=Rep.delivery(c); rw=Rep.deliveryWhy(c,rd); rd=Rep.add(rd,rw,true); } }
+    else { const i=G.cargo.indexOf(c); if(i<0) return 0; G.cargo.splice(i,1); pay=c.pay; name=c.kind==='pax'?c.good:`${c.qty}× ${c.good}`; if(c.kind!=='contra'&&c.kind!=='ore'){ rd=Rep.delivery(c); rw=Rep.deliveryWhy(c,rd); rd=Rep.add(rd,rw,true); } Situ.delivered(c,P); }
     G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay; this.tell(end);
     if(!quiet){ Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); Venues.react('cash'); this.paidFx(pay); UI.toast(`${c.kind==='pax'||c.kind==='escort'?'Seen off':'Delivered'}: ${name} · +${fmtCr(pay)}${rd?` · reputation ${rd>0?'+':''}${rd} (${rw.toLowerCase()})`:''}`,rd<0?'warn':'good'); Cockpit.drawManifest(); Game.save(); this.render(); }
     return pay; },
@@ -24010,14 +24102,14 @@ const UI = {
     let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty);
     if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · needs a free seat`; }
     else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.riskLine(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
-    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
+    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.sit?'<span class="tag">'+esc(j.sit)+'</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
     const x=el('button','close','✕'); x.setAttribute('aria-label','Close'); x.onclick=()=>{ Sfx.click(); this.closeTicket(); }; box.appendChild(x);
     box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div><p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
     const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat;
     const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
     b.onclick=()=>{ this.closeTicket(); if(j.kind==='contra'){ Customs.load(j,P); return; }
       if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100,story:j.story});
-      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story}); Venues.fetch(j.good,j); }
+      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story,cat:j.cat,ends:j.ends}); Venues.fetch(j.good,j); }
       G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
     r.appendChild(b); box.appendChild(r); Venues.hopShelf(j); if(Sfx.ok()) Sfx.click(); },
   closeTicket(){ this.ticket=null; const b=$('port-card'); if(b){ b.hidden=true; b.innerHTML=''; } },
@@ -24047,7 +24139,7 @@ const UI = {
     const d=SHIPS[G.shipId], v=Venues.def(P,this.tab)||Venues.defs(P)[0]; this.tab=v.k; Pedia.visit(v.k); this.post(); let used=0; G.cargo.forEach(c=>used+=c.qty);
     const cash=()=>{ Sfx.cash(); Venues.react('cash'); };
     if(this.tab==='depot'){
-      const a=this.arrival; this.keeper(v,a?a.greet:null);
+      const a=this.arrival, here=Situ.at(P.idx); this.keeper(v,here?SITS[here.k].greet(Situ.cat(here)):a?a.greet:null);
       // what happened to the last deliveries: the recipient has a word, in the bubble
       if(this.told&&this.told.length){ const t=this.told[0]; this.say(t.who,t.text,'What happened next'); }
       // deliveries for this port, handed over one at a time
@@ -24058,8 +24150,15 @@ const UI = {
         this.card(body,person?portraitCanvas(sp,seed,128):'📦',title,desc,'',fmtCr(this.payFor(c)),person?'See them off':'Hand it over',false,()=>this.deliver(c,P)).classList.add('due'); });
       if(due.length>1){ const sum=due.reduce((s,c)=>s+this.payFor(c),0); this.card(body,'✔','Hand over everything',`${due.length} deliveries for ${esc(P.port)}.`,'',fmtCr(sum),'Hand over all',false,()=>this.deliverAll(P)).classList.add('due'); }
       const ppu=Econ.fuelPrice(P), need=Math.ceil(d.fuel-G.fuel), cost=need*ppu;
+      // the news: what is going on here and elsewhere, and what it is worth
+      { const L=Situ.list(), mine=L.find(e=>e.i===P.idx), on=L.filter(e=>e.i!==P.idx&&G.jobs.some(j=>j.to===e.i&&j.sit)), rows=[];   // this port first, then whatever this board can do something about
+        if(mine) rows.push(`<b>Here</b> · ${esc(Situ.label(mine))}. ${esc(Situ.effect(mine).replace(/ there/g,' here'))}`);
+        for(const e of on.slice(0,mine?1:2)) rows.push(`<b>${esc(e.P.name)}</b> · ${esc(Situ.label(e))}. ${esc(Situ.effect(e))}`);
+        if(!rows.length&&L.length) rows.push(`<b>${esc(L[0].P.name)}</b> · ${esc(Situ.label(L[0]))}. ${esc(Situ.effect(L[0]))}`);
+        const more=L.length+(G.hot!=null?1:0)-rows.length;
+        if(rows.length) this.card(body,'📰','Port news',rows.join('<br>'),more>0?`${more} more on the map and in the Haul-O-Pedia`:'','','',true,()=>{}).classList.add('news'); }
       // the fuel tag only shows while there's room in the tank
-      if(need>0) this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. ${ppu} cr a unit${P.station?', the price of being far away':''}.`,'',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=ppu?'Buy what I can':'Beg',need<=0,()=>{
+      if(need>0) this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. ${ppu} cr a unit${Situ.costMul(P)>1?', strike rates':P.station?', the price of being far away':''}.`,'',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=ppu?'Buy what I can':'Beg',need<=0,()=>{
         if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=ppu){ const u=Math.floor(G.credits/ppu); G.fuel+=u; G.credits-=u*ppu; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
       // jobs with no model on the shelf (escorts, or a board too long for it) get a ticket button here
       const onShelf=new Set(G.jobs.filter(j=>j.kind!=='escort').slice(0,12));
@@ -24073,10 +24172,10 @@ const UI = {
         const net=Math.max(0,sh.price-val), mine=i===G.shipId; const pv=el('button','btn','Preview'); pv.onclick=()=>{ Sfx.click(); Cine.setPreview(i); }; const sp=el('button','btn','Specs'); sp.onclick=()=>Specs.show(i);
         const c=this.card(body,cv,esc(sh.name)+(mine?'<span class="tag">YOURS</span>':''),esc(sh.tag)+'<br><b>Reliability:</b> '+esc(Specs.reliability(sh.faults==null?1:sh.faults)),mine?'':`After trade-in`,mine?'—':fmtCr(net),mine?'':Specs.fits(i)?'Buy':'Too small',G.credits<net||!Specs.fits(i),()=>{ G.credits-=net; Specs.change(i,P); cash(); UI.toast('You now own the '+sh.name+'. New ship smell included.','good'); },[pv,sp]); });
     } else if(this.tab==='garage'){
-      const WELD=Math.round(40*Econ.scale()), USUAL=Math.round(5*Econ.scale()), crack=Faults.has('crack'), hn=Math.ceil(100-G.hull), PP=Rep.repairPrice(), hc=hn*PP+(crack?WELD:0), dirty=G.sys.dirt>=0.05; this.keeper(v,hn<=0&&!dirty&&!crack?'Not a scratch on her, and the glass is clean. Come back when you hit something.':null);
+      const STRIKE=Situ.costMul(P), WELD=Math.round(40*Econ.scale()*STRIKE), USUAL=Math.round(5*Econ.scale()), crack=Faults.has('crack'), hn=Math.ceil(100-G.hull), PP=Math.round(Rep.repairPrice()*STRIKE), hc=hn*PP+(crack?WELD:0), dirty=G.sys.dirt>=0.05; this.keeper(v,hn<=0&&!dirty&&!crack?'Not a scratch on her, and the glass is clean. Come back when you hit something.':null);
       // each tag only shows while there's something to fix
       // a hull crack is welded here and nowhere else: it goes first, then as many points of hull as the money covers
-      if(hn>0||crack) this.card(body,'🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${crack?'There is a crack to weld shut. ':''}${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents.':crack?'':'Not a scratch.'}`,`${PP} cr a point${PP<USUAL?', a rate for a name they know':PP>USUAL?', the rate for a name they know':''}${crack?' · '+WELD+' cr for the weld':''}`,fmtCr(hc),G.credits>=hc?'Repair':'Patch what I can',G.credits<(crack?WELD:PP),()=>{ if(crack){ G.credits-=WELD; Faults.weld('crack'); } const pts=Math.min(hn,Math.floor(G.credits/PP)); G.credits-=pts*PP; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); Venues.react('clap'); if(crack) UI.toast('Hull crack welded shut.','good'); });
+      if(hn>0||crack) this.card(body,'🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${crack?'There is a crack to weld shut. ':''}${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents.':crack?'':'Not a scratch.'}`,`${PP} cr a point${STRIKE>1?', strike rates':PP<USUAL?', a rate for a name they know':PP>USUAL?', the rate for a name they know':''}${crack?' · '+WELD+' cr for the weld':''}`,fmtCr(hc),G.credits>=hc?'Repair':'Patch what I can',G.credits<(crack?WELD:PP),()=>{ if(crack){ G.credits-=WELD; Faults.weld('crack'); } const pts=Math.min(hn,Math.floor(G.credits/PP)); G.credits-=pts*PP; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); Venues.react('clap'); if(crack) UI.toast('Hull crack welded shut.','good'); });
       if(dirty) this.card(body,'✦','Canopy wash',G.sys.dirt>0.3?'Yours is a disgrace.':'Yours is fine, honestly.','',fmtCr(20),'Wash',G.credits<20||G.sys.dirt<0.05,()=>{ G.credits-=20; G.sys.dirt=0; Sfx.hiss(1.5,0.2); Venues.react('clap'); });
     } else if(this.tab==='livery'){
       this.keeper(v,`${G.paint?'Currently wearing '+G.paint.name+'.':'Factory finish, is it?'} Pick a colour.`);
@@ -24862,11 +24961,15 @@ const Game = {
     const P=PLANETS[pi], hold=holdCap(), jobs=[], n=5+Math.floor(Math.random()*3);
     // from a planet, the first two jobs stay in safe-ish space so there's always something a new hauler can take
     const dest=(i)=>{ let to, k=0; do{ to=Math.floor(Math.random()*PLANETS.length); }while((to===pi||(!P.station&&i<2&&PLANETS[to].risk>1))&&++k<60); return to; };
-    for(let i=0;i<n;i++){ let to=dest(i); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
-      const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
-      const pay=qty*Econ.unitPay(dist)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
+    const want=Situ.wanted(pi);   // a port in trouble elsewhere usually has something on this board
+    for(let i=0;i<n;i++){ let to=dest(i), good=pick(GOODS); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
+      if(i===2&&want.length&&Math.random()<0.45){ const w=pick(want); to=w.i; good=Situ.goodOf(w.s.cat)||good; }
+      const cat=GOOD_CAT[good[0]], sit=Situ.tag(cat,pi,to), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
+      const pay=qty*Econ.unitPay(dist)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Situ.payMul(cat,pi,to)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
       const fragile=i>0&&Math.random()<0.3;
-      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk}); }
+      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk,cat,sit}); }
+    { const st=Situ.strikeAway(pi); if(st){ const dist=P.pos.distanceTo(st.P.pos)/LS;   // somebody has to carry the strike pay
+        jobs.push({good:'Strike Pay (Sealed Envelopes)',note:'Do not open. Do not shake. Do not count.',qty:1,to:st.i,pay:Math.round(Econ.unitPay(dist)*2.5*Econ.scale()*Rep.payMul()/5)*5,sp:st.P.species,seed:Math.floor(Math.random()*1e9),hot:false,fragile:false,risk:Econ.risk(P,st.P),ends:'strike',sit:'ENDS THE STRIKE'}); } }
     jobs.sort((a,b)=>a.qty-b.qty);
     const away=()=>{ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); return to; };
     // contraband pays for the chance of being caught: the stricter the docks at both ends, the more it's worth
@@ -24877,8 +24980,8 @@ const Game = {
     for(const j of jobs) j.story=j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j);
     G.jobs=jobs;
     // people wanting a ride, offered at cantinas
-    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=Math.min(Rep.paxMax(),1+Math.floor(Math.random()*3));i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
-      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((170+dist*40)*rnd(0.85,1.25)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
+    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=Math.min(Rep.paxMax(),1+Math.floor(Math.random()*3));i<n;i++){ const to=away(); if(!Situ.paxOk(pi,to)) continue; const sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((170+dist*40)*rnd(0.85,1.25)*Econ.mul(P,PLANETS[to])*Situ.paxMul(to)*Rep.payMul()/5)*5,sit:Situ.paxMul(to)>1?'FESTIVAL +50%':'',why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
     for(const j of px){ j.story=Story.pax(j); j.why=j.story.why; }
     G.paxJobs=px;
   },
@@ -24891,6 +24994,7 @@ const Game = {
     const paid=[], total=0, due=UI.due(P);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
     const fee=Math.min(this.towFee,G.credits); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; $('deep-badge').hidden=true; Deep.storm=null; if(Hold.open) Hold.render(); G.credits-=fee; if(G.hot===P.idx) G.hot=null;
+    const news=this.resuming?[]:Situ.tick(P); this.resuming=false; { const here=Situ.at(P.idx); if(here&&!news.length) news.push(`${SITS[here.k].name} at ${P.port}. ${Situ.effect({s:here}).replace(/ there/g,' here')}`); news.slice(0,2).forEach((t,i)=>setTimeout(()=>UI.toast('📰 '+t,'good'),2600+i*2600)); }
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(due.length) setTimeout(()=>UI.toast(`${due.length} deliver${due.length===1?'y':'ies'} for ${P.port}. Hand ${due.length===1?'it':'them'} over at the cargo depot.`,'good'),1200); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
@@ -24974,15 +25078,15 @@ const Game = {
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,repLog:G.repLog||[],hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[],mech:G.mech||null,seen:G.seen||[],won:!!G.won,know:G.know||{}})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,repLog:G.repLog||[],hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[],mech:G.mech||null,seen:G.seen||[],won:!!G.won,know:G.know||{},situ:G.situ||{},sitLog:G.sitLog||[],sitDay:G.sitDay==null?null:G.sitDay,hotLeft:G.hotLeft||0})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,repLog:[],hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[],mech:null,seen:[0],won:false,know:{fseen:[]}}); Mech.reset(); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,repLog:[],hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[],mech:null,seen:[0],won:false,know:{fseen:[]},situ:{},sitLog:[],sitDay:null,hotLeft:0,hotSeen:null}); Mech.reset(); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
-    const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init();
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,repLog:Array.isArray(d.repLog)?d.repLog.slice(0,8):[],hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k]),mech:d.mech&&SPECIES[d.mech.sp]&&MECH_TIERS.some(k=>k.key===d.mech.skill)?d.mech:null,seen:(d.seen||[]).filter(i=>PLANETS[i]),won:!!d.won}); Pedia.restore(d.know,d); if(d.docked>=0) this.visit(d.docked); Mech.reset(); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init(); this.resuming=true;   // loading a save is not a trip: the news does not move on
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,repLog:Array.isArray(d.repLog)?d.repLog.slice(0,8):[],hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k]),mech:d.mech&&SPECIES[d.mech.sp]&&MECH_TIERS.some(k=>k.key===d.mech.skill)?d.mech:null,seen:(d.seen||[]).filter(i=>PLANETS[i]),won:!!d.won}); Pedia.restore(d.know,d); Situ.restore(d); if(d.docked>=0) this.visit(d.docked); Mech.reset(); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },

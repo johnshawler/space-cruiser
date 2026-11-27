@@ -6,7 +6,7 @@
       written in as you meet it. See a fault and the Faults page appears; walk into a cantina and the mechanic is in the
       book. What you know is kept in the save (G.know: 1 = new and unread, 2 = read). */
 const PEDIA_TOPICS = {
-  ports:'Ports and shops', garage:'Garages and hull repairs', bar:'Cantinas: passengers, mechanics and tips', ships:'Ships', outfit:'Ship fittings',
+  ports:'Ports and shops', news:'Port news', garage:'Garages and hull repairs', bar:'Cantinas: passengers, mechanics and tips', ships:'Ships', outfit:'Ship fittings',
   rep:'Reputation', faults:'Faults and repairs', crack:'Hull cracks', tow:'Tows', fragile:'Fragile cargo', storm:'Meteor storms',
   escort:'VIP escorts', customs:'Customs and contraband', mayday:'Maydays', deep:'Deep space', mining:'Mining', end:'The end of the galaxy' };
 const Pedia = {
@@ -76,6 +76,13 @@ const Pedia = {
       +T.h('The kinds of shop you have found')+T.dl(Object.keys(VENUE_TABS).filter(k=>kinds.has(k)).map(k=>[VENUE_TABS[k],what[k]||'']))
       +T.h('The ports you have landed at')+T.tbl(['World','Port','Who lives there','Kind','Shops'],PLANETS.slice().sort((a,b)=>a.orbit-b.orbit).filter(P=>seen.includes(P.idx)).map(P=>[P.name,P.port,SPECIES[P.species].name,P.station?`Research station, ${RISK[P.risk].name.toLowerCase()} risk`:'Planet',Venues.defs(P).map(d=>VENUE_TABS[d.k]).join(', ')]))
       +T.p(unseen?`${unseen} more place${unseen===1?'':'s'} on the map that you have not landed at yet.`:'You have landed everywhere there is a port.'); }},
+
+    {t:'Port news', need:'news', f:()=>{ const L=Situ.list(), log=G.sitLog||[]; return T.p('Every so often a port falls into a situation. It changes what pays there, and some of them end early because of what you deliver. The news is on a card in every Cargo depot, and on the map. Time is counted in your landings.')
+      +T.h('In the news now')+(L.length||G.hot!=null?T.dl(L.map(e=>[e.P.name,Situ.label(e)+'. '+Situ.effect(e)]).concat(G.hot!=null?[[PLANETS[G.hot].name,'Rush order. All deliveries there pay +50%.']]:[])):T.p('All quiet. It will not last.'))
+      +T.h('The kinds of situation')+T.tbl(['Situation','What it does','Ends early if you'],[['Shortage','One kind of cargo pays +60% delivered there','Deliver enough of it'],['Glut','One kind of cargo pays 30% less delivered there','It just runs out'],['Festival','Passengers going there pay +50%','It just runs out'],['Quarantine','No passengers in or out, and small comforts pay double','Deliver enough small comforts'],['Dock strike','Fuel and repairs there cost +50%','Deliver the strike pay'],['Boom','Every contract out of there pays +25%','It just runs out'],['Rush order','All deliveries there pay +50%. You hear of these in cantinas and on the radio','Land there']])
+      +T.p('Ending one yourself earns 3 reputation and a line in the news. Ignoring one costs nothing: it runs its course.'+((G.stats&&G.stats.fixed)?` You have ended ${G.stats.fixed} so far.`:''))
+      +T.h('The four kinds of cargo')+T.dl(Object.keys(SIT_CATS).map(k=>[SIT_CATS[k][0].toUpperCase()+SIT_CATS[k].slice(1),GOODS.filter(g=>GOOD_CAT[g[0]]===k).map(g=>g[0]).join(', ')]))
+      +(log.length?T.h('Recent headlines')+T.dl(log.map((t,i)=>[i?'Earlier':'Latest',t])):''); }},
 
     {t:'Running costs', f:()=>T.p('These are the prices for the ship you are flying now, the '+SHIPS[G.shipId].name+'.')
       +T.dl([['Fuel',`${Econ.fuelPrice(PLANETS[0])} cr a unit at a planet`+(seen.some(i=>PLANETS[i].station)?`, ${Econ.fuelPrice({station:true})} cr at a far station`:'')],['A full tank',fmtCr(SHIPS[G.shipId].fuel*Econ.fuelPrice(PLANETS[0]))],K('garage')&&['Hull repair',K('rep')?`${Rep.repairPrice()} cr a point at your reputation (${T.asRep(0,()=>Rep.repairPrice())} cr is the usual rate)`:`${Rep.repairPrice()} cr a point`],K('crack')&&['Welding a hull crack',fmtCr(Math.round(40*Econ.scale()))],K('tow')&&['A tow, out of fuel',`${fmtCr(Math.round(150*Econ.scale()/10)*10)} near the worlds`+(K('deep')?`, up to ${fmtCr(Math.round(150*3.6*Econ.scale()/10)*10)} in the far dark`:'')],K('tow')&&K('faults')&&['A tow, after a hull breach',`From ${fmtCr(Math.round(400*Econ.scale()/10)*10)}, and it leaves you at 25% hull`],K('garage')&&['Canopy wash','20 cr'],['If you are broke','The dockmaster will top a dry tank up to 40% for nothing, with a sigh.']])},
