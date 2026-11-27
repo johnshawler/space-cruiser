@@ -74,11 +74,12 @@ const Faults = {
   weld(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return false; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); Interior.syncFaults(); this.badge(); return true; },
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
   badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(this.room(k))}${Mech.job===k&&Mech.status()?' · 🔧 '+esc(Mech.status()):''}</span></div>`).join(''); },
-  chance(){ return 0.4*this.rate()*Math.min(2,1+(100-G.hull)/60); },
+  /* one trip in 5 on the Rustbucket, then 1 in 10, 15, 20 and 25 up the range; up to double on a battered hull */
+  chance(){ return 1/(5*(Math.max(0,G.shipId|0)+1))*Math.min(2,1+(100-G.hull)/60); },
   trip(){ this.due=null; },   // called on landing: the next flight rolls afresh
   update(dt){
-    // one roll a trip, made as the flight begins: one chance in five on a sound Rustbucket that something goes wrong on the way,
-    // up to twice that on a battered hull, less on a dearer ship. Never more than two things broken at once
+    // one roll a trip, made as the flight begins: one chance in five on a sound Rustbucket that something goes wrong on the way
+    // (1 in 10, 15, 20, 25 on the dearer ships), up to twice that on a battered hull. Never more than two things broken at once
     if(this.due==null) this.due=Math.random()<this.chance()?rnd(15,60):Infinity;
     if(this.due!==Infinity&&(this.due-=dt)<=0){ this.due=Infinity; if(this.list().length<this.MAX) this.random(); }
     if(this.has('crack')){ G.hull=Math.max(0,G.hull-dt*0.1); if(G.hull<=0) Hull.breach(); }
