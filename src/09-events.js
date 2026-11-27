@@ -69,9 +69,14 @@ const Rep = {
     const t1=this.tierOf(); if(t1!==t0) setTimeout(()=>UI.toast(`${t1>t0?'Your name is rising':'Your name is sinking'}: you are now ${REP_TIERS[t1].name}. ${REP_TIERS[t1].say}`,t1>t0?'good':'warn'),quiet?900:1600);
     return got; },
   /* how a finished job reflects on you: on time and whole is the job done properly */
-  delivery(c){ const f=Cargo.factor(c), dmg=c.dmg||0; let d=f>=1?2:f>=0.65?0:-2; if(dmg>=0.3) d-=1; else if(dmg>=0.1&&d>0) d=1; return d; },
-  deliveryWhy(c,d){ const f=Cargo.factor(c), dmg=c.dmg||0; return d>0?(dmg>=0.1?'Delivered on time, a little knocked about':'Delivered on time and in one piece'):f<0.65?(dmg>=0.3?'Delivered very late and damaged':'Delivered very late'):dmg>=0.3?'Delivered damaged':'Delivered late'; },
+  delivery(c){ const f=Cargo.factor(c), dmg=c.dmg||0; let d=f>=1?2:f>=0.65?0:-2; if(dmg>=0.3) d-=1; else if(dmg>=0.1&&d>0) d=1; if(d===2&&c.mul!=null&&c.mul<=1) d=3; return d; },   // plain cargo, done properly, is how a name gets started
+  deliveryWhy(c,d){ const f=Cargo.factor(c), dmg=c.dmg||0; return d>0?(dmg>=0.1?'Delivered on time, a little knocked about':d>2?'Plain cargo, on time and in one piece':'Delivered on time and in one piece'):f<0.65?(dmg>=0.3?'Delivered very late and damaged':'Delivered very late'):dmg>=0.3?'Delivered damaged':'Delivered late'; },
   /* ---- what your name does ---- */
+  /* Dear cargo goes to a name people know. Plain goods (×1 or less) are handed to anyone, better goods need Decent,
+     and the dearest need Trusted. The answer is a place in REP_TIERS. A job with no price class is open to all. */
+  goodTier(mul){ return mul==null?0:mul>=1.4?4:mul>1?3:0; },
+  trusts(mul){ return this.tierOf()>=this.goodTier(mul); },
+  cargoLine(){ const k=this.tierOf(); return k>=4?'All of it, the dearest included':k>=3?'Plain and better goods. The dearest need '+REP_TIERS[4].name:'Plain goods. Better ones need '+REP_TIERS[3].name; },
   payMul(){ return 1+G.rep/400; },                                              // new contracts pay 75% to 125%
   customsMul(){ return G.rep<0?1+(-G.rep)/120:1-G.rep/250; },                   // a bad name is searched harder, a good one waved through
   bribeTake(){ return clamp(0.6+G.rep/400,0.35,0.85); },                        // an officer takes a quiet fee from someone they think is clean
@@ -87,7 +92,7 @@ const Rep = {
     Specs.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click(); $('specs-name').textContent=`Your standing: ${T.name}`; $('specs-tag').textContent=T.say;
     const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.filter(Boolean).map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`;
     let html=dl('Where you stand',[['Reputation',this.signed()],['Next name up',up?`${up.name}, ${up.min-G.rep} to go`:'There is no higher name']]);
-    html+=dl('What it is doing for you',[['Pay on new contracts',pct(this.payMul()-1)],K('garage')&&['Hull repairs',`${this.repairPrice()} cr a point`],K('customs')&&['Customs searches',this.customsMul()<1?'Waved through more often':this.customsMul()>1?'Searched harder':'The usual'],K('bar')&&['Passengers',this.paxMax()?'Will fly with you':'None will fly with you'],K('escort')&&['VIP escorts',this.vips()?'Offered':'Not offered']]);
+    html+=dl('What it is doing for you',[['Pay on new contracts',pct(this.payMul()-1)],['Cargo clients trust you with',this.cargoLine()],K('garage')&&['Hull repairs',`${this.repairPrice()} cr a point`],K('customs')&&['Customs searches',this.customsMul()<1?'Waved through more often':this.customsMul()>1?'Searched harder':'The usual'],K('bar')&&['Passengers',this.paxMax()?'Will fly with you':'None will fly with you'],K('escort')&&['VIP escorts',this.vips()?'Offered':'Not offered']]);
     const log=(G.repLog||[]).slice(0,4); html+=dl('Lately',log.length?log.map(e=>[e.why,(e.d>0?'+':'')+e.d]):[['Nothing yet','Go and deliver something']]);
     html+=`<p class="note">How a name is earned and lost is in the Haul-O-Pedia. Press O.</p>`;
     $('specs-body').innerHTML=html; },

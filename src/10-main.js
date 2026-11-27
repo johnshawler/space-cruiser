@@ -32,10 +32,12 @@ const Game = {
     const want=Situ.wanted(pi);   // a port in trouble elsewhere usually has something on this board
     for(let i=0;i<n;i++){ let to=dest(i), good=pick(GOODS); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
       if(i===2&&want.length&&Math.random()<0.45){ const w=pick(want); to=w.i; good=Situ.goodOf(w.s.cat)||good; }
+      // dear goods go to a name people know: a hauler without one is mostly offered plain cargo, with the odd dear load on the shelf to work towards
+      if(!Rep.trusts(good[1])&&(i<2||Math.random()<0.75)){ const ok=GOODS.filter(g=>Rep.trusts(g[1])), same=ok.filter(g=>GOOD_CAT[g[0]]===GOOD_CAT[good[0]]); good=pick(same.length?same:ok); }
       const cat=GOOD_CAT[good[0]], sit=Situ.tag(cat,pi,to), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
       const pay=qty*Econ.unitPay(dist)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Situ.payMul(cat,pi,to)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
       const fragile=i>0&&Math.random()<0.3;
-      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk,cat,sit}); }
+      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk,cat,sit,mul:good[1]}); }
     { const st=Situ.strikeAway(pi); if(st){ const dist=P.pos.distanceTo(st.P.pos)/LS;   // somebody has to carry the strike pay
         jobs.push({good:'Strike Pay (Sealed Envelopes)',note:'Do not open. Do not shake. Do not count.',qty:1,to:st.i,pay:Math.round(Econ.unitPay(dist)*2.5*Econ.scale()*Rep.payMul()/5)*5,sp:st.P.species,seed:Math.floor(Math.random()*1e9),hot:false,fragile:false,risk:Econ.risk(P,st.P),ends:'strike',sit:'ENDS THE STRIKE'}); } }
     jobs.sort((a,b)=>a.qty-b.qty);

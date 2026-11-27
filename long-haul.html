@@ -313,6 +313,8 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port .card h3,#port .ticket h3{font-family:var(--display);font-size:23px;letter-spacing:.03em;margin:0;line-height:1.15;font-weight:600}
 #port .card p{margin:0;color:var(--dim);font-size:19px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 #port .card.news{width:min(560px,calc(100vw - 40px))}#port .card.news p{-webkit-line-clamp:6;line-height:1.35;color:var(--ink)}#port .card.news b{color:var(--amber);font-weight:600}
+/* the news sits in the bottom left corner and pushes the other cards to the right, so the sign on the front of the counter stays readable between them */
+@media (min-width:901px){#port .card.news{width:min(520px,44vw);order:-1;margin-right:auto}}
 #port .card .meta,#port .ticket .meta{font-family:var(--mono);font-size:18px;color:var(--ink);letter-spacing:.03em;line-height:1.3}
 #port .card .meta i,#port .ticket .meta i{font-style:normal;color:var(--amber)}
 #port .card .right,#port .ticket .right{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto}
@@ -464,7 +466,7 @@ body.flying #dlg .opt small{font-size:16px}
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.50</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.51</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -22887,9 +22889,14 @@ const Rep = {
     const t1=this.tierOf(); if(t1!==t0) setTimeout(()=>UI.toast(`${t1>t0?'Your name is rising':'Your name is sinking'}: you are now ${REP_TIERS[t1].name}. ${REP_TIERS[t1].say}`,t1>t0?'good':'warn'),quiet?900:1600);
     return got; },
   /* how a finished job reflects on you: on time and whole is the job done properly */
-  delivery(c){ const f=Cargo.factor(c), dmg=c.dmg||0; let d=f>=1?2:f>=0.65?0:-2; if(dmg>=0.3) d-=1; else if(dmg>=0.1&&d>0) d=1; return d; },
-  deliveryWhy(c,d){ const f=Cargo.factor(c), dmg=c.dmg||0; return d>0?(dmg>=0.1?'Delivered on time, a little knocked about':'Delivered on time and in one piece'):f<0.65?(dmg>=0.3?'Delivered very late and damaged':'Delivered very late'):dmg>=0.3?'Delivered damaged':'Delivered late'; },
+  delivery(c){ const f=Cargo.factor(c), dmg=c.dmg||0; let d=f>=1?2:f>=0.65?0:-2; if(dmg>=0.3) d-=1; else if(dmg>=0.1&&d>0) d=1; if(d===2&&c.mul!=null&&c.mul<=1) d=3; return d; },   // plain cargo, done properly, is how a name gets started
+  deliveryWhy(c,d){ const f=Cargo.factor(c), dmg=c.dmg||0; return d>0?(dmg>=0.1?'Delivered on time, a little knocked about':d>2?'Plain cargo, on time and in one piece':'Delivered on time and in one piece'):f<0.65?(dmg>=0.3?'Delivered very late and damaged':'Delivered very late'):dmg>=0.3?'Delivered damaged':'Delivered late'; },
   /* ---- what your name does ---- */
+  /* Dear cargo goes to a name people know. Plain goods (×1 or less) are handed to anyone, better goods need Decent,
+     and the dearest need Trusted. The answer is a place in REP_TIERS. A job with no price class is open to all. */
+  goodTier(mul){ return mul==null?0:mul>=1.4?4:mul>1?3:0; },
+  trusts(mul){ return this.tierOf()>=this.goodTier(mul); },
+  cargoLine(){ const k=this.tierOf(); return k>=4?'All of it, the dearest included':k>=3?'Plain and better goods. The dearest need '+REP_TIERS[4].name:'Plain goods. Better ones need '+REP_TIERS[3].name; },
   payMul(){ return 1+G.rep/400; },                                              // new contracts pay 75% to 125%
   customsMul(){ return G.rep<0?1+(-G.rep)/120:1-G.rep/250; },                   // a bad name is searched harder, a good one waved through
   bribeTake(){ return clamp(0.6+G.rep/400,0.35,0.85); },                        // an officer takes a quiet fee from someone they think is clean
@@ -22905,7 +22912,7 @@ const Rep = {
     Specs.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click(); $('specs-name').textContent=`Your standing: ${T.name}`; $('specs-tag').textContent=T.say;
     const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.filter(Boolean).map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`;
     let html=dl('Where you stand',[['Reputation',this.signed()],['Next name up',up?`${up.name}, ${up.min-G.rep} to go`:'There is no higher name']]);
-    html+=dl('What it is doing for you',[['Pay on new contracts',pct(this.payMul()-1)],K('garage')&&['Hull repairs',`${this.repairPrice()} cr a point`],K('customs')&&['Customs searches',this.customsMul()<1?'Waved through more often':this.customsMul()>1?'Searched harder':'The usual'],K('bar')&&['Passengers',this.paxMax()?'Will fly with you':'None will fly with you'],K('escort')&&['VIP escorts',this.vips()?'Offered':'Not offered']]);
+    html+=dl('What it is doing for you',[['Pay on new contracts',pct(this.payMul()-1)],['Cargo clients trust you with',this.cargoLine()],K('garage')&&['Hull repairs',`${this.repairPrice()} cr a point`],K('customs')&&['Customs searches',this.customsMul()<1?'Waved through more often':this.customsMul()>1?'Searched harder':'The usual'],K('bar')&&['Passengers',this.paxMax()?'Will fly with you':'None will fly with you'],K('escort')&&['VIP escorts',this.vips()?'Offered':'Not offered']]);
     const log=(G.repLog||[]).slice(0,4); html+=dl('Lately',log.length?log.map(e=>[e.why,(e.d>0?'+':'')+e.d]):[['Nothing yet','Go and deliver something']]);
     html+=`<p class="note">How a name is earned and lost is in the Haul-O-Pedia. Press O.</p>`;
     $('specs-body').innerHTML=html; },
@@ -23671,7 +23678,7 @@ const Pedia = {
       +T.h('Keys')+`<div class="pkeys">${[...document.querySelectorAll('#help dl')].map(d=>`<dl class="${d.className}">${d.innerHTML}</dl>`).join('')}</div>`},
 
     {t:'Contracts and pay', f:()=>T.p('A contract pays for how much you carry and how far you carry it. Everything else is a multiplier on top.')
-      +T.h('How a cargo contract is priced')+T.dl([['Per unit of cargo',`${Econ.unitPay(0)} cr, plus ${Econ.unitPay(1)-Econ.unitPay(0)} cr for every light-second of distance`],['The goods',`Some pay more than others: from ×${Math.min(...goods)} to ×${Math.max(...goods)}`],['The route\'s risk',(K('deep')?RISK:RISK.slice(0,2)).map(r=>`${r.name} ×${r.mul}`).join(' · ')+(K('deep')?'':' · and more, further out')],K('bar')&&['A hot tip','+50% to one world. Buy a round in a cantina to hear which.'],K('rep')&&['Your reputation',`From ${T.pct(T.asRep(-100,()=>Rep.payMul())-1)} to ${T.pct(T.asRep(100,()=>Rep.payMul())-1)}. See Reputation.`],K('fragile')&&['Fragile cargo','Pays 40% more, and loses value if you fly roughly.'],['Luck','Every offer is 15% under to 20% over the going rate.']])
+      +T.h('How a cargo contract is priced')+T.dl([['Per unit of cargo',`${Econ.unitPay(0)} cr, plus ${Econ.unitPay(1)-Econ.unitPay(0)} cr for every light-second of distance`],['The goods',`Some pay more than others: from ×${Math.min(...goods)} to ×${Math.max(...goods)}`+(K('rep')?'. The dearer ones go to a name people know. See Reputation.':'')],['The route\'s risk',(K('deep')?RISK:RISK.slice(0,2)).map(r=>`${r.name} ×${r.mul}`).join(' · ')+(K('deep')?'':' · and more, further out')],K('bar')&&['A hot tip','+50% to one world. Buy a round in a cantina to hear which.'],K('rep')&&['Your reputation',`From ${T.pct(T.asRep(-100,()=>Rep.payMul())-1)} to ${T.pct(T.asRep(100,()=>Rep.payMul())-1)}. See Reputation.`],K('fragile')&&['Fragile cargo','Pays 40% more, and loses value if you fly roughly.'],['Luck','Every offer is 15% under to 20% over the going rate.']])
       +T.h('Size')+T.p('Contracts are sized to your hold. A bigger ship is offered bigger loads, so it earns more on every trip.')
       +T.h('Being late')+T.p('Most contracts have a time they expect to arrive. Miss it and the pay starts to drop, down to as little as 30% of what was agreed.'+(K('rep')?' Very late deliveries also cost you reputation.':''))
       +(K('bar')||K('escort')||K('customs')||K('mining')||K('mayday')?T.h('Other work')+T.dl([K('bar')&&['Passengers','Offered in cantinas. Each takes a seat, not hold space. Fares start at 170 cr and rise with distance.'],K('escort')&&['VIP escorts','Fly with a nervous VIP and keep them calm. Starts at 400 cr and pays well over distance. Not offered to a bad name.'],K('customs')&&['Back-room contracts','Contraband. It pays for the chance of being caught. See Customs and contraband.'],K('mining')&&['Mining','Cut ore from asteroid fields and sell it at an Assay office. See Mining.'],K('mayday')&&['Maydays','Stop for a ship in trouble, or do not. Rescues are worth reputation. Flying past costs it.']]):'')},
@@ -23704,9 +23711,10 @@ const Pedia = {
       +T.dl([['Fuel',`${Econ.fuelPrice(PLANETS[0])} cr a unit at a planet`+(seen.some(i=>PLANETS[i].station)?`, ${Econ.fuelPrice({station:true})} cr at a far station`:'')],['A full tank',fmtCr(SHIPS[G.shipId].fuel*Econ.fuelPrice(PLANETS[0]))],K('garage')&&['Hull repair',K('rep')?`${Rep.repairPrice()} cr a point at your reputation (${T.asRep(0,()=>Rep.repairPrice())} cr is the usual rate)`:`${Rep.repairPrice()} cr a point`],K('crack')&&['Welding a hull crack',fmtCr(Math.round(40*Econ.scale()))],K('tow')&&['A tow, out of fuel',`${fmtCr(Math.round(150*Econ.scale()/10)*10)} near the worlds`+(K('deep')?`, up to ${fmtCr(Math.round(150*3.6*Econ.scale()/10)*10)} in the far dark`:'')],K('tow')&&K('faults')&&['A tow, after a hull breach',`From ${fmtCr(Math.round(400*Econ.scale()/10)*10)}, and it leaves you at 25% hull`],K('garage')&&['Canopy wash','20 cr'],['If you are broke','The dockmaster will top a dry tank up to 40% for nothing, with a sigh.']])},
 
     {t:'Reputation', need:'rep', f:()=>T.p('One number from -100 to +100, and six names for where it puts you. You are '+Rep.label()+' at '+Rep.signed()+'. The button with your name on it in any port shows what it is doing for you right now.')
-      +T.h('What each name is worth')+T.tbl(['Name','From','Pay','Customs','A quiet fee works','VIPs','Passengers','Back-room work'],REP_TIERS.map(t=>T.asRep(t.min,()=>[t.name,(t.min>0?'+':'')+t.min,T.pct(Rep.payMul()-1),T.pct(Rep.customsMul()-1),Math.round(Rep.bribeTake()*100)+'%',Rep.vips()?'Yes':'No',Rep.paxMax()?'Up to '+Rep.paxMax():'None',Math.round(Rep.contraChance()*100)+'% of visits'+(Rep.contraMul()>1?', '+T.pct(Rep.contraMul()-1)+' pay':'')])))
+      +T.h('What each name is worth')+T.tbl(['Name','From','Pay','Customs','A quiet fee works','Cargo offered','VIPs','Passengers','Back-room work'],REP_TIERS.map(t=>T.asRep(t.min,()=>[t.name,(t.min>0?'+':'')+t.min,T.pct(Rep.payMul()-1),T.pct(Rep.customsMul()-1),Math.round(Rep.bribeTake()*100)+'%',['Plain','Plain','Plain','Plain and better','All of it','All of it'][Rep.tierOf()],Rep.vips()?'Yes':'No',Rep.paxMax()?'Up to '+Rep.paxMax():'None',Math.round(Rep.contraChance()*100)+'% of visits'+(Rep.contraMul()>1?', '+T.pct(Rep.contraMul()-1)+' pay':'')])))
       +T.p('Pay, customs and the quiet fee slide smoothly with the number. The table shows them at the bottom of each name. Hull repairs also get cheaper as your name improves.')
-      +T.h('Earning it')+T.dl([['Deliver on time and in one piece','+2'],['On time, a little knocked about','+1'],K('mayday')&&['Finish a rescue','+6'],K('escort')&&['Bring a VIP in safely','+5'],['Recover cargo you dropped','+2']])
+      +T.h('Who gets the dear cargo')+T.p('Clients hand plain goods to anybody: the ones that pay ×1 or less, like gum, googly eyes and dehydrated water. Better goods go to a hauler known as '+REP_TIERS[3].name+', and the dearest to one known as '+REP_TIERS[4].name+'. Until then a dear load may sit on the shelf marked with the name it needs. Plain cargo is how a name gets started: delivered on time and whole, it earns more reputation than anything dearer.')
+      +T.h('Earning it')+T.dl([['Deliver plain cargo on time and in one piece','+3'],['Deliver dearer cargo on time and in one piece','+2'],['On time, a little knocked about','+1'],K('mayday')&&['Finish a rescue','+6'],K('escort')&&['Bring a VIP in safely','+5'],['Recover cargo you dropped','+2']])
       +T.h('Losing it')+T.dl([['Deliver very late','-2'],['Deliver badly damaged','-1 more'],['Dump cargo, or put a passenger off','-2'],['Speed on approach to a port','-1'],K('mayday')&&['Fly past a mayday','-3'],K('escort')&&['Lose a VIP contract','-6 to -8'],K('customs')&&['Get caught with contraband','-6 to -10'],K('customs')&&['Flee customs, or bribe badly','-4 to -6']])
       +T.p('Past +70 every gain is halved. A bad name is a way of playing too: honest work dries up, and the back room comes looking for you.')},
 
@@ -24125,17 +24133,17 @@ const UI = {
   focusJob(j){ if(this.tab!=='depot') this.go('depot'); this.openTicket(j); },
   openTicket(j){ const P=this.P; if(!P||G.jobs.indexOf(j)<0) return; this.ticket=j; const box=$('port-card'); box.innerHTML=''; box.hidden=false; box.className='ticket'+(j.kind==='contra'?' shady':'');
     const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos), rk=Econ.risk(P,T), rtag=rk>=2?`<span class="tag r${rk}">${RISK[rk].name.toUpperCase()} RISK</span>`:'';
-    let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty);
+    let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty); const needs=j.kind||Rep.trusts(j.mul)?null:REP_TIERS[Rep.goodTier(j.mul)];
     if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · needs a free seat`; }
     else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.riskLine(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
-    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.sit?'<span class="tag">'+esc(j.sit)+'</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
+    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.sit?'<span class="tag">'+esc(j.sit)+'</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${needs?`<span class="tag bad">NEEDS A ${needs.name.toUpperCase()} NAME</span>`:''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
     const x=el('button','close','✕'); x.setAttribute('aria-label','Close'); x.onclick=()=>{ Sfx.click(); this.closeTicket(); }; box.appendChild(x);
-    box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div><p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
-    const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat;
-    const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
+    box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div>${needs?`<p class="lbl">The client only hands this to a hauler known as ${needs.name}. You are ${Rep.label()}, ${needs.min-G.rep} short. Plain cargo, delivered on time, builds a name fastest.</p>`:''}<p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
+    const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat&&!needs;
+    const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',needs?'Not yet':busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
     b.onclick=()=>{ this.closeTicket(); if(j.kind==='contra'){ Customs.load(j,P); return; }
       if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100,story:j.story});
-      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story,cat:j.cat,ends:j.ends}); Venues.fetch(j.good,j); }
+      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story,cat:j.cat,ends:j.ends,mul:j.mul}); Venues.fetch(j.good,j); }
       G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
     r.appendChild(b); box.appendChild(r); Venues.hopShelf(j); if(Sfx.ok()) Sfx.click(); },
   closeTicket(){ this.ticket=null; const b=$('port-card'); if(b){ b.hidden=true; b.innerHTML=''; } },
@@ -25024,10 +25032,12 @@ const Game = {
     const want=Situ.wanted(pi);   // a port in trouble elsewhere usually has something on this board
     for(let i=0;i<n;i++){ let to=dest(i), good=pick(GOODS); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
       if(i===2&&want.length&&Math.random()<0.45){ const w=pick(want); to=w.i; good=Situ.goodOf(w.s.cat)||good; }
+      // dear goods go to a name people know: a hauler without one is mostly offered plain cargo, with the odd dear load on the shelf to work towards
+      if(!Rep.trusts(good[1])&&(i<2||Math.random()<0.75)){ const ok=GOODS.filter(g=>Rep.trusts(g[1])), same=ok.filter(g=>GOOD_CAT[g[0]]===GOOD_CAT[good[0]]); good=pick(same.length?same:ok); }
       const cat=GOOD_CAT[good[0]], sit=Situ.tag(cat,pi,to), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
       const pay=qty*Econ.unitPay(dist)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Situ.payMul(cat,pi,to)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
       const fragile=i>0&&Math.random()<0.3;
-      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk,cat,sit}); }
+      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk,cat,sit,mul:good[1]}); }
     { const st=Situ.strikeAway(pi); if(st){ const dist=P.pos.distanceTo(st.P.pos)/LS;   // somebody has to carry the strike pay
         jobs.push({good:'Strike Pay (Sealed Envelopes)',note:'Do not open. Do not shake. Do not count.',qty:1,to:st.i,pay:Math.round(Econ.unitPay(dist)*2.5*Econ.scale()*Rep.payMul()/5)*5,sp:st.P.species,seed:Math.floor(Math.random()*1e9),hot:false,fragile:false,risk:Econ.risk(P,st.P),ends:'strike',sit:'ENDS THE STRIKE'}); } }
     jobs.sort((a,b)=>a.qty-b.qty);
