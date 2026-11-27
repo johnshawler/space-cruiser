@@ -467,7 +467,7 @@ body.flying #dlg .opt small{font-size:16px}
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.51</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.52</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -22529,6 +22529,193 @@ const Bake = (() => {
     const mesh = new THREE.Mesh(g, beamMaterial()); mesh.renderOrder = 5; mesh.frustumCulled = false; mesh.userData.fx = true; R.add(mesh); V.beams = mesh; }
   return { room, probe, useProbe, beams, decals, detailLive, floorMirror };
 })();
+/* ===================== A CAREER: RANK, LICENCES, REGULARS, STORIES, MILESTONES, THE LOG ===================== */
+/* Four small things that make one delivery lead to the next. None of them is a simulation: they are counters.
+   1. A career rank, counted in deliveries. It only goes up. Four of the ranks come with a cargo licence, and a licence
+      opens a kind of job (fragile, express, livestock, hazardous). The rank is worked out from G.stats.deliveries, so an
+      old save has the rank it has earned.
+   2. Regulars: one named person at most ports, who turns up as the recipient again and again and remembers you.
+   3. Story runs: a few hand-written jobs that follow one another, offered on the depot shelf marked STORY.
+   4. Milestones, best times for each leg, and a captain's log written from what happens at each delivery.
+   Kept in the save as G.car. Nothing here touches PLANETS or the prices of ordinary work. */
+const RANKS = [
+  {min:0,  name:'Probationary Hauler'},
+  {min:4,  name:'Box Mover',       lic:'fragile'},
+  {min:10, name:'Regular Runner',  lic:'express'},
+  {min:18, name:'Line Hauler',     lic:'livestock'},
+  {min:30, name:'Senior Hauler',   lic:'hazard'},
+  {min:45, name:'Road Captain'},
+  {min:65, name:'Master of the Long Haul'}];
+/* mul: what the job pays over an ordinary load. w: how often it turns up on a board. */
+const LICENCES = {
+  fragile:  {name:'Fragile goods',   tag:'FRAGILE',   mul:1.4,  w:0.20, rule:'Throttle 8 and up, and hard turns at speed, will damage it.'},
+  express:  {name:'Express',         tag:'EXPRESS',   mul:1.5,  w:0.10, rule:'Wanted in a hurry. The time allowed for full pay is a third shorter.'},
+  livestock:{name:'Livestock',       tag:'LIVESTOCK', mul:1.35, w:0.07, rule:'Alive, and nervous. Every knock to the hull upsets them and costs you pay.'},
+  hazard:   {name:'Hazardous goods', tag:'HAZARDOUS', mul:1.6,  w:0.07, rule:'While it is aboard, anything that hits the hull does half as much damage again.'}};
+/* [name, pay class, label]. Pay class 1 so anyone with the licence may carry them, whatever their name is worth. */
+const LIC_GOODS = {
+  livestock:[['Free-Range Dust Bunnies',1,'Do not feed after midnight, or before.'],['Ornamental Space Hens',1,'They lay when they feel like it.'],['Pedigree Lap Slugs',1,'Warm lap required at the far end.'],['A Herd of Small Regrets',1,'They follow you about. That is normal.']],
+  hazard:[['Unstable Marmalade',1,'Keep level. Keep calm. Keep away from toast.'],['Loose Lightning (Jarred)',1,'Lid on. Lid ON.'],['Concentrated Monday',1,'Do not open before Tuesday.'],['Angry Glitter',1,'It gets everywhere on purpose.']]};
+
+/* One regular a port. home: the place in PLANETS (never changes). drops: what they say the first time, once they know
+   you, and once you are an old friend. {good} is what you brought. */
+const REGULARS = [
+  {id:'pim',   home:0,  seed:4101, name:'Pim Odelay',         role:'who runs the lost property desk at Vendorhaven and has never lost anything',
+    drops:["Pim Odelay signs for it and writes your name in a book. \"New,\" they say. \"I shall remember you. I remember everything.\"","Pim Odelay looks up before you reach the desk. \"You again. Good. The last one arrived exactly as you left it.\"","Pim Odelay has your form filled in already. \"I kept you a biscuit,\" they say. It is your favourite. You never told them."]},
+  {id:'gra',   home:1,  seed:4102, name:'Foreman Gra-Tok',    role:'who weighs everything at Port Gneiss, including visitors',
+    drops:["Foreman Gra-Tok weighs the crate, then weighs you. \"Both acceptable,\" they rumble.","Foreman Gra-Tok weighs you first this time. \"You have been eating at Sloshwell,\" they say. They are right.","Foreman Gra-Tok does not weigh anything. \"I know what you carry,\" they say. \"It is always correct.\" This is the highest praise there is."]},
+  {id:'nine',  home:2,  seed:4103, name:'Clerk Ninth-of-Nine', role:'who stamps forms at Bureau Nine and dreams of a tenth stamp',
+    drops:["Clerk Ninth-of-Nine stamps the form in nine places and asks whether you would like a receipt for the receipt.","Clerk Ninth-of-Nine has started a file on you. It is thin. \"A good sign,\" they say, and stamp it.","Clerk Ninth-of-Nine shows you a tenth stamp they had made in secret. It says FRIEND. They stamp your hand with it and look around nervously."]},
+  {id:'bo',    home:3,  seed:4104, name:'Auntie Bo Ladle',    role:'who feeds every hauler who lands at Ladle Harbor whether they are hungry or not',
+    drops:["Auntie Bo Ladle takes the crate with one hand and gives you soup with the other. You did not ask for soup.","Auntie Bo Ladle says you look thin. You are not thin. There is more soup.","Auntie Bo Ladle has named a soup after you. It is on the board. It is mostly noodles and it is very good."]},
+  {id:'tik',   home:4,  seed:4105, name:'Tik-Tik Margin',     role:'who buys and sells everything at Bargain Roost and insists each deal is ruining them',
+    drops:["Tik-Tik Margin checks the crate and says you are robbing them. They are smiling.","Tik-Tik Margin says they cannot afford to keep doing business with you, and asks when you are next in.","Tik-Tik Margin gives you a discount on something you did not buy. \"For family,\" they say. \"Tell nobody. I have a name to protect.\""]},
+  {id:'moss',  home:5,  seed:4106, name:'Slow Moss',          role:'who has been meaning to open a shop in Mellow Hollow for forty years',
+    drops:["Slow Moss takes a long time to sign. \"No rush,\" they say. There really is not.","Slow Moss remembers you, eventually. \"You brought the other thing,\" they say. \"That was a good thing.\"","Slow Moss says the shop will open any day now, and that you will be the first customer. They have been saving you a chair."]},
+  {id:'eld',   home:6,  seed:4107, name:'Eldrin of the Long Sigh', role:'who writes poems at Port Lament about parcels that never came',
+    drops:["Eldrin of the Long Sigh receives the crate and looks faintly let down. \"It came,\" they say. \"I had a poem ready for if it did not.\"","Eldrin of the Long Sigh has written you a short verse. It rhymes \"hauler\" with \"taller\". It is about being on time.","Eldrin of the Long Sigh reads you a whole poem. It is cheerful. They say it is your fault and they will never forgive you."]},
+  {id:'oo',    home:7,  seed:4108, name:'The Committee of Oo', role:'who are several people at The Drift and sign for things one letter each',
+    drops:["The Committee of Oo signs for it. It takes a while. Every member wants a turn with the pen.","The Committee of Oo greets you all at once and slightly out of time. They have voted. You are welcome.","The Committee of Oo has made you an honorary member. You get one letter of the signature. It is the dot."]},
+  {id:'hug',   home:8,  seed:4109, name:'Warden Hugsby',      role:'who keeps Fort Snuggle warm and will not let anyone leave without a scarf',
+    drops:["Warden Hugsby signs for the crate and gives you a scarf. It is very long.","Warden Hugsby asks where your scarf is. You have it. They give you another.","Warden Hugsby has knitted a cover for your ship. It does not fit. It is the thought, and the thought weighs a tonne."]},
+  {id:'hush',  home:9,  seed:4110, name:'Doctor Vell Hush',   role:'who listens to the dark at The Quiet Ear and would like everyone to stop talking',
+    drops:["Doctor Vell Hush signs for it without a word and holds a finger up. You both listen. There is nothing. They nod.","Doctor Vell Hush whispers that you have very quiet engines. From them, this is a love letter.","Doctor Vell Hush plays you a recording of the dark. In the middle there is a faint hum. \"That is you arriving,\" they say. \"I kept it.\""]},
+  {id:'frost', home:10, seed:4111, name:'Keeper Frostwick',   role:'who looks after the Freezer Aisle and has not been warm since the last delivery',
+    drops:["Keeper Frostwick signs with a mitten and thanks you through three scarves.","Keeper Frostwick has saved you the warm spot by the pipe. It is not warm. It is less cold.","Keeper Frostwick opens a tin they have been keeping for a special day. \"You came,\" they say. \"That is the day.\""]},
+  {id:'last',  home:12, seed:4112, name:'Old Wink',           role:'who keeps the lamp at The Last Light and waves at every ship, including the ones that are not there',
+    drops:["Old Wink waves until you are well inside the door, then waves a little more to be sure.","Old Wink says they saw you coming two days ago. They put the kettle on then. It is quite cold now.","Old Wink says the lamp is for you, really. \"The others can use it,\" they say. \"But I light it for the ones who come back.\""]},
+];
+
+/* Story runs. Each step is one delivery, offered at any port but the one it goes to, once the step before is done.
+   need: the career rank (its place in RANKS) at which the run starts. pay: times an ordinary one-unit load. */
+const CHAINS = [
+  {id:'kettle', name:'The Wrong Kettle', need:0, who:{sp:'beepul',seed:5201,name:'Dot Tumble'}, steps:[
+    {to:3, good:'A Kettle (Wrong One)', pay:1.6, pick:"Dot Tumble at Vendorhaven ordered a kettle and was sent somebody else's. The label says Auntie Bo Ladle, Sloshwell. Dot would like it gone before it boils again. It boils on its own.", drop:"Auntie Bo Ladle looks at the kettle for a long moment. \"That is not mine either,\" they say. \"Mine whistles. This one hums.\" They write a new label."},
+    {to:6, good:'A Kettle (Still Wrong)', pay:1.8, pick:"The kettle hums. Auntie Bo Ladle is sure it belongs to a poet on Candara, because only a poet would own a kettle that sad.", drop:"Eldrin of the Long Sigh listens to the kettle and wipes an eye. \"It is not mine,\" they say. \"But I know whose it is. It has been trying to get home.\""},
+    {to:0, self:true, good:'A Kettle (The Right One, It Turns Out)', pay:2.4, pick:"Eldrin says the kettle has been Dot Tumble's all along. Dot ordered a new one and never noticed the old one had gone out looking for it. It is going back to Verdanthia.", drop:"Dot Tumble opens the crate. The kettle stops humming and starts to whistle. Dot goes very quiet, then puts it on the shelf next to the new one. They seem to get on."}]},
+  {id:'ledger', name:'The Tenth Stamp', need:2, who:{sp:'zkthar',seed:5202,name:'Clerk Ninth-of-Nine'}, steps:[
+    {to:4, good:'A Sealed Order for One Stamp', pay:1.8, pick:"Clerk Ninth-of-Nine wants a stamp made. A tenth one. There is no form for ordering a tenth stamp, so there is no form, so nobody may know. Tik-Tik Margin on Amethyne can get anything.", drop:"Tik-Tik Margin reads the order twice. \"A stamp that says what?\" They read it again and stop smiling. \"Oh,\" they say. \"That one I will do at cost.\""},
+    {to:1, good:'One Blank Stamp (Heavy)', pay:2.0, pick:"The stamp must be cut from Scorchmaw stone, which does not wear out. Foreman Gra-Tok is the only one who will cut it without asking what it is for.", drop:"Foreman Gra-Tok weighs the blank, cuts it in one stroke and does not ask what it is for. \"It says a good word,\" they rumble. \"I can tell by the weight.\""},
+    {to:2, good:'A Small Heavy Box, Not on Any Form', pay:2.6, pick:"The stamp is finished. It has to reach Bureau Nine without appearing on a single form, which at Bureau Nine has never happened to anything.", drop:"Clerk Ninth-of-Nine opens the box under the desk. The stamp says FRIEND. They stamp one form, look at it for a while, and file it under Things That Went Right. The folder is new."}]},
+  {id:'lamp', name:'A Light for the Last Light', need:3, who:{sp:'winkmast',seed:5203,name:'Old Wink'}, steps:[
+    {to:8, good:'A Letter in Very Large Writing', pay:2.0, pick:"Old Wink, far out at Beacon Far Wink, has written to say the lamp is going dim and they would like a warmer one. The letter is addressed to \"whoever is kind\". Somebody thinks that means Warden Hugsby on Brrrindle.", drop:"Warden Hugsby reads the letter and starts knitting at once. \"A lamp wants a cosy,\" they say. \"But it wants a flame first. Take this to Jovexa.\""},
+    {to:7, good:'A Lamp Cosy (Enormous)', pay:2.2, pick:"The cosy is finished and it is the size of a small moon. The Committee of Oo on Jovexa keeps a spare flame, voted on yearly.", drop:"The Committee of Oo votes. It is close. The flame may go, on condition that somebody tells Old Wink it came from all of them, one letter each."},
+    {to:12, good:'One Flame, in a Jar, with a Cosy', pay:3.4, pick:"A flame in a jar, wrapped in a cosy the size of a small moon, for the lamp at the very end of the map. It is a long way. It is the last light there is.", drop:"Old Wink lifts the old lamp down and sets the new flame in its place. The whole station goes gold. Out in the dark, something that had been lost for a while turns round and starts for home. Old Wink waves at it."}]},
+];
+
+/* An admirer who is always one port ahead of you. at: the delivery count that brings the next note. */
+const ADMIRER = [
+  {at:6,  t:"There is a note for you at the desk. \"I saw your landing. Very level. A fan.\" No name."},
+  {at:14, t:"Another note. \"I was here yesterday. You were not. I have left you a sandwich.\" There is no sandwich. There is a plate."},
+  {at:24, t:"A note, and a small drawing of your ship. The ship is smiling. \"Missed you again. You fly faster than I walk.\""},
+  {at:36, t:"The desk has a whole envelope for you. Inside is a list of every port you have landed at, in order, with marks out of ten. Most are nines."},
+  {at:50, t:"A note in a hurry. \"I am going to wait at one port until you come. I have not decided which. Good luck to us both.\""},
+  {at:66, t:"Somebody at the desk stands up when you walk in. They are very small and holding a plate with a sandwich on it. \"Finally,\" they say. \"I am your biggest fan. I am also the Inspector of Landings. You have passed.\""}];
+
+const Career = {
+  fresh(){ return {regs:{},ch:{},log:[],best:{},goods:{},ports:{},done:[],chains:0,adm:0,recs:0}; },
+  S(){ return G.car||(G.car=this.fresh()); },
+  restore(d){ const f=this.fresh(), s=d&&typeof d==='object'?d:{}; for(const k of ['regs','ch','best','goods','ports']) if(s[k]&&typeof s[k]==='object') f[k]=s[k];
+    if(Array.isArray(s.log)) f.log=s.log.slice(0,40); if(Array.isArray(s.done)) f.done=s.done; f.chains=s.chains|0; f.adm=s.adm|0; f.recs=s.recs|0; G.car=f; },
+
+  /* ---------- rank and licences ---------- */
+  n(){ return (G.stats&&G.stats.deliveries)|0; },
+  rank(n){ n=n==null?this.n():n; let k=0; RANKS.forEach((r,i)=>{ if(n>=r.min) k=i; }); return k; },
+  name(){ return RANKS[this.rank()].name; },
+  next(){ return RANKS[this.rank()+1]||null; },
+  rankFor(lic){ return RANKS.findIndex(r=>r.lic===lic); },
+  has(lic){ return !lic||this.rank()>=this.rankFor(lic); },
+  /* what a locked job says it needs */
+  needs(lic){ if(this.has(lic)) return null; const r=RANKS[this.rankFor(lic)]; return {lic:LICENCES[lic].name,rank:r.name,left:r.min-this.n()}; },
+  /* which kind of special job, if any, the i-th offer on a board is. The first two are always ordinary, and a kind you
+     have no licence for turns up only now and then, as something to work towards */
+  roll(i){ if(i<2) return null; let r=Math.random(); for(const k in LICENCES){ r-=LICENCES[k].w; if(r<0) return this.has(k)||Math.random()<0.3?k:null; } return null; },
+  payMul(lic){ return lic?LICENCES[lic].mul:1; },
+  estMul(c){ return c&&c.lic==='express'?0.65:1; },
+  /* a knock to the hull: hazardous cargo makes it worse, and livestock take it badly */
+  knock(n){ if(G.cargo.some(c=>c.lic==='hazard')) n=Math.round(n*1.5); let upset=false; for(const c of G.cargo) if(c.lic==='livestock'){ c.dmg=Math.min(0.6,(c.dmg||0)+n*0.02); upset=true; }
+    if(upset) setTimeout(()=>UI.toast('The livestock did not like that. Their pay is down.','warn'),900); return n; },
+  bar(){ const k=this.rank(), a=RANKS[k], b=RANKS[k+1]; return b?clamp((this.n()-a.min)/(b.min-a.min),0,1):1; },
+  barHtml(){ return `<div style="height:16px;border:2px solid var(--line);margin:6px 0 2px"><div style="height:100%;width:${Math.round(this.bar()*100)}%;background:var(--amber)"></div></div>`; },
+  sheet(){ const nx=this.next(); return [['Career rank',`${this.name()} · ${this.n()} deliver${this.n()===1?'y':'ies'}`],['Next rank',nx?`${nx.name}, ${nx.min-this.n()} more deliver${nx.min-this.n()===1?'y':'ies'}${nx.lic?' · brings the '+LICENCES[nx.lic].name+' licence':''}`:'There is no higher rank'],['Licences held',Object.keys(LICENCES).filter(k=>this.has(k)).map(k=>LICENCES[k].name).join(', ')||'None yet']]; },
+
+  /* ---------- regulars ---------- */
+  regAt(i){ return REGULARS.find(r=>r.home===i)||null; },
+  reg(id){ return REGULARS.find(r=>r.id===id)||null; },
+  met(id){ return this.S().regs[id]|0; },
+  /* a job to a port with a regular is, about two times in five, for them */
+  story(j){ const R=this.regAt(j.to); if(!R||Math.random()>0.4) return null; const T=PLANETS[j.to], n=this.met(R.id);
+    const pick=n>=5?`${R.name} on ${T.name} asked for you by name. It is ${j.good}, and they will not have anyone else carry it.`:n>=1?`This one is for ${R.name} on ${T.name} again, ${R.role}. They asked whether the same hauler was free.`:`${alienName(j.sp,j.seed)} is sending this to ${R.name} on ${T.name}, ${R.role}.`;
+    return {pick,drop:R.drops[0],reg:R.id,to:{sp:T.species,seed:R.seed,name:R.name}}; },
+
+  /* ---------- story runs ---------- */
+  step(C){ return this.S().ch[C.id]|0; },
+  /* the next story job this board can offer: one at a time, and never to the port you are standing in */
+  offer(pi){ if(G.cargo.some(c=>c.chain)) return null;
+    for(const C of CHAINS){ const k=this.step(C); if(k>=C.steps.length||this.rank()<C.need) continue; const st=C.steps[k]; if(st.to===pi) continue; if(Math.random()>0.6) return null;
+      const T=PLANETS[st.to], dist=PLANETS[pi].pos.distanceTo(T.pos)/LS, R=st.self?null:this.regAt(st.to), to=R?{sp:T.species,seed:R.seed,name:R.name}:C.who;
+      return {good:st.good,note:`${C.name}, part ${k+1} of ${C.steps.length}.`,qty:1,to:st.to,pay:Math.round(Econ.unitPay(dist)*st.pay*Econ.scale()*RISK[Econ.risk(PLANETS[pi],T)].mul*Rep.payMul()/5)*5,sp:C.who.sp,seed:C.who.seed,hot:false,fragile:false,risk:Econ.risk(PLANETS[pi],T),sit:'STORY',chain:C.id,step:k,story:{pick:st.pick,drop:st.drop,to}}; }
+    return null; },
+
+  /* ---------- what a delivery leaves behind ---------- */
+  note(text, where, plus){ const L=this.S().log; L.unshift({n:this.n()+(plus|0),w:where||'',t:text}); if(L.length>40) L.length=40; },
+  /* called as a delivery is handed over, before it is counted. Returns the ending to show (a regular's line changes
+     as they get to know you) */
+  delivered(c, P, end){ const S=this.S(), before=this.rank();
+    if(end&&end.reg){ const R=this.reg(end.reg); if(R){ const n=this.met(R.id); end=Object.assign({},end,{drop:R.drops[n>=5?2:n>=1?1:0]}); S.regs[R.id]=n+1; } }
+    if(c.kind!=='pax'&&c.kind!=='escort'&&c.kind!=='ore'&&c.good) S.goods[c.good]=(S.goods[c.good]|0)+1;
+    S.ports[P.idx]=(S.ports[P.idx]|0)+1;
+    if(end&&end.drop) this.note(end.drop,P.name,1);
+    if(c.chain){ const C=CHAINS.find(x=>x.id===c.chain); if(C&&this.step(C)===c.step){ S.ch[C.id]=c.step+1; if(c.step+1>=C.steps.length){ S.chains++; this.note(`The end of "${C.name}".`,P.name,1); setTimeout(()=>{ UI.toast(`Story finished: ${C.name}.`,'good'); Rep.add(4,`You saw "${C.name}" through`); },1400); } } }
+    // a best time for the leg: only flight time counts, and only your own earlier runs are the competition
+    if(c.from>=0&&c.from!==P.idx&&c.el>20&&c.kind!=='escort'){ const key=c.from+'>'+P.idx, was=S.best[key], t=Math.round(c.el);
+      if(!was||t<was){ S.best[key]=t; if(was){ S.recs++; setTimeout(()=>UI.toast(`Best time, ${PLANETS[c.from].name} to ${P.name}: ${fmtTime(t)}. It was ${fmtTime(was)}.`,'good'),2200); } } }
+    this.pendingRank=before; return end; },
+  /* called once the delivery has been counted */
+  counted(){ const k=this.rank(), was=this.pendingRank; this.pendingRank=null;
+    if(was!=null&&k>was){ const R=RANKS[k]; this.note(`Promoted to ${R.name}.`,''); setTimeout(()=>UI.toast(`Promoted: you are now a ${R.name}.${R.lic?` You hold the ${LICENCES[R.lic].name} licence.`:''}`,'good'),1800); }
+    this.check(); },
+  /* landing: the admirer may have been here first */
+  landed(P){ const S=this.S(), a=ADMIRER[S.adm]; if(a&&this.n()>=a.at){ S.adm++; this.note(a.t,P.name); setTimeout(()=>{ if(G.mode==='port') UI.toast(a.t); },3200); } this.check(true); },
+
+  /* ---------- milestones ---------- */
+  miles(){ const S=this.S(), n=this.n(), st=G.stats||{}, ports=PLANETS.length, del=Object.keys(S.ports).length, goods=GOODS.filter(g=>S.goods[g[0]]).length, met=REGULARS.filter(r=>this.met(r.id)).length, friends=REGULARS.filter(r=>this.met(r.id)>=5).length, lic=Object.keys(LICENCES).filter(k=>this.has(k)).length, nb=Object.keys(S.best).length;
+    const M=(id,t,have,want)=>({id,t,have:Math.min(have,want),want,ok:have>=want});
+    return [M('d1','Make a first delivery',n,1),M('d10','Make 10 deliveries',n,10),M('d25','Make 25 deliveries',n,25),M('d50','Make 50 deliveries',n,50),M('d100','Make 100 deliveries',n,100),
+      M('e10','Earn 10,000 credits',st.earned|0,10000),M('e100','Earn 100,000 credits',st.earned|0,100000),
+      M('seen','Land at every port',(G.seen||[]).length,ports),M('del','Deliver to every port',del,ports),
+      M('goods','Carry every kind of ordinary cargo',goods,GOODS.length),M('lic','Hold every licence',lic,Object.keys(LICENCES).length),
+      M('met','Meet every regular',met,REGULARS.length),M('fr1','Become an old friend of one regular',friends,1),M('frall','Become an old friend of every regular',friends,REGULARS.length),
+      M('ch1','Finish a story',S.chains,1),M('chall','Finish every story',S.chains,CHAINS.length),
+      M('fix1','End a port\'s troubles',st.fixed|0,1),M('fix5','End five ports\' troubles',st.fixed|0,5),
+      M('legs','Fly 10 different legs with cargo',nb,10),M('rec','Beat your own best time 5 times',S.recs,5),
+      M('top','Own the '+SHIPS[SHIPS.length-1].name,G.shipId>=SHIPS.length-1?1:0,1),M('won','Eat at the Diner',G.won?1:0,1)]; },
+  /* say so the first time each is reached. quiet: an old save is brought up to date without a string of pop-ups */
+  check(quiet){ const S=this.S(), fresh=this.miles().filter(m=>m.ok&&!S.done.includes(m.id)); if(!fresh.length) return; const first=!S.done.length&&fresh.length>2;
+    for(const m of fresh){ S.done.push(m.id); if(!first) this.note(`Milestone: ${m.t}.`,''); }
+    if(!quiet&&!first) setTimeout(()=>UI.toast(`Milestone: ${fresh[0].t}.${fresh.length>1?` And ${fresh.length-1} more.`:''}`,'good'),2600); },
+  /* the mark out of 100 the Diner gives you: mostly what you did, a little for your name and for not dawdling */
+  score(){ const M=this.miles(), ok=M.filter(m=>m.ok).length, trips=Math.max(1,G.sitDay||1), s=Math.round(100*(0.6*ok/M.length+0.2*clamp((G.rep||0)/100,0,1)+0.2*clamp(40/trips,0,1)));
+    const title=s>=90?'Legend of the Lanes':s>=75?'Hauler of Some Renown':s>=60?'Reliable, Mostly':s>=45?'Got There in the End':s>=30?'Scenic Route Specialist':'Technically a Hauler'; return {s,title,ok,of:M.length,trips}; },
+
+  /* ---------- the book ---------- */
+  pages(T){ const S=this.S(), M=this.miles(), met=REGULARS.filter(r=>this.met(r.id));
+    return [
+    {t:'Career and licences', f:()=>T.p('Every delivery counts towards your career rank. It only ever goes up. You are a '+this.name()+'.')+this.barHtml()+T.dl(this.sheet())
+      +T.h('The ranks')+T.tbl(['Rank','Deliveries','Licence it brings'],RANKS.map(r=>[r.name,r.min,r.lic?LICENCES[r.lic].name:'']))
+      +T.h('What a licence opens')+T.tbl(['Licence','Pays','The catch'],Object.keys(LICENCES).map(k=>[LICENCES[k].name,T.pct(LICENCES[k].mul-1),LICENCES[k].rule]))
+      +T.p('A job you have no licence for may still sit on the shelf, marked with the licence it needs. A licence is separate from your reputation: dear goods still want a good name.')},
+    {t:'Regulars', hide:()=>!met.length, f:()=>T.p('Some people at the ports get a lot of parcels. Bring them enough and they start to know you. Five deliveries makes an old friend.')
+      +T.tbl(['Who','Where','Deliveries','They think of you as'],met.map(r=>[r.name,PLANETS[r.home].name,this.met(r.id),this.met(r.id)>=5?'An old friend':this.met(r.id)>=2?'A familiar face':'Somebody new']))
+      +T.p(met.length<REGULARS.length?`There are ${REGULARS.length-met.length} more regulars you have not met.`:'You have met every regular.')},
+    {t:'Stories', hide:()=>!Object.keys(S.ch).length, f:()=>T.p('Some jobs follow one another. They are on the depot shelf marked STORY, one part at a time.')
+      +T.tbl(['Story','Parts done'],CHAINS.filter(C=>this.step(C)>0).map(C=>[C.name,this.step(C)>=C.steps.length?'Finished':`${this.step(C)} of ${C.steps.length}`]))},
+    {t:'Milestones', f:()=>T.p(`${M.filter(m=>m.ok).length} of ${M.length} reached. None of them is needed to finish the game.`)
+      +T.tbl(['Milestone','So far',''],M.map(m=>[m.t,`${m.have.toLocaleString()} of ${m.want.toLocaleString()}`,m.ok?'✔ Done':'']))
+      +T.h('Best times')+(Object.keys(S.best).length?T.tbl(['From','To','Best time'],Object.keys(S.best).map(k=>k.split('>').map(Number)).filter(a=>PLANETS[a[0]]&&PLANETS[a[1]]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(a=>[PLANETS[a[0]].name,PLANETS[a[1]].name,fmtTime(S.best[a[0]+'>'+a[1]])])):T.p('Deliver a job to set a time for its leg. Only flight time counts.'))},
+    {t:"Captain's log", f:()=>S.log.length?T.tbl(['Delivery','Where','What happened'],S.log.map(e=>[e.n,e.w,e.t])):T.p('Nothing yet. The log writes itself as you make deliveries.')},
+    ]; },
+};
 /* ===================== CARGO HOLD, SCOOP, FLOATING CARGO, RADIO CALLS ===================== */
 
 const holdUsed=()=>G.cargo.reduce((a,b)=>a+(b.qty||0),0);
@@ -22545,7 +22732,7 @@ const Cargo = {
   seats(){ return this.hullSeats()-(G.mech?1:0); },
   pax(){ return G.cargo.filter(c=>c.kind==='pax'||c.kind==='escort'); },
   decays(c){ return c.to>=0&&c.kind!=='ore'&&c.kind!=='escort'&&!c.quest; },
-  est(c){ const from=c.from>=0?PLANETS[c.from]:(World.nearest||PLANETS[0]), d=from.pos.distanceTo(PLANETS[c.to].pos); return Math.round(d/SHIPS[G.shipId].warp*2.2+150); },
+  est(c){ const from=c.from>=0?PLANETS[c.from]:(World.nearest||PLANETS[0]), d=from.pos.distanceTo(PLANETS[c.to].pos); return Math.round((d/SHIPS[G.shipId].warp*2.2+150)*Career.estMul(c)); },
   stamp(c){ if(!this.decays(c)||c.est!=null) return; c.est=this.est(c); c.el=0; if(c.pay0==null) c.pay0=c.pay; },
   stampAll(){ for(const c of G.cargo) this.stamp(c); },
   factor(c){ if(!this.decays(c)||c.est==null) return 1; const late=Math.max(0,c.el-c.est); return clamp(1-0.5*late/c.est,0.3,1); },
@@ -22554,7 +22741,7 @@ const Cargo = {
   tick(dt){
     for(const c of G.cargo){ this.stamp(c); if(!this.decays(c)) continue; const was=c.el<=c.est; c.el+=dt*Faults.lagMul(c); c.pay=this.value(c);
       if(was&&c.el>c.est&&!c.told){ c.told=1; UI.toast(c.kind==='pax'?`${c.good} is now running late. Their fare is dropping.`:`${c.qty}× ${c.good} is now late. The pay is dropping.`,'warn'); } } },
-  label(c){ if(!this.decays(c)||c.est==null) return ''; const l=this.left(c), fr=c.fragile?` · fragile, ${Math.round((1-(c.dmg||0))*100)}% intact`:''; return (l>0?`on time for ${fmtTime(l)} more`:`late, pay down to ${fmtCr(c.pay)} from ${fmtCr(c.pay0)}`)+fr; },
+  label(c){ if(!this.decays(c)||c.est==null) return ''; const l=this.left(c), fr=c.fragile?` · fragile, ${Math.round((1-(c.dmg||0))*100)}% intact`:c.lic==='livestock'?` · livestock, ${Math.round((1-(c.dmg||0))*100)}% calm`:c.lic==='express'?' · express':c.lic==='hazard'?' · hazardous':''; return (l>0?`on time for ${fmtTime(l)} more`:`late, pay down to ${fmtCr(c.pay)} from ${fmtCr(c.pay0)}`)+fr; },
 };
 /* hold capacity: the ship's hold, plus one unit under the false floor if a hidden compartment is fitted */
 const holdCap=()=>SHIPS[G.shipId].hold+(G.up&&G.up.hidden?1:0);
@@ -22913,13 +23100,14 @@ const Rep = {
     Specs.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click(); $('specs-name').textContent=`Your standing: ${T.name}`; $('specs-tag').textContent=T.say;
     const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.filter(Boolean).map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`;
     let html=dl('Where you stand',[['Reputation',this.signed()],['Next name up',up?`${up.name}, ${up.min-G.rep} to go`:'There is no higher name']]);
+    html+=dl('Your career',Career.sheet())+Career.barHtml();
     html+=dl('What it is doing for you',[['Pay on new contracts',pct(this.payMul()-1)],['Cargo clients trust you with',this.cargoLine()],K('garage')&&['Hull repairs',`${this.repairPrice()} cr a point`],K('customs')&&['Customs searches',this.customsMul()<1?'Waved through more often':this.customsMul()>1?'Searched harder':'The usual'],K('bar')&&['Passengers',this.paxMax()?'Will fly with you':'None will fly with you'],K('escort')&&['VIP escorts',this.vips()?'Offered':'Not offered']]);
     const log=(G.repLog||[]).slice(0,4); html+=dl('Lately',log.length?log.map(e=>[e.why,(e.d>0?'+':'')+e.d]):[['Nothing yet','Go and deliver something']]);
     html+=`<p class="note">How a name is earned and lost is in the Haul-O-Pedia. Press O.</p>`;
     $('specs-body').innerHTML=html; },
 };
 const Hull = {
-  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Faults.list().length<Faults.MAX&&Math.random()<0.35*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
+  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; n=Career.knock(n); G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Faults.list().length<Faults.MAX&&Math.random()<0.35*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
     UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
   breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
 };
@@ -23679,7 +23867,7 @@ const Pedia = {
       +T.h('Keys')+`<div class="pkeys">${[...document.querySelectorAll('#help dl')].map(d=>`<dl class="${d.className}">${d.innerHTML}</dl>`).join('')}</div>`},
 
     {t:'Contracts and pay', f:()=>T.p('A contract pays for how much you carry and how far you carry it. Everything else is a multiplier on top.')
-      +T.h('How a cargo contract is priced')+T.dl([['Per unit of cargo',`${Econ.unitPay(0)} cr, plus ${Econ.unitPay(1)-Econ.unitPay(0)} cr for every light-second of distance`],['The goods',`Some pay more than others: from ×${Math.min(...goods)} to ×${Math.max(...goods)}`+(K('rep')?'. The dearer ones go to a name people know. See Reputation.':'')],['The route\'s risk',(K('deep')?RISK:RISK.slice(0,2)).map(r=>`${r.name} ×${r.mul}`).join(' · ')+(K('deep')?'':' · and more, further out')],K('bar')&&['A hot tip','+50% to one world. Buy a round in a cantina to hear which.'],K('rep')&&['Your reputation',`From ${T.pct(T.asRep(-100,()=>Rep.payMul())-1)} to ${T.pct(T.asRep(100,()=>Rep.payMul())-1)}. See Reputation.`],K('fragile')&&['Fragile cargo','Pays 40% more, and loses value if you fly roughly.'],['Luck','Every offer is 15% under to 20% over the going rate.']])
+      +T.h('How a cargo contract is priced')+T.dl([['Per unit of cargo',`${Econ.unitPay(0)} cr, plus ${Econ.unitPay(1)-Econ.unitPay(0)} cr for every light-second of distance`],['The goods',`Some pay more than others: from ×${Math.min(...goods)} to ×${Math.max(...goods)}`+(K('rep')?'. The dearer ones go to a name people know. See Reputation.':'')],['The route\'s risk',(K('deep')?RISK:RISK.slice(0,2)).map(r=>`${r.name} ×${r.mul}`).join(' · ')+(K('deep')?'':' · and more, further out')],K('bar')&&['A hot tip','+50% to one world. Buy a round in a cantina to hear which.'],K('rep')&&['Your reputation',`From ${T.pct(T.asRep(-100,()=>Rep.payMul())-1)} to ${T.pct(T.asRep(100,()=>Rep.payMul())-1)}. See Reputation.`],K('fragile')&&['Fragile cargo','Pays 40% more, and loses value if you fly roughly.'],['Licensed cargo','Express, livestock and hazardous loads pay more. See Career and licences.'],['Luck','Every offer is 15% under to 20% over the going rate.']])
       +T.h('Size')+T.p('Contracts are sized to your hold. A bigger ship is offered bigger loads, so it earns more on every trip.')
       +T.h('Being late')+T.p('Most contracts have a time they expect to arrive. Miss it and the pay starts to drop, down to as little as 30% of what was agreed.'+(K('rep')?' Very late deliveries also cost you reputation.':''))
       +(K('bar')||K('escort')||K('customs')||K('mining')||K('mayday')?T.h('Other work')+T.dl([K('bar')&&['Passengers','Offered in cantinas. Each takes a seat, not hold space. Fares start at 170 cr and rise with distance.'],K('escort')&&['VIP escorts','Fly with a nervous VIP and keep them calm. Starts at 400 cr and pays well over distance. Not offered to a bad name.'],K('customs')&&['Back-room contracts','Contraband. It pays for the chance of being caught. See Customs and contraband.'],K('mining')&&['Mining','Cut ore from asteroid fields and sell it at an Assay office. See Mining.'],K('mayday')&&['Maydays','Stop for a ship in trouble, or do not. Rescues are worth reputation. Flying past costs it.']]):'')},
@@ -23746,7 +23934,7 @@ const Pedia = {
     {t:'The end of the galaxy', need:'end', f:()=>T.p(RESTAURANT.name+' is '+T.ls(RESTAURANT.orbit)+' from the sun, out past '+PLANETS[PLANETS.length-1].name+'. It is on the map, at the rim of the chart. Arrive, and you have finished the game. You can keep flying afterwards.')
       +T.h('Who can get there')+T.tbl(['Ship','Range on a full tank','Reaches it'],SHIPS.map((s,i)=>(K('ships')||i===G.shipId)&&[s.name,T.ls(Restaurant.range(i)),i===top?'Yes':'No']))
       +T.p('Only the '+SHIPS[top].name+' carries the fuel. The map will not plot the course for anything less, and a ship that tries anyway runs dry and is towed home. The trip takes about three minutes at warp. Fill the tank first.',K('faults')&&'Mend any coolant leak before you go: a leak burns fuel 70% faster.')},
-    ].filter(p=>T.has(p.need)&&!(p.hide&&p.hide())); },
+    ].concat(Career.pages(T)).filter(p=>T.has(p.need)&&!(p.hide&&p.hide())); },
 
   show(i){ if(!G.know) G.know={}; const P=this.pages(); if(i!=null) this.page=i; this.page=clamp(this.page,0,P.length-1); this.open=true; $('pedia').hidden=false; const cur=P[this.page];
     if(cur.need&&this.fresh(cur.need)){ G.know[cur.need]=2; if(G.mode!=='title') Game.save(); }
@@ -23817,8 +24005,9 @@ const Restaurant = {
   /* ---------- the ending ---------- */
   ending(){
     const s=G.ship; s.throttle=0; s.warp=false; G.sys.autopilot=false; if(typeof Walk!=='undefined') Walk.exit(true); if(SysMap.open) SysMap.close(); if(Sfx.ok()){ Sfx.cash(); Sfx.beep(660); setTimeout(()=>Sfx.beep(880),260); }
-    const first=!G.won; G.won=true; const st=G.stats||{deliveries:0,earned:0}, mins=Math.round((G.playTime||0)/60), time=mins<60?`${mins} min`:`${Math.floor(mins/60)} h ${mins%60} min`;
+    const first=!G.won; G.won=true; Career.check(true); const st=G.stats||{deliveries:0,earned:0}, mins=Math.round((G.playTime||0)/60), time=mins<60?`${mins} min`:`${Math.floor(mins/60)} h ${mins%60} min`;
     const rows=[['Time at the helm',time],['Deliveries made',String(st.deliveries||0)],['Credits earned',fmtCr(st.earned||0)],['Ship',SHIPS[G.shipId].name+(G.paint?' in '+G.paint.name:'')],['Ports visited',`${(G.seen||[]).length} of ${PLANETS.length}`]];
+    { const sc=Career.score(); rows.push(['Career rank',Career.name()],['Trips taken',String(sc.trips)],['Milestones',`${sc.ok} of ${sc.of}`],['The Diner\'s verdict',`${sc.s} out of 100: ${sc.title}`]); }
     if(G.mech) rows.push(['Mechanic',`${G.mech.name}, who has already found something to fix in the kitchen`]);
     $('ending-body').innerHTML=`<div class="eyebrow">The end of the galaxy · last orders</div><h1>You <span>made it</span></h1>
       <p class="pitch">${esc(RESTAURANT.name)} has one table by the window, and it has been holding it for you. Nobody here asks what you were carrying. The soup is hot. Out past the glass is everything you ever flew past, all at once and very small.</p>
@@ -23993,7 +24182,8 @@ const PAX_TRIPS = [
 const Story = {
   who(sp, seed){ return {sp,seed,name:alienName(sp,seed)}; },
   /* an ordinary crate: someone at this port sends it to someone at the far end */
-  cargo(j){ const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(ALIEN_POOL),(j.seed*7+13)%1000000007), pair=T.station&&Math.random()<0.55?pick(STORY_STATION):STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
+  cargo(j){ const known=Career.story(j); if(known) return known;   // the port's regular, who remembers you
+    const T=PLANETS[j.to], to=this.who(Math.random()<0.6?T.species:pick(ALIEN_POOL),(j.seed*7+13)%1000000007), pair=T.station&&Math.random()<0.55?pick(STORY_STATION):STORY_GOODS[j.good]&&Math.random()<0.65?STORY_GOODS[j.good]:pick(STORY_ANY);
     const o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port}; return {pick:fill(pair[0],o),drop:fill(pair[1],o),to}; },
   contra(j){ const T=PLANETS[j.to], to=this.who(pick(['vrell','grondar','qeeble','blorpax']),(j.seed*11+5)%1000000007), pair=pick(STORY_CONTRA), o={from:alienName(j.sp,j.seed),to:to.name,planet:T.name,port:T.port};
     return {pick:fill(pair[0],o),drop:fill(pair[1],o),to:{sp:to.sp,seed:to.seed,name:to.name+' · never here'}}; },
@@ -24100,10 +24290,10 @@ const UI = {
   due(P){ return P?G.cargo.filter(c=>c.to===P.idx&&!c.illegal&&c.kind!=='ore'):[]; },
   payFor(c){ return c.kind==='escort'?Math.round(c.pay*(0.5+0.5*c.hp/100)/5)*5:c.pay; },
   deliver(c, P, quiet){
-    let pay, name, rd=0, rw=''; const end=Story.ending(c,P);
+    let pay, name, rd=0, rw=''; let end=Story.ending(c,P);
     if(c.kind==='escort'){ const r=Escort.land(P); if(!r){ Cockpit.drawManifest(); this.render(); return 0; } pay=r.pay; name=c.vip.title; }
     else { const i=G.cargo.indexOf(c); if(i<0) return 0; G.cargo.splice(i,1); pay=c.pay; name=c.kind==='pax'?c.good:`${c.qty}× ${c.good}`; if(c.kind!=='contra'&&c.kind!=='ore'){ rd=Rep.delivery(c); rw=Rep.deliveryWhy(c,rd); rd=Rep.add(rd,rw,true); } Situ.delivered(c,P); }
-    G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay; this.tell(end);
+    end=Career.delivered(c,P,end); G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay; this.tell(end); Career.counted();
     if(!quiet){ Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); Venues.react('cash'); this.paidFx(pay); UI.toast(`${c.kind==='pax'||c.kind==='escort'?'Seen off':'Delivered'}: ${name} · +${fmtCr(pay)}${rd?` · reputation ${rd>0?'+':''}${rd} (${rw.toLowerCase()})`:''}`,rd<0?'warn':'good'); Cockpit.drawManifest(); Game.save(); this.render(); }
     return pay; },
   deliverAll(P){ const due=this.due(P); let sum=0; for(const c of due) sum+=this.deliver(c,P,true); if(!due.length) return;
@@ -24134,17 +24324,17 @@ const UI = {
   focusJob(j){ if(this.tab!=='depot') this.go('depot'); this.openTicket(j); },
   openTicket(j){ const P=this.P; if(!P||G.jobs.indexOf(j)<0) return; this.ticket=j; const box=$('port-card'); box.innerHTML=''; box.hidden=false; box.className='ticket'+(j.kind==='contra'?' shady':'');
     const T=PLANETS[j.to], dist=P.pos.distanceTo(T.pos), rk=Econ.risk(P,T), rtag=rk>=2?`<span class="tag r${rk}">${RISK[rk].name.toUpperCase()} RISK</span>`:'';
-    let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty); const needs=j.kind||Rep.trusts(j.mul)?null:REP_TIERS[Rep.goodTier(j.mul)];
+    let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty); const needs=j.kind||Rep.trusts(j.mul)?null:REP_TIERS[Rep.goodTier(j.mul)], jl=j.kind?null:j.lic||(j.fragile?'fragile':null), lk=jl?Career.needs(jl):null;
     if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · needs a free seat`; }
     else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.riskLine(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
-    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.sit?'<span class="tag">'+esc(j.sit)+'</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${needs?`<span class="tag bad">NEEDS A ${needs.name.toUpperCase()} NAME</span>`:''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
+    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.sit?'<span class="tag">'+esc(j.sit)+'</span>':''}${jl?`<span class="tag bad">${LICENCES[jl].tag} ${Pedia.pct(LICENCES[jl].mul-1)}</span>`:''}${lk?`<span class="tag bad">NEEDS THE ${lk.lic.toUpperCase()} LICENCE</span>`:''}${needs?`<span class="tag bad">NEEDS A ${needs.name.toUpperCase()} NAME</span>`:''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to,lic:jl}))}`; }
     const x=el('button','close','✕'); x.setAttribute('aria-label','Close'); x.onclick=()=>{ Sfx.click(); this.closeTicket(); }; box.appendChild(x);
-    box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div>${needs?`<p class="lbl">The client only hands this to a hauler known as ${needs.name}. You are ${Rep.label()}, ${needs.min-G.rep} short. Plain cargo, delivered on time, builds a name fastest.</p>`:''}<p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
-    const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat&&!needs;
-    const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',needs?'Not yet':busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
+    box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div>${needs?`<p class="lbl">The client only hands this to a hauler known as ${needs.name}. You are ${Rep.label()}, ${needs.min-G.rep} short. Plain cargo, delivered on time, builds a name fastest.</p>`:''}${lk?`<p class="lbl">This needs the ${lk.lic} licence. It comes with the rank of ${lk.rank}: ${lk.left} more deliver${lk.left===1?'y':'ies'} of any kind.</p>`:''}<p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
+    const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat&&!needs&&!lk;
+    const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',needs||lk?'Not yet':busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
     b.onclick=()=>{ this.closeTicket(); if(j.kind==='contra'){ Customs.load(j,P); return; }
       if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100,story:j.story});
-      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story,cat:j.cat,ends:j.ends,mul:j.mul}); Venues.fetch(j.good,j); }
+      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story,cat:j.cat,ends:j.ends,mul:j.mul,lic:jl,chain:j.chain,step:j.step}); Venues.fetch(j.good,j); }
       G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
     r.appendChild(b); box.appendChild(r); Venues.hopShelf(j); if(Sfx.ok()) Sfx.click(); },
   closeTicket(){ this.ticket=null; const b=$('port-card'); if(b){ b.hidden=true; b.innerHTML=''; } },
@@ -25035,12 +25225,15 @@ const Game = {
       if(i===2&&want.length&&Math.random()<0.45){ const w=pick(want); to=w.i; good=Situ.goodOf(w.s.cat)||good; }
       // dear goods go to a name people know: a hauler without one is mostly offered plain cargo, with the odd dear load on the shelf to work towards
       if(!Rep.trusts(good[1])&&(i<2||Math.random()<0.75)){ const ok=GOODS.filter(g=>Rep.trusts(g[1])), same=ok.filter(g=>GOOD_CAT[g[0]]===GOOD_CAT[good[0]]); good=pick(same.length?same:ok); }
+      // a licensed kind of job: fragile, express, livestock or hazardous (see 09-career.js)
+      const lic=i===2&&want.length?null:Career.roll(i); if(LIC_GOODS[lic]) good=pick(LIC_GOODS[lic]);
       const cat=GOOD_CAT[good[0]], sit=Situ.tag(cat,pi,to), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
       const pay=qty*Econ.unitPay(dist)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Situ.payMul(cat,pi,to)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
-      const fragile=i>0&&Math.random()<0.3;
-      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk,cat,sit,mul:good[1]}); }
+      const fragile=lic==='fragile';
+      jobs.push({good:good[0],note:lic?LICENCES[lic].name+': '+LICENCES[lic].rule:good[2],qty,to,pay:Math.max(20,Math.round(pay*Career.payMul(lic)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk,cat,sit,mul:good[1],lic}); }
     { const st=Situ.strikeAway(pi); if(st){ const dist=P.pos.distanceTo(st.P.pos)/LS;   // somebody has to carry the strike pay
         jobs.push({good:'Strike Pay (Sealed Envelopes)',note:'Do not open. Do not shake. Do not count.',qty:1,to:st.i,pay:Math.round(Econ.unitPay(dist)*2.5*Econ.scale()*Rep.payMul()/5)*5,sp:st.P.species,seed:Math.floor(Math.random()*1e9),hot:false,fragile:false,risk:Econ.risk(P,st.P),ends:'strike',sit:'ENDS THE STRIKE'}); } }
+    { const cj=Career.offer(pi); if(cj) jobs.push(cj); }   // the next part of a story, if one is waiting
     jobs.sort((a,b)=>a.qty-b.qty);
     const away=()=>{ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); return to; };
     // contraband pays for the chance of being caught: the stricter the docks at both ends, the more it's worth
@@ -25048,7 +25241,7 @@ const Game = {
       jobs.push({kind:'contra',good:g[0],note:g[1],qty,to,risk:Econ.risk(P,PLANETS[to]),pay:Math.round(qty*Econ.unitPay(dist)*catchK*Econ.mul(P,PLANETS[to])*Rep.contraMul()*rnd(0.9,1.2)/5)*5,sp:pick(['vrell','grondar','qeeble','blorpax']),seed:Math.floor(Math.random()*1e9)}); }
     if(Rep.vips()&&!G.cargo.some(c=>c.kind==='escort')&&Math.random()<0.6){ const to=away(), v=pick(VIPS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
       jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((400+dist*130)*rnd(0.9,1.2)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
-    for(const j of jobs) j.story=j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j);
+    for(const j of jobs) j.story=j.story||(j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j));
     G.jobs=jobs;
     // people wanting a ride, offered at cantinas
     const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=Math.min(Rep.paxMax(),1+Math.floor(Math.random()*3));i<n;i++){ const to=away(); if(!Situ.paxOk(pi,to)) continue; const sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
@@ -25068,6 +25261,7 @@ const Game = {
     const fee=Math.min(this.towFee,G.credits); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; $('deep-badge').hidden=true; Deep.storm=null; if(Hold.open) Hold.render(); G.credits-=fee; if(G.hot===P.idx) G.hot=null;
     // the news moves on a day; it is read on the depot's Port news card, the map and the Haul-O-Pedia, not in pop-ups
     if(!this.resuming) Situ.tick(P); this.resuming=false;
+    Career.landed(P);
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(due.length) setTimeout(()=>UI.toast(`${due.length} deliver${due.length===1?'y':'ies'} for ${P.port}. Hand ${due.length===1?'it':'them'} over at the cargo depot.`,'good'),1200); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
@@ -25151,15 +25345,15 @@ const Game = {
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,repLog:G.repLog||[],hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[],mech:G.mech||null,seen:G.seen||[],won:!!G.won,know:G.know||{},situ:G.situ||{},sitLog:G.sitLog||[],sitDay:G.sitDay==null?null:G.sitDay,hotLeft:G.hotLeft||0})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,repLog:G.repLog||[],hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[],mech:G.mech||null,seen:G.seen||[],won:!!G.won,know:G.know||{},situ:G.situ||{},sitLog:G.sitLog||[],sitDay:G.sitDay==null?null:G.sitDay,hotLeft:G.hotLeft||0,career:G.car||null})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,repLog:[],hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[],mech:null,seen:[0],won:false,know:{fseen:[]},situ:{},sitLog:[],sitDay:null,hotLeft:0,hotSeen:null}); Mech.reset(); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,repLog:[],hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[],mech:null,seen:[0],won:false,know:{fseen:[]},situ:{},sitLog:[],sitDay:null,hotLeft:0,hotSeen:null,car:Career.fresh()}); Mech.reset(); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
     const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init(); this.resuming=true;   // loading a save is not a trip: the news does not move on
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,repLog:Array.isArray(d.repLog)?d.repLog.slice(0,8):[],hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k]),mech:d.mech&&SPECIES[d.mech.sp]&&MECH_TIERS.some(k=>k.key===d.mech.skill)?d.mech:null,seen:(d.seen||[]).filter(i=>PLANETS[i]),won:!!d.won}); Pedia.restore(d.know,d); Situ.restore(d); if(d.docked>=0) this.visit(d.docked); Mech.reset(); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,repLog:Array.isArray(d.repLog)?d.repLog.slice(0,8):[],hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k]),mech:d.mech&&SPECIES[d.mech.sp]&&MECH_TIERS.some(k=>k.key===d.mech.skill)?d.mech:null,seen:(d.seen||[]).filter(i=>PLANETS[i]),won:!!d.won}); Pedia.restore(d.know,d); Situ.restore(d); Career.restore(d.career); if(d.docked>=0) this.visit(d.docked); Mech.reset(); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },
