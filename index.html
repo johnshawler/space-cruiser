@@ -460,7 +460,7 @@ body.flying #dlg .opt small{font-size:16px}
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.47</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.48</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -22907,7 +22907,7 @@ const Rep = {
     $('specs-body').innerHTML=html; },
 };
 const Hull = {
-  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Math.random()<0.35*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
+  hit(n, why){ n=Math.round(n); if(n<=0||G.mode!=='flight') return; G.hull=Math.max(0,G.hull-n); Throttle.jolt(n); if(n>=4&&Faults.list().length<Faults.MAX&&Math.random()<0.35*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'knocked loose'),900); Game.flash=Math.max(Game.flash,0.55); Sfx.thump(0.8);
     UI.toast(`${why}. Hull ${Math.round(G.hull)}%`,'warn'); if(G.hull<=0) this.breach(); },
   breach(){ G.hull=25; Game.tow('Hull breach! Emergency beacon fired. A Grondar tow-barge is on its way.',400); },
 };
@@ -23280,7 +23280,7 @@ const Deep = {
     if(st.dmg) UI.toast(`The storm passes. It cost you ${st.dmg}% hull. Hull ${Math.round(G.hull)}%`,'warn');
     else UI.toast('The storm passes without a scratch. Nicely flown.','good');
     if(st.ore&&!st.dmg){ const q=Math.min(st.ore,holdFree()); if(q>0){ let c=G.cargo.find(x=>x.kind==='ore'&&x.good==='Meteor Glass'); if(!c){ c={kind:'ore',good:'Meteor Glass',qty:0,to:-1,pay:0,val:95,from:-1}; G.cargo.push(c); } c.qty+=q; Cockpit.drawManifest(); setTimeout(()=>UI.toast(`Your scoop caught ${q}× Meteor Glass. Any assay office will buy it.`,'good'),1600); } }
-    if(st.dmg>=4&&Math.random()<0.4*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'shaken loose by the storm'),900); },
+    if(st.dmg>=4&&Faults.list().length<Faults.MAX&&Math.random()<0.4*Faults.rate()) setTimeout(()=>Faults.add(pick(['crack','coolant','strap','fuse']),'shaken loose by the storm'),900); },
   salvage(){ const z=this.z, sp=pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9);
     Dlg.show({icon:'📡',tone:'alert',who:'Scanner · unidentified contact',text:'A derelict survey probe is drifting nearby, still blinking. Salvage could be worth a lot out here. It could also be bait.',timeout:25,mini:true,
       opts:[{t:'Go and look',sub:'A short detour',fn:()=>{ const s=G.ship, fwd=new V3(0,0,-1).applyQuaternion(s.quat), side=new V3(1,0,0).applyQuaternion(s.quat), pos=s.pos.clone().addScaledVector(fwd,rnd(14000,22000)).addScaledVector(side,rnd(-7000,7000));
@@ -23704,7 +23704,7 @@ const Pedia = {
       +T.h('Losing it')+T.dl([['Deliver very late','-2'],['Deliver badly damaged','-1 more'],['Dump cargo, or put a passenger off','-2'],['Speed on approach to a port','-1'],K('mayday')&&['Fly past a mayday','-3'],K('escort')&&['Lose a VIP contract','-6 to -8'],K('customs')&&['Get caught with contraband','-6 to -10'],K('customs')&&['Flee customs, or bribe badly','-4 to -6']])
       +T.p('Past +70 every gain is halved. A bad name is a way of playing too: honest work dries up, and the back room comes looking for you.')},
 
-    {t:'Faults and repairs', need:'faults', f:()=>T.p('Things break in flight. On the '+SHIPS[0].name+' something goes wrong about every four minutes. Dearer ships break down far less, and a battered hull breaks down more. No more than three things are broken at once.')
+    {t:'Faults and repairs', need:'faults', f:()=>T.p('Things break in flight. On the '+SHIPS[0].name+' something goes wrong on about one trip in five. Dearer ships break down far less, and a battered hull breaks down more. No more than two things are broken at once.')
       +T.h('The faults you have met')+T.tbl(['Fault','What it does','Who can fix it'],Object.entries(FAULT_DEFS).filter(([id])=>(G.fixed||[]).includes(id)||(G.faults||[]).includes(id)||(G.know.fseen||[]).includes(id)).map(([id,d])=>[d.name,d.effect[0].toUpperCase()+d.effect.slice(1),d.garage?'A garage only':K('bar')?'You, or a hired mechanic':'You']))
       +T.p((()=>{ const n=Object.keys(FAULT_DEFS).length-Object.keys(FAULT_DEFS).filter(id=>(G.fixed||[]).includes(id)||(G.faults||[]).includes(id)||(G.know.fseen||[]).includes(id)).length; return n?`There are ${n} more kinds of fault you have not met.`:'That is every kind of fault there is.'; })())
       +T.h('Fixing one yourself')+T.p('Press L to leave your seat, walk to the fault, look at it and hold F for about three seconds. It goes much slower above throttle 5 or in warp, because the ship is shaking.')
@@ -24353,8 +24353,8 @@ const FAULT_SPOTS = {
   seal:{label:'AIRLOCK SEAL',bad:'LEAKING',rot:-Math.PI/2,ry:0,scr:[0,0.5,0.03],emit:[0.1,-0.05,0.1]},
 };
 const Faults = {
-  t:90,
-  /* how fault-prone this ship is: a half for the Rustbucket (a fault about every four minutes), down to about an eighth for the dearest */
+  due:null, MAX:2,   // due: seconds of flight until this trip's breakdown (Infinity: none this trip, null: not rolled yet)
+  /* how fault-prone this ship is: a half for the Rustbucket (a breakdown on one trip in five), down to about an eighth for the dearest */
   rate(){ const s=SHIPS[G.shipId]; return s&&s.faults!=null?s.faults:1; },
   room(id){
     const deck=Interior.shipId===G.shipId&&Interior.group?Interior.fitted:Assets.enabled&&Assets.deck(G.shipId);
@@ -24376,9 +24376,13 @@ const Faults = {
   weld(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return false; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); Interior.syncFaults(); this.badge(); return true; },
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
   badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(this.room(k))}${Mech.job===k&&Mech.status()?' · 🔧 '+esc(Mech.status()):''}</span></div>`).join(''); },
+  chance(){ return 0.4*this.rate()*Math.min(2,1+(100-G.hull)/60); },
+  trip(){ this.due=null; },   // called on landing: the next flight rolls afresh
   update(dt){
-    // something new goes wrong about every four minutes of flight on the Rustbucket: more often on a battered ship, less on a dearer one
-    this.t-=dt*(1+(100-G.hull)/60)*this.rate(); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
+    // one roll a trip, made as the flight begins: one chance in five on a sound Rustbucket that something goes wrong on the way,
+    // up to twice that on a battered hull, less on a dearer ship. Never more than two things broken at once
+    if(this.due==null) this.due=Math.random()<this.chance()?rnd(15,60):Infinity;
+    if(this.due!==Infinity&&(this.due-=dt)<=0){ this.due=Infinity; if(this.list().length<this.MAX) this.random(); }
     if(this.has('crack')){ G.hull=Math.max(0,G.hull-dt*0.1); if(G.hull<=0) Hull.breach(); }
     if(this.has('scrubber')) G.sys.dirt=Math.min(1,G.sys.dirt+dt*0.01);
   },
@@ -25037,6 +25041,7 @@ const Game = {
   /* the ports you have set foot in: the map will tell you what shops those have */
   visit(i){ const L=G.seen||(G.seen=[]); if(i>=0&&!L.includes(i)) L.push(i); },
   onLanded(P){
+    Faults.trip();
     G.mode='port'; G.docked=P.idx; Game.visit(P.idx); const s=G.ship; s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; G.sys.autopilot=false; Sfx.setEngine(0,0,false);
     Dlg.close(); if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Distress.cur=null; Customs.cur=null; Mining.beam.visible=Mining.spark.visible=Mining.sight.visible=false; Game.escortAlarm=false;
     // deliveries are handed over by hand at the cargo depot now; nothing is paid automatically

@@ -56,6 +56,7 @@ const Game = {
   /* the ports you have set foot in: the map will tell you what shops those have */
   visit(i){ const L=G.seen||(G.seen=[]); if(i>=0&&!L.includes(i)) L.push(i); },
   onLanded(P){
+    Faults.trip();
     G.mode='port'; G.docked=P.idx; Game.visit(P.idx); const s=G.ship; s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; G.sys.autopilot=false; Sfx.setEngine(0,0,false);
     Dlg.close(); if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Distress.cur=null; Customs.cur=null; Mining.beam.visible=Mining.spark.visible=Mining.sight.visible=false; Game.escortAlarm=false;
     // deliveries are handed over by hand at the cargo depot now; nothing is paid automatically
