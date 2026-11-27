@@ -5,7 +5,8 @@ const Cockpit = {
   PX:2200, group:null, hits:[], ctrls:{}, screens:{}, glowMats:[], screenMats:[], gauges:{}, ray:new THREE.Raycaster(), frame:0, drag:null, hover:null,
 
   build(def){
-    const id=SHIPS.indexOf(def), own=Assets.cockpit(id), fittedControls=def===SHIPS[0]||!!(own&&own.fitted);
+    // Every ship flies the original cockpit. The modelled cockpit rooms are kept behind ?newcockpit for comparison.
+    const id=SHIPS.indexOf(def), own=/[?&]newcockpit\b/.test(location.search)?Assets.cockpit(id):null, fittedControls=!!own&&(def===SHIPS[0]||!!own.fitted);
     if(this.group){ World.cock.remove(this.group); this.group.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ if(o.material.map) o.material.map.dispose(); if(o.material.emissiveMap) o.material.emissiveMap.dispose(); o.material.dispose(); } }); }
     const g=this.group=new THREE.Group(); World.cock.add(g); this.bespokeRoom=null;
     this.hits=[]; this.ctrls={}; this.screens={}; this.glowMats=[]; this.screenMats=[]; this.gauges={}; this.strips=[];
