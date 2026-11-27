@@ -39,6 +39,7 @@ const FolkModels = (() => {
   function build(T) {
     const { S, U, rig, head, rand } = T, m = INFO[S.model]; if (!m) return;
     const k = fit(m) * (0.95 + rand() * 0.1), h = m.max[1] * k, [w0, d0] = span(m), w = w0 * k, d = d0 * k, robot = m.kind === 'robot';
+    U.counterBounds={halfWidth:w/2,front:robot?d/2:m.max[2]*k};
     // an unseen box the size of the character: portraits, counters and shadows measure it before the model arrives
     const box = new THREE.Mesh(new THREE.BoxGeometry(w * 0.7, h, d * 0.7), new THREE.MeshBasicMaterial({ visible: false })); box.position.y = h / 2; box.visible = false; box.userData.contact = true; rig.add(box);
     head.position.y = h * (robot ? 0.95 : 0.88);
@@ -92,7 +93,7 @@ const FolkModels = (() => {
     if (READY[S.model]) { attach(READY[S.model]); return; }
     ready(S.model).then(attach).catch(() => {
       // no model to be had (offline, ?noassets): the design's own hand-built figure stands in
-      try { rig.remove(box); for (const a of U.arms) rig.remove(a); U.arms = []; U.gait = null; U.sit = U.onMood = U.onArms = U.tick = null; U.model = null; U.seatAt = null;
+      try { rig.remove(box); for (const a of U.arms) rig.remove(a); U.arms = []; U.gait = null; U.sit = U.onMood = U.onArms = U.tick = null; U.model = null; U.counterBounds = null; U.seatAt = null;
         const old = S.build || (typeof OriginalFolk !== 'undefined' && OriginalFolk[U.sp]); if (old) { old(T); U.headY = head.position.y; if (U.onFallback) U.onFallback(); } } catch (e) { console.warn('Character fallback failed:', U.sp, e && e.message); }
     });
   }

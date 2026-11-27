@@ -21,7 +21,22 @@ function glb(file) {
   for (const m of j.meshes || []) for (const p of m.primitives) {
     const acc = j.accessors[p.indices ?? p.attributes.POSITION]; tris += (p.mode ?? 4) === 4 ? acc.count / 3 : 0;
   }
-  return { j, bytes: b.length, tris: Math.round(tris), meshes: j.nodes.filter(n => n.mesh != null).length, materials: (j.materials || []).length };
+  return { j, binary: b.subarray(28 + b.readUInt32LE(12)), bytes: b.length, tris: Math.round(tris), meshes: j.nodes.filter(n => n.mesh != null).length, materials: (j.materials || []).length };
+}
+// Blender's joined text and geometry once exported valid UVs in channel 1 while the
+// surface materials sampled a constant coordinate in channel 0. Check the sampled channel.
+function hasSurfaceUV(g, primitive, texture) {
+  const coord=primitive.attributes['TEXCOORD_' + (texture.texCoord || 0)];
+  const a=g.j.accessors[coord];
+  if (!a || a.type!=='VEC2' || a.componentType!==5126) return false;
+  const view=g.j.bufferViews[a.bufferView], start=(view.byteOffset || 0)+(a.byteOffset || 0);
+  let minU=Infinity, maxU=-Infinity, minV=Infinity, maxV=-Infinity;
+  for(let i=0;i<a.count;i++) {
+    const offset=start+i*(view.byteStride || 8);
+    const u=g.binary.readFloatLE(offset), v=g.binary.readFloatLE(offset+4);
+    minU=Math.min(minU,u); maxU=Math.max(maxU,u); minV=Math.min(minV,v); maxV=Math.max(maxV,v);
+  }
+  return maxU-minU>.02 && maxV-minV>.02;
 }
 // world-space translation of a named node (the scenes are flat or one level deep)
 function nodePos(j, name) {
@@ -74,6 +89,7 @@ pass(`${I.rooms.length} shop rooms (the game has ${want.length} depots, garages 
 // ---- playable storefronts ----
 const fronts = JSON.parse(read('assets/storefronts/manifest.json')).venues;
 const locationsWithFronts = new Set();
+let animatedGarageCount = 0;
 const basicMarkers = ['entrance','counter','keeper','customer','nameplate','signpost','crew_a','crew_b','camera_shop','camera_target','light_key','light_fill'];
 for (const [loc, shops] of Object.entries(fronts)) {
   for (const [shop, entry] of Object.entries(shops)) {
@@ -89,6 +105,21 @@ for (const [loc, shops] of Object.entries(fronts)) {
       const pbr = finish?.pbrMetallicRoughness;
       if (!pbr?.baseColorTexture || !pbr.metallicRoughnessTexture || !finish.normalTexture) fail(`storefront ${key}: incomplete ${name} surface maps`);
     }
+    for(const mesh of g.j.meshes) for(const primitive of mesh.primitives) {
+      const mat=g.j.materials[primitive.material];
+      if (!['Iron','Steel','Workdeck','Workskin'].includes(mat.name)) continue;
+      const texture=mat.pbrMetallicRoughness?.baseColorTexture;
+      if (!texture || !hasSurfaceUV(g,primitive,texture)) fail(`storefront ${key}: ${mat.name} has collapsed surface UVs`);
+    }
+    if (shop === 'garage' && entry.wayfindingMount === 'overhead') {
+      animatedGarageCount++;
+      for (const [role, pivot] of [['drive',[1,1.28,-4.2]], ['nozzle',[1.85,1.28,-4.2]]]) {
+        const nodes = g.j.nodes.filter(n => n.extras?.garagePart === role);
+        if (nodes.length !== 1 || nodes[0].mesh == null || !near(nodes[0].translation || [], pivot, .002))
+          fail(`storefront ${key}: missing or misplaced animated ${role}`);
+      }
+      if (entry.markers.signpost[2] >= 0) fail(`storefront ${key}: garage navigation rail is in front of its counter`);
+    }
     const markers = [...basicMarkers];
     if (shop === 'depot') {
       markers.push('shelf','stock_door','packing_bench','droid_home');
@@ -103,6 +134,7 @@ for (const [loc, shops] of Object.entries(fronts)) {
     if (!fs.existsSync(path.join(root, 'art/storefronts/models', loc + '-' + shop + '.blend'))) fail(`storefront ${key}: missing Blender source`);
   }
 }
+if (animatedGarageCount !== 6) fail(`Expected six animated freight garages, found ${animatedGarageCount}`);
 for (const [loc, shops] of Object.entries(shopsAt)) {
   for (const shop of shops) {
     const key = loc + '/' + shop;

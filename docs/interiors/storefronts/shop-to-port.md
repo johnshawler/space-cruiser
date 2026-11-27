@@ -60,7 +60,7 @@ All individual sources and exports use the following exact, case-sensitive node 
 | `entrance`, `customer` | Public approach and standing position in front of the counter |
 | `counter`, `nameplate` | Centre of the service surface at 1.05 m and centre of its forward-facing sign |
 | `keeper`, `crew_a`, `crew_b` | Keeper reference and the two spawn positions for this category’s crew act. Preserve the game’s species-dependent keeper setback. |
-| `signpost` | Attachment at the top of the wayfinding mast |
+| `signpost` | Attachment for destination buttons on the wayfinding mast or overhead rail |
 | `camera_shop`, `camera_target` | Reference shop view and look target |
 | `light_key`, `light_fill` | Fixture positions with colour, intensity and range in custom properties |
 | `shelf`, `goods_01` through `goods_12` | Cargo depot only. Display cells follow game board order across each row, starting at the top. |

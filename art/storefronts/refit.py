@@ -40,7 +40,7 @@ def finish_port_material(m,k):
             p.inputs['Emission Strength'].default_value=3.8
         return
     kind={'iron':'bare','edge':'bare','steel':'bare','brass':'bare','copper':'bare',
-          'deckplate':'plate','coal':'rubber','dark':'rubber','mahogany':'wood','wood':'wood',
+          'workdeck':'plate','workskin':'paint2','deckplate':'plate','coal':'rubber','dark':'rubber','mahogany':'wood','wood':'wood',
           'upholstery':'leather','canvas':'cloth','bone':'enamel','cream':'enamel','white':'enamel',
           'stone':'paint2','basalt':'paint2','rust':'paint2','snow':'enamel','ice':'enamel'}.get(k,'paint')
     if k=='safety':kind='paint2'
@@ -49,6 +49,20 @@ def finish_port_material(m,k):
     grey=base.dot([.25,.57,.18])
     base=(base*.75+grey*.25)*(.84 if kind=='paint' else .96)
     val=np.clip(pat*base[None,None,:],0,1)
+    if k in ('workdeck','workskin'):
+        # Broad boot polish, leaking seams and missing paint survive camera mipmapping.
+        y,x=np.mgrid[:256,:256]/256
+        waves=lambda u: np.sin(2*np.pi*u)
+        grain=(waves(x*3+y*2+.12*waves(y*3))+.52*waves(6*x-4*y)+.26*waves(9*y+x))/1.78
+        if k=='workdeck':
+            tread=np.maximum(0,1-abs(waves(2*x+.075*waves(y)))*2.8)
+            patina=np.clip((grain-.09)*2.3,0,1)
+            val=val*(.75+.32*grain+.28*tread)[:,:,None]
+            val=val*(1-.52*patina[:,:,None])+np.array([.13,.065,.031])*patina[:,:,None]*.52
+        else:
+            runoff=np.maximum(0,waves(3*x+.16*waves(y)))**5*(.61+.36*waves(y))
+            val=val*(.89+.35*grain-.38*runoff)[:,:,None]
+        val=np.clip(val,0,1)
     # Store explicit sRGB bytes; the glTF maps are also used by the game's vertex lighting pass.
     srgb=np.where(val<.0031308,12.92*val,1.055*val**(1/2.4)-.055)
     h,w=srgb.shape[:2]
