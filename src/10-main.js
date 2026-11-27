@@ -63,7 +63,8 @@ const Game = {
     const paid=[], total=0, due=UI.due(P);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
     const fee=Math.min(this.towFee,G.credits); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; $('deep-badge').hidden=true; Deep.storm=null; if(Hold.open) Hold.render(); G.credits-=fee; if(G.hot===P.idx) G.hot=null;
-    const news=this.resuming?[]:Situ.tick(P); this.resuming=false; { const here=Situ.at(P.idx); if(here&&!news.length) news.push(`${SITS[here.k].name} at ${P.port}. ${Situ.effect({s:here}).replace(/ there/g,' here')}`); news.slice(0,2).forEach((t,i)=>setTimeout(()=>UI.toast('📰 '+t,'good'),2600+i*2600)); }
+    // the news moves on a day; it is read on the depot's Port news card, the map and the Haul-O-Pedia, not in pop-ups
+    if(!this.resuming) Situ.tick(P); this.resuming=false;
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(due.length) setTimeout(()=>UI.toast(`${due.length} deliver${due.length===1?'y':'ies'} for ${P.port}. Hand ${due.length===1?'it':'them'} over at the cargo depot.`,'good'),1200); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();

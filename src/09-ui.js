@@ -38,7 +38,7 @@ const UI = {
     $('port-foot').innerHTML=`<b class="cr">${fmtCr(G.credits)}</b><span>${G.cargo.length?`${G.cargo.length} contract${G.cargo.length>1?'s':''} · ${used} of ${holdCap()} units`:'Hold empty'}</span>`;
     const t=$('port-top-btns'); t.innerHTML=''; const hb=el('button','btn','Hold'); hb.onclick=()=>Hold.toggle(true); const sb=el('button','btn','Ship'); sb.title="Your ship's specs"; sb.onclick=()=>Specs.show();
     const rb=el('button','btn rep r'+Rep.tierOf(),`${Rep.label()} <b>${Rep.signed()}</b>`); rb.title='Your reputation, and what it is doing for you'; rb.onclick=()=>Rep.show();
-    const pb=el('button','btn','Pedia'); pb.title='The Haul-O-Pedia: everything, explained'; pb.onclick=()=>Pedia.show(); t.append(rb,hb,sb,pb); },
+    const pb=el('button','btn','Pedia'+(Pedia.unread()?'<em class="new">New</em>':'')); pb.title='The Haul-O-Pedia: everything, explained'; pb.onclick=()=>Pedia.show(); t.append(rb,hb,sb,pb); },
   shipLink(){ const b=el('button','shiplink',esc(SHIPS[G.shipId].name)); b.title="Show this ship's specs"; b.onclick=()=>Specs.show(); return b; },
   /* the shopkeeper's hello, in the speech bubble over their head */
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp];

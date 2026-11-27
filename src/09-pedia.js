@@ -13,9 +13,11 @@ const Pedia = {
   open:false, page:0, t:0,
   has(k){ return !k||!!(G.know&&G.know[k]); },
   fresh(k){ return !!(k&&G.know&&G.know[k]===1); },
-  /* write a topic into the book the first time you meet it */
+  /* write a topic into the book the first time you meet it. No pop-up: the page is marked NEW in the book, and the
+     port's Pedia button says New until it has been read */
   learn(k, quiet){ if(!PEDIA_TOPICS[k]) return; const K=G.know||(G.know={}); if(K[k]) return; K[k]=quiet?2:1;
-    if(!quiet&&G.mode!=='title'&&G.mode!=='boot') setTimeout(()=>UI.toast(`📖 Haul-O-Pedia: new entry, ${PEDIA_TOPICS[k]}. Press O to read it.`,'good'),1200); },
+    if(!quiet&&G.mode==='port') UI.stats(); },
+  unread(){ return this.pages().some(p=>this.fresh(p.need)); },
   /* what walking into each kind of shop teaches you */
   visit(tab){ this.learn('ports'); const k={garage:'garage',bar:'bar',yard:'ships',outfit:'outfit',assay:'mining'}[tab]; if(k) this.learn(k);
     if(tab==='depot'){ if((G.jobs||[]).some(j=>j.kind==='contra')) this.learn('customs'); if((G.jobs||[]).some(j=>j.kind==='escort')) this.learn('escort'); if((G.jobs||[]).some(j=>j.fragile)) this.learn('fragile'); } },
@@ -129,7 +131,7 @@ const Pedia = {
     $('pedia-nav').innerHTML=P.map((p,k)=>`<button class="pnav${k===this.page?' on':''}" data-p="${k}"${k===this.page?' aria-current="page"':''}>${esc(p.t)}${this.fresh(p.need)?'<em>New</em>':''}</button>`).join('')+`<div class="pmore">${left?`${left} more entr${left===1?'y':'ies'} to discover`:'The book is complete'}</div>`;
     const b=$('pedia-body'); b.innerHTML=`<h2>${esc(cur.t)}</h2>${cur.f()}`; b.scrollTop=0; },
   /* open at a topic's page, if it is in the book */
-  close(){ if(!this.open) return; this.open=false; $('pedia').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
+  close(){ if(!this.open) return; this.open=false; $('pedia').hidden=true; if(G.mode==='port') UI.stats(); if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
   toggle(){ if(this.open) this.close(); else { if(Sfx.ok()) Sfx.click(); this.show(); } },
   bind(){ $('pedia-nav').addEventListener('click',e=>{ const b=e.target.closest('[data-p]'); if(b){ if(Sfx.ok()) Sfx.click(); this.show(+b.dataset.p); } }); $('pedia-close').onclick=()=>this.close();
     for(const id of ['btn-pedia','help-pedia']){ const b=$(id); if(b) b.onclick=()=>{ if(id==='help-pedia') $('help').hidden=true; this.show(); }; } },

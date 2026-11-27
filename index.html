@@ -296,7 +296,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port .sub{font-family:var(--mono);font-size:18px;letter-spacing:.08em;color:var(--amber);text-transform:uppercase;margin-top:6px;line-height:1.3}
 #port-top{pointer-events:auto;margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:12px;background:rgba(8,15,23,.84);border:1px solid var(--line);padding:10px 12px 10px 18px}
 #port-foot{display:flex;flex-direction:column;font-family:var(--mono);font-size:20px;color:var(--dim);letter-spacing:.04em;line-height:1.2}#port-foot .cr{color:var(--cyan);font-weight:400;font-size:30px}
-#port-top-btns{display:flex;gap:8px}#port-top .btn{font-size:20px;padding:10px 14px}#port-top .big{padding:14px 28px}
+#port-top-btns{display:flex;gap:8px}#port-top-btns .new{font:16px var(--mono);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:#1a1206;background:var(--amber);padding:1px 6px;margin-left:8px;border-radius:2px;vertical-align:middle}#port-top .btn{font-size:20px;padding:10px 14px}#port-top .big{padding:14px 28px}
 /* the signpost: wooden arms pointing left and right off a pole in the scene */
 #port-tabs{position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:grid;grid-template-columns:auto;row-gap:8px;padding-bottom:4px}
 #port .arm{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:#fff4dc;background:#7a5230;border:0;padding:10px 30px 10px 18px;cursor:pointer;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 50%,calc(100% - 20px) 100%,0 100%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);white-space:nowrap}
@@ -323,6 +323,11 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #port .card.plate .mid{flex:1;min-width:0}#port .card.plate h3{font-size:28px}#port .card.plate p{-webkit-line-clamp:4;margin-top:4px}
 #port .card .step{font-size:30px;padding:14px 20px;flex:0 0 auto}
 #port .card .tag,#port .ticket .tag{font-size:15px;padding:1px 7px;margin-left:6px}
+/* On a wide screen the counter's cards share one row: they narrow (down to 190 px) rather than run off the side
+   and need scrolling. Phones keep the swipeable row. */
+@media (min-width:901px){#port-body:not(.garage-services)>.card:not(.news):not(.plate){box-sizing:border-box;width:330px;min-width:190px;flex:0 1 auto;padding-left:12px;padding-right:12px}
+  #port-body:not(.garage-services)>.card:not(.news):not(.plate) h3{overflow-wrap:break-word;min-width:0}
+  #port-body:not(.garage-services)>.card:not(.news):not(.plate) .head{gap:10px}}
 /* Low service tickets leave the port name visible across the counter face, including at 800 × 600. */
 #port-body.garage-services{gap:8px;padding:6px 10px max(7px,env(safe-area-inset-bottom,0px));background:transparent}
 #port .garage-services .card{box-sizing:border-box;width:min(385px,calc(50vw - 18px));display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:center;gap:3px 10px;padding:7px 10px;border-top-width:2px}
@@ -460,7 +465,7 @@ body.flying #dlg .opt small{font-size:16px}
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.49</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.50</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -23623,9 +23628,11 @@ const Pedia = {
   open:false, page:0, t:0,
   has(k){ return !k||!!(G.know&&G.know[k]); },
   fresh(k){ return !!(k&&G.know&&G.know[k]===1); },
-  /* write a topic into the book the first time you meet it */
+  /* write a topic into the book the first time you meet it. No pop-up: the page is marked NEW in the book, and the
+     port's Pedia button says New until it has been read */
   learn(k, quiet){ if(!PEDIA_TOPICS[k]) return; const K=G.know||(G.know={}); if(K[k]) return; K[k]=quiet?2:1;
-    if(!quiet&&G.mode!=='title'&&G.mode!=='boot') setTimeout(()=>UI.toast(`📖 Haul-O-Pedia: new entry, ${PEDIA_TOPICS[k]}. Press O to read it.`,'good'),1200); },
+    if(!quiet&&G.mode==='port') UI.stats(); },
+  unread(){ return this.pages().some(p=>this.fresh(p.need)); },
   /* what walking into each kind of shop teaches you */
   visit(tab){ this.learn('ports'); const k={garage:'garage',bar:'bar',yard:'ships',outfit:'outfit',assay:'mining'}[tab]; if(k) this.learn(k);
     if(tab==='depot'){ if((G.jobs||[]).some(j=>j.kind==='contra')) this.learn('customs'); if((G.jobs||[]).some(j=>j.kind==='escort')) this.learn('escort'); if((G.jobs||[]).some(j=>j.fragile)) this.learn('fragile'); } },
@@ -23739,7 +23746,7 @@ const Pedia = {
     $('pedia-nav').innerHTML=P.map((p,k)=>`<button class="pnav${k===this.page?' on':''}" data-p="${k}"${k===this.page?' aria-current="page"':''}>${esc(p.t)}${this.fresh(p.need)?'<em>New</em>':''}</button>`).join('')+`<div class="pmore">${left?`${left} more entr${left===1?'y':'ies'} to discover`:'The book is complete'}</div>`;
     const b=$('pedia-body'); b.innerHTML=`<h2>${esc(cur.t)}</h2>${cur.f()}`; b.scrollTop=0; },
   /* open at a topic's page, if it is in the book */
-  close(){ if(!this.open) return; this.open=false; $('pedia').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
+  close(){ if(!this.open) return; this.open=false; $('pedia').hidden=true; if(G.mode==='port') UI.stats(); if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
   toggle(){ if(this.open) this.close(); else { if(Sfx.ok()) Sfx.click(); this.show(); } },
   bind(){ $('pedia-nav').addEventListener('click',e=>{ const b=e.target.closest('[data-p]'); if(b){ if(Sfx.ok()) Sfx.click(); this.show(+b.dataset.p); } }); $('pedia-close').onclick=()=>this.close();
     for(const id of ['btn-pedia','help-pedia']){ const b=$(id); if(b) b.onclick=()=>{ if(id==='help-pedia') $('help').hidden=true; this.show(); }; } },
@@ -24100,7 +24107,7 @@ const UI = {
     $('port-foot').innerHTML=`<b class="cr">${fmtCr(G.credits)}</b><span>${G.cargo.length?`${G.cargo.length} contract${G.cargo.length>1?'s':''} · ${used} of ${holdCap()} units`:'Hold empty'}</span>`;
     const t=$('port-top-btns'); t.innerHTML=''; const hb=el('button','btn','Hold'); hb.onclick=()=>Hold.toggle(true); const sb=el('button','btn','Ship'); sb.title="Your ship's specs"; sb.onclick=()=>Specs.show();
     const rb=el('button','btn rep r'+Rep.tierOf(),`${Rep.label()} <b>${Rep.signed()}</b>`); rb.title='Your reputation, and what it is doing for you'; rb.onclick=()=>Rep.show();
-    const pb=el('button','btn','Pedia'); pb.title='The Haul-O-Pedia: everything, explained'; pb.onclick=()=>Pedia.show(); t.append(rb,hb,sb,pb); },
+    const pb=el('button','btn','Pedia'+(Pedia.unread()?'<em class="new">New</em>':'')); pb.title='The Haul-O-Pedia: everything, explained'; pb.onclick=()=>Pedia.show(); t.append(rb,hb,sb,pb); },
   shipLink(){ const b=el('button','shiplink',esc(SHIPS[G.shipId].name)); b.title="Show this ship's specs"; b.onclick=()=>Specs.show(); return b; },
   /* the shopkeeper's hello, in the speech bubble over their head */
   keeper(d, line){ const P=this.P, seed=Venues.keeperSeed(P,d), S=SPECIES[d.sp];
@@ -25049,7 +25056,8 @@ const Game = {
     const paid=[], total=0, due=UI.due(P);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
     const fee=Math.min(this.towFee,G.credits); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; $('deep-badge').hidden=true; Deep.storm=null; if(Hold.open) Hold.render(); G.credits-=fee; if(G.hot===P.idx) G.hot=null;
-    const news=this.resuming?[]:Situ.tick(P); this.resuming=false; { const here=Situ.at(P.idx); if(here&&!news.length) news.push(`${SITS[here.k].name} at ${P.port}. ${Situ.effect({s:here}).replace(/ there/g,' here')}`); news.slice(0,2).forEach((t,i)=>setTimeout(()=>UI.toast('📰 '+t,'good'),2600+i*2600)); }
+    // the news moves on a day; it is read on the depot's Port news card, the map and the Haul-O-Pedia, not in pop-ups
+    if(!this.resuming) Situ.tick(P); this.resuming=false;
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(due.length) setTimeout(()=>UI.toast(`${due.length} deliver${due.length===1?'y':'ies'} for ${P.port}. Hand ${due.length===1?'it':'them'} over at the cargo depot.`,'good'),1200); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
