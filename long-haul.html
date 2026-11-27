@@ -19623,9 +19623,11 @@ const Cockpit = {
     this.cabinLights=[-1,1].map(s=>{ const l=new THREE.PointLight(C('#ffd9b0'),0,3.2,1.6); l.position.set(s*0.38,0.56,0.02); g.add(l); return l; });
     this.glowLight=new THREE.PointLight(C(ck.glow),0,1.8,1.5); this.glowLight.position.set(0,-0.22,-0.55); g.add(this.glowLight);
 
-    /* ---- translator display on the glare shield ---- */
-    const PT=panel(1.0,0.16); PT.g.position.set(0,-0.118,-0.915); PT.g.rotation.set(-0.2,0,0);
-    screen(PT,0,0,0.97,0.135,1940,270,'xl'); PT.done();
+    /* ---- comms display: hung from the canopy roof at the top of the view, so the view ahead stays clear ---- */
+    const PT=panel(0.8,0.13); PT.g.position.set(0,0.293,-0.69); PT.g.rotation.set(0.4,0,0);
+    screen(PT,0,0,0.78,0.108,1940,270,'xl'); PT.done();
+    // two struts from its top corners up to the canopy's top beam
+    for(const s of [-1,1]){ const top=new V3(s*0.34,0.293+0.065*Math.cos(0.4),-0.69-0.065*Math.sin(0.4)); add(beamBetween(top,A2(s).lerp(A2(-s),0.22).add(new V3(0,-0.03,0)),0.018,M.frame)); }
     // a waiting radio call is answered by clicking the radio screen itself (it only counts as a control while a call waits)
     reg({id:'xlcall',type:'screen',label:'Incoming call',tip:'click to answer',when:()=>Dlg.open&&Dlg.mini,press:()=>Dlg.expand()},[this.screens.xl.mesh]);
 
@@ -19820,7 +19822,7 @@ const Cockpit = {
     S.tex.needsUpdate=true;
   },
   drawXl(t){
-    // Wide and low so it stays under the dead-ahead sightline. Words are drawn at twice their original size.
+    // Wide and shallow, hung at the top of the view so the dead-ahead sightline stays clear. Words are drawn at twice their original size.
     const S=this.screens.xl, x=S.ctx, W=S.w, H=S.h, c=Radio.cur, pend=Dlg.open&&Dlg.mini; x.fillStyle='#04121a'; x.fillRect(0,0,W,H); x.textBaseline='alphabetic';
     x.strokeStyle='#123846'; x.lineWidth=3; x.strokeRect(6,6,W-12,H-12); const live=c&&c.t<c.dur, PX=20, PY=16, PS=170, TX=PX+PS+30;
     if(!c){ for(let i=0;i<9;i++){ x.fillStyle='#1d5a70'; x.fillRect(PX+10+i*17,H/2+20,11,7); }
