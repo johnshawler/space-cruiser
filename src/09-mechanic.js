@@ -9,7 +9,7 @@ const MECH_TIERS = [
   {key:'keen', label:'Keen', blurb:'Very cheap, very willing, and holds the spanner by the wrong end.', time:30, botch:0.28, fee:150, wage:15},
 ];
 const MECH_LINES = {
-  fixed:['They would like it noted that it was like that when they found it.','They used a part from something else. They will not say what.','They left a small bill and a larger smudge.','They say it will hold. They did not say for how long.','They hit it once, listened, and hit it again more kindly.','They have named the fault. It is called Gerald and it is gone now.'],
+  fixed:['They would like it noted that it was like that when they found it.','They used a part from something else. They will not say what.','They left a small bill and a larger smudge.','They say it will hold. They did not say for how long.','They hit it once, listened, and hit it again more kindly.','They have named the fault. It is called Gerald and it is gone now.','They charged for two parts and used one. The other is a retainer.','They say it was the worst they have seen today.','They left a note. The note is a drawing of the fault, frowning.','They did it properly, which took longer, and said so.','They found your earlier repair and removed it without comment.','They whistled the whole time. You could hear it from the cockpit.','They say it should last. They looked at the ceiling when they said it.','They have added it to a list. The list is long and has your name at the top.','They borrowed your mug to catch the drips. You will want a new mug.','They tested it by kicking it. It passed.','They fixed that, and something next to it that you had not noticed.','They wiped their hands on your seat on the way back.','They want it known that this is not what the tool is for.','They found the fault, named it, and showed it the door.'],
   botch:['There was a bang. They say the bang is part of the process.','It is now broken in a new and more interesting way. They are starting again.','They fitted it backwards. They are taking it off again, whistling.','Something fell off. They have put it in a pocket for later.'],
   beaten:['They arrive to find you have already done it, and look quietly relieved.','You got there first. They pretend they were only passing.'],
   unpaid:['They are sitting on their toolbox until somebody finds the money.','They have downed tools. The tools were already down.'],
@@ -37,18 +37,18 @@ const Mech = {
     const m=G.mech; if(!m){ if(this.F) this.drop(); return; }
     const L=Faults.list().filter(k=>!FAULT_DEFS[k].garage), tier=this.tier(m);   // hull cracks are a garage's job, not theirs
     if(this.job&&!L.includes(this.job)&&this.st!=='back'){ // somebody else mended it
-      if(this.st!=='idle') UI.toast(`🔧 ${m.name}: ${pick(MECH_LINES.beaten)}`); this.leave(); return; }
+      if(this.st!=='idle') UI.toast(`🔧 ${m.name}: ${Deck.deal('m:beaten',MECH_LINES.beaten)}`); this.leave(); return; }
     if(this.st==='idle'){
       if(!L.length){ this.told=''; return; }
-      if(G.credits<this.wage(m)){ if(this.told!=='unpaid'){ this.told='unpaid'; UI.toast(`🔧 ${m.name} wants ${fmtCr(this.wage(m))} before going near it (${FAULT_DEFS[L[0]].name.toLowerCase()}). ${pick(MECH_LINES.unpaid)}`,'warn'); } return; }
+      if(G.credits<this.wage(m)){ if(this.told!=='unpaid'){ this.told='unpaid'; UI.toast(`🔧 ${m.name} wants ${fmtCr(this.wage(m))} before going near it (${FAULT_DEFS[L[0]].name.toLowerCase()}). ${Deck.deal('m:unpaid',MECH_LINES.unpaid)}`,'warn'); } return; }
       this.told=''; this.job=L[0]; this.st='going'; this.path=null; this.T=this.t=this.legTime(); Faults.badge();
       UI.toast(`🔧 ${m.name} is off to the ${Faults.room(this.job)}: ${FAULT_DEFS[this.job].name.toLowerCase()}.`); return; }
     if(this.st==='going'||this.st==='back'){ this.t-=dt; if(this.t<=0){ if(this.st==='going'){ this.st='work'; this.T=this.t=tier.time; this.path=null; this.botched=false; Faults.badge(); } else { this.st='idle'; this.job=null; this.path=null; } } return; }
     if(this.st==='work'){ const s=G.ship, rough=s.throttle>5||s.warpF>0.2; this.t-=dt*(rough?0.35:1);
-      if(rough&&this.told!=='rough'&&this.t<this.T*0.8){ this.told='rough'; this.say(pick(MECH_LINES.rough),'warn'); }
+      if(rough&&this.told!=='rough'&&this.t<this.T*0.8){ this.told='rough'; this.say(Deck.deal('m:rough',MECH_LINES.rough),'warn'); }
       if(this.t>0) return;
       if(!this.botched&&Math.random()<tier.botch){ this.botched=true; this.T=this.t=tier.time*0.6;   // one mishap a job is funny; two is a chore
-        this.told=''; if(Sfx.ok()) Sfx.clunk(); UI.toast(`🔧 ${m.name} is still at it (${FAULT_DEFS[this.job].name.toLowerCase()}). ${pick(MECH_LINES.botch)}`,'warn'); return; }
+        this.told=''; if(Sfx.ok()) Sfx.clunk(); UI.toast(`🔧 ${m.name} is still at it (${FAULT_DEFS[this.job].name.toLowerCase()}). ${Deck.deal('m:botch',MECH_LINES.botch)}`,'warn'); return; }
       const id=this.job; const w=this.wage(m); G.credits=Math.max(0,G.credits-w); this.job=null; Faults.fix(id,{name:m.name,wage:w}); this.leave(); } },
   leave(){ this.job=null; this.st='back'; this.path=null; this.T=this.t=this.legTime(); Faults.badge(); },
   /* how long a walk takes: from the real route when the deck is there to measure, a fair guess when it is not */
@@ -112,6 +112,6 @@ const Mech = {
   aim(eye, dir){ const F=this.F; if(!F||!F.visible||!G.mech||(Interior.fitted&&this.level!==Walk.level)) return null; const q=new V3(); F.getWorldPosition(q); Interior.group.worldToLocal(q); q.y+=0.75; const to=q.sub(eye), d=to.length(), dot=to.normalize().dot(dir); return d<3.2&&dot>0.85?{kind:'mech',d}:null; },
   prompt(pr, held){ const m=G.mech, T=this.tier(m); pr.hidden=false; pr.innerHTML=`<b>${esc(m.name)}</b><span>Your mechanic · ${TouchUI.on?'Tap Fix':'Press F'} to chat${this.status()?' · '+esc(this.st==='work'?'working':'on the way'):''}</span>`;
     if(held&&!this.chatLock){ this.chatLock=true; setTimeout(()=>{ this.chatLock=false; },2500);
-      const line=G.credits<this.wage(m)&&Faults.list().length?`I am owed ${this.wage(m)} credits a job. I checked. I have a little book.`:pick(MECH_LINES[this.st==='work'?'working':this.st==='going'?'going':'idle']);
+      const line=G.credits<this.wage(m)&&Faults.list().length?`I am owed ${this.wage(m)} credits a job. I checked. I have a little book.`:Deck.deal('m:chat:'+this.st,MECH_LINES[this.st==='work'?'working':this.st==='going'?'going':'idle']);
       Radio.play({sp:m.sp,seed:m.seed,name:`${m.name} · ${T.label} mechanic`,english:line}); } },
 };

@@ -586,12 +586,16 @@ const Venues = (() => {
   const GAGS = {
     /* the depot: A picks up a stack of crates from the pile on the left and carries it through the doorway into the stock
        room at the back, while B waves them in from beside the door. On a bad day the stack topples halfway: A goes over,
-       gets back up, picks up every box one at a time, restacks them and carries on into the stock room anyway. Then A
-       comes back out for the next lot, which has turned up on the pile in the meantime. */
+       gets back up, picks up every box one at a time, restacks them and carries on into the stock room anyway. A comes
+       back empty-handed. The round after that, A walks in empty, lifts the stack in the stock room and carries it out
+       to the pile again. No crate is ever anywhere it was not carried to. */
     stack:{ dur:120, PILE:[-4.45,-3.6], HOME:[-3.6,-3.6], SPILL:[0.6,-3.6], ROUTE:[[-1.4,-4.15],[2.8,-5.3],[4.3,-7.0],[4.3,-10.3]], BACK:[[4.3,-7.0],[1.4,-4.6],[-3.6,-3.6]], DROP:[3.4,-10.0],
       reset(V){ const {A,B}=V, g=V.g, Q=this; A.position.set(Q.HOME[0],0,Q.HOME[1]); A.rotation.y=-Math.PI/2; B.position.set(2.2,0,-7.5); B.rotation.y=Math.PI/2;
-        g.crates.forEach((c,i)=>{ c.visible=true; c.scale.setScalar(1); c.rotation.set(0,0,0); c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); });
-        g.held=[]; g.st='lift'; g.sT=0; g.wp=0; g.ph=0; g.spilt=false; g.crewInAisle=false; },
+        // Crates only ever move by being carried. One round takes the stack from the floor into the stock room; the next
+        // round fetches it back out. V.stackAt remembers which end it was left at, so nothing appears from nowhere.
+        const room=V.stackAt==='room';
+        g.crates.forEach((c,i)=>{ c.visible=true; c.scale.setScalar(1); c.rotation.set(0,room?0.1*i:0,0); c.position.set(room?Q.DROP[0]:Q.PILE[0],0.31+i*0.62,room?Q.DROP[1]:Q.PILE[1]); });
+        g.held=[]; g.st=room?'fetch':'lift'; g.sT=0; g.wp=0; g.ph=0; g.spilt=false; g.crewInAisle=false; },
       update(V,t,dt){ const {A,B}=V, g=V.g, Q=this, U=A.userData, r=U.rig; g.sT+=dt; const s=g.st, T=g.sT;
         const go=s=>{ g.st=s; g.sT=0; };
         const face=(x,z,k=6)=>{ const a=Math.atan2(x-A.position.x,z-A.position.z); let d=((a-A.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; A.rotation.y+=Math.sign(d)*Math.min(Math.abs(d),dt*k); return Math.abs(d)<0.08; };
@@ -634,15 +638,22 @@ const Venues = (() => {
           carry(0.3); if(T>0.8){ r.rotation.x=0; r.position.y=0; go('gather'); } }
         else if(s==='drop'){ // set the stack down just inside the stock room
           Folk.walk(A,0,0); face(Q.DROP[0],Q.DROP[1]); const u=P_(T,0,0.9); bend(u);
-          if(T>0.45&&g.held.length){ g.held.forEach((c,i)=>{ c.position.set(Q.DROP[0],0.31+i*0.62,Q.DROP[1]); c.rotation.set(0,0.1*i,0); }); g.held=[]; snd(V,()=>Sfx.thump(0.5)); }
+          if(T>0.45&&g.held.length){ g.held.forEach((c,i)=>{ c.position.set(Q.DROP[0],0.31+i*0.62,Q.DROP[1]); c.rotation.set(0,0.1*i,0); }); g.held=[]; V.stackAt='room'; snd(V,()=>Sfx.thump(0.5)); }
           carry(); if(T>0.9){ r.rotation.x=0; r.position.y=0; g.wp=0; go('back'); } }
-        else if(s==='back'){ const dest=Q.BACK[g.wp]; Folk.arms(A,[0,0],[0,0]);
-          if(g.wp===1&&!g.fresh){ g.fresh=true; g.crates.forEach((c,i)=>{ c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); c.rotation.set(0,0,0); c.scale.setScalar(0.001); }); } // the next lot turns up on the pile
-          if(g.fresh) g.crates.forEach(c=>c.scale.setScalar(Math.min(1,c.scale.x+dt*1.6)));
+        else if(s==='fetch'){ // an empty-handed walk to the stock room, for the lot that was carried in there last time
+          if(g.wp===1&&!g.crewInAisle){ if(V.droid.cur||V.droid.q.length){ V.gagDur=(V.gagDur||Q.dur)+dt; Folk.walk(A,g.ph,0); return; } g.crewInAisle=true; }
+          const dest=Q.ROUTE[g.wp]; Folk.arms(A,[0,0],[0,0]); if(walkTo(dest[0],dest[1])){ g.wp++; if(g.wp>=Q.ROUTE.length) go('lift2'); } }
+        else if(s==='lift2'){ Folk.walk(A,0,0); face(Q.DROP[0],Q.DROP[1]); const u=P_(T,0,0.9); bend(u); if(T>0.45&&!g.held.length){ g.held=g.crates.slice(); snd(V,()=>Sfx.clunk()); } carry(0); if(T>0.9){ r.rotation.x=0; r.position.y=0; g.wp=0; go('back'); } }
+        else if(s==='back'){ // home again: empty-handed after taking a stack in, or carrying the stack that is coming out
+          const dest=Q.BACK[g.wp], laden=g.held.length>0; if(!laden) Folk.arms(A,[0,0],[0,0]);
           if(walkTo(dest[0],dest[1])){
             if(g.wp===1) g.crewInAisle=false; // both the carrier and stack have cleared the doorway
-            g.wp++; if(g.wp>=Q.BACK.length){ g.fresh=false; V.t=(V.gagDur||Q.dur)+1; }
-          } }
+            g.wp++; if(g.wp>=Q.BACK.length){ if(laden) go('set'); else V.t=(V.gagDur||Q.dur)+1; }
+          } if(laden) carry(0.3); }
+        else if(s==='set'){ // and down on the floor where the next round will find it
+          Folk.walk(A,0,0); face(Q.PILE[0],Q.PILE[1]); const u=P_(T,0,0.9); bend(u);
+          if(T>0.45&&g.held.length){ g.held.forEach((c,i)=>{ c.position.set(Q.PILE[0],0.31+i*0.62,Q.PILE[1]); c.rotation.set(0,0,0); }); g.held=[]; V.stackAt='pile'; snd(V,()=>Sfx.thump(0.5)); }
+          carry(); if(T>0.9){ r.rotation.x=0; r.position.y=0; V.t=(V.gagDur||Q.dur)+1;           } }
       } },
     crane:{ dur:13, reset(V){ const {A,B}=V, g=V.g; A.position.set(-0.6,0,-3.0); A.rotation.y=0.5; B.position.set(3.3,0,-3.0); B.rotation.y=-Math.PI/2; g.tro.position.x=-3.6; g.pod.visible=true; g.pod.scale.setScalar(1); g.pod.rotation.set(0,0,0); g.hookY=4.8; },
       update(V,t,dt){ const {A,B}=V, g=V.g, ok=V.ok; let tx=g.tro.position.x, hy=g.hookY, swing=0, attached=!V.fired.snap;

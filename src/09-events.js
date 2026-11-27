@@ -81,15 +81,15 @@ const Rep = {
   contraChance(){ return [1,0.85,0.6,0.5,0.35,0.25][this.tierOf()]; },          // how often the back room has something for you
   contraMul(){ return [1.25,1.1,1,1,1,1][this.tierOf()]; },                     // and what they pay someone they trust to keep quiet
   /* the standing sheet: where you are, what it is doing, how to move it, and what moved it lately */
-  show(){ Pedia.learn('rep',true); const k=this.tierOf(), T=REP_TIERS[k], up=REP_TIERS[k+1], dn=REP_TIERS[k], pct=v=>(v>=0?'+':'')+Math.round(v*100)+'%';
+  /* Kept short on purpose: where you are, the next name up, what your name is doing in the parts of the game you have
+     met, and what moved it lately. How it is earned and lost is in the Haul-O-Pedia, which fills in as you discover it. */
+  show(){ Pedia.learn('rep',true); const k=this.tierOf(), T=REP_TIERS[k], up=REP_TIERS[k+1], pct=v=>(v>=0?'+':'')+Math.round(v*100)+'%', K=x=>Pedia.has(x);
     Specs.open=true; $('specs').hidden=false; if(Sfx.ok()) Sfx.click(); $('specs-name').textContent=`Your standing: ${T.name}`; $('specs-tag').textContent=T.say;
-    const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`;
-    const ladder=REP_TIERS.map((t,i)=>`${i===k?'You are here: ':''}${t.name} (${i<REP_TIERS.length-1?t.min+' to '+(REP_TIERS[i+1].min-1):t.min+' to 100'})`);
-    let html=dl('Where you stand',[['Reputation',`${this.signed()} on a scale of -100 to +100`],['Next name up',up?`${up.name} at ${this.signed(up.min)} (${up.min-G.rep} to go)`:'There is no higher name'],['Next name down',k>0?`${REP_TIERS[k-1].name} below ${this.signed(dn.min)}`:'There is no lower name'],['The ladder',ladder.join(' · ')]]);
-    html+=dl('What it is doing for you now',[['Pay on new contracts',pct(this.payMul()-1)],['Customs searches',pct(this.customsMul()-1)+(this.customsMul()<1?' (waved through more often)':this.customsMul()>1?' (searched harder)':'')],['A quiet fee is accepted',Math.round(this.bribeTake()*100)+'% of the time'],['Hull repairs',`${this.repairPrice()} cr a point (${Math.round(5*Econ.scale())} is the usual rate for this ship)`],['VIP escort contracts',this.vips()?'Offered':'Not offered: nobody trusts you with one'],['Passengers at cantinas',this.paxMax()?`Up to ${this.paxMax()} asking at a time`:'None will fly with you'],['Back-room contracts',`Offered ${Math.round(this.contraChance()*100)}% of the time${this.contraMul()>1?', paying '+pct(this.contraMul()-1):''}`]]);
-    html+=dl('How to raise it',[['Deliver on time and in one piece','+2'],['Finish a rescue','+6'],['Bring a VIP in safely','+5'],['Recover cargo you lost','+2']]);
-    html+=dl('How to lose it',[['Deliver very late','-2'],['Deliver badly damaged','-1 more'],['Dump cargo or a passenger','-2'],['Fly past a mayday','-3'],['Lose a VIP contract','-6 to -8'],['Get caught with contraband','-6 to -10'],['Flee customs, or bribe badly','-4 to -6']]);
-    const log=G.repLog||[]; html+=dl('Lately',log.length?log.map(e=>[e.why,(e.d>0?'+':'')+e.d]):[['Nothing yet','Go and deliver something']]);
+    const dl=(title,rows)=>`<h3>${title}</h3><dl class="spec">${rows.filter(Boolean).map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`;
+    let html=dl('Where you stand',[['Reputation',this.signed()],['Next name up',up?`${up.name}, ${up.min-G.rep} to go`:'There is no higher name']]);
+    html+=dl('What it is doing for you',[['Pay on new contracts',pct(this.payMul()-1)],K('garage')&&['Hull repairs',`${this.repairPrice()} cr a point`],K('customs')&&['Customs searches',this.customsMul()<1?'Waved through more often':this.customsMul()>1?'Searched harder':'The usual'],K('bar')&&['Passengers',this.paxMax()?'Will fly with you':'None will fly with you'],K('escort')&&['VIP escorts',this.vips()?'Offered':'Not offered']]);
+    const log=(G.repLog||[]).slice(0,4); html+=dl('Lately',log.length?log.map(e=>[e.why,(e.d>0?'+':'')+e.d]):[['Nothing yet','Go and deliver something']]);
+    html+=`<p class="note">How a name is earned and lost is in the Haul-O-Pedia. Press O.</p>`;
     $('specs-body').innerHTML=html; },
 };
 const Hull = {
