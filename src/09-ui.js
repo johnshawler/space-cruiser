@@ -25,7 +25,7 @@ const UI = {
   deliver(c, P, quiet){
     let pay, name, rd=0, rw=''; const end=Story.ending(c,P);
     if(c.kind==='escort'){ const r=Escort.land(P); if(!r){ Cockpit.drawManifest(); this.render(); return 0; } pay=r.pay; name=c.vip.title; }
-    else { const i=G.cargo.indexOf(c); if(i<0) return 0; G.cargo.splice(i,1); pay=c.pay; name=c.kind==='pax'?c.good:`${c.qty}× ${c.good}`; if(c.kind!=='contra'&&c.kind!=='ore'){ rd=Rep.delivery(c); rw=Rep.deliveryWhy(c,rd); rd=Rep.add(rd,rw,true); } }
+    else { const i=G.cargo.indexOf(c); if(i<0) return 0; G.cargo.splice(i,1); pay=c.pay; name=c.kind==='pax'?c.good:`${c.qty}× ${c.good}`; if(c.kind!=='contra'&&c.kind!=='ore'){ rd=Rep.delivery(c); rw=Rep.deliveryWhy(c,rd); rd=Rep.add(rd,rw,true); } Situ.delivered(c,P); }
     G.credits+=pay; G.stats.deliveries++; G.stats.earned+=pay; this.tell(end);
     if(!quiet){ Sfx.clunk(); setTimeout(()=>Sfx.cash(),160); Venues.react('cash'); this.paidFx(pay); UI.toast(`${c.kind==='pax'||c.kind==='escort'?'Seen off':'Delivered'}: ${name} · +${fmtCr(pay)}${rd?` · reputation ${rd>0?'+':''}${rd} (${rw.toLowerCase()})`:''}`,rd<0?'warn':'good'); Cockpit.drawManifest(); Game.save(); this.render(); }
     return pay; },
@@ -60,14 +60,14 @@ const UI = {
     let h3, meta; let used=0; G.cargo.forEach(c=>used+=c.qty);
     if(j.kind==='escort'){ h3=`Escort ${esc(j.vip.title)}<span class="tag esc">ESCORT</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · needs a free seat`; }
     else if(j.kind==='contra'){ h3=`${j.qty}× ${esc(j.good)}<span class="tag bad">CONTRABAND</span>${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${Econ.riskLine(P,T)} · caught loading ${Math.round(Customs.risk(P)*100)}% · unloading ${Math.round(Customs.risk(T)*100)}%`; }
-    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
+    else { h3=`${j.qty}× ${esc(j.good)}${j.hot?'<span class="tag">HOT +50%</span>':''}${j.sit?'<span class="tag">'+esc(j.sit)+'</span>':''}${j.fragile?'<span class="tag bad">FRAGILE</span>':''}${rtag}`; meta=`To <i>${esc(T.name)}</i> · ${(dist/LS).toFixed(1)} ls · ${Econ.riskLine(P,T)} · full pay within ${fmtTime(Cargo.est({from:P.idx,to:j.to}))}`; }
     const x=el('button','close','✕'); x.setAttribute('aria-label','Close'); x.onclick=()=>{ Sfx.click(); this.closeTicket(); }; box.appendChild(x);
     box.appendChild(el('div','mid',`<h3>${h3}</h3><div class="meta">${meta}</div><p>${esc(j.story?j.story.pick:j.note)}</p>${j.story?`<p class="lbl">${j.kind==='escort'?'':'Label: '}${esc(j.note)}</p>`:''}`));
     const busy=j.kind==='escort'&&G.cargo.some(c=>c.kind==='escort'), noSeat=j.kind==='escort'&&Cargo.pax().length>=Cargo.seats(), fits=used+j.qty<=holdCap()&&!busy&&!noSeat;
     const r=el('div','right'); r.appendChild(el('div','pay',fmtCr(j.pay))); const b=el('button','big',busy?'One at a time':noSeat?'No seats':fits?'Accept':'No room'); b.disabled=!fits;
     b.onclick=()=>{ this.closeTicket(); if(j.kind==='contra'){ Customs.load(j,P); return; }
       if(j.kind==='escort') G.cargo.push({kind:'escort',good:j.good,qty:0,to:j.to,pay:j.pay,from:P.idx,vip:j.vip,hp:100,story:j.story});
-      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story}); Venues.fetch(j.good,j); }
+      else { G.cargo.push({good:j.good,qty:j.qty,to:j.to,pay:j.pay,from:P.idx,fresh:true,fragile:!!j.fragile,story:j.story,cat:j.cat,ends:j.ends}); Venues.fetch(j.good,j); }
       G.jobs.splice(G.jobs.indexOf(j),1); Sfx.clunk(); Venues.react('clap'); if(!G.cargo.some(c=>c.to===G.target)) Game.setTarget(j.to,true); Cockpit.drawManifest(); Game.save(); this.render(); };
     r.appendChild(b); box.appendChild(r); Venues.hopShelf(j); if(Sfx.ok()) Sfx.click(); },
   closeTicket(){ this.ticket=null; const b=$('port-card'); if(b){ b.hidden=true; b.innerHTML=''; } },
@@ -97,7 +97,7 @@ const UI = {
     const d=SHIPS[G.shipId], v=Venues.def(P,this.tab)||Venues.defs(P)[0]; this.tab=v.k; Pedia.visit(v.k); this.post(); let used=0; G.cargo.forEach(c=>used+=c.qty);
     const cash=()=>{ Sfx.cash(); Venues.react('cash'); };
     if(this.tab==='depot'){
-      const a=this.arrival; this.keeper(v,a?a.greet:null);
+      const a=this.arrival, here=Situ.at(P.idx); this.keeper(v,here?SITS[here.k].greet(Situ.cat(here)):a?a.greet:null);
       // what happened to the last deliveries: the recipient has a word, in the bubble
       if(this.told&&this.told.length){ const t=this.told[0]; this.say(t.who,t.text,'What happened next'); }
       // deliveries for this port, handed over one at a time
@@ -108,8 +108,15 @@ const UI = {
         this.card(body,person?portraitCanvas(sp,seed,128):'📦',title,desc,'',fmtCr(this.payFor(c)),person?'See them off':'Hand it over',false,()=>this.deliver(c,P)).classList.add('due'); });
       if(due.length>1){ const sum=due.reduce((s,c)=>s+this.payFor(c),0); this.card(body,'✔','Hand over everything',`${due.length} deliveries for ${esc(P.port)}.`,'',fmtCr(sum),'Hand over all',false,()=>this.deliverAll(P)).classList.add('due'); }
       const ppu=Econ.fuelPrice(P), need=Math.ceil(d.fuel-G.fuel), cost=need*ppu;
+      // the news: what is going on here and elsewhere, and what it is worth
+      { const L=Situ.list(), mine=L.find(e=>e.i===P.idx), on=L.filter(e=>e.i!==P.idx&&G.jobs.some(j=>j.to===e.i&&j.sit)), rows=[];   // this port first, then whatever this board can do something about
+        if(mine) rows.push(`<b>Here</b> · ${esc(Situ.label(mine))}. ${esc(Situ.effect(mine).replace(/ there/g,' here'))}`);
+        for(const e of on.slice(0,mine?1:2)) rows.push(`<b>${esc(e.P.name)}</b> · ${esc(Situ.label(e))}. ${esc(Situ.effect(e))}`);
+        if(!rows.length&&L.length) rows.push(`<b>${esc(L[0].P.name)}</b> · ${esc(Situ.label(L[0]))}. ${esc(Situ.effect(L[0]))}`);
+        const more=L.length+(G.hot!=null?1:0)-rows.length;
+        if(rows.length) this.card(body,'📰','Port news',rows.join('<br>'),more>0?`${more} more on the map and in the Haul-O-Pedia`:'','','',true,()=>{}).classList.add('news'); }
       // the fuel tag only shows while there's room in the tank
-      if(need>0) this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. ${ppu} cr a unit${P.station?', the price of being far away':''}.`,'',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=ppu?'Buy what I can':'Beg',need<=0,()=>{
+      if(need>0) this.card(body,'⛽','Fuel',`Tank at ${Math.round(G.fuel/d.fuel*100)}%. ${ppu} cr a unit${Situ.costMul(P)>1?', strike rates':P.station?', the price of being far away':''}.`,'',need>0?fmtCr(cost):'Full',need<=0?'Full':G.credits>=cost?'Fill tank':G.credits>=ppu?'Buy what I can':'Beg',need<=0,()=>{
         if(G.credits>=cost){ G.credits-=cost; G.fuel=d.fuel; } else if(G.credits>=ppu){ const u=Math.floor(G.credits/ppu); G.fuel+=u; G.credits-=u*ppu; } else { G.fuel=Math.max(G.fuel,d.fuel*0.4); UI.toast('The dockmaster sighs and tops you up to 40%','good'); } Sfx.hiss(1,0.2); });
       // jobs with no model on the shelf (escorts, or a board too long for it) get a ticket button here
       const onShelf=new Set(G.jobs.filter(j=>j.kind!=='escort').slice(0,12));
@@ -123,10 +130,10 @@ const UI = {
         const net=Math.max(0,sh.price-val), mine=i===G.shipId; const pv=el('button','btn','Preview'); pv.onclick=()=>{ Sfx.click(); Cine.setPreview(i); }; const sp=el('button','btn','Specs'); sp.onclick=()=>Specs.show(i);
         const c=this.card(body,cv,esc(sh.name)+(mine?'<span class="tag">YOURS</span>':''),esc(sh.tag)+'<br><b>Reliability:</b> '+esc(Specs.reliability(sh.faults==null?1:sh.faults)),mine?'':`After trade-in`,mine?'—':fmtCr(net),mine?'':Specs.fits(i)?'Buy':'Too small',G.credits<net||!Specs.fits(i),()=>{ G.credits-=net; Specs.change(i,P); cash(); UI.toast('You now own the '+sh.name+'. New ship smell included.','good'); },[pv,sp]); });
     } else if(this.tab==='garage'){
-      const WELD=Math.round(40*Econ.scale()), USUAL=Math.round(5*Econ.scale()), crack=Faults.has('crack'), hn=Math.ceil(100-G.hull), PP=Rep.repairPrice(), hc=hn*PP+(crack?WELD:0), dirty=G.sys.dirt>=0.05; this.keeper(v,hn<=0&&!dirty&&!crack?'Not a scratch on her, and the glass is clean. Come back when you hit something.':null);
+      const STRIKE=Situ.costMul(P), WELD=Math.round(40*Econ.scale()*STRIKE), USUAL=Math.round(5*Econ.scale()), crack=Faults.has('crack'), hn=Math.ceil(100-G.hull), PP=Math.round(Rep.repairPrice()*STRIKE), hc=hn*PP+(crack?WELD:0), dirty=G.sys.dirt>=0.05; this.keeper(v,hn<=0&&!dirty&&!crack?'Not a scratch on her, and the glass is clean. Come back when you hit something.':null);
       // each tag only shows while there's something to fix
       // a hull crack is welded here and nowhere else: it goes first, then as many points of hull as the money covers
-      if(hn>0||crack) this.card(body,'🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${crack?'There is a crack to weld shut. ':''}${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents.':crack?'':'Not a scratch.'}`,`${PP} cr a point${PP<USUAL?', a rate for a name they know':PP>USUAL?', the rate for a name they know':''}${crack?' · '+WELD+' cr for the weld':''}`,fmtCr(hc),G.credits>=hc?'Repair':'Patch what I can',G.credits<(crack?WELD:PP),()=>{ if(crack){ G.credits-=WELD; Faults.weld('crack'); } const pts=Math.min(hn,Math.floor(G.credits/PP)); G.credits-=pts*PP; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); Venues.react('clap'); if(crack) UI.toast('Hull crack welded shut.','good'); });
+      if(hn>0||crack) this.card(body,'🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${crack?'There is a crack to weld shut. ':''}${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents.':crack?'':'Not a scratch.'}`,`${PP} cr a point${STRIKE>1?', strike rates':PP<USUAL?', a rate for a name they know':PP>USUAL?', the rate for a name they know':''}${crack?' · '+WELD+' cr for the weld':''}`,fmtCr(hc),G.credits>=hc?'Repair':'Patch what I can',G.credits<(crack?WELD:PP),()=>{ if(crack){ G.credits-=WELD; Faults.weld('crack'); } const pts=Math.min(hn,Math.floor(G.credits/PP)); G.credits-=pts*PP; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); Venues.react('clap'); if(crack) UI.toast('Hull crack welded shut.','good'); });
       if(dirty) this.card(body,'✦','Canopy wash',G.sys.dirt>0.3?'Yours is a disgrace.':'Yours is fine, honestly.','',fmtCr(20),'Wash',G.credits<20||G.sys.dirt<0.05,()=>{ G.credits-=20; G.sys.dirt=0; Sfx.hiss(1.5,0.2); Venues.react('clap'); });
     } else if(this.tab==='livery'){
       this.keeper(v,`${G.paint?'Currently wearing '+G.paint.name+'.':'Factory finish, is it?'} Pick a colour.`);

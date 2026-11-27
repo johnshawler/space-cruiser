@@ -29,11 +29,15 @@ const Game = {
     const P=PLANETS[pi], hold=holdCap(), jobs=[], n=5+Math.floor(Math.random()*3);
     // from a planet, the first two jobs stay in safe-ish space so there's always something a new hauler can take
     const dest=(i)=>{ let to, k=0; do{ to=Math.floor(Math.random()*PLANETS.length); }while((to===pi||(!P.station&&i<2&&PLANETS[to].risk>1))&&++k<60); return to; };
-    for(let i=0;i<n;i++){ let to=dest(i); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
-      const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
-      const pay=qty*Econ.unitPay(dist)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
+    const want=Situ.wanted(pi);   // a port in trouble elsewhere usually has something on this board
+    for(let i=0;i<n;i++){ let to=dest(i), good=pick(GOODS); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
+      if(i===2&&want.length&&Math.random()<0.45){ const w=pick(want); to=w.i; good=Situ.goodOf(w.s.cat)||good; }
+      const cat=GOOD_CAT[good[0]], sit=Situ.tag(cat,pi,to), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
+      const pay=qty*Econ.unitPay(dist)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*Situ.payMul(cat,pi,to)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
       const fragile=i>0&&Math.random()<0.3;
-      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk}); }
+      jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk,cat,sit}); }
+    { const st=Situ.strikeAway(pi); if(st){ const dist=P.pos.distanceTo(st.P.pos)/LS;   // somebody has to carry the strike pay
+        jobs.push({good:'Strike Pay (Sealed Envelopes)',note:'Do not open. Do not shake. Do not count.',qty:1,to:st.i,pay:Math.round(Econ.unitPay(dist)*2.5*Econ.scale()*Rep.payMul()/5)*5,sp:st.P.species,seed:Math.floor(Math.random()*1e9),hot:false,fragile:false,risk:Econ.risk(P,st.P),ends:'strike',sit:'ENDS THE STRIKE'}); } }
     jobs.sort((a,b)=>a.qty-b.qty);
     const away=()=>{ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); return to; };
     // contraband pays for the chance of being caught: the stricter the docks at both ends, the more it's worth
@@ -44,8 +48,8 @@ const Game = {
     for(const j of jobs) j.story=j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j);
     G.jobs=jobs;
     // people wanting a ride, offered at cantinas
-    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=Math.min(Rep.paxMax(),1+Math.floor(Math.random()*3));i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
-      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((170+dist*40)*rnd(0.85,1.25)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
+    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=Math.min(Rep.paxMax(),1+Math.floor(Math.random()*3));i<n;i++){ const to=away(); if(!Situ.paxOk(pi,to)) continue; const sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((170+dist*40)*rnd(0.85,1.25)*Econ.mul(P,PLANETS[to])*Situ.paxMul(to)*Rep.payMul()/5)*5,sit:Situ.paxMul(to)>1?'FESTIVAL +50%':'',why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
     for(const j of px){ j.story=Story.pax(j); j.why=j.story.why; }
     G.paxJobs=px;
   },
@@ -58,6 +62,7 @@ const Game = {
     const paid=[], total=0, due=UI.due(P);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
     const fee=Math.min(this.towFee,G.credits); this.towFee=0; Calls.landed(P); Throttle.settle(); Throttle.zone=null; Scoop.open=false; $('scoop-badge').hidden=true; Faults.badge(); $('zone-badge').hidden=true; $('deep-badge').hidden=true; Deep.storm=null; if(Hold.open) Hold.render(); G.credits-=fee; if(G.hot===P.idx) G.hot=null;
+    const news=this.resuming?[]:Situ.tick(P); this.resuming=false; { const here=Situ.at(P.idx); if(here&&!news.length) news.push(`${SITS[here.k].name} at ${P.port}. ${Situ.effect({s:here}).replace(/ there/g,' here')}`); news.slice(0,2).forEach((t,i)=>setTimeout(()=>UI.toast('📰 '+t,'good'),2600+i*2600)); }
     this.genJobs(P.idx); const S=SPECIES[P.species]; if(due.length) setTimeout(()=>UI.toast(`${due.length} deliver${due.length===1?'y':'ies'} for ${P.port}. Hand ${due.length===1?'it':'them'} over at the cargo depot.`,'good'),1200); Sfx.speak(S.voice,2.4,true);
     { const nx=G.cargo.find(c=>c.to>=0); if(nx&&!G.cargo.some(c=>c.to===G.target)) this.setTarget(nx.to,true); }
     Cockpit.drawManifest(); UI.showPort(P,{greet:fill(pick(S.dock),{port:P.port}),paid,total,fee}); this.save();
@@ -141,15 +146,15 @@ const Game = {
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,repLog:G.repLog||[],hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[],mech:G.mech||null,seen:G.seen||[],won:!!G.won,know:G.know||{}})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,repLog:G.repLog||[],hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[],mech:G.mech||null,seen:G.seen||[],won:!!G.won,know:G.know||{},situ:G.situ||{},sitLog:G.sitLog||[],sitDay:G.sitDay==null?null:G.sitDay,hotLeft:G.hotLeft||0})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,repLog:[],hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[],mech:null,seen:[0],won:false,know:{fseen:[]}}); Mech.reset(); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,repLog:[],hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[],mech:null,seen:[0],won:false,know:{fseen:[]},situ:{},sitLog:[],sitDay:null,hotLeft:0,hotSeen:null}); Mech.reset(); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
-    const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init();
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,repLog:Array.isArray(d.repLog)?d.repLog.slice(0,8):[],hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k]),mech:d.mech&&SPECIES[d.mech.sp]&&MECH_TIERS.some(k=>k.key===d.mech.skill)?d.mech:null,seen:(d.seen||[]).filter(i=>PLANETS[i]),won:!!d.won}); Pedia.restore(d.know,d); if(d.docked>=0) this.visit(d.docked); Mech.reset(); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init(); this.resuming=true;   // loading a save is not a trip: the news does not move on
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,repLog:Array.isArray(d.repLog)?d.repLog.slice(0,8):[],hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k]),mech:d.mech&&SPECIES[d.mech.sp]&&MECH_TIERS.some(k=>k.key===d.mech.skill)?d.mech:null,seen:(d.seen||[]).filter(i=>PLANETS[i]),won:!!d.won}); Pedia.restore(d.know,d); Situ.restore(d); if(d.docked>=0) this.visit(d.docked); Mech.reset(); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },

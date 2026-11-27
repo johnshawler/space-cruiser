@@ -116,7 +116,7 @@ const Econ = {
   /* what a unit of cargo pays over a distance in light-seconds, before the goods, the risk and your name are counted.
      A long haul pays more than a short one, but not out of all proportion to the extra minute it takes. */
   unitPay(dist){ return 80+dist*24; },
-  fuelPrice(P){ return Math.round((P&&P.station?6:3)*this.scale()); },
+  fuelPrice(P){ return Math.round((P&&P.station?6:3)*this.scale()*Situ.costMul(P)); },
 };
 
 /* ---------- waypoints: a temporary nav target that outranks the planet destination ---------- */
