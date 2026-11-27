@@ -241,12 +241,22 @@ const Interior = {
       const models={}; for(const state of ['working','broken','repaired']) models[state]=deck.getObjectByName('state_'+id+'_'+state);
       this.repairs[id]={models};
     }
+    this.roomSigns(B,g);
     g.add(deck); this.lightSockets=Object.entries(A).filter(([k])=>k.startsWith('lamp_')).map(([,v])=>v.position);
     for(let i=0;i<2;i++){ const l=new THREE.PointLight(0xffdfbe,1.4,9,1.7); g.add(l); this.lights.push(l); }
     for(const o of g.children) if(o.isHemisphereLight) o.intensity=.55;
     this.crateKey=''; this.syncCargo(); this.syncFaults(); Faults.badge();
     if(Walk.on) Walk.boardFitted();
   },
+  /* a name sign over each side of every doorway on a fleet deck, naming the room ahead (positions: src/09-decksigns.js) */
+  roomSigns(B,g){
+    const dark=new THREE.MeshBasicMaterial({color:0x0c0d10});
+    for(const [title,x,y,z,ry,w] of (typeof DECK_SIGNS!=='undefined'&&DECK_SIGNS[B.ship])||[]){ const h=0.3, W=768, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d');
+      c.fillStyle='#121418'; c.fillRect(0,0,W,Hh); c.strokeStyle='#f2c14e'; c.lineWidth=12; c.strokeRect(10,10,W-20,Hh-20); c.textAlign='center'; c.textBaseline='middle'; c.fillStyle='#f2c14e';
+      let px=Math.round(Hh*0.6); do { c.font=`700 ${px}px ${FONT_DISP}`; px-=2; } while(c.measureText(title).width>W-70&&px>8); c.fillText(title,W/2,Hh*0.53);
+      const s=new THREE.Group(); s.position.set(x,y,z); s.rotation.y=ry; s.userData.roomSign=true;
+      const back=new THREE.Mesh(new THREE.BoxGeometry(w+0.04,h+0.04,0.04),dark); back.position.z=-0.025; s.add(back);
+      const face=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:0xcfcfcf,map:canvasTex(cv)})); s.add(face); g.add(s); } },
   lightFitted(){
     const positions=this.lightSockets.slice().sort((a,b)=>a.distanceToSquared(Walk.pos)-b.distanceToSquared(Walk.pos));
     this.lights.forEach((l,i)=>l.position.copy(positions[i]));
@@ -272,7 +282,9 @@ const Interior = {
      lamps only */
   bakedDeck(B,deck,g,A){
     const keep=new Set([...Object.values(this.fx).map(f=>f.grp),...this.seats,this.crates].filter(Boolean));
-    for(const o of g.children.slice()){ if(keep.has(o)||o.isHemisphereLight) continue; if(o===this.core){ o.visible=false; continue; } g.remove(o); if(o.geometry) o.geometry.dispose(); }
+    for(const o of g.children.slice()){ if(keep.has(o)||o.isHemisphereLight) continue; if(o===this.core){ o.visible=false; continue; }
+      if(o.userData.roomSign){ if(o.material.map) o.material.color.multiplyScalar(0.7); continue; }   // the room name signs stay
+      g.remove(o); if(o.geometry) o.geometry.dispose(); }
     for(const S of this.seats) for(const c of S.children.slice()) if(!this.pax.includes(c)) S.remove(c);
     const key=n=>String(n).toLowerCase().replace(/[^a-z]+/g,'-').replace(/^-|-$/g,''), maps={}; for(const k in B.baked) maps[key(k)]=B.baked[k];
     Assets.base().then(b=>deck.traverse(o=>{ if(!o.isMesh) return; o.castShadow=o.receiveShadow=false; const m=new THREE.MeshBasicMaterial({color:0x101210}); o.material=m; const url=maps[key(o.name)]; if(!url) return;
@@ -332,14 +344,15 @@ const Interior = {
     const ry90=Math.PI/2, add=o=>{ g.add(o); return o; }, label=m=>{ m.userData.label=true; return m; };   // signs, posters and dials stay on a bespoke deck
     const plane=(w,h,m,x,y,z,ry)=>{ const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m); o.position.set(x,y,z); o.rotation.y=ry; return add(o); };
     const fitFont=(c,txt,max,px,font)=>{ let s=px; do { c.font=font.replace('#',s); s-=2; } while(c.measureText(txt).width>max&&s>8); };
-    const sign=(title,sub,w,h,x,y,z,ry,col)=>{ const W=768, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d'); col=col||'#f2c14e';
+    const sign=(title,sub,w,h,x,y,z,ry,col,room)=>{ const W=768, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d'); col=col||'#f2c14e';
       c.fillStyle='#121418'; c.fillRect(0,0,W,Hh); c.strokeStyle=col; c.lineWidth=12; c.strokeRect(10,10,W-20,Hh-20); c.textAlign='center'; c.textBaseline='middle';
       c.fillStyle=col; fitFont(c,title,W-70,Math.round(Hh*(sub?0.42:0.6)),`700 #px ${FONT_DISP}`); c.fillText(title,W/2,sub?Hh*0.38:Hh*0.52);
       if(sub){ c.fillStyle='#e4e8ec'; fitFont(c,sub,W-70,Math.round(Hh*0.22),`600 #px ${FONT_DISP}`); c.fillText(sub,W/2,Hh*0.76); }
       // mounted on a short stand-off, clear of the wall ribs and rails, and kept below the ceiling beams and pipes
       const top=CEIL-0.12; if(y+h/2>top) y=top-h/2; const nx=Math.sin(ry), nz=Math.cos(ry), off=0.07;
       const back=bx(w+0.04,h+0.04,0.05,M.dark,x+nx*(off-0.03),y,z+nz*(off-0.03)); back.rotation.y=ry;
-      return plane(w,h,label(new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)})),x+nx*off,y,z+nz*off,ry); };
+      const face=plane(w,h,label(new THREE.MeshBasicMaterial({color:0xdddddd,map:canvasTex(cv)})),x+nx*off,y,z+nz*off,ry); if(room) back.userData.roomSign=face.userData.roomSign=back.userData.keep=face.userData.keep=true; return face; };
+    const room=(...a)=>{ a[8]=a[8]||undefined; a[9]=true; return sign(...a); };
     const poster=(title,body,col,w,h,x,y,z,ry)=>{ const W=512, Hh=Math.round(W*h/w), cv=makeCanvas(W,Hh), c=cv.getContext('2d');
       c.fillStyle='#ebe5d6'; c.fillRect(0,0,W,Hh); c.fillStyle=col; c.fillRect(0,0,W,Hh*0.22); c.fillStyle='#ffffff'; c.textAlign='center'; c.textBaseline='middle';
       fitFont(c,title,W-40,Math.round(Hh*0.1),`700 #px ${FONT_DISP}`); c.fillText(title,W/2,Hh*0.11);
@@ -362,7 +375,17 @@ const Interior = {
       for(let z=a+0.25;z<b-0.1;z+=0.7) bx(0.06,0.012,0.14,M.guide,sx*0.76,FLOOR+0.007,z); }
     for(const [x,m] of [[-0.6,M.pipe],[0.6,M.cool]]){ const p=cyl(0.04,0.04,6.3,m,x,CEIL-0.055,3.95,10); p.rotation.x=ry90; } // tucked up under the ceiling, above the signs
     cyl(0.08,0.08,0.45,M.red,0.74,FLOOR+0.42,6.95,16); cyl(0.03,0.04,0.1,M.dark,0.74,FLOOR+0.7,6.95,10); bx(0.06,0.06,0.2,M.chrome,0.81,FLOOR+0.5,6.95);
-    // no signs name the rooms or point the way: the player learns the ship by walking it
+    // every room is named at its door, and the long corridor points both ways
+    room('AIRLOCK','Outside is that way. Do not.',0.95,0.28,0.855,1.14,6.1,-ry90); room('SCRUBBER & HEAD','Knock first',0.95,0.28,-0.855,1.14,6.5,ry90);
+    for(const sx of [-1,1]) room('SERVICE ALLEY','Breathe in',0.95,0.28,sx*2.355,1.14,15.1,-sx*ry90);
+    room('COCKPIT','Pilots only. That means you.',1.3,0.42,0,1.06,0.745,0);
+    room('CABIN','Passengers, mostly content',1.1,0.32,-0.855,1.14,3.6,ry90);
+    room('GALLEY','Tea, and other emergencies',1.1,0.32,0.855,1.14,3.1,-ry90);
+    room('CARGO HOLD','Mind the boxes',1.7,0.3,0,1.165,7.155,Math.PI);
+    room('TO COCKPIT','Straight on, past the tea',1.7,0.3,0,1.165,7.245,0);
+    room('ENGINE ROOM','Do not lick the reactor',1.5,0.34,0,1.14,14.155,Math.PI);
+    room('CARGO HOLD','The boxes are fine. Probably.',1.5,0.34,0,1.14,14.245,0);
+    room('EXIT','To the corridor',1.1,0.32,-0.945,1.14,3.6,-ry90); room('EXIT','To the corridor',1.1,0.32,0.945,1.14,3.1,ry90);
     bx(0.06,0.4,0.56,M.red,-0.84,0.5,1.5); sign('EMERGENCY','Break glass. Then panic.',0.5,0.3,-0.805,0.5,1.5,ry90,'#ff6a5a');
     /* ---- passenger cabin ---- */
     { const rug=plane(1.7,3.8,M.rug,-2.35,FLOOR+0.004,3.6,0); rug.rotation.x=-ry90; }
