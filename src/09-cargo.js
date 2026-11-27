@@ -9,7 +9,9 @@ const fmtTime=s=>{ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+Stri
    slide faster. Passengers work the same way. */
 const SEATS=[2,2,3,4,4];
 const Cargo = {
-  seats(){ return SEATS[Math.min(SHIPS[G.shipId].model,SEATS.length-1)]; },
+  /* the seats the hull has, and the ones free for fares: a hired mechanic rides in one */
+  hullSeats(){ return SEATS[Math.min(SHIPS[G.shipId].model,SEATS.length-1)]; },
+  seats(){ return this.hullSeats()-(G.mech?1:0); },
   pax(){ return G.cargo.filter(c=>c.kind==='pax'||c.kind==='escort'); },
   decays(c){ return c.to>=0&&c.kind!=='ore'&&c.kind!=='escort'&&!c.quest; },
   est(c){ const from=c.from>=0?PLANETS[c.from]:(World.nearest||PLANETS[0]), d=from.pos.distanceTo(PLANETS[c.to].pos); return Math.round(d/SHIPS[G.shipId].warp*2.2+150); },
@@ -278,7 +280,7 @@ const Specs = {
   /* what a yard pays for your ship: half its price new, less what the hull damage would cost to fix */
   value(){ const s=SHIPS[G.shipId]; return Math.max(0,Math.round((s.price/2-(100-G.hull)*5)/5)*5); },
   /* does what is aboard fit in ship i? (fittings move across with you) */
-  fits(i){ const s=SHIPS[i]; return holdUsed()<=s.hold+(G.up.hidden?1:0)&&Cargo.pax().length<=SEATS[Math.min(s.model,SEATS.length-1)]; },
+  fits(i){ const s=SHIPS[i]; return holdUsed()<=s.hold+(G.up.hidden?1:0)&&Cargo.pax().length+(G.mech?1:0)<=SEATS[Math.min(s.model,SEATS.length-1)]; },
   /* swap to ship i: a fresh ship, so the old one's damage, faults, grime, heat and paint stay with the old one */
   change(i, P){ const s=SHIPS[i]; Walk.exit(true); G.shipId=i; G.fuel=s.fuel; G.paint=null; G.hull=100; G.faults=[]; G.fixed=[];   // a different hull has no faults and no repair history
     G.sys.dirt=0; Throttle.heat=0; Throttle.hotTold=false;

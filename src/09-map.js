@@ -11,7 +11,8 @@ const SysMap = {
     $('map').hidden=false; $('tooltip').hidden=true; if(Sfx.ok()) Sfx.beep(760); this.list(); this.draw(Game.time);
   },
   close(){ if(!this.open) return; this.open=false; $('map').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
-  pick(i){ if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:F.R*1.2,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
+  pick(i){ if(i===RESTAURANT.idx){ Restaurant.course(); this.list(); this.draw(Game.time); return; }
+    if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:F.R*1.2,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
     if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
   /* the chart is to scale out to the edge of patrolled space, then squeezed, so the far stations fit without
      crushing the planets into the middle */
@@ -35,7 +36,7 @@ const SysMap = {
     cv.addEventListener('pointermove',e=>{ const h=at(e); if(h!==this.hover){ this.hover=h; cv.style.cursor=h>=0?'pointer':'default'; this.draw(Game.time); } });
     cv.addEventListener('pointerleave',()=>{ if(this.hover!==-1){ this.hover=-1; this.draw(Game.time); } });
     cv.addEventListener('click',e=>{ if(this.dragged){ this.dragged=false; return; } const h=at(e); if(h>=0) this.pick(h); });
-    $('map-list').addEventListener('click',e=>{ const b=e.target.closest('[data-i]'); if(b) this.pick(+b.dataset.i); });
+    $('map-list').addEventListener('click',e=>{ const s=e.target.closest('[data-s]'); if(s){ const i=+s.dataset.s; if(this.shopsOpen.has(i)) this.shopsOpen.delete(i); else this.shopsOpen.add(i); if(Sfx.ok()) Sfx.click(); this.list(); return; } const b=e.target.closest('[data-i]'); if(b) this.pick(+b.dataset.i); });
     $('map-close').onclick=()=>this.close();
     const sb=$('map-search'); sb.addEventListener('input',()=>this.list());
     sb.addEventListener('keydown',e=>{ e.stopPropagation();
@@ -63,15 +64,23 @@ const SysMap = {
     this.listT-=dt; if(this.listT<=0){ this.listT=0.5; this.list(); }
   },
 
+  /* under each world you have landed on: a button that opens the list of shops at its port */
+  shopsOpen:new Set(),
+  shops(P){ if(!(G.seen||[]).includes(P.idx)) return '<div class="mshops none">Shops unknown · land here to find out</div>';
+    const open=this.shopsOpen.has(P.idx), kinds=Venues.defs(P).map(d=>VENUE_TABS[d.k]);
+    return `<div class="mshops"><button class="mshop" data-s="${P.idx}" aria-expanded="${open}">${open?'Hide shops':'Show shops'} <b>${kinds.length}</b></button>${open?'<span class="mshop-list">'+kinds.map(k=>'<em>'+esc(k)+'</em>').join('')+'</span>':''}</div>`; },
   list(){
     const T=Nav.target(), docked=G.mode==='port'&&G.docked>=0, dT=this.dist(T);
     $('map-sub').innerHTML=`Destination <b>${esc(T.name)}</b> · ${docked&&G.docked===T.idx?'docked here':fmtDist(dT)+' · '+this.eta(dT)}`;
     const rows=PLANETS.slice().sort((a,b)=>a.orbit-b.orbit).map(P=>{
       const here=docked&&G.docked===P.idx, n=this.cargoFor(P.idx), col=this.colors(P);
       let tags=''; if(P.idx===G.target&&!Nav.wp) tags+='<em class="t">Destination</em>'; if(n) tags+=`<em class="c">${n} crate${n===1?'':'s'} to deliver</em>`; if(G.hot===P.idx) tags+='<em class="h">Paying +50%</em>'; if(here) tags+='<em>Docked</em>';
-      return `<button class="mrow${P.idx===G.target&&!Nav.wp?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})${P.station?';border-radius:30%':''}"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${P.station?'research station · <b class="risk r'+P.risk+'">'+RISK[P.risk].name+' risk</b>':esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>`;
+      return `<button class="mrow${P.idx===G.target&&!Nav.wp?' tg':''}" data-i="${P.idx}"><i style="background:radial-gradient(circle at 35% 35%,${col[0]},${col[1]} 60%,${col[2]})${P.station?';border-radius:30%':''}"></i><span class="n">${esc(P.name)}</span><span class="d">${here?'—':fmtDist(this.dist(P))}</span><span class="p">${esc(P.port)} · ${P.station?'research station · <b class="risk r'+P.risk+'">'+RISK[P.risk].name+' risk</b>':esc(SPECIES[P.species].name)}</span>${tags?'<span class="b">'+tags+'</span>':''}</button>${this.shops(P)}`;
     });
     FIELDS.forEach(F=>{ const tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx; rows.push(`<button class="mrow${tg?' tg':''}" data-i="${100+F.idx}"><i style="background:radial-gradient(circle at 35% 35%,#e8dcc8,${F.col} 60%,#3a3040);border-radius:30%"></i><span class="n">${esc(F.name)}</span><span class="d">${fmtDist(Math.max(0,F.pos.distanceTo(G.ship.pos)-F.R))}</span><span class="p">Asteroid field · ${esc(F.ore)}</span>${tg?'<span class="b"><em class="t">Waypoint</em></span>':''}</button>`); });
+    { const R=RESTAURANT, ok=Restaurant.canReach(), tg=Nav.wp&&Nav.wp.kind==='restaurant';   // the last place on the chart
+      let tags=tg?'<em class="t">Destination</em>':''; tags+=ok?'<em class="c">In range of this ship</em>':`<em class="h">${esc(SHIPS[Restaurant.top()].name)} only</em>`; if(G.won) tags+='<em>Table kept for you</em>';
+      rows.push(`<button class="mrow${tg?' tg':''}" data-i="${R.idx}"><i style="background:radial-gradient(circle at 35% 35%,#fff1c8,#ffb454 55%,#3a2a12);border-radius:50% 50% 20% 20%"></i><span class="n">${esc(R.short)}</span><span class="d">${fmtDist(Restaurant.dist())}</span><span class="p">At the end of the galaxy · ${esc(R.port)} · ${ok?'a long way, but you have the fuel':'further than this ship can fly on a full tank'}</span><span class="b">${tags}</span></button>`); }
     // the search box keeps the rows whose name, port, kind or tags match every word typed (Enter flies to the first)
     const q=($('map-search').value||'').toLowerCase().split(/\s+/).filter(Boolean), txt=r=>r.replace(/<[^>]*>/g,' ').toLowerCase();
     const shown=q.length?rows.filter(r=>{ const t=txt(r); return q.every(w=>t.includes(w)); }):rows; this.first=shown.length?+shown[0].match(/data-i="(\d+)"/)[1]:null;
@@ -115,6 +124,11 @@ const SysMap = {
       if(cl>120) labels.push({pri:90,ax:(sx+tx)/2,ay:(sy+ty)/2,r:0,nolead:true,lines:[{t:fmtDist(this.dist(T)),f:`22px ${FONT_MONO}`,c:'#ffb454'}]}); }
     this.pts.length=0;
     // asteroid fields
+    { const R=RESTAURANT, [rx,ry,pf]=at(R.pos,true), tg=Nav.wp&&Nav.wp.kind==='restaurant', hv=this.hover===R.idx; if(pf) arrow(rx,ry);   // a lit dome on a dish, pinned to the rim: it is far off the chart
+      x.fillStyle='#ffb454'; x.strokeStyle='#04060b'; x.lineWidth=2; x.beginPath(); x.ellipse(rx,ry+4,15,5,0,0,TAU); x.fill(); x.stroke(); x.fillStyle='#fff1c8'; x.beginPath(); x.arc(rx,ry+1,8,Math.PI,0); x.fill(); x.stroke(); x.lineWidth=1;
+      if(tg||hv){ x.strokeStyle=tg?'#ffb454':'#dcedf3'; x.lineWidth=1.5; x.beginPath(); x.arc(rx,ry,22,0,TAU); x.stroke(); x.lineWidth=1; }
+      ob(rx-16,ry-16,rx+16,ry+16); this.pts.push({i:R.idx,x:rx,y:ry,r:16});
+      labels.push({pri:tg?96:40,ax:rx,ay:ry,r:18,pinned:pf,hv,tg,lines:[{t:R.short.toUpperCase(),f:`600 22px ${FONT_DISP}`,c:tg?'#ffb454':hv?'#ffffff':'#ffe2a6'}],sub:{t:'END OF THE GALAXY',f:`18px ${FONT_MONO}`,c:'rgba(134,162,174,.95)'}}); }
     FIELDS.forEach(F=>{ const [fx,fy,pf]=at(F.pos,farF(F)); if(pf) arrow(fx,fy); const rr=mulberry32(F.idx*31+7), tg=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===F.idx, hv=this.hover===100+F.idx;
       x.fillStyle=F.col; for(let q=0;q<9;q++){ const a=rr()*TAU, d=rr()*13; x.beginPath(); x.arc(fx+Math.cos(a)*d,fy+Math.sin(a)*d,2+rr()*3,0,TAU); x.fill(); }
       if(tg||hv){ x.strokeStyle=tg?'#ffb454':'#dcedf3'; x.lineWidth=1.5; x.beginPath(); x.arc(fx,fy,22,0,TAU); x.stroke(); x.lineWidth=1; }

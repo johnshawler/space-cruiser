@@ -121,9 +121,10 @@ const UI = {
         const net=Math.max(0,sh.price-val), mine=i===G.shipId; const pv=el('button','btn','Preview'); pv.onclick=()=>{ Sfx.click(); Cine.setPreview(i); }; const sp=el('button','btn','Specs'); sp.onclick=()=>Specs.show(i);
         const c=this.card(body,cv,esc(sh.name)+(mine?'<span class="tag">YOURS</span>':''),esc(sh.tag)+'<br><b>Reliability:</b> '+esc(Specs.reliability(sh.faults==null?1:sh.faults)),mine?'':`After trade-in`,mine?'—':fmtCr(net),mine?'':Specs.fits(i)?'Buy':'Too small',G.credits<net||!Specs.fits(i),()=>{ G.credits-=net; Specs.change(i,P); cash(); UI.toast('You now own the '+sh.name+'. New ship smell included.','good'); },[pv,sp]); });
     } else if(this.tab==='garage'){
-      const hn=Math.ceil(100-G.hull), hc=hn*5, dirty=G.sys.dirt>=0.05; this.keeper(v,hn<=0&&!dirty?'Not a scratch on her, and the glass is clean. Come back when you hit something.':null);
+      const WELD=40, crack=Faults.has('crack'), hn=Math.ceil(100-G.hull), hc=hn*5+(crack?WELD:0), dirty=G.sys.dirt>=0.05; this.keeper(v,hn<=0&&!dirty&&!crack?'Not a scratch on her, and the glass is clean. Come back when you hit something.':null);
       // each tag only shows while there's something to fix
-      if(hn>0) this.card(body,'🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents.':'Not a scratch.'}`,'5 cr a point',hn>0?fmtCr(hc):'Fine',hn<=0?'Fine':G.credits>=hc?'Repair':'Patch what I can',hn<=0||G.credits<5,()=>{ const pts=Math.min(hn,Math.floor(G.credits/5)); G.credits-=pts*5; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); Venues.react('clap'); });
+      // a hull crack is welded here and nowhere else: it goes first, then as many points of hull as the money covers
+      if(hn>0||crack) this.card(body,'🔧','Hull repairs',`Hull at ${Math.round(G.hull)}%. ${crack?'There is a crack to weld shut. ':''}${G.hull<50?'It whistles when you turn.':G.hull<100?'A few dents.':crack?'':'Not a scratch.'}`,crack?`5 cr a point · ${WELD} cr for the weld`:'5 cr a point',fmtCr(hc),G.credits>=hc?'Repair':'Patch what I can',G.credits<(crack?WELD:5),()=>{ if(crack){ G.credits-=WELD; Faults.weld('crack'); } const pts=Math.min(hn,Math.floor(G.credits/5)); G.credits-=pts*5; G.hull=Math.min(100,G.hull+pts); Sfx.clunk(); Venues.react('clap'); if(crack) UI.toast('Hull crack welded shut.','good'); });
       if(dirty) this.card(body,'✦','Canopy wash',G.sys.dirt>0.3?'Yours is a disgrace.':'Yours is fine, honestly.','',fmtCr(20),'Wash',G.credits<20||G.sys.dirt<0.05,()=>{ G.credits-=20; G.sys.dirt=0; Sfx.hiss(1.5,0.2); Venues.react('clap'); });
     } else if(this.tab==='livery'){
       this.keeper(v,`${G.paint?'Currently wearing '+G.paint.name+'.':'Factory finish, is it?'} Pick a colour.`);
@@ -146,6 +147,11 @@ const UI = {
       lines.unshift({who:this.bubble.who,text:this.bubble.say}); this.chat(lines);
       this.card(body,'☕','Buy a round','Pilots talk when someone else is paying.',G.hot!=null?'Tip: <i>'+esc(PLANETS[G.hot].name)+'</i> pays +50%':'',fmtCr(30),'Buy',G.credits<30,()=>{ G.credits-=30; let h; do{ h=Math.floor(Math.random()*PLANETS.length); }while(h===P.idx); G.hot=h; const sp=pick(locals); Sfx.speak(SPECIES[sp].voice,2.5,true); Venues.react('cash'); Game.genJobs(P.idx);
         setTimeout(()=>{ this.chatStop(); this.say('Overheard · '+SPECIES[sp].name,fill(SPECIES[sp].rumor,{planet:PLANETS[h].name})); },0); });
+      // somebody who mends things in flight: one face at each port, or the one already aboard
+      if(G.mech){ const m=G.mech, T=Mech.tier(m);
+        this.card(body,portraitCanvas(m.sp,m.seed,128),esc(m.name)+'<span class="tag">YOUR MECHANIC</span>',`${esc(SPECIES[m.sp].name)}. ${T.label}. ${esc(T.blurb)}`,`Fixes faults in flight · ${fmtCr(m.wage)} a repair · rides in one of your seats`,'Aboard','Let go',false,()=>{ Mech.fire(); Sfx.clunk(); UI.toast(`${m.name} takes their toolbox and their opinions ashore.`); }); }
+      else { const c=Mech.offer(P), T=Mech.tier(c), full=Cargo.pax().length>=Cargo.hullSeats();
+        this.card(body,portraitCanvas(c.sp,c.seed,128),esc(c.name)+'<span class="tag">MECHANIC</span>',`${esc(SPECIES[c.sp].name)} looking for a berth. ${T.label}. ${esc(T.blurb)}`,`Fixes faults in flight · ${fmtCr(c.wage)} a repair · takes one of your ${Cargo.hullSeats()} seats`,fmtCr(c.fee),full?'No seats':'Hire',full||G.credits<c.fee,()=>{ Mech.hire(c); Sfx.cash(); Venues.react('clap'); UI.toast(`${c.name} is aboard. They have already found something they do not like the look of.`,'good'); }); }
       // passengers looking for a ride
       const seats=Cargo.seats(), taken=Cargo.pax().length;
       (G.paxJobs||[]).forEach(j=>{ const T=PLANETS[j.to];

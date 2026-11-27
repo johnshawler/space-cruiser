@@ -10,7 +10,8 @@ const FAULT_DEFS = {
   thruster:{name:'Thruster misfire', where:'engine room', effect:'top speed down 40%', pos:[1.3,0.35,18.85], fx:'smoke'},
   fuse:{name:'Blown fuse', where:'galley', effect:'radio is dead', pos:[2.45,0.45,1.46], fx:'sparks'},
   scrubber:{name:'Air scrubber jammed', where:'scrubber bay', effect:'passengers getting cross, canopy fogging', pos:[-3.0,0.95,5.86], fx:'haze'},
-  crack:{name:'Hull crack', where:'corridor', effect:'hull slowly failing', pos:[-0.86,0.55,5.15], fx:'frost'},
+  /* garage: nobody aboard can mend this one; it leaks until a garage welds it shut */
+  crack:{name:'Hull crack', where:'corridor', effect:'hull slowly failing', pos:[-0.86,0.55,5.15], fx:'frost', garage:true},
   strap:{name:'Cargo strap snapped', where:'cargo hold', effect:'cargo getting knocked about, value dropping faster', pos:[1.55,0.1,10.6], fx:'strap'},
   seal:{name:'Airlock seal leaking', where:'airlock', effect:'top speed down 20%', pos:[2.82,0.45,5.32], fx:'steam'},
 };
@@ -58,13 +59,16 @@ const Faults = {
   speedMul(){ return (this.has('thruster')?0.6:1)*(this.has('seal')?0.8:1); },
   lagMul(c){ return c.kind==='pax'?(this.has('scrubber')?2:1):(this.has('strap')?2:1); },
   add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); const d=FAULT_DEFS[id];
-    UI.toast(`⚠ ${d.name} in the ${this.room(id)}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${TouchUI.on?'Tap Walk':'Press L'} to go and fix it.`,'warn');
+    UI.toast(`⚠ ${d.name} in the ${this.room(id)}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${d.garage?'Only a garage can weld it shut.':(TouchUI.on?'Tap Walk':'Press L')+' to go and fix it.'}`,'warn');
     if(Sfx.ok()){ Sfx.beep(880); setTimeout(()=>Sfx.beep(880),220); } Interior.syncFaults(); this.badge(); },
   /* which faults have been mended on this hull: a mended fitting shows its field repair from then on */
   mended(id){ return (G.fixed||[]).includes(id); },
-  fix(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(`Fixed: ${d.name.toLowerCase()}. ${pick((FIX_LINES[id]||[]).concat(FIX_LINES.any))}`,'good'); Interior.syncFaults(); this.badge(); },
+  /* by: the hired mechanic, when it was their work and not yours */
+  fix(id, by){ const L=this.list(), i=L.indexOf(id); if(i<0) return; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); const d=FAULT_DEFS[id]; Sfx.clunk(); Sfx.cash(); UI.toast(by?`🔧 ${by.name} fixed it for ${fmtCr(by.wage)}: ${d.name.toLowerCase()}. ${pick(MECH_LINES.fixed)}`:`Fixed: ${d.name.toLowerCase()}. ${pick((FIX_LINES[id]||[]).concat(FIX_LINES.any))}`,'good'); Interior.syncFaults(); this.badge(); },
+  /* what a garage does to a fault nobody aboard can mend */
+  weld(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return false; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); Interior.syncFaults(); this.badge(); return true; },
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
-  badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(this.room(k))}</span></div>`).join(''); },
+  badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(this.room(k))}${Mech.job===k&&Mech.status()?' · 🔧 '+esc(Mech.status()):''}</span></div>`).join(''); },
   update(dt){
     // something new goes wrong every couple of minutes of flight on the Rustbucket: more often on a battered ship, less on a dearer one
     this.t-=dt*(1+(100-G.hull)/60)*this.rate(); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
@@ -93,9 +97,9 @@ const Interior = {
   /* A hand-built deck brings its own map of where you can stand (the rectangles, less whatever the model puts in the way)
      and its own free places for crates; both are worked out from the model by art/ship-interiors/import_deck.py */
   plan(){ const deck=Assets.deck(G.shipId); return this.fitted || (deck&&deck.walk?deck:null); },
-  inside(x,z){ const P=this.plan();
+  inside(x,z,level=Walk.level){ const P=this.plan();
     if(P){
-      const w=P.layout?P.layout.levels[Walk.level].walk:P.walk;
+      const w=P.layout?P.layout.levels[level].walk:P.walk;
       if(!w._bytes) w._bytes=Uint8Array.from(atob(w.bits),c=>c.charCodeAt(0));
       const i=Math.floor((x-w.x0)/w.cell), j=Math.floor((z-w.z0)/w.cell);
       if(i<0||j<0||i>=w.nx||j>=w.nz) return false;
@@ -177,7 +181,7 @@ const Interior = {
     for(const [x,z,ry] of [[-0.9,3.6,Math.PI/2],[0.9,3.0,Math.PI/2],[0,7.2,0],[0,14.2,0]]){ const f=new THREE.Group(); f.position.set(x,0,z); f.rotation.y=ry; g.add(f);
       for(const s of [-1,1]){ const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,H,0.16),M.hazard); p.position.set(s*(ry?0.62:0.92),MY,0); f.add(p); } }
     // passenger seats along the cabin's outer wall, under the portholes, facing in
-    const n=Cargo.seats(); for(let i=0;i<n&&i<4;i++){ const sg=new THREE.Group(); sg.position.set(-3.8,0,1.95+i*1.15); g.add(sg); this.seat(sg,M,i); this.seats.push(sg); }
+    const n=Cargo.hullSeats(); for(let i=0;i<n&&i<4;i++){ const sg=new THREE.Group(); sg.position.set(-3.8,0,1.95+i*1.15); g.add(sg); this.seat(sg,M,i); this.seats.push(sg); }
     this.decor(g,M,bx,cyl,n);
     this.core.userData.keep=true;
     this.merge(g);
@@ -524,6 +528,7 @@ const Interior = {
       U.rig.scale.y=1+Math.sin(t*1.6+U.ph)*0.012; if(d<2.6&&!U.waved){ U.waved=true; U.wave=1.8; } if(d>4.5) U.waved=false;
       if(U.wave>0){ U.wave-=dt; U.head.rotation.x=0.2*Math.sin(clamp((1.8-U.wave)/0.9,0,1)*Math.PI); if(U.wave<=0) U.head.rotation.x=0; }
       const c=U.cargo, f=c.kind==='escort'?(c.hp>70?1:c.hp>40?0.7:0.4):Cargo.factor(c), m=Escort.hazard&&c.kind==='escort'?'shock':f>=1?(Faults.has('scrubber')?'worried':d<2.2?'happy':'neutral'):f>0.65?'worried':'sad'; if(U.mood!==m) Folk.mood(F,m); }
+    Mech.show(dt,t);
   },
 };
 
@@ -585,13 +590,16 @@ const Walk = {
     let best=null, bs=0;
     for(const id of Faults.list()){ if(Interior.fitted&&Interior.fitted.layout.spots[id].level!==this.level) continue; const q=Interior.fx[id]?.grp.position||new V3(...FAULT_DEFS[id].pos), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); const score=dot-d*0.08; if(d<2.6&&(dot>0.72||d<1.1)&&score>bs){ bs=score; best={kind:'fault',id,d}; } }
     if(!best) for(const F of Interior.pax){ const S=F.parent; if(Interior.fitted&&S.userData.deck!==this.level) continue; const q=S.position.clone().setY(S.position.y+FLOOR+1.0), to=q.clone().sub(eye), d=to.length(), dot=to.normalize().dot(dir); if(d<3.4&&dot>0.85){ best={kind:'pax',F,d}; break; } }
+    if(!best) best=Mech.aim(eye,dir);
     const pr=$('prompt'), K=G.keys, held=!!K.KeyF;
     if(!best){ this.hold=0; this.target=null;
       if(this.atDoor()){ pr.hidden=false; pr.innerHTML=`<b>Cockpit</b><span>${TouchUI.on?'Tap Seat':'Press L'} to sit down</span>`; } else pr.hidden=true; return; }
+    if(best.kind==='fault'&&FAULT_DEFS[best.id].garage){ this.target=null; this.hold=0; pr.hidden=false; pr.innerHTML=`<b>${esc(FAULT_DEFS[best.id].name)}</b><span>Too big to patch from in here. Only a garage can weld it shut.</span>`; return; }
     if(best.kind==='fault'){ const D=FAULT_DEFS[best.id], s=G.ship, rough=s.throttle>5||s.warpF>0.2, rate=rough?0.35:1, need=2.6;
       if(this.target!==best.id){ this.target=best.id; this.hold=0; }
       if(held){ this.hold+=dt*rate; if(Math.floor(this.hold*3)!==Math.floor((this.hold-dt*rate)*3)) Sfx.click(); if(this.hold>=need){ Faults.fix(best.id); this.hold=0; pr.hidden=true; return; } } else this.hold=Math.max(0,this.hold-dt*2);
       pr.hidden=false; pr.innerHTML=`<b>${esc(D.name)}</b><span>${TouchUI.on?'Hold Fix':'Hold F'} to repair${rough?' · the ship is shaking: throttle 5 or below to work faster':''}</span><i style="width:${Math.round(this.hold/need*100)}%"></i>`; }
+    else if(best.kind==='mech'){ this.target=null; Mech.prompt(pr,held); }
     else { const c=best.F.userData.cargo, who=c.kind==='escort'?c.vip.title:c.good; this.target=null; pr.hidden=false; pr.innerHTML=`<b>${esc(who)}</b><span>${TouchUI.on?'Tap Fix':'Press F'} to chat · going to ${esc(PLANETS[c.to].name)}</span>`;
       if(held&&!this.chatLock){ this.chatLock=true; setTimeout(()=>{ this.chatLock=false; },2500); const S=SPECIES[c.kind==='escort'?c.vip.sp:c.sp], f=Cargo.factor(c);
         const line=Faults.has('scrubber')?pick(["It is very stuffy back here. Is the air meant to be this chewy?","Something is wrong with the air. It tastes of feet. Not my feet."]):f<1?pick([`Are we nearly at ${PLANETS[c.to].name}? We were meant to be there ages ago.`,"I am not paying full fare for this. I am barely paying any fare for this.","I could have walked. I cannot walk in space, but I would have tried."]):fill(pick(S.chat),{planet:PLANETS[c.to].name,good:pick(GOODS)[0]});
