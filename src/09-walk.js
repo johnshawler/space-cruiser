@@ -51,8 +51,8 @@ const FAULT_SPOTS = {
   seal:{label:'AIRLOCK SEAL',bad:'LEAKING',rot:-Math.PI/2,ry:0,scr:[0,0.5,0.03],emit:[0.1,-0.05,0.1]},
 };
 const Faults = {
-  t:90,
-  /* how fault-prone this ship is: a half for the Rustbucket (a fault about every four minutes), down to about an eighth for the dearest */
+  due:null, MAX:2,   // due: seconds of flight until this trip's breakdown (Infinity: none this trip, null: not rolled yet)
+  /* how fault-prone this ship is: a half for the Rustbucket (a breakdown on one trip in five), down to about an eighth for the dearest */
   rate(){ const s=SHIPS[G.shipId]; return s&&s.faults!=null?s.faults:1; },
   room(id){
     const deck=Interior.shipId===G.shipId&&Interior.group?Interior.fitted:Assets.enabled&&Assets.deck(G.shipId);
@@ -74,9 +74,13 @@ const Faults = {
   weld(id){ const L=this.list(), i=L.indexOf(id); if(i<0) return false; L.splice(i,1); if(!this.mended(id)) (G.fixed||(G.fixed=[])).push(id); Interior.syncFaults(); this.badge(); return true; },
   random(why){ const free=Object.keys(FAULT_DEFS).filter(k=>!this.has(k)); if(free.length) this.add(pick(free),why); },
   badge(){ const L=this.list(), b=$('fault-badge'); b.hidden=!L.length||G.mode!=='flight'; b.innerHTML=L.map(k=>`<div>⚠ ${esc(FAULT_DEFS[k].name)} <span>· ${esc(this.room(k))}${Mech.job===k&&Mech.status()?' · 🔧 '+esc(Mech.status()):''}</span></div>`).join(''); },
+  chance(){ return 0.4*this.rate()*Math.min(2,1+(100-G.hull)/60); },
+  trip(){ this.due=null; },   // called on landing: the next flight rolls afresh
   update(dt){
-    // something new goes wrong about every four minutes of flight on the Rustbucket: more often on a battered ship, less on a dearer one
-    this.t-=dt*(1+(100-G.hull)/60)*this.rate(); if(this.t<=0){ this.t=rnd(80,150); if(this.list().length<3&&Math.random()<0.8) this.random(); }
+    // one roll a trip, made as the flight begins: one chance in five on a sound Rustbucket that something goes wrong on the way,
+    // up to twice that on a battered hull, less on a dearer ship. Never more than two things broken at once
+    if(this.due==null) this.due=Math.random()<this.chance()?rnd(15,60):Infinity;
+    if(this.due!==Infinity&&(this.due-=dt)<=0){ this.due=Infinity; if(this.list().length<this.MAX) this.random(); }
     if(this.has('crack')){ G.hull=Math.max(0,G.hull-dt*0.1); if(G.hull<=0) Hull.breach(); }
     if(this.has('scrubber')) G.sys.dirt=Math.min(1,G.sys.dirt+dt*0.01);
   },
