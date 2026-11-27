@@ -19550,7 +19550,8 @@ const Cockpit = {
     /* ---- centre dash ---- */
     const PC=panel(0.62,0.34); PC.g.position.set(0,-0.37,-0.80); PC.g.rotation.set(-0.38,0,0); PC.hood();
     screen(PC,0.005,0.03,0.34,0.24,680,480,'mfd'); screen(PC,-0.24,0.035,0.085,0.2,170,400,'ann');
-    ['NAV','CARGO','SYS'].forEach((lb,i)=>button(PC,-0.11+i*0.075,-0.118,0.014,{id:'page'+i,label:lb,color:'#3fb8ff',press(){ G.sys.mfdPage=i; },lit:()=>G.sys.mfdPage===i,tip:'MFD page'}));
+    // the REP button blinks for a few seconds whenever your reputation has just changed
+    ['NAV','CARGO','SYS','REP'].forEach((lb,i)=>button(PC,-0.125+i*0.056,-0.118,0.014,{id:'page'+i,label:lb,color:i===3?'#ffb454':'#3fb8ff',press(){ G.sys.mfdPage=i; },lit:()=>G.sys.mfdPage===i||(i===3&&Rep.fresh()&&Math.floor(Game.time*3)%2===0),tip:i===3?'Reputation':'MFD page'}));
     knob(PC,0.245,0.065,0.03,{id:'target',label:'DESTINATION',wrap:true,min:0,max:PLANETS.length-1,step:1,get:()=>G.target,set:v=>Game.setTarget(v),fmt:v=>PLANETS[v].name});
     button(PC,0.245,-0.07,0.02,{id:'hail',label:'HAIL',color:'#2fd45a',press(){ Comms.hail(); },lit:()=>!!Npc.nearest(7000),tip:'Hail nearest pilot'});
     // The low Rustbucket pedestal puts its handles in front of the throttle readout.
@@ -19730,7 +19731,7 @@ const Cockpit = {
     const S=this.screens.mfd, x=S.ctx, W=S.w, H=S.h, s=G.ship, def=SHIPS[G.shipId], page=G.sys.mfdPage;
     x.fillStyle='#03131b'; x.fillRect(0,0,W,H); x.textBaseline='alphabetic';
     x.fillStyle='#0a2a38'; x.fillRect(0,0,W,76); x.font=`600 42px ${FONT_DISP}`; x.textAlign='left'; let tx=18;
-    ['NAV','CARGO','SYS'].forEach((n,i)=>{ const w=x.measureText(n).width; x.fillStyle=i===page?'#62e2ff':'#3a7388'; x.fillText(n,tx,52); if(i===page) x.fillRect(tx,62,w,5); tx+=w+26; });
+    ['NAV','CARGO','SYS','REP'].forEach((n,i)=>{ const w=x.measureText(n).width, hot=i===3&&i!==page&&Rep.fresh()&&Math.floor(t*3)%2===0; x.fillStyle=i===page?'#62e2ff':hot?'#ffb454':'#3a7388'; x.fillText(n,tx,52); if(i===page) x.fillRect(tx,62,w,5); tx+=w+22; });
     x.textAlign='right'; x.fillStyle='#7dffa8'; x.font=`40px ${FONT_MONO}`; x.fillText(fmtCr(G.credits),W-16,53,W-tx-24);
     if(page===0){
       const T=this.targetLocal(), P=T.P; x.textAlign='left'; x.fillStyle='#ffb454'; x.font=`700 64px ${FONT_DISP}`; x.fillText(P.name.toUpperCase(),18,142,W-36);
@@ -19755,6 +19756,26 @@ const Cockpit = {
       G.cargo.slice(0,show).forEach((c,i)=>{ const y=200+i*98; x.textAlign='left'; x.fillStyle='#dcedf3'; x.fillText(c.kind==='escort'?c.good:`${c.qty}× ${c.good}`,18,y,W-36);
         x.fillStyle=c.to===G.target?'#ffb454':'#5f8fa0'; x.fillText('→ '+Ev.cargoDest(c),18,y+46); x.fillStyle='#7dffa8'; x.textAlign='right'; x.fillText(fmtCr(c.pay),W-18,y+46); x.textAlign='left'; });
       if(G.cargo.length>show){ x.fillStyle='#5f8fa0'; x.fillText(`+ ${G.cargo.length-show} more aboard`,18,H-22,W-36); }
+    } else if(page===3){
+      /* reputation: your name and number, where that sits on the ladder, what it is worth, and what moved it last */
+      const k=Rep.tierOf(), T=REP_TIERS[k], up=REP_TIERS[k+1], COL=['#ff5a5a','#ff9a4a','#86a2ae','#7dffa8','#ffb454','#ffe08a'], fresh=Rep.fresh();
+      this.repShown=this.repShown==null?G.rep:this.repShown+(G.rep-this.repShown)*0.08;   // the needle eases to its new place
+      x.textAlign='left'; x.fillStyle=COL[k]; x.font=`700 62px ${FONT_DISP}`; x.fillText(T.name.toUpperCase(),18,140,W-200);
+      x.textAlign='right'; x.fillStyle=fresh&&Math.floor(t*3)%2?'#ffffff':'#dcedf3'; x.font=`62px ${FONT_MONO}`; x.fillText(Rep.signed(),W-18,140);
+      // the ladder: six bands from -100 to +100, with a needle
+      const gx=18, gw=W-36, gy=166, gh=30, X=v=>gx+(v+100)/200*gw;
+      REP_TIERS.forEach((tr,i)=>{ const a=X(tr.min), b=X(i<REP_TIERS.length-1?REP_TIERS[i+1].min:100); x.globalAlpha=i===k?1:0.38; x.fillStyle=COL[i]; x.fillRect(a+1,gy,b-a-2,gh); }); x.globalAlpha=1;
+      const nx=X(clamp(this.repShown,-100,100)); x.fillStyle='#ffffff'; x.beginPath(); x.moveTo(nx,gy+gh+2); x.lineTo(nx-13,gy+gh+24); x.lineTo(nx+13,gy+gh+24); x.closePath(); x.fill(); x.fillRect(nx-2,gy-6,4,gh+10);
+      x.font=`30px ${FONT_MONO}`; x.fillStyle='#5f8fa0'; x.textAlign='left'; x.fillText('-100',gx,gy+gh+50); x.textAlign='center'; x.fillText('0',X(0),gy+gh+50); x.textAlign='right'; x.fillText('+100',gx+gw,gy+gh+50);
+      // what is next, and what your name is worth
+      const pc=v=>(v>=0?'+':'')+Math.round(v*100)+'%'; x.textAlign='left'; x.font=`38px ${FONT_MONO}`;
+      x.fillStyle='#dcedf3'; x.fillText(up?`${up.name.toUpperCase()} IN ${up.min-G.rep}`:'TOP OF THE LADDER',18,292,W-36);
+      x.fillStyle='#5f8fa0'; x.fillText('PAY',18,340); x.fillStyle='#7dffa8'; x.fillText(pc(Rep.payMul()-1),100,340); x.fillStyle='#5f8fa0'; x.fillText('CUSTOMS',300,340); x.fillStyle=Rep.customsMul()>1?'#ff9a4a':'#7dffa8'; x.fillText(pc(Rep.customsMul()-1),480,340,W-498);
+      // the last two things that moved it
+      const log=(G.repLog||[]).slice(0,2); x.font=`34px ${FONT_MONO}`;
+      if(!log.length){ x.fillStyle='#5f8fa0'; x.fillText('No changes yet. Deliver something.',18,400,W-36); }
+      log.forEach((e,i)=>{ const y=396+i*46, n=(e.d>0?'+':'')+e.d; x.fillStyle=e.d>0?'#7dffa8':'#ff6f61'; if(i===0&&fresh&&Math.floor(t*3)%2) x.fillStyle='#ffffff'; x.textAlign='left'; x.fillText(n,18,y); x.fillStyle=i?'#5f8fa0':'#dcedf3'; x.fillText(e.why,18+x.measureText(n+' ').width,y,W-36-x.measureText(n+' ').width); });
+      x.textAlign='left';
     } else {
       x.textAlign='left'; x.fillStyle='#ffb454'; x.font=`600 48px ${FONT_DISP}`; x.fillText(def.name.toUpperCase(),18,132,W-36);
       const rows=[['FUEL',Math.round(G.fuel/def.fuel*100)+' %'],['HULL',Math.round(G.hull)+' %'],['CORE TEMP',Math.round(s.temp*100)+' %'],['REP',Rep.label()+' '+(G.rep>0?'+':'')+G.rep],['HOT TIP',G.hot!=null?PLANETS[G.hot].name+' +50%':'none']];
@@ -22830,11 +22851,13 @@ const Rep = {
   tierOf(v){ v=v==null?G.rep:v; let k=0; REP_TIERS.forEach((t,i)=>{ if(v>=t.min) k=i; }); return k; },
   label(v){ return REP_TIERS[this.tierOf(v)].name; },
   signed(v){ v=v==null?G.rep:v; return (v>0?'+':'')+v; },
+  /* did it change in the last few seconds? The cockpit's REP button and readout blink while it has */
+  at:-99, fresh(){ return Game.time-this.at<8; },
   /* quiet: the caller reports it (a delivery says so on its own line) */
   add(d, why, quiet){ d=Math.round(d); if(!d) return 0; const was=G.rep||0, t0=this.tierOf(was);
     if(d>0&&was>=70) d=Math.max(1,Math.ceil(d/2));   // the last stretch to the top is slower: legends are not made by routine
     G.rep=clamp(was+d,-100,100); const got=G.rep-was; if(!got) return 0; Pedia.learn('rep');
-    (G.repLog||(G.repLog=[])).unshift({d:got,why:why||'Reputation'}); G.repLog.length=Math.min(G.repLog.length,8);
+    this.at=Game.time; (G.repLog||(G.repLog=[])).unshift({d:got,why:why||'Reputation'}); G.repLog.length=Math.min(G.repLog.length,8);
     if(!quiet) UI.toast(`${why?why+'. ':''}Reputation ${got>0?'+':''}${got} (${this.label()})`, got>0?'good':'warn');
     const t1=this.tierOf(); if(t1!==t0) setTimeout(()=>UI.toast(`${t1>t0?'Your name is rising':'Your name is sinking'}: you are now ${REP_TIERS[t1].name}. ${REP_TIERS[t1].say}`,t1>t0?'good':'warn'),quiet?900:1600);
     return got; },
@@ -23613,7 +23636,7 @@ const Pedia = {
     return [
     {t:'Start here', f:()=>T.p('You own one tired freighter. People pay you to move things from one port to another. Do it well and you can buy a bigger ship, which gets bigger contracts, which buys a bigger ship still.')
       +T.h('One trip, start to finish')+T.dl([['1. Take work','At a port, open the Cargo depot and take contracts. Each says where it goes and what it pays.'],['2. Launch','Press Launch. The port lifts you off.'],['3. Fly there','Point at your destination, set the throttle and switch on the warp drive. It drops out on its own near a planet.'],['4. Land','Keep flying toward the planet. The port brings you down automatically.'],['5. Get paid','Deliveries pay the moment you land.'],['6. Spend it','Refuel before you leave. Save what is left.']])
-      +T.h('Where to look things up')+T.dl([['This book','Press O at any time, or the Pedia button in a port.'],['The controls','Press ? or F1 for the flight manual. They are also on the Flying page here.'],['The map','Press M. Click a world to set your course.'],K('rep')&&['Your standing','The button with your reputation on it, in any port.'],['Your ship','The Ship button in any port.']])
+      +T.h('Where to look things up')+T.dl([['This book','Press O at any time, or the Pedia button in a port.'],['The controls','Press ? or F1 for the flight manual. They are also on the Flying page here.'],['The map','Press M. Click a world to set your course.'],K('rep')&&['Your standing','The REP page of the cockpit\'s centre display, or the button with your reputation on it in any port.'],['Your ship','The Ship button in any port.']])
       +T.h('This book grows')+T.p(`It starts with what you need to fly your first contract. New pages and entries are written in as you meet things: ${T.count()} of ${Object.keys(PEDIA_TOPICS).length} discovered so far. A page marked NEW has something you have not read.`)},
 
     {t:'Flying', f:()=>T.p('Steer, set a speed, and use the warp drive for anything further than the next rock. The drive will not engage close to a planet or the sun: fly clear first.')
@@ -23693,14 +23716,14 @@ const Pedia = {
   bind(){ $('pedia-nav').addEventListener('click',e=>{ const b=e.target.closest('[data-p]'); if(b){ if(Sfx.ok()) Sfx.click(); this.show(+b.dataset.p); } }); $('pedia-close').onclick=()=>this.close();
     for(const id of ['btn-pedia','help-pedia']){ const b=$(id); if(b) b.onclick=()=>{ if(id==='help-pedia') $('help').hidden=true; this.show(); }; } },
 };
-/* ===================== THE RESTAURANT AT THE END OF THE GALAXY ===================== */
+/* ===================== THE DINER AT THE END OF THE GALAXY ===================== */
 /* The end of the game: one last place, far out past the last beacon, with a table kept by the window.
    It is not a port and takes no part in the economy, so it is not in PLANETS (saves store planet indices).
    It is a place on the chart, like the asteroid fields, and it is simply a very long way away: about 73 light-seconds
    from the sun. Warp burns 1.5 units of fuel a second, so of the five ships only the dearest carries enough to get
    there from anywhere. The others can try. A tow-barge will bring them back. */
 const RESTAURANT = (() => { const ang=2.45, orbit=22000000;   // out beyond Beacon Far Wink, on the same bearing
-  return {idx:200, name:'The Restaurant at the End of the Galaxy', short:'The Restaurant', port:'Last Orders', orbit, r:900, arriveR:5200, dropR:26000,
+  return {idx:200, name:'The Diner at the End of the Galaxy', short:'The Diner', port:'Last Orders', orbit, r:900, arriveR:5200, dropR:26000,
     pos:new V3(Math.cos(ang)*orbit,-90000,Math.sin(ang)*orbit)}; })();
 const Restaurant = {
   group:null, shown:false, turned:false,

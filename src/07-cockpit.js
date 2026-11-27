@@ -153,7 +153,8 @@ const Cockpit = {
     /* ---- centre dash ---- */
     const PC=panel(0.62,0.34); PC.g.position.set(0,-0.37,-0.80); PC.g.rotation.set(-0.38,0,0); PC.hood();
     screen(PC,0.005,0.03,0.34,0.24,680,480,'mfd'); screen(PC,-0.24,0.035,0.085,0.2,170,400,'ann');
-    ['NAV','CARGO','SYS'].forEach((lb,i)=>button(PC,-0.11+i*0.075,-0.118,0.014,{id:'page'+i,label:lb,color:'#3fb8ff',press(){ G.sys.mfdPage=i; },lit:()=>G.sys.mfdPage===i,tip:'MFD page'}));
+    // the REP button blinks for a few seconds whenever your reputation has just changed
+    ['NAV','CARGO','SYS','REP'].forEach((lb,i)=>button(PC,-0.125+i*0.056,-0.118,0.014,{id:'page'+i,label:lb,color:i===3?'#ffb454':'#3fb8ff',press(){ G.sys.mfdPage=i; },lit:()=>G.sys.mfdPage===i||(i===3&&Rep.fresh()&&Math.floor(Game.time*3)%2===0),tip:i===3?'Reputation':'MFD page'}));
     knob(PC,0.245,0.065,0.03,{id:'target',label:'DESTINATION',wrap:true,min:0,max:PLANETS.length-1,step:1,get:()=>G.target,set:v=>Game.setTarget(v),fmt:v=>PLANETS[v].name});
     button(PC,0.245,-0.07,0.02,{id:'hail',label:'HAIL',color:'#2fd45a',press(){ Comms.hail(); },lit:()=>!!Npc.nearest(7000),tip:'Hail nearest pilot'});
     // The low Rustbucket pedestal puts its handles in front of the throttle readout.
@@ -333,7 +334,7 @@ const Cockpit = {
     const S=this.screens.mfd, x=S.ctx, W=S.w, H=S.h, s=G.ship, def=SHIPS[G.shipId], page=G.sys.mfdPage;
     x.fillStyle='#03131b'; x.fillRect(0,0,W,H); x.textBaseline='alphabetic';
     x.fillStyle='#0a2a38'; x.fillRect(0,0,W,76); x.font=`600 42px ${FONT_DISP}`; x.textAlign='left'; let tx=18;
-    ['NAV','CARGO','SYS'].forEach((n,i)=>{ const w=x.measureText(n).width; x.fillStyle=i===page?'#62e2ff':'#3a7388'; x.fillText(n,tx,52); if(i===page) x.fillRect(tx,62,w,5); tx+=w+26; });
+    ['NAV','CARGO','SYS','REP'].forEach((n,i)=>{ const w=x.measureText(n).width, hot=i===3&&i!==page&&Rep.fresh()&&Math.floor(t*3)%2===0; x.fillStyle=i===page?'#62e2ff':hot?'#ffb454':'#3a7388'; x.fillText(n,tx,52); if(i===page) x.fillRect(tx,62,w,5); tx+=w+22; });
     x.textAlign='right'; x.fillStyle='#7dffa8'; x.font=`40px ${FONT_MONO}`; x.fillText(fmtCr(G.credits),W-16,53,W-tx-24);
     if(page===0){
       const T=this.targetLocal(), P=T.P; x.textAlign='left'; x.fillStyle='#ffb454'; x.font=`700 64px ${FONT_DISP}`; x.fillText(P.name.toUpperCase(),18,142,W-36);
@@ -358,6 +359,26 @@ const Cockpit = {
       G.cargo.slice(0,show).forEach((c,i)=>{ const y=200+i*98; x.textAlign='left'; x.fillStyle='#dcedf3'; x.fillText(c.kind==='escort'?c.good:`${c.qty}× ${c.good}`,18,y,W-36);
         x.fillStyle=c.to===G.target?'#ffb454':'#5f8fa0'; x.fillText('→ '+Ev.cargoDest(c),18,y+46); x.fillStyle='#7dffa8'; x.textAlign='right'; x.fillText(fmtCr(c.pay),W-18,y+46); x.textAlign='left'; });
       if(G.cargo.length>show){ x.fillStyle='#5f8fa0'; x.fillText(`+ ${G.cargo.length-show} more aboard`,18,H-22,W-36); }
+    } else if(page===3){
+      /* reputation: your name and number, where that sits on the ladder, what it is worth, and what moved it last */
+      const k=Rep.tierOf(), T=REP_TIERS[k], up=REP_TIERS[k+1], COL=['#ff5a5a','#ff9a4a','#86a2ae','#7dffa8','#ffb454','#ffe08a'], fresh=Rep.fresh();
+      this.repShown=this.repShown==null?G.rep:this.repShown+(G.rep-this.repShown)*0.08;   // the needle eases to its new place
+      x.textAlign='left'; x.fillStyle=COL[k]; x.font=`700 62px ${FONT_DISP}`; x.fillText(T.name.toUpperCase(),18,140,W-200);
+      x.textAlign='right'; x.fillStyle=fresh&&Math.floor(t*3)%2?'#ffffff':'#dcedf3'; x.font=`62px ${FONT_MONO}`; x.fillText(Rep.signed(),W-18,140);
+      // the ladder: six bands from -100 to +100, with a needle
+      const gx=18, gw=W-36, gy=166, gh=30, X=v=>gx+(v+100)/200*gw;
+      REP_TIERS.forEach((tr,i)=>{ const a=X(tr.min), b=X(i<REP_TIERS.length-1?REP_TIERS[i+1].min:100); x.globalAlpha=i===k?1:0.38; x.fillStyle=COL[i]; x.fillRect(a+1,gy,b-a-2,gh); }); x.globalAlpha=1;
+      const nx=X(clamp(this.repShown,-100,100)); x.fillStyle='#ffffff'; x.beginPath(); x.moveTo(nx,gy+gh+2); x.lineTo(nx-13,gy+gh+24); x.lineTo(nx+13,gy+gh+24); x.closePath(); x.fill(); x.fillRect(nx-2,gy-6,4,gh+10);
+      x.font=`30px ${FONT_MONO}`; x.fillStyle='#5f8fa0'; x.textAlign='left'; x.fillText('-100',gx,gy+gh+50); x.textAlign='center'; x.fillText('0',X(0),gy+gh+50); x.textAlign='right'; x.fillText('+100',gx+gw,gy+gh+50);
+      // what is next, and what your name is worth
+      const pc=v=>(v>=0?'+':'')+Math.round(v*100)+'%'; x.textAlign='left'; x.font=`38px ${FONT_MONO}`;
+      x.fillStyle='#dcedf3'; x.fillText(up?`${up.name.toUpperCase()} IN ${up.min-G.rep}`:'TOP OF THE LADDER',18,292,W-36);
+      x.fillStyle='#5f8fa0'; x.fillText('PAY',18,340); x.fillStyle='#7dffa8'; x.fillText(pc(Rep.payMul()-1),100,340); x.fillStyle='#5f8fa0'; x.fillText('CUSTOMS',300,340); x.fillStyle=Rep.customsMul()>1?'#ff9a4a':'#7dffa8'; x.fillText(pc(Rep.customsMul()-1),480,340,W-498);
+      // the last two things that moved it
+      const log=(G.repLog||[]).slice(0,2); x.font=`34px ${FONT_MONO}`;
+      if(!log.length){ x.fillStyle='#5f8fa0'; x.fillText('No changes yet. Deliver something.',18,400,W-36); }
+      log.forEach((e,i)=>{ const y=396+i*46, n=(e.d>0?'+':'')+e.d; x.fillStyle=e.d>0?'#7dffa8':'#ff6f61'; if(i===0&&fresh&&Math.floor(t*3)%2) x.fillStyle='#ffffff'; x.textAlign='left'; x.fillText(n,18,y); x.fillStyle=i?'#5f8fa0':'#dcedf3'; x.fillText(e.why,18+x.measureText(n+' ').width,y,W-36-x.measureText(n+' ').width); });
+      x.textAlign='left';
     } else {
       x.textAlign='left'; x.fillStyle='#ffb454'; x.font=`600 48px ${FONT_DISP}`; x.fillText(def.name.toUpperCase(),18,132,W-36);
       const rows=[['FUEL',Math.round(G.fuel/def.fuel*100)+' %'],['HULL',Math.round(G.hull)+' %'],['CORE TEMP',Math.round(s.temp*100)+' %'],['REP',Rep.label()+' '+(G.rep>0?'+':'')+G.rep],['HOT TIP',G.hot!=null?PLANETS[G.hot].name+' +50%':'none']];

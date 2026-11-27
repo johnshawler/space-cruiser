@@ -1,11 +1,11 @@
-/* ===================== THE RESTAURANT AT THE END OF THE GALAXY ===================== */
+/* ===================== THE DINER AT THE END OF THE GALAXY ===================== */
 /* The end of the game: one last place, far out past the last beacon, with a table kept by the window.
    It is not a port and takes no part in the economy, so it is not in PLANETS (saves store planet indices).
    It is a place on the chart, like the asteroid fields, and it is simply a very long way away: about 73 light-seconds
    from the sun. Warp burns 1.5 units of fuel a second, so of the five ships only the dearest carries enough to get
    there from anywhere. The others can try. A tow-barge will bring them back. */
 const RESTAURANT = (() => { const ang=2.45, orbit=22000000;   // out beyond Beacon Far Wink, on the same bearing
-  return {idx:200, name:'The Restaurant at the End of the Galaxy', short:'The Restaurant', port:'Last Orders', orbit, r:900, arriveR:5200, dropR:26000,
+  return {idx:200, name:'The Diner at the End of the Galaxy', short:'The Diner', port:'Last Orders', orbit, r:900, arriveR:5200, dropR:26000,
     pos:new V3(Math.cos(ang)*orbit,-90000,Math.sin(ang)*orbit)}; })();
 const Restaurant = {
   group:null, shown:false, turned:false,

@@ -58,11 +58,13 @@ const Rep = {
   tierOf(v){ v=v==null?G.rep:v; let k=0; REP_TIERS.forEach((t,i)=>{ if(v>=t.min) k=i; }); return k; },
   label(v){ return REP_TIERS[this.tierOf(v)].name; },
   signed(v){ v=v==null?G.rep:v; return (v>0?'+':'')+v; },
+  /* did it change in the last few seconds? The cockpit's REP button and readout blink while it has */
+  at:-99, fresh(){ return Game.time-this.at<8; },
   /* quiet: the caller reports it (a delivery says so on its own line) */
   add(d, why, quiet){ d=Math.round(d); if(!d) return 0; const was=G.rep||0, t0=this.tierOf(was);
     if(d>0&&was>=70) d=Math.max(1,Math.ceil(d/2));   // the last stretch to the top is slower: legends are not made by routine
     G.rep=clamp(was+d,-100,100); const got=G.rep-was; if(!got) return 0; Pedia.learn('rep');
-    (G.repLog||(G.repLog=[])).unshift({d:got,why:why||'Reputation'}); G.repLog.length=Math.min(G.repLog.length,8);
+    this.at=Game.time; (G.repLog||(G.repLog=[])).unshift({d:got,why:why||'Reputation'}); G.repLog.length=Math.min(G.repLog.length,8);
     if(!quiet) UI.toast(`${why?why+'. ':''}Reputation ${got>0?'+':''}${got} (${this.label()})`, got>0?'good':'warn');
     const t1=this.tierOf(); if(t1!==t0) setTimeout(()=>UI.toast(`${t1>t0?'Your name is rising':'Your name is sinking'}: you are now ${REP_TIERS[t1].name}. ${REP_TIERS[t1].say}`,t1>t0?'good':'warn'),quiet?900:1600);
     return got; },
