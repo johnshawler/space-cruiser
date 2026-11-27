@@ -31,21 +31,21 @@ const Game = {
     const dest=(i)=>{ let to, k=0; do{ to=Math.floor(Math.random()*PLANETS.length); }while((to===pi||(!P.station&&i<2&&PLANETS[to].risk>1))&&++k<60); return to; };
     for(let i=0;i<n;i++){ let to=dest(i); if(i===0&&G.hot!=null&&G.hot!==pi) to=G.hot;
       const good=pick(GOODS), qty=Math.max(1,Math.round(hold*[0.17,0.34,0.5,0.5,0.67,1,1.5][i===1?0:Math.floor(Math.random()*7)])), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, hot=G.hot===to, risk=Econ.risk(P,PLANETS[to]);
-      const pay=qty*(50+dist*36)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
+      const pay=qty*Econ.unitPay(dist)*good[1]*rnd(0.85,1.2)*(hot?1.5:1)*RISK[risk].mul*Rep.payMul(), sp=Math.random()<0.55?P.species:pick(ALIEN_POOL);
       const fragile=i>0&&Math.random()<0.3;
       jobs.push({good:good[0],note:fragile?'Fragile: throttle 8 and up, and hard turns at speed, will damage it.':good[2],qty,to,pay:Math.max(20,Math.round(pay*(fragile?1.4:1)/5)*5),sp,seed:Math.floor(Math.random()*1e9),hot,fragile,risk}); }
     jobs.sort((a,b)=>a.qty-b.qty);
     const away=()=>{ let to; do{ to=Math.floor(Math.random()*PLANETS.length); }while(to===pi); return to; };
     // contraband pays for the chance of being caught: the stricter the docks at both ends, the more it's worth
-    if(Math.random()<0.6){ const to=away(), g=pick(CONTRABAND), qty=Math.max(1,Math.round(hold*rnd(0.15,0.4))), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, catchK=2.1+2.6*(Customs.risk(P)+Customs.risk(PLANETS[to]));
-      jobs.push({kind:'contra',good:g[0],note:g[1],qty,to,risk:Econ.risk(P,PLANETS[to]),pay:Math.round(qty*(50+dist*36)*catchK*Econ.mul(P,PLANETS[to])*rnd(0.9,1.2)/5)*5,sp:pick(['vrell','grondar','qeeble','blorpax']),seed:Math.floor(Math.random()*1e9)}); }
-    if(!G.cargo.some(c=>c.kind==='escort')&&Math.random()<0.6){ const to=away(), v=pick(VIPS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
-      jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((320+dist*190)*rnd(0.9,1.2)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
+    if(Math.random()<Rep.contraChance()){ const to=away(), g=pick(CONTRABAND), qty=Math.max(1,Math.round(hold*rnd(0.15,0.4))), dist=P.pos.distanceTo(PLANETS[to].pos)/LS, catchK=2.1+2.6*(Customs.risk(P)+Customs.risk(PLANETS[to]));
+      jobs.push({kind:'contra',good:g[0],note:g[1],qty,to,risk:Econ.risk(P,PLANETS[to]),pay:Math.round(qty*Econ.unitPay(dist)*catchK*Econ.mul(P,PLANETS[to])*Rep.contraMul()*rnd(0.9,1.2)/5)*5,sp:pick(['vrell','grondar','qeeble','blorpax']),seed:Math.floor(Math.random()*1e9)}); }
+    if(Rep.vips()&&!G.cargo.some(c=>c.kind==='escort')&&Math.random()<0.6){ const to=away(), v=pick(VIPS), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+      jobs.push({kind:'escort',good:'Escort '+v.title,note:'Keep up, keep close, and keep them calm.',qty:0,to,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((400+dist*130)*rnd(0.9,1.2)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,sp:v.sp,seed,vip:{sp:v.sp,seed,title:v.title,ship:shipName(seed)}}); }
     for(const j of jobs) j.story=j.kind==='contra'?Story.contra(j):j.kind==='escort'?Story.escort(j):Story.cargo(j);
     G.jobs=jobs;
     // people wanting a ride, offered at cantinas
-    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=1+Math.floor(Math.random()*3);i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
-      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((140+dist*60)*rnd(0.85,1.25)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
+    const px=[]; if(Venues.has(P,'bar')) for(let i=0,n=Math.min(Rep.paxMax(),1+Math.floor(Math.random()*3));i<n;i++){ const to=away(), sp=Math.random()<0.4?P.species:pick(ALIEN_POOL), seed=Math.floor(Math.random()*1e9), dist=P.pos.distanceTo(PLANETS[to].pos)/LS;
+      px.push({kind:'pax',good:alienName(sp,seed),sp,seed,to,qty:0,risk:Econ.risk(P,PLANETS[to]),pay:Math.round((170+dist*40)*rnd(0.85,1.25)*Econ.mul(P,PLANETS[to])*Rep.payMul()/5)*5,why:pick(['visiting a cousin who owes them money','going to a wedding, possibly their own','late for a very important nap','delivering a speech nobody asked for','attending a conference on conferences','running away from a minor embarrassment','going to see a famous rock (the rock is not famous)'])}); }
     for(const j of px){ j.story=Story.pax(j); j.why=j.story.why; }
     G.paxJobs=px;
   },
@@ -73,9 +73,9 @@ const Game = {
     UI.toast(launch?`Clear of ${P.name}. Destination: ${T.name}`:`Destination: ${T.name}`); this.save();
   },
   tow(msg, fee){
-    if(this.towing) return; this.towing=true; UI.toast(msg||'Out of fuel. A Grondar tow-barge has been called. It is not in a hurry.','warn');
+    if(this.towing) return; this.towing=true; Pedia.learn('tow'); UI.toast(msg||'Out of fuel. A Grondar tow-barge has been called. It is not in a hurry.','warn');
     const far=[1,1.6,2.6,3.6][Deep.z]; if(far>1) setTimeout(()=>UI.toast(`Deep-space tow. The barge charges by the light-second, and it is a long way out.`,'warn'),1800);
-    setTimeout(()=>{ this.towing=false; if(G.mode!=='flight') return; const P=World.nearest||PLANETS[0]; this.towFee=Math.round((fee||150)*far/10)*10; const out=G.ship.pos.clone().sub(P.pos).normalize(); G.ship.pos.copy(P.pos).addScaledVector(out,P.landR*1.2); G.ship.departed=-1; Cine.startLanding(P); },3500);
+    setTimeout(()=>{ this.towing=false; if(G.mode!=='flight') return; const P=World.nearest||PLANETS[0]; this.towFee=Math.round((fee||150)*far*Econ.scale()/10)*10; const out=G.ship.pos.clone().sub(P.pos).normalize(); G.ship.pos.copy(P.pos).addScaledVector(out,P.landR*1.2); G.ship.departed=-1; Cine.startLanding(P); },3500);
   },
 
   updateFlight(dt){
@@ -121,7 +121,7 @@ const Game = {
     const t=this.time+=dt, s=G.ship; let fov=72;
     if(G.mode==='flight'){
       G.playTime+=dt; this.updateFlight(dt);
-      if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); Cargo.tick(dt); Faults.update(dt); Mech.update(dt); Restaurant.update(dt,t); Throttle.update(dt); this.syncCamera(dt); if(Walk.on){ Walk.update(dt,t); Walk.camera(); } World.updateDust(s.vel,dt,s.warpF); fov=Walk.on?74:G.head.fov;
+      if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); Cargo.tick(dt); Faults.update(dt); Mech.update(dt); Restaurant.update(dt,t); Pedia.update(dt); Throttle.update(dt); this.syncCamera(dt); if(Walk.on){ Walk.update(dt,t); Walk.camera(); } World.updateDust(s.vel,dt,s.warpF); fov=Walk.on?74:G.head.fov;
         const HS=TouchUI.on?this.THINTS:this.HINTS; if(this.hintI<HS.length&&!Walk.on){ this.hintT+=dt; if(this.hintT>HS[this.hintI][0]) UI.toast(HS[this.hintI++][1]); } }
     } else if(G.mode==='title'){
       s.quat.multiply(new Q4().setFromEuler(new THREE.Euler(0,dt*0.004,dt*0.006))); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(new V3(0,0,-1).applyQuaternion(s.quat).multiplyScalar(160),dt,0); fov=G.head.fov;
@@ -141,15 +141,15 @@ const Game = {
   },
 
   /* ---------- persistence ---------- */
-  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[],mech:G.mech||null,seen:G.seen||[],won:!!G.won})); }catch(e){} },
+  save(){ try{ localStorage.setItem('longhaul.v1',JSON.stringify({credits:G.credits,shipId:G.shipId,cargo:G.cargo,fuel:G.fuel,docked:G.docked,target:G.target,hot:G.hot,stats:G.stats,playTime:G.playTime,sys:G.sys,rep:G.rep,repLog:G.repLog||[],hull:G.hull,up:G.up,paint:G.paint,flot:G.flot||[],bet:G.bet||null,faults:G.faults||[],fixed:G.fixed||[],mech:G.mech||null,seen:G.seen||[],won:!!G.won,know:G.know||{}})); }catch(e){} },
   load(){ try{ const d=JSON.parse(localStorage.getItem('longhaul.v1')||'null'); if(!d||typeof d.credits!=='number'||!SHIPS[d.shipId]) return null; return d; }catch(e){ return null; } },
   newGame(){
-    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[],mech:null,seen:[0],won:false}); Mech.reset(); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
+    Sfx.init(); Object.assign(G,{credits:250,shipId:0,fuel:SHIPS[0].fuel,target:2,hot:null,docked:-1,playTime:0,stats:{deliveries:0,earned:0},jobs:[],rep:0,repLog:[],hull:100,up:{hidden:false,laser:1},paint:null,bet:null,faults:[],fixed:[],mech:null,seen:[0],won:false,know:{fseen:[]}}); Mech.reset(); Nav.clear(true); Flotsam.restore([]); Walk.exit(true);
     G.cargo=[{good:'Self-Heating Soup Bricks',qty:3,to:2,pay:420,from:0}]; Cockpit.build(SHIPS[0]); this.hintI=0; this.hintT=0; this.enterFlight(PLANETS[0],false); this.audioOn();
   },
   continueGame(){
     const d=this.load(); if(!d){ this.newGame(); return; } Sfx.init();
-    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k]),mech:d.mech&&SPECIES[d.mech.sp]&&MECH_TIERS.some(k=>k.key===d.mech.skill)?d.mech:null,seen:(d.seen||[]).filter(i=>PLANETS[i]),won:!!d.won}); if(d.docked>=0) this.visit(d.docked); Mech.reset(); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
+    Object.assign(G,{credits:d.credits,shipId:d.shipId,cargo:d.cargo||[],fuel:d.fuel,target:d.target||0,hot:d.hot==null?null:d.hot,playTime:d.playTime||0,stats:d.stats||{deliveries:0,earned:0},rep:d.rep||0,repLog:Array.isArray(d.repLog)?d.repLog.slice(0,8):[],hull:d.hull==null?100:d.hull,up:Object.assign({hidden:false,laser:1},d.up||{}),paint:d.paint||null,bet:d.bet||null,faults:(d.faults||[]).filter(k=>FAULT_DEFS[k]),fixed:(d.fixed||[]).filter(k=>FAULT_DEFS[k]),mech:d.mech&&SPECIES[d.mech.sp]&&MECH_TIERS.some(k=>k.key===d.mech.skill)?d.mech:null,seen:(d.seen||[]).filter(i=>PLANETS[i]),won:!!d.won}); Pedia.restore(d.know,d); if(d.docked>=0) this.visit(d.docked); Mech.reset(); Flotsam.restore(d.flot||[]); Object.assign(G.sys,d.sys||{},{power:true,autopilot:false});
     Cockpit.build(SHIPS[G.shipId]); $('title').hidden=true; this.audioOn(); Cine.landed=false; Cine.fadeCol.setRGB(0,0,0); Cine.dock(PLANETS[d.docked>=0?d.docked:0]); Cine.fade=1;
   },
   audioOn(){ Sfx.setRadioVol(G.sys.radioVol); Sfx.setMusicVol(G.sys.music); },
@@ -165,6 +165,8 @@ const Game = {
     window.addEventListener('keydown',e=>{
       if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return; const c=e.code;
       if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(c)) e.preventDefault();
+      if(Pedia.open){ if(c==='Escape'||c==='KeyO'){ Pedia.close(); e.preventDefault(); } return; }
+      if(c==='KeyO'&&!e.repeat&&!(e.metaKey||e.ctrlKey||e.altKey)&&G.mode!=='boot'&&$('help').hidden){ Pedia.toggle(); e.preventDefault(); return; }
       if(!$('help').hidden){ if(c==='Escape'||c==='Slash'||c==='F1'){ help(false); e.preventDefault(); } return; }
       if(c==='Escape'&&Dlg.hangUp()){ e.preventDefault(); return; }
       if(Dlg.open&&Dlg.mini&&(c==='Enter'||c==='NumpadEnter')){ Dlg.expand(); e.preventDefault(); return; }
@@ -210,7 +212,7 @@ const Game = {
   async boot(){
     try{ await Promise.race([document.fonts&&document.fonts.load?Promise.all([document.fonts.load(`600 20px ${FONT_DISP}`),document.fonts.load(`20px ${FONT_MONO}`)]):0,new Promise(r=>setTimeout(r,2500))]); }catch(e){}
     try{ World.init($('gl')); Mining.build(); }catch(err){ console.error(err); const b=$('btn-new'); b.textContent='This browser cannot start WebGL'; return; }
-    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); this.bind(); TouchUI.init(); this.setupTitle(); this.loop();
+    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); Pedia.bind(); this.bind(); TouchUI.init(); this.setupTitle(); this.loop();
   },
 };
 Game.boot();

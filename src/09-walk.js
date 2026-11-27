@@ -58,7 +58,7 @@ const Faults = {
   fuelMul(){ return this.has('coolant')?1.7:1; },
   speedMul(){ return (this.has('thruster')?0.6:1)*(this.has('seal')?0.8:1); },
   lagMul(c){ return c.kind==='pax'?(this.has('scrubber')?2:1):(this.has('strap')?2:1); },
-  add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); const d=FAULT_DEFS[id];
+  add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); Pedia.fault(id); const d=FAULT_DEFS[id];
     UI.toast(`⚠ ${d.name} in the ${this.room(id)}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${d.garage?'Only a garage can weld it shut.':(TouchUI.on?'Tap Walk':'Press L')+' to go and fix it.'}`,'warn');
     if(Sfx.ok()){ Sfx.beep(880); setTimeout(()=>Sfx.beep(880),220); } Interior.syncFaults(); this.badge(); },
   /* which faults have been mended on this hull: a mended fitting shows its field repair from then on */
@@ -247,7 +247,9 @@ const Interior = {
     this.lights.forEach((l,i)=>l.position.copy(positions[i]));
     if(!this.helm&&Cockpit.bespokeRoom&&Cockpit.panels){
       this.helm=new THREE.Group(); this.helm.position.set(...this.fitted.layout.eye);
-      for(const panel of Object.values(Cockpit.panels)) this.helm.add(panel.clone(true));
+      // a copy of each instrument panel, to be seen through the cockpit door. Their userData points back at their own
+      // parts, which three.js cannot copy, so it is set aside for the moment of copying
+      for(const panel of Object.values(Cockpit.panels)){ const kept=[]; panel.traverse(o=>{ kept.push([o,o.userData]); o.userData={}; }); try{ this.helm.add(panel.clone(true)); } finally { for(const [o,u] of kept) o.userData=u; } }
       this.group.add(this.helm);
     }
   },
