@@ -305,6 +305,7 @@ const Cockpit = {
        mouse moves; this clears it when anything else changes instead: you stand up, the view turns or zooms, a screen
        opens over the cockpit, or it has simply been up a while. */
     { const tip=$('tooltip'); if(tip&&!tip.hidden&&!this.drag&&(Walk.on||G.mode!=='flight'||Pedia.open||SysMap.open||Hold.open||Specs.open||Dlg.open&&!Dlg.mini||!$('help').hidden||performance.now()-(this.tipAt||0)>4000||Math.abs(G.head.yaw+G.head.pitch*3+G.head.fov*0.1-(this.tipView||0))>0.02)){ tip.hidden=true; this.hover=null; } }
+    this.clearAlerts();
     const s=G.ship, sys=G.sys, pw=sys.power?1:0, def=SHIPS[G.shipId]; this.frame++;
     if(this.door) this.door.position.x=damp(this.door.position.x,(this.doorX0||0)+(this.doorT?0.86:0),9,dt);
     for(const id in this.ctrls){ const c=this.ctrls[id];
@@ -334,6 +335,24 @@ const Cockpit = {
     if(f%8===0) this.drawMFD(t); if(f%8===4) this.drawAnn(t); if(f%5===1) this.drawRadar(t); if(f%3===2) this.drawAtt(); if(f%4===3) this.drawXl(t);
     if(f%10===5){ this.drawRadio(); this.drawThr(); } if(f%30===7){ this.drawClock(t); this.drawHold(); }
   },
+  /* the warnings, calls and notices in the top-left column never cover the comms screen hung at the top of the view.
+     The column narrows to fit beside the screen when there is room for it; otherwise it drops below the screen. */
+  clearAlerts(){ const A=$('alerts'), S=this.screens&&this.screens.xl; if(!A) return; let w='', top='';
+    if(S&&G.mode==='flight'&&!Walk.on){ const W=World.w, H=World.h, m=S.mesh, pos=m.geometry.attributes.position, c=new V3();
+      let x0=1e9, y0=1e9, x1=-1e9, y1=-1e9, ahead=true; m.updateWorldMatrix(true,false);
+      for(let i=0;i<pos.count;i++){ c.fromBufferAttribute(pos,i).applyMatrix4(m.matrixWorld).project(World.cockCam); if(c.z>1) ahead=false;
+        const x=(c.x+1)/2*W, y=(1-c.y)/2*H; x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); }
+      const pad=14; x0-=pad; x1+=pad; y0-=pad; y1+=pad;
+      if(!A.style.top) this.alTop=A.getBoundingClientRect().top;
+      const r=A.getBoundingClientRect(), L=r.left, room=x0-L, reach=(this.alTop||16)+A.offsetHeight;
+      if(ahead&&A.offsetHeight>0&&x1>L&&x0<W&&y1>0&&y0<reach&&y0<H){
+        const below=Math.round(Math.min(y1,H*0.5))+'px';
+        if(room>=300){ if(room<Math.min(520,W-32)) w=Math.floor(room)+'px';
+          // some boxes (an answered call with its choices) can't get that narrow: then the column drops below instead
+          if(A.style.width!==w) A.style.width=w; if(A.style.top) A.style.top='';
+          if([...A.children].some(e=>!e.hidden&&e.offsetHeight&&e.getBoundingClientRect().right>x0)){ w=''; top=below; } }
+        else top=below; } }
+    if(A.style.width!==w) A.style.width=w; if(A.style.top!==top) A.style.top=top; },
   blank(k){ const s=this.screens[k]; s.ctx.fillStyle='#000'; s.ctx.fillRect(0,0,s.w,s.h); s.tex.needsUpdate=true; },
   targetLocal(){ const P=Nav.target(), s=G.ship; const v=new V3().subVectors(P.pos,s.pos); const d=v.length(); v.normalize().applyQuaternion(s.quat.clone().invert()); return {P,d,v,ang:Math.acos(clamp(-v.z,-1,1))}; },
 

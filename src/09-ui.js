@@ -50,7 +50,7 @@ const UI = {
   /* the signpost beside the counter: one arm per place in this port */
   post(){ const P=this.P, nav=$('port-tabs'); nav.innerHTML=''; const arms=Venues.defs(P).map(d=>[d.k,VENUE_TABS[d.k]]);
     // residents and landmarks are scenery around the port; the signpost only lists places you can do business
-    arms.forEach(([k,label],i)=>{ const b=el('button','arm '+(i%2?'r':'l')+(k===this.tab?' on':''),esc(label)); b.dataset.k=k; if(k===this.tab) b.setAttribute('aria-current','true');
+    arms.forEach(([k,label],i)=>{ const b=el('button','btn arm'+(k===this.tab?' on':''),esc(label)); b.dataset.k=k; if(k===this.tab) b.setAttribute('aria-current','true');
       b.onclick=()=>this.go(k); nav.appendChild(b); }); },
   go(k){ if(this.tab===k) return; Sfx.click(); this.tab=k; this.closeTicket(); Cine.setPreview(null); this.render(); },
   /* contracts: tapping a model on the shelf pops up its ticket above it */
