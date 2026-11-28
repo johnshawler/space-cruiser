@@ -354,6 +354,15 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #help .gfx-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0;font-size:20px;color:var(--dim)}#help .gfx-row .btn{font-size:20px}
 /* In flight, warnings, calls and notices share one narrow column in the top-left corner, so the view ahead stays clear */
 #alerts>*{max-width:100%}
+/* the mining card: what you are aimed at, how hot the laser is, what to do next */
+#mine-panel{font-family:var(--mono);font-size:22px;line-height:1.3;color:#dcedf3;background:var(--glass);border:1px solid #4fd08a;border-left:6px solid #7dffb0;padding:10px 14px;width:100%;box-sizing:border-box}
+#mine-panel b{display:block;font-size:24px;color:#7dffb0;letter-spacing:.04em}
+#mine-panel .heat{position:relative;height:22px;margin:8px 0 2px;background:#0d1a22;border:2px solid #5f8fa0}
+#mine-panel .heat i{position:absolute;left:0;top:0;bottom:0;background:#ffb454}#mine-panel .heat i.good{background:#7dffb0}#mine-panel .heat i.bad{background:#ff6f61}
+#mine-panel .heat u{position:absolute;left:50%;width:35%;top:-4px;bottom:-4px;border:3px solid #fff;border-top-width:0;border-bottom-width:0;text-decoration:none}
+#mine-panel .heat-lab{display:flex;justify-content:space-between;font-size:17px;color:var(--dim);padding-right:15%}
+#mine-say{font-size:26px;font-weight:700;margin-top:6px;color:#fff}#mine-say.good{color:#7dffb0}#mine-say.warn{color:#ffc060}#mine-say.bad{color:#ff8a7c}
+#mine-hold{color:var(--dim)}
 #fault-badge,#scoop-badge{position:relative;left:auto;top:auto;transform:none}
 #scoop-badge{font-size:22px;padding:6px 14px}
 body.flying #toasts{position:static;padding:0;align-items:flex-start;gap:6px}

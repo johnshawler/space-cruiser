@@ -373,7 +373,7 @@ const Cockpit = {
       x.textAlign='left'; const row=(lab,val,y,col)=>{ x.fillStyle='#5f8fa0'; x.font=`42px ${FONT_MONO}`; x.fillText(lab,226,y); x.fillStyle=col||'#dcedf3'; x.font=`60px ${FONT_MONO}`; x.fillText(val,226,y+58,W-240); };
       row(behind?'BEHIND YOU':'DISTANCE',fmtDist(T.d),234,behind?'#ff6f61':null); const eta=s.speed>5?T.d/s.speed:Infinity; row('ETA',eta===Infinity?'--:--':eta>5999?'>99 min':String(Math.floor(eta/60)).padStart(2,'0')+':'+String(Math.floor(eta%60)).padStart(2,'0'),346);
       const cw=Game.canWarp(); let msg, col='#62e2ff';
-      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.isWp&&P.dist<P.arriveR*4){ msg='ARRIVING'; col='#7dffa8'; } else if(!P.isWp&&P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
+      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(P.rock){ msg=Mining.target?'IN RANGE · HOLD F TO CUT':G.sys.autopilot?'CLOSING ON THE ROCK':'PRESS P FOR AUTOPILOT'; col=Mining.target?'#7dffa8':'#ffb454'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.isWp&&P.dist<P.arriveR*4){ msg='ARRIVING'; col='#7dffa8'; } else if(!P.isWp&&P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
       else if(T.ang<0.14){ msg='ALIGNED · PRESS Z TO WARP'; col='#7dffa8'; } else msg='TURN TO DESTINATION';
       if(Math.floor(t*2)%2||col!=='#7dffa8'){ x.fillStyle=col; x.font=`42px ${FONT_MONO}`; x.textAlign='center'; x.fillText(msg,W/2,H-12,W-24); }
     } else if(page===1){

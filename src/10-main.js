@@ -20,7 +20,7 @@ const Game = {
   canWarp(){ if(!G.sys.power) return 'NO POWER'; if(G.fuel<=0) return 'OUT OF FUEL'; if(this.massLock()) return 'MASS-LOCKED · FLY CLEAR'; return true; },
   toggleWarp(){ const s=G.ship; if(G.mode!=='flight') return; if(Ev.hold>0&&!s.warp){ UI.toast('Fuel line attached. Hold still.','warn'); Sfx.deny(); return; } if(s.warp){ this.dropWarp('Warp disengaged'); return; } const c=this.canWarp(); if(c!==true){ UI.toast(c,'warn'); Sfx.deny(); return; } s.warp=true; Sfx.warpIn(); this.flash=0.5; },
   dropWarp(msg, cls, hard){ const s=G.ship; if(!s.warp) return; s.warp=false; Sfx.warpOut(); this.flash=1; if(hard){ s.warpF=Math.min(s.warpF,0.12); if(s.throttle<7) s.throttle=7; } if(msg) UI.toast(msg,cls); },
-  setTarget(i, quiet){ if(!quiet&&Nav.wp) Nav.clear(); G.target=(i+PLANETS.length)%PLANETS.length; this.mk=0; if(!quiet&&Sfx.ok()) Sfx.beep(990); },
+  setTarget(i, quiet){ if(!quiet&&Nav.wp) Nav.clear(); if(!quiet) Mining.stop(); G.target=(i+PLANETS.length)%PLANETS.length; this.mk=0; if(!quiet&&Sfx.ok()) Sfx.beep(990); },
   setAutopilot(v){ if(v&&!G.sys.power) return; G.sys.autopilot=v; UI.toast(v?'Autopilot steering to '+Nav.target().name:'Autopilot off'); },
   setPower(v){ G.sys.power=v; if(!v){ if(G.ship.warp) this.dropWarp(); G.sys.autopilot=false; G.ship.throttle=0; } Sfx.setRadioVol(v?G.sys.radioVol:0); UI.toast(v?'Systems online':'Master power off',v?'good':'warn'); },
   honk(){ Sfx.honk(); Escort.onHonk(); const n=Npc.nearest(5000); if(n&&!Comms.open&&G.sys.power) setTimeout(()=>{ if(G.mode==='flight'&&!Comms.open) Radio.play({sp:n.pilot.sp,seed:n.pilot.seed,name:n.pilot.name,english:pick(SPECIES[n.pilot.sp].honk)}); },700); },
@@ -63,7 +63,7 @@ const Game = {
   onLanded(P){
     Faults.trip();
     G.mode='port'; G.docked=P.idx; Game.visit(P.idx); const s=G.ship; s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; G.sys.autopilot=false; Sfx.setEngine(0,0,false);
-    Dlg.close(); if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Distress.cur=null; Customs.cur=null; Mining.beam.visible=Mining.spark.visible=Mining.sight.visible=false; Game.escortAlarm=false;
+    Dlg.close(); if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Distress.cur=null; Customs.cur=null; Mining.quiet(); Mining.regrow(); Game.escortAlarm=false;
     // deliveries are handed over by hand at the cargo depot now; nothing is paid automatically
     const paid=[], total=0, due=UI.due(P);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
