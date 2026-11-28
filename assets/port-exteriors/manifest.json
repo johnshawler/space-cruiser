@@ -1,0 +1,243 @@
+{
+  "units": "metres",
+  "up": "Y",
+  "landingRadiusMetres": 50,
+  "ports": [
+    {
+      "index": 0,
+      "port": "Vendorhaven",
+      "world": "Verdanthia",
+      "file": "verdanthia.glb",
+      "source": "art/port-exteriors/source/verdanthia.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Clock_sweep",
+        "Clock_pendulum"
+      ],
+      "triangles": 77545,
+      "meshPrimitives": 33,
+      "bytes": 7120916,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 1,
+      "port": "Port Gneiss",
+      "world": "Scorchmaw",
+      "file": "scorchmaw.glb",
+      "source": "art/port-exteriors/source/scorchmaw.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Ore_slew",
+        "Ore_hoist"
+      ],
+      "triangles": 64327,
+      "meshPrimitives": 31,
+      "bytes": 6098408,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 2,
+      "port": "Bureau Nine",
+      "world": "Dunemoor",
+      "file": "dunemoor.glb",
+      "source": "art/port-exteriors/source/dunemoor.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Gate_west",
+        "Gate_east"
+      ],
+      "triangles": 56191,
+      "meshPrimitives": 28,
+      "bytes": 5358800,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 3,
+      "port": "Ladle Harbor",
+      "world": "Sloshwell",
+      "file": "sloshwell.glb",
+      "source": "art/port-exteriors/source/sloshwell.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Ladle_slew",
+        "Ladle_hoist"
+      ],
+      "triangles": 60991,
+      "meshPrimitives": 30,
+      "bytes": 5722000,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 4,
+      "port": "Bargain Roost",
+      "world": "Amethyne",
+      "file": "amethyne.glb",
+      "source": "art/port-exteriors/source/amethyne.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Perch_slew",
+        "Perch_hoist"
+      ],
+      "triangles": 62650,
+      "meshPrimitives": 32,
+      "bytes": 5928004,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 5,
+      "port": "Mellow Hollow",
+      "world": "Toxibloom",
+      "file": "toxibloom.glb",
+      "source": "art/port-exteriors/source/toxibloom.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Harvest_basket",
+        "Counterweight"
+      ],
+      "triangles": 123539,
+      "meshPrimitives": 30,
+      "bytes": 11205648,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 6,
+      "port": "Port Lament",
+      "world": "Candara",
+      "file": "candara.glb",
+      "source": "art/port-exteriors/source/candara.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "West_windvane",
+        "East_windvane"
+      ],
+      "triangles": 64545,
+      "meshPrimitives": 31,
+      "bytes": 6053760,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 7,
+      "port": "The Drift",
+      "world": "Jovexa",
+      "file": "jovexa.glb",
+      "source": "art/port-exteriors/source/jovexa.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Trim_impeller_port",
+        "Trim_impeller_starboard"
+      ],
+      "triangles": 64619,
+      "meshPrimitives": 28,
+      "bytes": 6047324,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 8,
+      "port": "Fort Snuggle",
+      "world": "Brrrindle",
+      "file": "brrrindle.glb",
+      "source": "art/port-exteriors/source/brrrindle.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Blanket_trolley",
+        "Weather_rotor"
+      ],
+      "triangles": 66993,
+      "meshPrimitives": 31,
+      "bytes": 6263640,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 9,
+      "port": "The Quiet Ear",
+      "world": "Listening Post Hush",
+      "file": "listening-post-hush.glb",
+      "source": "art/port-exteriors/source/listening-post-hush.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Antenna_azimuth",
+        "Dish_elevation"
+      ],
+      "triangles": 65778,
+      "meshPrimitives": 32,
+      "bytes": 6374280,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 10,
+      "port": "The Freezer Aisle",
+      "world": "Cryo Vault Rimeholm",
+      "file": "cryo-vault-rimeholm.glb",
+      "source": "art/port-exteriors/source/cryo-vault-rimeholm.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Pressure_door_A",
+        "Pressure_door_B",
+        "Sample_rack"
+      ],
+      "triangles": 77779,
+      "meshPrimitives": 34,
+      "bytes": 7486480,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 11,
+      "port": "Tolerance Station",
+      "world": "Calibration Spire",
+      "file": "calibration-spire.glb",
+      "source": "art/port-exteriors/source/calibration-spire.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Azimuth_circle",
+        "Meridian_circle",
+        "Survey_alidade"
+      ],
+      "triangles": 67686,
+      "meshPrimitives": 33,
+      "bytes": 6510640,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    },
+    {
+      "index": 12,
+      "port": "The Last Light",
+      "world": "Beacon Far Wink",
+      "file": "beacon-far-wink.glb",
+      "source": "art/port-exteriors/source/beacon-far-wink.blend",
+      "clip": "Port_Operations",
+      "seconds": 8,
+      "joints": [
+        "Lantern_carriage",
+        "Semaphore"
+      ],
+      "triangles": 69365,
+      "meshPrimitives": 32,
+      "bytes": 6657496,
+      "minHardwareRadiusMetres": 51.63,
+      "intrusions": []
+    }
+  ]
+}
