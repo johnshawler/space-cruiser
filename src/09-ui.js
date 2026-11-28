@@ -172,11 +172,14 @@ const UI = {
   },
   /* keep the signpost and the ticket pinned to the scene; called every frame from the port camera */
   place(V, cam){ const W=World.w, H=World.h, nav=$('port-tabs'), body=$('port-body'), floor=H-(body.classList.contains('empty')?0:body.offsetHeight)-8, top=$('port-bar').getBoundingClientRect().bottom+10;
-    const p=new V3(); let x=W-nav.offsetWidth/2-20, y=top+nav.offsetHeight;
-    // on a narrow screen the signpost docks under the top bar instead of standing beside the counter
+    // the shop buttons stand at the right edge of the screen, just under the top bar, lined up with its right edge;
+    // on a narrow screen they dock under the top bar across the full width instead
+    const p=new V3(), right=$('port-bar').getBoundingClientRect().right; let x=right-nav.offsetWidth/2, y=top+nav.offsetHeight;
     const dock=W<760; nav.classList.toggle('dock',dock); if(dock){ x=W/2; }
-    else if(V&&V.post&&this.tab!=='residents'&&this.tab!=='stations'&&!(Cine.preview&&V.show)){ V.post.getWorldPosition(p); const v=p.project(cam); if(v.z<1){ x=(v.x+1)/2*W; y=(1-v.y)/2*H; } }
-    x=clamp(x,nav.offsetWidth/2+12,W-nav.offsetWidth/2-12); y=clamp(y,top+nav.offsetHeight,floor); nav.style.left=x+'px'; nav.style.top=y+'px';
+    // on a short screen, when one column would run into the cards, the buttons go two by two
+    else { const two=nav.classList.contains('two'); if(!two&&top+nav.offsetHeight>floor) nav.classList.add('two'); else if(two){ nav.classList.remove('two'); if(top+nav.offsetHeight>floor) nav.classList.add('two'); }
+      x=right-nav.offsetWidth/2; y=top+nav.offsetHeight; }
+    x=clamp(x,nav.offsetWidth/2+12,W-nav.offsetWidth/2-12); y=clamp(y,top+nav.offsetHeight,Math.max(top+nav.offsetHeight,floor)); nav.style.left=x+'px'; nav.style.top=y+'px';
     const box=$('port-card'); if(this.ticket&&!box.hidden){ const it=V&&V.shelf&&V.shelf.items.find(i=>i.job===this.ticket); let tx=W/2, ty=floor;
       if(it){ it.o.getWorldPosition(p); p.y+=1.3; const v=p.project(cam); if(v.z<1){ tx=(v.x+1)/2*W; ty=(1-v.y)/2*H; } }
       const bw=box.offsetWidth, bh=box.offsetHeight; tx=clamp(tx,bw/2+12,W-bw/2-12); ty=clamp(ty,top+bh,floor); box.style.left=tx+'px'; box.style.top=ty+'px'; } },

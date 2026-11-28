@@ -304,6 +304,7 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 /* the shop list beside the counter: plain buttons matching the ones in the top bar */
 #port-tabs{position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:grid;grid-template-columns:auto;justify-items:stretch;row-gap:8px;padding-bottom:4px}
 #port .arm{font-size:20px;padding:10px 14px;background:rgba(8,15,23,.84);cursor:pointer}
+#port-tabs.two{grid-template-columns:auto auto;column-gap:8px}
 #port .arm:hover,#port .arm:focus-visible,#port .arm.on{background:var(--cyan);color:#04121a}#port .arm.on{cursor:default}
 /* price tags along the counter */
 #port-body{position:absolute;left:0;right:0;bottom:0;display:flex;gap:12px;align-items:stretch;justify-content:safe center;overflow-x:auto;overscroll-behavior:contain;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(rgba(4,8,12,0),rgba(4,8,12,.7) 40%)}
