@@ -12,7 +12,7 @@ const SysMap = {
   },
   close(){ if(!this.open) return; this.open=false; $('map').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
   pick(i){ if(i===RESTAURANT.idx){ Restaurant.course(); this.list(); this.draw(Game.time); return; }
-    if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:F.R*1.2,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
+    if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:0,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
     if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
   /* the chart is to scale out to the edge of patrolled space, then squeezed, so the far stations fit without
      crushing the planets into the middle */

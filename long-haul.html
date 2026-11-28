@@ -354,6 +354,15 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 #help .gfx-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0;font-size:20px;color:var(--dim)}#help .gfx-row .btn{font-size:20px}
 /* In flight, warnings, calls and notices share one narrow column in the top-left corner, so the view ahead stays clear */
 #alerts>*{max-width:100%}
+/* the mining card: what you are aimed at, how hot the laser is, what to do next */
+#mine-panel{font-family:var(--mono);font-size:22px;line-height:1.3;color:#dcedf3;background:var(--glass);border:1px solid #4fd08a;border-left:6px solid #7dffb0;padding:10px 14px;width:100%;box-sizing:border-box}
+#mine-panel b{display:block;font-size:24px;color:#7dffb0;letter-spacing:.04em}
+#mine-panel .heat{position:relative;height:22px;margin:8px 0 2px;background:#0d1a22;border:2px solid #5f8fa0}
+#mine-panel .heat i{position:absolute;left:0;top:0;bottom:0;background:#ffb454}#mine-panel .heat i.good{background:#7dffb0}#mine-panel .heat i.bad{background:#ff6f61}
+#mine-panel .heat u{position:absolute;left:50%;width:35%;top:-4px;bottom:-4px;border:3px solid #fff;border-top-width:0;border-bottom-width:0;text-decoration:none}
+#mine-panel .heat-lab{display:flex;justify-content:space-between;font-size:17px;color:var(--dim);padding-right:15%}
+#mine-say{font-size:26px;font-weight:700;margin-top:6px;color:#fff}#mine-say.good{color:#7dffb0}#mine-say.warn{color:#ffc060}#mine-say.bad{color:#ff8a7c}
+#mine-hold{color:var(--dim)}
 #fault-badge,#scoop-badge{position:relative;left:auto;top:auto;transform:none}
 #scoop-badge{font-size:22px;padding:6px 14px}
 body.flying #toasts{position:static;padding:0;align-items:flex-start;gap:6px}
@@ -428,6 +437,7 @@ body.flying #dlg .opt small{font-size:16px}
   <div id="alerts"><div id="deep-badge" hidden></div><div id="zone-badge" hidden></div>
     <div id="fault-badge" hidden></div>
     <div id="scoop-badge" hidden>Cargo scoop open</div>
+    <div id="mine-panel" hidden aria-live="off"><b id="mine-t"></b><div id="mine-rock"></div><div class="heat" aria-hidden="true"><i id="mine-heat"></i><u></u></div><div class="heat-lab" aria-hidden="true"><span>Laser heat</span><span>sweet spot</span></div><div id="mine-say"></div><div id="mine-hold"></div></div>
     <section id="dlg" hidden aria-label="Decision" aria-live="polite">
       <canvas id="dlg-face" width="192" height="192"></canvas>
       <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-hint"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
@@ -468,7 +478,7 @@ body.flying #dlg .opt small{font-size:16px}
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.54</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.55</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -19779,7 +19789,7 @@ const Cockpit = {
       x.textAlign='left'; const row=(lab,val,y,col)=>{ x.fillStyle='#5f8fa0'; x.font=`42px ${FONT_MONO}`; x.fillText(lab,226,y); x.fillStyle=col||'#dcedf3'; x.font=`60px ${FONT_MONO}`; x.fillText(val,226,y+58,W-240); };
       row(behind?'BEHIND YOU':'DISTANCE',fmtDist(T.d),234,behind?'#ff6f61':null); const eta=s.speed>5?T.d/s.speed:Infinity; row('ETA',eta===Infinity?'--:--':eta>5999?'>99 min':String(Math.floor(eta/60)).padStart(2,'0')+':'+String(Math.floor(eta%60)).padStart(2,'0'),346);
       const cw=Game.canWarp(); let msg, col='#62e2ff';
-      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.isWp&&P.dist<P.arriveR*4){ msg='ARRIVING'; col='#7dffa8'; } else if(!P.isWp&&P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
+      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(P.rock){ msg=Mining.target?'IN RANGE · HOLD F TO CUT':G.sys.autopilot?'CLOSING ON THE ROCK':'PRESS P FOR AUTOPILOT'; col=Mining.target?'#7dffa8':'#ffb454'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.isWp&&P.dist<P.arriveR*4){ msg='ARRIVING'; col='#7dffa8'; } else if(!P.isWp&&P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
       else if(T.ang<0.14){ msg='ALIGNED · PRESS Z TO WARP'; col='#7dffa8'; } else msg='TURN TO DESTINATION';
       if(Math.floor(t*2)%2||col!=='#7dffa8'){ x.fillStyle=col; x.font=`42px ${FONT_MONO}`; x.textAlign='center'; x.fillText(msg,W/2,H-12,W-24); }
     } else if(page===1){
@@ -22731,6 +22741,7 @@ const Career = {
       M('met','Meet every regular',met,REGULARS.length),M('fr1','Become an old friend of one regular',friends,1),M('frall','Become an old friend of every regular',friends,REGULARS.length),
       M('ch1','Finish a story',S.chains,1),M('chall','Finish every story',S.chains,CHAINS.length),
       M('fix1','End a port\'s troubles',st.fixed|0,1),M('fix5','End five ports\' troubles',st.fixed|0,5),
+      M('ore1','Mine a first unit of ore',st.mined|0,1),M('ore100','Mine 100 units of ore',st.mined|0,100),M('gem','Cut out the heart of a rock',st.gems|0,1),M('fields','Visit every asteroid field',Object.keys(st.fields||{}).length,FIELDS.length),
       M('legs','Fly 10 different legs with cargo',nb,10),M('rec','Beat your own best time 5 times',S.recs,5),
       M('top','Own the '+SHIPS[SHIPS.length-1].name,G.shipId>=SHIPS.length-1?1:0,1),M('won','Eat at the Diner',G.won?1:0,1)]; },
   /* say so the first time each is reached. quiet: an old save is brought up to date without a string of pop-ups */
@@ -23075,11 +23086,11 @@ const VIPS = [
   {sp:'grondar', title:'Pebblemaster Gronk'},
 ];
 const FIELDS = [
-  {name:'The Gravel Pit', ore:'Crunchy Iridium', val:46, orbit:505000, ang:0.95, y:-4000, col:'#b08a6e', R:9000, n:110},
-  {name:"Grandma's Button Jar", ore:'Antique Moon Buttons', val:38, orbit:735000, ang:3.95, y:9000, col:'#9d8fc2', R:9000, n:110},
-  {name:"Sir Reginald's Rubble", ore:'Smug Quartz', val:62, orbit:1025000, ang:2.25, y:-11000, col:'#c27a58', R:10000, n:120},
+  {name:'The Gravel Pit', ore:'Crunchy Iridium', val:46, gem:'A Nugget With Opinions', gemVal:150, orbit:505000, ang:0.95, y:-4000, col:'#b08a6e', R:9000, n:110},
+  {name:"Grandma's Button Jar", ore:'Antique Moon Buttons', val:38, gem:'The Good Button', gemVal:130, orbit:735000, ang:3.95, y:9000, col:'#9d8fc2', R:9000, n:110},
+  {name:"Sir Reginald's Rubble", ore:'Smug Quartz', val:62, gem:'Insufferably Smug Quartz', gemVal:200, orbit:1025000, ang:2.25, y:-11000, col:'#c27a58', R:10000, n:120},
   /* out in the far dark, near Beacon Far Wink: the best ore in the system, and the worst neighbourhood */
-  {name:'The Back of Beyond', ore:'Unreasonably Rare Glitterstone', val:135, orbit:3050000, ang:2.2, y:-45000, col:'#7fd6e8', R:10000, n:110},
+  {name:'The Back of Beyond', ore:'Unreasonably Rare Glitterstone', val:135, gem:'Glitterstone, Frankly Excessive', gemVal:420, orbit:3050000, ang:2.2, y:-45000, col:'#7fd6e8', R:10000, n:110},
 ];
 const MAYDAY = [
   "Mayday, mayday! Our drive just coughed and died. We are drifting and the snacks are running low.",
@@ -23179,7 +23190,7 @@ const Econ = {
 /* ---------- waypoints: a temporary nav target that outranks the planet destination ---------- */
 const Nav = {
   wp:null,
-  target(){ return this.wp||PLANETS[G.target]; },
+  target(){ return this.wp||Mining.aim()||PLANETS[G.target]; },
   set(wp){
     this.clear(true); wp.isWp=true; wp.dist=wp.pos.distanceTo(G.ship.pos); wp.landR=0; wp.port=wp.port||wp.sub||'';
     const cv=makeCanvas(384,240), tex=canvasTex(cv), sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
@@ -23297,8 +23308,21 @@ const Distress = {
 };
 
 /* ---------- asteroid mining ---------- */
+/* Flying to a field is the start of a job, not the end of a trip. Inside one, the autopilot takes you from rock to rock
+   and holds you in range; you do the cutting. Rocks come in four grades, the better ones have a heart worth far more than
+   the ore around it, and the laser cuts fastest in a band of heat you keep it in by letting go of the trigger now and then.
+   Rocks grow back each time you land. */
+const GRADES = [{n:'Poor',m:0.6,c:0.7},{n:'Fair',m:1,c:0.95},{n:'Rich',m:1.6,c:1.3},{n:'Motherlode',m:2.6,c:1.7}];
+const ROCK_FINDS = [
+  ["Inside the rock: somebody's lost wallet. It has been in there some time.",60],
+  ["Inside the rock: a fossilised sandwich. A collector pays you over the radio, sight unseen.",90],
+  ["Inside the rock: a smaller rock, with a deposit on it.",40],
+  ["Inside the rock: a very old parking ticket. The fine has expired. The reward for finding it has not.",75],
+  ["Inside the rock: a hermit's spare key. The hermit sends a tip and asks you to stop cutting.",110],
+  ["Inside the rock: one perfect marble. A child on the radio makes you an offer.",50],
+];
 const Mining = {
-  fields:[], field:null, target:null, heat:0, lock:0, prog:0, hitCD:0, pebT:0, msgT:0, got:0, gotT:0,
+  fields:[], field:null, target:null, guide:null, work:false, heat:0, lock:0, prog:0, hitCD:0, pebT:0, msgT:0, got:0, gotT:0, pickT:0, RANGE:3000, SWEET:[0.5,0.85],
   build(){
     const geo=new THREE.IcosahedronGeometry(1,1), pos=geo.attributes.position, v=new V3();
     for(let i=0;i<pos.count;i++){ v.fromBufferAttribute(pos,i); const k=1+0.22*Math.sin(v.x*5.1+v.y*3.3)+0.16*Math.sin(v.z*6.7-v.x*2.1); v.multiplyScalar(k); pos.setXYZ(i,v.x,v.y*0.82,v.z); }
@@ -23308,9 +23332,10 @@ const Mining = {
       const rr=mulberry32(900+fi*77), mat=Toon.mat({color:0xffffff}), im=new THREE.InstancedMesh(geo,mat,F.n); im.frustumCulled=false;
       F.rocks=[]; const base=C(F.col);
       for(let i=0;i<F.n;i++){ const u=rr()*2-1, a=rr()*6.283, s=Math.sqrt(1-u*u), d=Math.cbrt(rr())*F.R;
-        const p=new V3(s*Math.cos(a)*d,u*d*0.35,s*Math.sin(a)*d), r=30+Math.pow(rr(),2.2)*190;
-        const rock={p:p.clone().add(F.pos),local:p,r,r0:r,ore:Math.max(1,Math.round(r/38)),ore0:0,rot:new THREE.Euler(rr()*6,rr()*6,rr()*6),i}; rock.ore0=rock.ore; F.rocks.push(rock);
-        im.setColorAt(i,base.clone().multiplyScalar(0.75+rr()*0.5)); }
+        const p=new V3(s*Math.cos(a)*d,u*d*0.35,s*Math.sin(a)*d), r=30+Math.pow(rr(),2.2)*190, rot=new THREE.Euler(rr()*6,rr()*6,rr()*6), tint=0.75+rr()*0.5;
+        const gr=rr(), g=gr<0.42?0:gr<0.78?1:gr<0.94?2:3, ore=Math.max([1,1,3,5][g],Math.round(r/38*GRADES[g].m)), gem=g===3||(g===2&&rr()<0.5);
+        const rock={p:p.clone().add(F.pos),local:p,r,r0:r,g,gem,ore,ore0:ore,rot,i}; F.rocks.push(rock);
+        im.setColorAt(i,base.clone().multiplyScalar(tint*GRADES[g].c)); }
       F.im=im; const g=new THREE.Group(); g.position.copy(F.pos); g.add(im); World.universe.add(g); F.group=g; Toon.ink.mark(g);
       for(const k of F.rocks) this.place(F,k);
       im.instanceColor.needsUpdate=true;
@@ -23325,52 +23350,100 @@ const Mining = {
     this.spark=new THREE.Sprite(new THREE.SpriteMaterial({map:softDotTex(),color:HDR('#b8ffd0',4),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); this.spark.visible=false; World.space.add(this.spark);
     // rock sights
     const cv=makeCanvas(384,240); this.sightTex=canvasTex(cv); this.sightCv=cv; this.sight=new THREE.Sprite(new THREE.SpriteMaterial({map:this.sightTex,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false,blending:THREE.AdditiveBlending}));
-    this.sight.scale.set(0.26,0.1625,1); this.sight.center.set(0.5,1-158/240); this.sight.renderOrder=22; this.sight.visible=false; World.universe.add(World.hud(this.sight)); this.sightKey='';
+    this.sight.scale.set(0.3,0.1875,1); this.sight.center.set(0.5,1-158/240); this.sight.renderOrder=22; this.sight.visible=false; World.universe.add(World.hud(this.sight)); this.sightKey='';
   },
   place(F,k){ const s=k.ore>0?k.r:0.0001; this.q.setFromEuler(k.rot); this.sc.set(s,s,s); this.m4.compose(k.local,this.q,this.sc); F.im.setMatrixAt(k.i,this.m4); F.im.instanceMatrix.needsUpdate=true; },
-  rate(){ return G.up.laser>1?1.25:0.7; },
-  drawSight(k,d){
-    const key=k?k.i+':'+k.ore+':'+fmtDist(d):''; if(key===this.sightKey) return; this.sightKey=key; const x=this.sightCv.getContext('2d'); x.clearRect(0,0,384,240); if(!k) return;
-    x.strokeStyle='#7dffb0'; x.fillStyle='#7dffb0'; x.lineWidth=4; const cx=192, cy=158, s=34; x.beginPath(); x.arc(cx,cy,s,0,Math.PI*2); x.stroke();
+  /* units a second: slow when the laser is cold, quick in the sweet spot */
+  rate(){ const hot=this.heat>=this.SWEET[0]&&this.heat<this.SWEET[1]; return (G.up.laser>1?0.5:0.28)*(hot?1.75:1); },
+  used(){ return G.cargo.reduce((a,b)=>a+b.qty,0); },
+  full(){ return this.used()>=holdCap(); },
+  /* aimed: the rock under the nose, in range. otherwise it is the one the autopilot is making for */
+  drawSight(k,d,aimed){
+    const key=k?k.i+':'+k.ore+':'+fmtDist(d)+(aimed?'a':''):''; if(key===this.sightKey) return; this.sightKey=key; const x=this.sightCv.getContext('2d'); x.clearRect(0,0,384,240); if(!k) return;
+    const col=aimed?'#7dffb0':'#ffc060'; x.strokeStyle=col; x.fillStyle=col; x.lineWidth=aimed?5:4; const cx=192, cy=158, s=aimed?34:26; x.beginPath(); x.arc(cx,cy,s,0,Math.PI*2); x.stroke();
     for(const a of [0,1,2,3]){ const an=a*Math.PI/2; x.beginPath(); x.moveTo(cx+Math.cos(an)*(s-10),cy+Math.sin(an)*(s-10)); x.lineTo(cx+Math.cos(an)*(s+12),cy+Math.sin(an)*(s+12)); x.stroke(); }
-    x.textAlign='center'; x.font=`600 46px ${FONT_DISP}`; x.fillText(`ORE ${k.ore}`,cx,cy-s-62); x.font=`40px ${FONT_MONO}`; x.fillText(fmtDist(d),cx,cy-s-16); this.sightTex.needsUpdate=true;
+    x.textAlign='center'; x.font=`600 46px ${FONT_DISP}`; x.fillText(`${GRADES[k.g].n.toUpperCase()} · ${k.ore}`,cx,cy-s-62,376); x.font=`40px ${FONT_MONO}`; x.fillText(fmtDist(d),cx,cy-s-16); this.sightTex.needsUpdate=true;
   },
-  addOre(F){
-    const used=G.cargo.reduce((a,b)=>a+b.qty,0); if(used>=holdCap()) return false;
-    let c=G.cargo.find(x=>x.kind==='ore'&&x.good===F.ore); if(!c){ c={kind:'ore',good:F.ore,qty:0,to:-1,pay:0,val:F.val,from:-1}; G.cargo.push(c); }
-    c.qty++; c.pay=c.qty*F.val; this.got++; this.gotT=1.2; Cockpit.drawManifest(); return true;
+  addOre(good, val){
+    if(this.full()) return false;
+    let c=G.cargo.find(x=>x.kind==='ore'&&x.good===good); if(!c){ c={kind:'ore',good,qty:0,to:-1,pay:0,val,from:-1}; G.cargo.push(c); }
+    c.qty++; c.pay=c.qty*val; this.got++; this.gotT=1.2; this.gotName=good; const st=G.stats; st.mined=(st.mined||0)+1; Cockpit.drawManifest(); return true;
   },
+  /* the best rock to go for from here: near, and the richer the better. It keeps the one it has unless another is clearly better */
+  pick(F){ const s=G.ship; let b=null, bs=1e12; for(const k of F.rocks){ if(k.ore<=0) continue; let sc=(k.p.distanceTo(s.pos)-k.r+400)/(1+k.g*0.8); if(k===this.guide) sc*=0.6; if(sc<bs){ bs=sc; b=k; } } return b; },
+  /* what the nav screen and the autopilot are pointed at while you are working a field */
+  aim(){ const k=this.guide; if(!this.work||!this.field||!k||G.mode!=='flight') return null; const a=this._aim||(this._aim={isWp:true,rock:true,landR:0,arriveR:0,dropR:0,pos:new V3()});
+    a.pos.copy(k.p); a.dist=k.p.distanceTo(G.ship.pos); a.name=GRADES[k.g].n+' rock'; a.port=this.field.name+' · '+k.ore+' ore'; a.inRange=a.dist-k.r<this.RANGE; return a; },
+  stop(why){ if(!this.work) return; this.work=false; this.guide=null; if(why) UI.toast(why+(G.sys.autopilot?' Autopilot is turning for '+PLANETS[G.target].name+'.':''),'warn'); },
+  /* landing, towing, the Diner: put everything away */
+  quiet(){ this.beam.visible=this.spark.visible=this.sight.visible=false; this.work=false; this.guide=null; this.target=null; this.field=null; $('mine-panel').hidden=true; },
+  regrow(){ for(const F of this.fields) for(const k of F.rocks) if(k.ore<k.ore0){ k.ore=k.ore0; k.r=k.r0; this.place(F,k); } },
+  find(F){ const f=pick(ROCK_FINDS), cr=Math.round(f[1]*F.val/46/5)*5; G.credits+=cr; G.stats.earned=(G.stats.earned||0)+cr; G.stats.finds=(G.stats.finds||0)+1; setTimeout(()=>{ UI.toast(`${f[0]} +${fmtCr(cr)}`,'good'); if(Sfx.ok()) Sfx.cash(); },900); },
   update(dt){
-    const s=G.ship, fire=!!G.keys.KeyF&&G.sys.power&&this.lock<=0&&!Dlg.open&&!Walk.on;
+    const s=G.ship, busy=Dlg.open&&!Dlg.mini, held=!!G.keys.KeyF&&!busy&&!Walk.on, fire=held&&G.sys.power&&this.lock<=0;
     this.lock=Math.max(0,this.lock-dt); this.hitCD=Math.max(0,this.hitCD-dt); this.msgT=Math.max(0,this.msgT-dt);
     let field=null; for(const F of this.fields){ F.dist=F.pos.distanceTo(s.pos); if(F.dist<F.R*1.4) field=F; F.group.visible=F.dist<400000; }
-    if(field!==this.field){ this.field=field; if(field){ UI.toast(`Entering ${field.name}. Aim at a rock and hold ${TouchUI.on?'MINE':'F'} to mine ${field.ore}.`,'good'); if(s.warp) Game.dropWarp('Asteroid field. Warp disengaged.','warn',true); } }
+    if(field!==this.field){ this.field=field; this.guide=null; this.work=false;
+      if(field){ const came=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===field.idx; if(came) Nav.clear(true); if(s.warp) Game.dropWarp('Asteroid field. Warp disengaged.','warn',true);
+        Pedia.learn('mining'); (G.stats.fields||(G.stats.fields={}))[field.idx]=1;
+        if(this.full()) UI.toast(`${field.name}. Your hold is full, so there is nothing to cut for.`,'warn');
+        else { this.work=came||!Nav.wp; UI.toast(`${field.name}. ${G.sys.autopilot&&this.work?'Autopilot is taking you to a rock.':`Press ${TouchUI.on?'AUTO':'P'} and the autopilot will take you to a rock.`} Then hold ${TouchUI.on?'MINE':'F'} to cut.`,'good'); } } }
     // dropping out of warp on the way in
     for(const F of this.fields){ if(s.warp&&F.dist<F.R*2.6&&F.pos.clone().sub(s.pos).normalize().dot(new V3(0,0,-1).applyQuaternion(s.quat))>0.2) Game.dropWarp(F.name+'. Warp disengaged.','good',true); }
-    // heat
-    this.heat=clamp(this.heat+(fire&&this.target?dt*(G.up.laser>1?0.07:0.1):-dt*0.08),0,1);
-    if(this.heat>=1){ this.lock=7; this.heat=0.75; Hull.hit(4,'Mining laser overheated'); }
-    if(this.gotT>0){ this.gotT-=dt; if(this.gotT<=0&&this.got){ const c=G.cargo.find(x=>x.kind==='ore'); UI.toast(`+${this.got} ${field?field.ore:'ore'} · ${c?c.qty:this.got} in the hold`,'good'); Sfx.cash(); this.got=0; } }
-    if(!field){ this.target=null; this.beam.visible=false; this.spark.visible=false; this.sight.visible=false; return; }
+    if(this.gotT>0){ this.gotT-=dt; if(this.gotT<=0&&this.got){ const c=G.cargo.find(x=>x.kind==='ore'&&x.good===this.gotName); UI.toast(`+${this.got} ${this.gotName||'ore'} · ${c?c.qty:this.got} in the hold`,'good'); Sfx.cash(); this.got=0; } }
+    if(!field){ this.heat=Math.max(0,this.heat-dt*0.08); this.target=null; this.beam.visible=false; this.spark.visible=false; this.sight.visible=false; this.panel(null); return; }
+    // which rock to make for
+    if(Nav.wp) this.work=false; else if(held&&!this.full()) this.work=true;
+    this.pickT-=dt; if(this.work&&(this.pickT<=0||!this.guide||this.guide.ore<=0)){ this.pickT=0.5; this.guide=this.pick(field);
+      if(!this.guide) this.stop(`${field.name} is cut out for now. The rocks grow back while you are in port.`); else if(this.full()) this.stop('Hold full. Sell the ore at an assay office.'); }
     // collisions and pebbles
     const fwd=new V3(0,0,-1).applyQuaternion(s.quat); let best=null, bd=0.1;
     for(const k of field.rocks){ if(k.ore<=0) continue; const to=k.p.clone().sub(s.pos), d=to.length();
       if(d-k.r<7){ s.pos.copy(k.p).addScaledVector(to.normalize().negate(),k.r+7.5); if(this.hitCD<=0){ this.hitCD=1.2; const dmg=clamp(s.speed/28,3,35); if(s.speed>40) Hull.hit(dmg,'Bonk! You hit an asteroid'); s.cruise*=0.15; s.throttle=Math.min(s.throttle,2); } continue; }
-      if(d<3000+k.r){ const ang=Math.acos(clamp(to.dot(fwd)/d,-1,1))-Math.atan(k.r/d); if(ang<bd){ bd=ang; best=k; } } }
+      if(d<this.RANGE+k.r){ const ang=Math.acos(clamp(to.dot(fwd)/d,-1,1))-Math.atan(k.r/d); if(ang<bd){ bd=ang; best=k; } } }
     this.pebT-=dt; if(this.pebT<=0){ this.pebT=1; if(Math.random()<clamp(s.speed/1400,0,0.4)*0.3) Hull.hit(rnd(1,3),'Pebble strike'); }
-    this.target=best; this.sight.visible=!!best&&G.sys.hud; if(best){ this.sight.position.copy(best.p); this.drawSight(best,best.p.distanceTo(s.pos)-best.r); }
-    if(G.keys.KeyF&&!best&&this.msgT<=0){ this.msgT=3; UI.toast('No rock in the sights. Point the nose at one within 3,000 km.','warn'); }
-    if(G.keys.KeyF&&this.lock>0&&this.msgT<=0){ this.msgT=3; UI.toast('Laser cooling down','warn'); }
-    const on=fire&&best; this.beam.visible=!!on; this.spark.visible=!!on;
+    this.target=best;
+    // the autopilot flies the approach: quick across the gaps, slow near the rock, stopped in range
+    const g=this.work?this.guide:null;
+    if(g&&G.sys.autopilot&&G.sys.power&&!s.warp){ const to=g.p.clone().sub(s.pos), d=to.length()-g.r, off=Math.acos(clamp(to.normalize().dot(fwd),-1,1));
+      s.throttle=d<=1500?0:off>0.5?(d>2600?1:0):d>6000?4:d>3500?3:2; }
+    // the sight sits on the rock under the nose, or else on the one you are being flown to
+    const mark=best||g; this.sight.visible=!!mark&&G.sys.hud; if(mark){ this.sight.position.copy(mark.p); this.drawSight(mark,mark.p.distanceTo(s.pos)-mark.r,!!best); }
+    if(held&&!best&&!g&&!this.full()&&this.msgT<=0){ this.msgT=4; UI.toast(`No rock in the sights. Point the nose at one within ${fmtDist(this.RANGE)}.`,'warn'); }
+    if(held&&this.lock>0&&this.msgT<=0){ this.msgT=3; UI.toast('Laser cooling down','warn'); }
+    const on=fire&&best&&!this.full(); this.beam.visible=!!on; this.spark.visible=!!on;
+    if(held&&best&&this.full()&&this.msgT<=0){ this.msgT=4; UI.toast('Hold full. Sell the ore at an assay office.','warn'); }
+    // heat: it climbs while you cut and falls when you let go
+    this.heat=clamp(this.heat+(on?dt*(G.up.laser>1?0.085:0.11):-dt*0.1),0,1);
+    if(this.heat>=1){ this.lock=7; this.heat=0.7; Hull.hit(4,'Mining laser overheated'); }
     if(on){
       const start=new V3(2.4,0.35,-4.2).applyQuaternion(s.quat), end=best.p.clone().sub(s.pos), dir=end.clone().sub(start), len=dir.length()-best.r*0.6;
       this.beam.position.copy(start); this.beam.quaternion.copy(lookQuat(dir.normalize())); this.beam.scale.set(9+Math.sin(Game.time*40)*2.5,9+Math.cos(Game.time*37)*2.5,len);
       this.spark.position.copy(start).addScaledVector(dir,len); this.spark.scale.setScalar(best.r*(0.9+Math.random()*0.5));
       this.prog+=dt*this.rate(); if(Math.floor(Game.time*6)!==Math.floor((Game.time-dt)*6)) Sfx.hiss(0.18,0.06);
-      while(this.prog>=1){ this.prog-=1; if(!this.addOre(field)){ if(this.msgT<=0){ this.msgT=3; UI.toast('Hold full. Sell the ore at an assay office.','warn'); } this.prog=0; break; }
-        best.ore--; best.r=best.r0*(0.45+0.55*best.ore/best.ore0); this.place(field,best); if(best.ore<=0){ UI.toast('Rock cracked open and emptied','good'); Sfx.thump(0.4); } }
+      while(this.prog>=1&&best.ore>0){ this.prog-=1; const heart=best.gem&&best.ore===1;
+        if(!this.addOre(heart?field.gem:field.ore,heart?field.gemVal:field.val)){ this.prog=0; break; }
+        best.ore--; best.r=best.r0*(0.45+0.55*best.ore/best.ore0); this.place(field,best);
+        if(heart){ G.stats.gems=(G.stats.gems||0)+1; UI.toast(`The heart of the rock: ${field.gem}. Worth about ${fmtCr(field.gemVal)}.`,'good'); if(Sfx.ok()) Sfx.beep(1320); }
+        if(best.ore<=0){ if(!heart) UI.toast('Rock cracked open and emptied','good'); Sfx.thump(0.4); G.stats.rocks=(G.stats.rocks||0)+1; if(Math.random()<0.12) this.find(field); Career.check(); } }
     } else this.prog=Math.max(0,this.prog-dt*0.5);
+    this.panel(field,best,g,on,busy);
   },
+  /* the mining card in the corner: large words for what you are aimed at, how hot the laser is, and what to do next */
+  panel(F,best,g,on,busy){ const box=$('mine-panel'), show=!!F&&G.mode==='flight'; if(box.hidden===show) box.hidden=!show; if(!show) return;
+    const set=(id,t,cls)=>{ const e=$(id); if(e.textContent!==t) e.textContent=t; if(cls!=null&&e.className!==cls) e.className=cls; }, s=G.ship, k=best||g, used=this.used(), cap=holdCap();
+    set('mine-t',`${F.name} · ${F.ore}`);
+    set('mine-rock',k?`${GRADES[k.g].n} rock · ${k.ore} ore${k.gem?' · has a heart':''} · ${fmtDist(Math.max(0,k.p.distanceTo(s.pos)-k.r))}`:'No rock picked');
+    let say, cls='';
+    if(used>=cap){ say='HOLD FULL · sell at an assay office'; cls='warn'; }
+    else if(busy&&best){ say='Answer the call first'; cls='warn'; }
+    else if(this.lock>0){ say=`LASER COOLING · ${Math.ceil(this.lock)} s`; cls='bad'; }
+    else if(on){ if(this.heat<this.SWEET[0]) say='CUTTING · warming up'; else if(this.heat<this.SWEET[1]){ say='SWEET SPOT · cutting fast'; cls='good'; } else { say=`TOO HOT · let go of ${TouchUI.on?'MINE':'F'}`; cls='bad'; } }
+    else if(best){ say=this.heat>=this.SWEET[1]?'Cooling · wait a moment':`IN RANGE · hold ${TouchUI.on?'MINE':'F'} to cut`; cls=this.heat>=this.SWEET[1]?'warn':'good'; }
+    else if(g) say=G.sys.autopilot?'Autopilot is flying you to it':`Press ${TouchUI.on?'AUTO':'P'}: autopilot flies you there`;
+    else say=`Hold ${TouchUI.on?'MINE':'F'} to start cutting`;
+    set('mine-say',say,cls); set('mine-hold',`Hold ${used} of ${cap}`);
+    const h=$('mine-heat'), w=Math.round(this.heat*100)+'%'; if(h.style.width!==w) h.style.width=w; const hc=this.heat>=this.SWEET[1]?'bad':this.heat>=this.SWEET[0]?'good':''; if(h.className!==hc) h.className=hc; },
   marker(F, show){ F.mk.sprite.visible=show&&F.dist>F.R*1.6; if(!F.mk.sprite.visible) return;
     const key=fmtDist(F.dist); if(F.mk.key===key) return; F.mk.key=key; const x=F.mk.cv.getContext('2d'); x.clearRect(0,0,384,240); const cx=192, cy=158;
     x.strokeStyle=x.fillStyle='#b8a4ff'; x.globalAlpha=0.85; x.lineWidth=3; x.beginPath(); x.moveTo(cx,cy-22); x.lineTo(cx+22,cy); x.lineTo(cx,cy+22); x.lineTo(cx-22,cy); x.closePath(); x.stroke();
@@ -23549,7 +23622,7 @@ const SysMap = {
   },
   close(){ if(!this.open) return; this.open=false; $('map').hidden=true; if(Sfx.ok()) Sfx.click(); const g=$('gl'); if(g) g.focus(); },
   pick(i){ if(i===RESTAURANT.idx){ Restaurant.course(); this.list(); this.draw(Game.time); return; }
-    if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:F.R*1.2,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
+    if(i>=100){ const F=FIELDS[i-100]; if(F){ Nav.set({name:F.name.toUpperCase(),sub:'Asteroid field · '+F.ore,pos:F.pos.clone(),dropR:F.R*2.6,arriveR:0,kind:'field',field:F.idx}); this.list(); this.draw(Game.time); } return; }
     if(i<0||i>=PLANETS.length) return; Game.setTarget(i); this.list(); this.draw(Game.time); },
   /* the chart is to scale out to the edge of patrolled space, then squeezed, so the far stations fit without
      crushing the planets into the middle */
@@ -23970,9 +24043,10 @@ const Pedia = {
       +T.tbl(['Region','Begins at','Risk','Pay'],[[far[0],'The sun',RISK[0].name,'×'+RISK[0].mul],[far[1],T.ls(FRONTIER_R),RISK[1].name,'×'+RISK[1].mul],[far[2],T.ls(DEEP_R),RISK[2].name,'×'+RISK[2].mul],[far[3],T.ls(EXTREME_R),(RISK[3]||RISK[2]).name,'×'+(RISK[3]||RISK[2]).mul]])
       +T.dl([['Pirates','They want a toll, or a fight.'+(K('mayday')?' Some maydays out here are bait.':'')],K('storm')&&['Meteor storms','Throttle 4 or lower, no warp, until it passes.'],K('tow')&&['Tows','Charged by the distance: up to 3.6 times the usual fee in the far dark.'],['Fuel','Far stations charge double. Check the tank before you leave.']])},
 
-    {t:'Mining', need:'mining', f:()=>T.p('Pick a field on the map, fly into it, put a rock in your sights and hold F. Open the cargo scoop with B and slow down to collect what breaks off. Sell ore at any Assay office: prices differ from port to port.')
-      +T.tbl(['Field','Ore','Worth, about','How far out'],FIELDS.map(F=>[F.name,F.ore,F.val+' cr a unit',T.ls(F.orbit)]))
-      +T.p('Ore takes hold space like any cargo.',K('outfit')&&'The Mining laser Mk II nearly doubles your cutting speed.')},
+    {t:'Mining', need:'mining', f:()=>T.p('Pick a field on the map and fly there. Inside the field, press P and the autopilot takes you to a good rock and stops in range. Hold F to cut. Ore goes straight into the hold. When the hold is full the autopilot turns for your planet again. Sell ore at any Assay office: prices differ from port to port.')
+      +T.h('Cutting well')+T.dl([['Laser heat','The laser warms as it cuts. In the marked sweet spot it cuts nearly twice as fast. Let go of F before the bar fills, let it cool to the start of the sweet spot, and cut again.'],['Overheating','A full bar shuts the laser down for 7 seconds and knocks the hull.'],['Grades','Rocks are Poor, Fair, Rich or Motherlode. Better rocks hold more ore and the autopilot prefers them.'],['Hearts','Every Motherlode rock, and about half the Rich ones, has a heart. It is the last unit you cut out, and it is worth about three times the ore around it. The mining card says when a rock has one.'],['Growing back','Emptied rocks grow back each time you land.']])
+      +T.tbl(['Field','Ore','Worth, about','Heart','Worth, about','How far out'],FIELDS.map(F=>[F.name,F.ore,F.val+' cr',F.gem,F.gemVal+' cr',T.ls(F.orbit)]))
+      +T.p('Ore takes hold space like any cargo.',K('outfit')&&'The Mining laser Mk II nearly doubles your cutting speed and heats more slowly.')},
 
     {t:'The end of the galaxy', need:'end', f:()=>T.p(RESTAURANT.name+' is '+T.ls(RESTAURANT.orbit)+' from the sun, out past '+PLANETS[PLANETS.length-1].name+'. It is on the map, at the rim of the chart. Arrive, and you have finished the game. You can keep flying afterwards.')
       +T.h('Who can get there')+T.tbl(['Ship','Range on a full tank','Reaches it'],SHIPS.map((s,i)=>(K('ships')||i===G.shipId)&&[s.name,T.ls(Restaurant.range(i)),i===top?'Yes':'No']))
@@ -25254,7 +25328,7 @@ const Game = {
   canWarp(){ if(!G.sys.power) return 'NO POWER'; if(G.fuel<=0) return 'OUT OF FUEL'; if(this.massLock()) return 'MASS-LOCKED · FLY CLEAR'; return true; },
   toggleWarp(){ const s=G.ship; if(G.mode!=='flight') return; if(Ev.hold>0&&!s.warp){ UI.toast('Fuel line attached. Hold still.','warn'); Sfx.deny(); return; } if(s.warp){ this.dropWarp('Warp disengaged'); return; } const c=this.canWarp(); if(c!==true){ UI.toast(c,'warn'); Sfx.deny(); return; } s.warp=true; Sfx.warpIn(); this.flash=0.5; },
   dropWarp(msg, cls, hard){ const s=G.ship; if(!s.warp) return; s.warp=false; Sfx.warpOut(); this.flash=1; if(hard){ s.warpF=Math.min(s.warpF,0.12); if(s.throttle<7) s.throttle=7; } if(msg) UI.toast(msg,cls); },
-  setTarget(i, quiet){ if(!quiet&&Nav.wp) Nav.clear(); G.target=(i+PLANETS.length)%PLANETS.length; this.mk=0; if(!quiet&&Sfx.ok()) Sfx.beep(990); },
+  setTarget(i, quiet){ if(!quiet&&Nav.wp) Nav.clear(); if(!quiet) Mining.stop(); G.target=(i+PLANETS.length)%PLANETS.length; this.mk=0; if(!quiet&&Sfx.ok()) Sfx.beep(990); },
   setAutopilot(v){ if(v&&!G.sys.power) return; G.sys.autopilot=v; UI.toast(v?'Autopilot steering to '+Nav.target().name:'Autopilot off'); },
   setPower(v){ G.sys.power=v; if(!v){ if(G.ship.warp) this.dropWarp(); G.sys.autopilot=false; G.ship.throttle=0; } Sfx.setRadioVol(v?G.sys.radioVol:0); UI.toast(v?'Systems online':'Master power off',v?'good':'warn'); },
   honk(){ Sfx.honk(); Escort.onHonk(); const n=Npc.nearest(5000); if(n&&!Comms.open&&G.sys.power) setTimeout(()=>{ if(G.mode==='flight'&&!Comms.open) Radio.play({sp:n.pilot.sp,seed:n.pilot.seed,name:n.pilot.name,english:pick(SPECIES[n.pilot.sp].honk)}); },700); },
@@ -25297,7 +25371,7 @@ const Game = {
   onLanded(P){
     Faults.trip();
     G.mode='port'; G.docked=P.idx; Game.visit(P.idx); const s=G.ship; s.speed=0; s.cruise=0; s.throttle=0; s.warp=false; s.warpF=0; G.sys.autopilot=false; Sfx.setEngine(0,0,false);
-    Dlg.close(); if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Distress.cur=null; Customs.cur=null; Mining.beam.visible=Mining.spark.visible=Mining.sight.visible=false; Game.escortAlarm=false;
+    Dlg.close(); if(Nav.wp&&Nav.wp.kind==='distress') Nav.clear(true); Distress.cur=null; Customs.cur=null; Mining.quiet(); Mining.regrow(); Game.escortAlarm=false;
     // deliveries are handed over by hand at the cargo depot now; nothing is paid automatically
     const paid=[], total=0, due=UI.due(P);
     if(this.towFee&&G.up.tow){ G.up.tow=0; this.towFee=0; setTimeout(()=>UI.toast('Towing insurance paid the tow. Nobody is more surprised than the insurer.','good'),1500); }
