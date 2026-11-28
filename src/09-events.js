@@ -259,8 +259,14 @@ const ROCK_FINDS = [
   ["Inside the rock: a hermit's spare key. The hermit sends a tip and asks you to stop cutting.",110],
   ["Inside the rock: one perfect marble. A child on the radio makes you an offer.",50],
 ];
+const NATURES = {gassy:'gassy, runs hot, holds more', brittle:'brittle, cracks often', hollow:'sounds hollow', home:'somebody lives in it'};
+const HERMITS = [
+  "Excuse me. EXCUSE me. This is a load-bearing rock. I live in it. I have curtains.",
+  "Oh, lovely, a laser. Through my front room. I have only just had it done.",
+  "Is that you making that noise? Some of us are trying to be alone in here.",
+];
 const Mining = {
-  fields:[], field:null, target:null, guide:null, work:false, heat:0, lock:0, prog:0, hitCD:0, pebT:0, msgT:0, got:0, gotT:0, pickT:0, RANGE:3000, SWEET:[0.5,0.85],
+  fields:[], field:null, target:null, guide:null, chosen:null, crack:null, crackT:2, pingT:0, note:null, work:false, heat:0, lock:0, prog:0, hitCD:0, pebT:0, msgT:0, got:0, gotT:0, pickT:0, RANGE:3000, SWEET:[0.5,0.85],
   build(){
     const geo=new THREE.IcosahedronGeometry(1,1), pos=geo.attributes.position, v=new V3();
     for(let i=0;i<pos.count;i++){ v.fromBufferAttribute(pos,i); const k=1+0.22*Math.sin(v.x*5.1+v.y*3.3)+0.16*Math.sin(v.z*6.7-v.x*2.1); v.multiplyScalar(k); pos.setXYZ(i,v.x,v.y*0.82,v.z); }
@@ -271,8 +277,8 @@ const Mining = {
       F.rocks=[]; const base=C(F.col);
       for(let i=0;i<F.n;i++){ const u=rr()*2-1, a=rr()*6.283, s=Math.sqrt(1-u*u), d=Math.cbrt(rr())*F.R;
         const p=new V3(s*Math.cos(a)*d,u*d*0.35,s*Math.sin(a)*d), r=30+Math.pow(rr(),2.2)*190, rot=new THREE.Euler(rr()*6,rr()*6,rr()*6), tint=0.75+rr()*0.5;
-        const gr=rr(), g=gr<0.42?0:gr<0.78?1:gr<0.94?2:3, ore=Math.max([1,1,3,5][g],Math.round(r/38*GRADES[g].m)), gem=g===3||(g===2&&rr()<0.5);
-        const rock={p:p.clone().add(F.pos),local:p,r,r0:r,g,gem,ore,ore0:ore,rot,i}; F.rocks.push(rock);
+        const gr=rr(), g=gr<0.42?0:gr<0.78?1:gr<0.94?2:3, ore=Math.max([1,1,3,5][g],Math.round(r/38*GRADES[g].m)), gem0=g===3||(g===2&&rr()<0.5), nr=rr(), nat=nr<0.1?'gassy':nr<0.2?'brittle':nr<0.26?'hollow':nr<0.3?'home':null, gem=gem0&&nat!=='hollow', ore1=nat==='gassy'?Math.round(ore*1.5):ore;
+        const rock={p:p.clone().add(F.pos),local:p,r,r0:r,g,gem,nat,nat0:nat,seen:false,off:false,asked:false,ore:ore1,ore0:ore1,rot,i}; F.rocks.push(rock);
         im.setColorAt(i,base.clone().multiplyScalar(tint*GRADES[g].c)); }
       F.im=im; const g=new THREE.Group(); g.position.copy(F.pos); g.add(im); World.universe.add(g); F.group=g; Toon.ink.mark(g);
       for(const k of F.rocks) this.place(F,k);
@@ -297,10 +303,10 @@ const Mining = {
   full(){ return this.used()>=holdCap(); },
   /* aimed: the rock under the nose, in range. otherwise it is the one the autopilot is making for */
   drawSight(k,d,aimed){
-    const key=k?k.i+':'+k.ore+':'+fmtDist(d)+(aimed?'a':''):''; if(key===this.sightKey) return; this.sightKey=key; const x=this.sightCv.getContext('2d'); x.clearRect(0,0,384,240); if(!k) return;
+    const key=k?k.i+':'+k.ore+':'+fmtDist(d)+(aimed?'a':'')+(k.seen?'s':''):''; if(key===this.sightKey) return; this.sightKey=key; const x=this.sightCv.getContext('2d'); x.clearRect(0,0,384,240); if(!k) return;
     const col=aimed?'#7dffb0':'#ffc060'; x.strokeStyle=col; x.fillStyle=col; x.lineWidth=aimed?5:4; const cx=192, cy=158, s=aimed?34:26; x.beginPath(); x.arc(cx,cy,s,0,Math.PI*2); x.stroke();
     for(const a of [0,1,2,3]){ const an=a*Math.PI/2; x.beginPath(); x.moveTo(cx+Math.cos(an)*(s-10),cy+Math.sin(an)*(s-10)); x.lineTo(cx+Math.cos(an)*(s+12),cy+Math.sin(an)*(s+12)); x.stroke(); }
-    x.textAlign='center'; x.font=`600 46px ${FONT_DISP}`; x.fillText(`${GRADES[k.g].n.toUpperCase()} · ${k.ore}`,cx,cy-s-62,376); x.font=`40px ${FONT_MONO}`; x.fillText(fmtDist(d),cx,cy-s-16); this.sightTex.needsUpdate=true;
+    x.textAlign='center'; x.font=`600 46px ${FONT_DISP}`; x.fillText(k.seen?`${GRADES[k.g].n.toUpperCase()} · ${k.ore}`:'UNSURVEYED',cx,cy-s-62,376); x.font=`40px ${FONT_MONO}`; x.fillText(fmtDist(d),cx,cy-s-16); this.sightTex.needsUpdate=true;
   },
   addOre(good, val){
     if(this.full()) return false;
@@ -308,28 +314,53 @@ const Mining = {
     c.qty++; c.pay=c.qty*val; this.got++; this.gotT=1.2; this.gotName=good; const st=G.stats; st.mined=(st.mined||0)+1; Cockpit.drawManifest(); return true;
   },
   /* the best rock to go for from here: near, and the richer the better. It keeps the one it has unless another is clearly better */
-  pick(F){ const s=G.ship; let b=null, bs=1e12; for(const k of F.rocks){ if(k.ore<=0) continue; let sc=(k.p.distanceTo(s.pos)-k.r+400)/(1+k.g*0.8); if(k===this.guide) sc*=0.6; if(sc<bs){ bs=sc; b=k; } } return b; },
+  score(k){ return (k.p.distanceTo(G.ship.pos)-k.r+400)/(1+(k.seen?k.g:0)*0.8)*(k.seen?1:1.5); },
+  pick(F){ const c=this.chosen; if(c&&c.ore>0&&!c.off) return c; this.chosen=null; let b=null, bs=1e12; for(const k of F.rocks){ if(k.ore<=0||k.off) continue; let sc=this.score(k); if(k===this.guide) sc*=0.6; if(sc<bs){ bs=sc; b=k; } } return b; },
+  describe(k){ const d=fmtDist(Math.max(0,k.p.distanceTo(G.ship.pos)-k.r)); return k.seen?`${GRADES[k.g].n} rock · ${k.ore} ore${k.gem?' · has a heart':''}${k.nat?' · '+NATURES[k.nat]:''} · ${d}`:`Unsurveyed rock · ${d}`; },
+  /* R: a survey ping. Every rock near you is graded, and you find out which ones have something odd about them */
+  ping(){ const F=this.field; if(G.mode!=='flight'||Walk.on) return; if(!F){ UI.toast('Nothing to survey here. Fly into an asteroid field first.','warn'); return; }
+    if(this.pingT>0){ UI.toast(`Survey gear recharging · ${Math.ceil(this.pingT)} s`,'warn'); return; } this.pingT=6; const s=G.ship, L=F.rocks.filter(k=>k.ore>0&&k.p.distanceTo(s.pos)<8000); L.forEach(k=>k.seen=true);
+    if(Sfx.ok()){ Sfx.beep(660); setTimeout(()=>Sfx.beep(990),180); } G.stats.pings=(G.stats.pings||0)+1; if(!Nav.wp&&!this.full()) this.work=true; this.chosen=null; this.pickT=0;
+    const n=g=>L.filter(k=>k.g===g).length, bits=[]; if(n(3)) bits.push(n(3)+' Motherlode'); if(n(2)) bits.push(n(2)+' Rich'); const h=L.filter(k=>k.gem).length, home=L.filter(k=>k.nat==='home'&&!k.off).length;
+    UI.toast(L.length?`Survey: ${L.length} rocks in range.${bits.length?' '+bits.join(', ')+'.':' Nothing special.'}${h?` ${h} with a heart.`:''}${home?` ${home===1?'One is':home+' are'} somebody's home.`:''} Press ${TouchUI.on?'ROCK':'V'} to choose between them.`:'Survey: no rocks within range. Fly further in.','good'); },
+  /* V: step through the best few surveyed rocks, so you choose where the autopilot takes you */
+  next(){ const F=this.field; if(!F||G.mode!=='flight'||Walk.on) return; const L=F.rocks.filter(k=>k.seen&&k.ore>0&&!k.off).sort((a,b)=>this.score(a)-this.score(b)).slice(0,5);
+    if(!L.length){ UI.toast(`No surveyed rocks yet. Press ${TouchUI.on?'SURVEY':'R'} first.`,'warn'); return; } if(this.full()){ UI.toast('Hold full. Sell the ore at an assay office.','warn'); return; }
+    const i=(L.indexOf(this.guide)+1)%L.length, k=L[i]; this.chosen=this.guide=k; if(!Nav.wp) this.work=true; if(Sfx.ok()) Sfx.click(); UI.toast(`Rock ${i+1} of ${L.length}: ${this.describe(k)}`,'good'); },
+  nextCrack(k){ return k&&k.nat==='brittle'?rnd(1.8,3):rnd(3.5,6); },
+  say(text,cls){ this.note={t:1.6,text,cls}; },
+  /* Space: strike while the marker is in the green and a lump breaks off whole */
+  strike(){ const c=this.crack; if(G.mode!=='flight'||Walk.on||!this.field) return; if(!c){ if(this.beam.visible) this.say('No crack yet. Wait for the bar.','warn'); return; }
+    const pos=c.t/c.dur, hit=pos>=c.a&&pos<=c.b, perfect=Math.abs(pos-(c.a+c.b)/2)<0.035; this.crack=null; this.crackT=this.nextCrack(c.rock);
+    if(!hit){ this.heat=Math.min(0.98,this.heat+0.15); this.say('Chipped it · the laser runs hotter','bad'); if(Sfx.ok()) Sfx.deny(); return; }
+    let n=0; for(let i=0;i<(perfect?2:1);i++) if(this.addOre(this.field.ore,this.field.val)) n++; if(!n){ this.say('Clean break · but the hold is full','warn'); return; }
+    G.stats.cracks=(G.stats.cracks||0)+1; this.say(perfect?'PERFECT BREAK · +2 loose ore':'CLEAN BREAK · +1 loose ore','good'); if(Sfx.ok()) Sfx.thump(perfect?0.7:0.45); Career.check(); },
+  hermit(k){ k.asked=true; k.seen=true; const sp=pick(Object.keys(SPECIES)), rent=40, gone=()=>{ if(this.guide===k) this.guide=null; if(this.chosen===k) this.chosen=null; this.pickT=0; };
+    Dlg.show({sp,seed:k.i+7,who:'Somebody inside the rock',text:pick(HERMITS),opts:[
+      {t:'Apologise and leave it',sub:'Good for your name.',fn:()=>{ k.off=true; gone(); Rep.add(1,'You left a hermit in peace'); UI.toast('The hermit draws the curtains. The autopilot picks another rock.','good'); }},
+      {t:`Pay ${fmtCr(rent)} rent`,sub:'They show you where it cracks.',disabled:G.credits<rent,fn:()=>{ G.credits-=rent; k.nat='brittle'; UI.toast('The hermit points out the weak spots, and puts the kettle on.','good'); }},
+      {t:'Keep cutting',sub:'Bad for your name.',fn:()=>{ k.nat=null; Rep.add(-2,'You mined a hermit out of house and home'); UI.toast('The hermit leaves with a suitcase and a great deal to say.','warn'); }}]}); },
   /* what the nav screen and the autopilot are pointed at while you are working a field */
   aim(){ const k=this.guide; if(!this.work||!this.field||!k||G.mode!=='flight') return null; const a=this._aim||(this._aim={isWp:true,rock:true,landR:0,arriveR:0,dropR:0,pos:new V3()});
     a.pos.copy(k.p); a.dist=k.p.distanceTo(G.ship.pos); a.name=GRADES[k.g].n+' rock'; a.port=this.field.name+' · '+k.ore+' ore'; a.inRange=a.dist-k.r<this.RANGE; return a; },
-  stop(why){ if(!this.work) return; this.work=false; this.guide=null; if(why) UI.toast(why+(G.sys.autopilot?' Autopilot is turning for '+PLANETS[G.target].name+'.':''),'warn'); },
+  stop(why){ if(!this.work) return; this.work=false; this.guide=this.chosen=null; this.msgT=5; if(why) UI.toast(why+(G.sys.autopilot?' Autopilot is turning for '+PLANETS[G.target].name+'.':''),'warn'); },
   /* landing, towing, the Diner: put everything away */
-  quiet(){ this.beam.visible=this.spark.visible=this.sight.visible=false; this.work=false; this.guide=null; this.target=null; this.field=null; $('mine-panel').hidden=true; },
-  regrow(){ for(const F of this.fields) for(const k of F.rocks) if(k.ore<k.ore0){ k.ore=k.ore0; k.r=k.r0; this.place(F,k); } },
-  find(F){ const f=pick(ROCK_FINDS), cr=Math.round(f[1]*F.val/46/5)*5; G.credits+=cr; G.stats.earned=(G.stats.earned||0)+cr; G.stats.finds=(G.stats.finds||0)+1; setTimeout(()=>{ UI.toast(`${f[0]} +${fmtCr(cr)}`,'good'); if(Sfx.ok()) Sfx.cash(); },900); },
+  quiet(){ this.beam.visible=this.spark.visible=this.sight.visible=false; this.work=false; this.guide=this.chosen=this.crack=this.note=null; this.target=null; this.field=null; $('mine-panel').hidden=true; document.body.classList.remove('mining'); },
+  regrow(){ for(const F of this.fields) for(const k of F.rocks){ k.seen=k.off=k.asked=false; k.nat=k.nat0; if(k.ore<k.ore0){ k.ore=k.ore0; k.r=k.r0; this.place(F,k); } } },
+  find(F){ G.stats.rockFinds=(G.stats.rockFinds||0)+1; const f=pick(ROCK_FINDS), cr=Math.round(f[1]*F.val/46/5)*5; G.credits+=cr; G.stats.earned=(G.stats.earned||0)+cr; G.stats.finds=(G.stats.finds||0)+1; setTimeout(()=>{ UI.toast(`${f[0]} +${fmtCr(cr)}`,'good'); if(Sfx.ok()) Sfx.cash(); },900); },
   update(dt){
     const s=G.ship, busy=Dlg.open&&!Dlg.mini, held=!!G.keys.KeyF&&!busy&&!Walk.on, fire=held&&G.sys.power&&this.lock<=0;
-    this.lock=Math.max(0,this.lock-dt); this.hitCD=Math.max(0,this.hitCD-dt); this.msgT=Math.max(0,this.msgT-dt);
+    this.lock=Math.max(0,this.lock-dt); this.hitCD=Math.max(0,this.hitCD-dt); this.msgT=Math.max(0,this.msgT-dt); this.pingT=Math.max(0,this.pingT-dt); if(this.note&&(this.note.t-=dt)<=0) this.note=null;
     let field=null; for(const F of this.fields){ F.dist=F.pos.distanceTo(s.pos); if(F.dist<F.R*1.4) field=F; F.group.visible=F.dist<400000; }
-    if(field!==this.field){ this.field=field; this.guide=null; this.work=false;
+    if(field!==this.field){ this.field=field; this.guide=this.chosen=this.crack=null; this.work=false;
       if(field){ const came=Nav.wp&&Nav.wp.kind==='field'&&Nav.wp.field===field.idx; if(came) Nav.clear(true); if(s.warp) Game.dropWarp('Asteroid field. Warp disengaged.','warn',true);
         Pedia.learn('mining'); (G.stats.fields||(G.stats.fields={}))[field.idx]=1;
         if(this.full()) UI.toast(`${field.name}. Your hold is full, so there is nothing to cut for.`,'warn');
-        else { this.work=came||!Nav.wp; UI.toast(`${field.name}. ${G.sys.autopilot&&this.work?'Autopilot is taking you to a rock.':`Press ${TouchUI.on?'AUTO':'P'} and the autopilot will take you to a rock.`} Then hold ${TouchUI.on?'MINE':'F'} to cut.`,'good'); } } }
+        else { this.work=came||!Nav.wp; UI.toast(`${field.name}. Press ${TouchUI.on?'SURVEY':'R'} to survey the rocks. ${G.sys.autopilot&&this.work?'Autopilot is taking you to the nearest one.':`Press ${TouchUI.on?'AUTO':'P'} and the autopilot will take you to one.`}`,'good'); } } }
     // dropping out of warp on the way in
     for(const F of this.fields){ if(s.warp&&F.dist<F.R*2.6&&F.pos.clone().sub(s.pos).normalize().dot(new V3(0,0,-1).applyQuaternion(s.quat))>0.2) Game.dropWarp(F.name+'. Warp disengaged.','good',true); }
     if(this.gotT>0){ this.gotT-=dt; if(this.gotT<=0&&this.got){ const c=G.cargo.find(x=>x.kind==='ore'&&x.good===this.gotName); UI.toast(`+${this.got} ${this.gotName||'ore'} · ${c?c.qty:this.got} in the hold`,'good'); Sfx.cash(); this.got=0; } }
-    if(!field){ this.heat=Math.max(0,this.heat-dt*0.08); this.target=null; this.beam.visible=false; this.spark.visible=false; this.sight.visible=false; this.panel(null); return; }
+    if(!field){ this.heat=Math.max(0,this.heat-dt*0.08); this.crack=null; this.target=null; this.beam.visible=false; this.spark.visible=false; this.sight.visible=false; this.panel(null); return; }
     // which rock to make for
     if(Nav.wp) this.work=false; else if(held&&!this.full()) this.work=true;
     this.pickT-=dt; if(this.work&&(this.pickT<=0||!this.guide||this.guide.ore<=0)){ this.pickT=0.5; this.guide=this.pick(field);
@@ -338,7 +369,7 @@ const Mining = {
     const fwd=new V3(0,0,-1).applyQuaternion(s.quat); let best=null, bd=0.1;
     for(const k of field.rocks){ if(k.ore<=0) continue; const to=k.p.clone().sub(s.pos), d=to.length();
       if(d-k.r<7){ s.pos.copy(k.p).addScaledVector(to.normalize().negate(),k.r+7.5); if(this.hitCD<=0){ this.hitCD=1.2; const dmg=clamp(s.speed/28,3,35); if(s.speed>40) Hull.hit(dmg,'Bonk! You hit an asteroid'); s.cruise*=0.15; s.throttle=Math.min(s.throttle,2); } continue; }
-      if(d<this.RANGE+k.r){ const ang=Math.acos(clamp(to.dot(fwd)/d,-1,1))-Math.atan(k.r/d); if(ang<bd){ bd=ang; best=k; } } }
+      if(d<this.RANGE+k.r&&!k.off){ const ang=Math.acos(clamp(to.dot(fwd)/d,-1,1))-Math.atan(k.r/d); if(ang<bd){ bd=ang; best=k; } } }
     this.pebT-=dt; if(this.pebT<=0){ this.pebT=1; if(Math.random()<clamp(s.speed/1400,0,0.4)*0.3) Hull.hit(rnd(1,3),'Pebble strike'); }
     this.target=best;
     // the autopilot flies the approach: quick across the gaps, slow near the rock, stopped in range
@@ -349,36 +380,45 @@ const Mining = {
     const mark=best||g; this.sight.visible=!!mark&&G.sys.hud; if(mark){ this.sight.position.copy(mark.p); this.drawSight(mark,mark.p.distanceTo(s.pos)-mark.r,!!best); }
     if(held&&!best&&!g&&!this.full()&&this.msgT<=0){ this.msgT=4; UI.toast(`No rock in the sights. Point the nose at one within ${fmtDist(this.RANGE)}.`,'warn'); }
     if(held&&this.lock>0&&this.msgT<=0){ this.msgT=3; UI.toast('Laser cooling down','warn'); }
-    const on=fire&&best&&!this.full(); this.beam.visible=!!on; this.spark.visible=!!on;
+    if(fire&&best&&!this.full()&&best.nat==='home'&&!best.asked){ this.hermit(best); this.beam.visible=this.spark.visible=false; this.panel(field,best,g,false,true); return; }
+    const on=fire&&best&&!this.full(); this.beam.visible=!!on; this.spark.visible=!!on; if(on) best.seen=true;
     if(held&&best&&this.full()&&this.msgT<=0){ this.msgT=4; UI.toast('Hold full. Sell the ore at an assay office.','warn'); }
     // heat: it climbs while you cut and falls when you let go
-    this.heat=clamp(this.heat+(on?dt*(G.up.laser>1?0.085:0.11):-dt*0.1),0,1);
-    if(this.heat>=1){ this.lock=7; this.heat=0.7; Hull.hit(4,'Mining laser overheated'); }
+    this.heat=clamp(this.heat+(on?dt*(G.up.laser>1?0.085:0.11)*(best.nat==='gassy'?1.7:1):-dt*0.1),0,1);
+    if(this.heat>=1){ this.lock=7; this.heat=0.7; Hull.hit(4,'Mining laser overheated'); if(on&&best.gem&&best.ore===1){ best.gem=false; UI.toast('You cooked the heart of the rock. What is left is ordinary ore.','warn'); } }
+    // cracks: every few seconds of cutting a fault opens, and a marker runs along the bar. Strike in the green.
+    const c=this.crack; if(c){ c.t+=dt; if(!on||best!==c.rock) this.crack=null; else if(c.t>=c.dur){ this.crack=null; this.crackT=this.nextCrack(best); this.say('Missed the crack','warn'); } }
+    else if(on&&best.ore>(best.gem?1:0)){ this.crackT-=dt; if(this.crackT<=0){ const w=G.up.laser>1?0.27:0.21, m=0.4+Math.random()*0.42; this.crack={t:0,dur:1.9,a:m-w/2,b:m+w/2,rock:best}; if(Sfx.ok()) Sfx.beep(740); } }
     if(on){
       const start=new V3(2.4,0.35,-4.2).applyQuaternion(s.quat), end=best.p.clone().sub(s.pos), dir=end.clone().sub(start), len=dir.length()-best.r*0.6;
       this.beam.position.copy(start); this.beam.quaternion.copy(lookQuat(dir.normalize())); this.beam.scale.set(9+Math.sin(Game.time*40)*2.5,9+Math.cos(Game.time*37)*2.5,len);
       this.spark.position.copy(start).addScaledVector(dir,len); this.spark.scale.setScalar(best.r*(0.9+Math.random()*0.5));
-      this.prog+=dt*this.rate(); if(Math.floor(Game.time*6)!==Math.floor((Game.time-dt)*6)) Sfx.hiss(0.18,0.06);
+      const heartNext=best.gem&&best.ore===1, sweet=this.heat>=this.SWEET[0]&&this.heat<this.SWEET[1]; if(!heartNext||sweet) this.prog+=dt*this.rate(); if(Math.floor(Game.time*6)!==Math.floor((Game.time-dt)*6)) Sfx.hiss(0.18,0.06);
       while(this.prog>=1&&best.ore>0){ this.prog-=1; const heart=best.gem&&best.ore===1;
         if(!this.addOre(heart?field.gem:field.ore,heart?field.gemVal:field.val)){ this.prog=0; break; }
-        best.ore--; best.r=best.r0*(0.45+0.55*best.ore/best.ore0); this.place(field,best);
+        best.ore--; const hollow=best.nat==='hollow'; if(hollow){ best.ore=0; UI.toast('It was hollow. Something rattles inside.','good'); } best.r=best.r0*(0.45+0.55*best.ore/best.ore0); this.place(field,best);
         if(heart){ G.stats.gems=(G.stats.gems||0)+1; UI.toast(`The heart of the rock: ${field.gem}. Worth about ${fmtCr(field.gemVal)}.`,'good'); if(Sfx.ok()) Sfx.beep(1320); }
-        if(best.ore<=0){ if(!heart) UI.toast('Rock cracked open and emptied','good'); Sfx.thump(0.4); G.stats.rocks=(G.stats.rocks||0)+1; if(Math.random()<0.12) this.find(field); Career.check(); } }
-    } else this.prog=Math.max(0,this.prog-dt*0.5);
+        if(best.ore<=0){ if(!heart&&!hollow) UI.toast('Rock cracked open and emptied','good'); Sfx.thump(0.4); G.stats.rocks=(G.stats.rocks||0)+1; if(hollow||Math.random()<0.12) this.find(field); Career.check(); } }
+    } else this.prog=Math.max(0,this.prog-dt*0.1);
     this.panel(field,best,g,on,busy);
   },
   /* the mining card in the corner: large words for what you are aimed at, how hot the laser is, and what to do next */
-  panel(F,best,g,on,busy){ const box=$('mine-panel'), show=!!F&&G.mode==='flight'; if(box.hidden===show) box.hidden=!show; if(!show) return;
+  panel(F,best,g,on,busy){ const box=$('mine-panel'), show=!!F&&G.mode==='flight'; if(box.hidden===show){ box.hidden=!show; document.body.classList.toggle('mining',show); } if(!show) return;
     const set=(id,t,cls)=>{ const e=$(id); if(e.textContent!==t) e.textContent=t; if(cls!=null&&e.className!==cls) e.className=cls; }, s=G.ship, k=best||g, used=this.used(), cap=holdCap();
     set('mine-t',`${F.name} · ${F.ore}`);
-    set('mine-rock',k?`${GRADES[k.g].n} rock · ${k.ore} ore${k.gem?' · has a heart':''} · ${fmtDist(Math.max(0,k.p.distanceTo(s.pos)-k.r))}`:'No rock picked');
+    set('mine-rock',k?this.describe(k):'No rock picked'); const c=this.crack, cb=$('mine-crack'); if(cb.hidden===!!c) cb.hidden=!c; if(c){ const z=$('mine-zone'), m=$('mine-mark'); z.style.left=(c.a*100)+'%'; z.style.width=((c.b-c.a)*100)+'%'; m.style.left=(Math.min(1,c.t/c.dur)*100)+'%'; }
+    const KF=TouchUI.on?'MINE':'F', heartNow=on&&best&&best.gem&&best.ore===1, anySeen=F.rocks.some(r=>r.seen);
     let say, cls='';
     if(used>=cap){ say='HOLD FULL · sell at an assay office'; cls='warn'; }
     else if(busy&&best){ say='Answer the call first'; cls='warn'; }
     else if(this.lock>0){ say=`LASER COOLING · ${Math.ceil(this.lock)} s`; cls='bad'; }
+    else if(c){ say=`CRACK! ${TouchUI.on?'tap CRACK':'press SPACE'} in the green`; cls='good'; }
+    else if(heartNow&&!(this.heat>=this.SWEET[1])){ say=this.heat<this.SWEET[0]?'THE HEART · warm the laser first':'THE HEART · hold it in the sweet spot'; cls=this.heat<this.SWEET[0]?'warn':'good'; }
+    else if(this.note){ say=this.note.text; cls=this.note.cls; }
     else if(on){ if(this.heat<this.SWEET[0]) say='CUTTING · warming up'; else if(this.heat<this.SWEET[1]){ say='SWEET SPOT · cutting fast'; cls='good'; } else { say=`TOO HOT · let go of ${TouchUI.on?'MINE':'F'}`; cls='bad'; } }
     else if(best){ say=this.heat>=this.SWEET[1]?'Cooling · wait a moment':`IN RANGE · hold ${TouchUI.on?'MINE':'F'} to cut`; cls=this.heat>=this.SWEET[1]?'warn':'good'; }
-    else if(g) say=G.sys.autopilot?'Autopilot is flying you to it':`Press ${TouchUI.on?'AUTO':'P'}: autopilot flies you there`;
+    else if(!anySeen) say=`Press ${TouchUI.on?'SURVEY':'R'} to survey the rocks`;
+    else if(g) say=G.sys.autopilot?`Flying you to it · ${TouchUI.on?'ROCK':'V'} picks another`:`Press ${TouchUI.on?'AUTO':'P'}: autopilot flies you there`;
     else say=`Hold ${TouchUI.on?'MINE':'F'} to start cutting`;
     set('mine-say',say,cls); set('mine-hold',`Hold ${used} of ${cap}`);
     const h=$('mine-heat'), w=Math.round(this.heat*100)+'%'; if(h.style.width!==w) h.style.width=w; const hc=this.heat>=this.SWEET[1]?'bad':this.heat>=this.SWEET[0]?'good':''; if(h.className!==hc) h.className=hc; },

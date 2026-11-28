@@ -20,6 +20,9 @@
         <button class="tb" id="t-warp" data-act="warp">Warp</button>
         <button class="tb" id="t-auto" data-act="auto">Auto</button>
         <button class="tb" id="t-mine" data-hold="KeyF">Mine</button>
+        <button class="tb mn" data-act="ping">Survey</button>
+        <button class="tb mn" data-act="rock">Rock</button>
+        <button class="tb mn" data-act="crack">Crack</button>
         <button class="tb" data-act="horn">Horn</button>
         <button class="tb" data-act="hail">Hail</button>
         <button class="tb" data-act="next">Next</button>
@@ -59,7 +62,7 @@
   <div id="alerts"><div id="deep-badge" hidden></div><div id="zone-badge" hidden></div>
     <div id="fault-badge" hidden></div>
     <div id="scoop-badge" hidden>Cargo scoop open</div>
-    <div id="mine-panel" hidden aria-live="off"><b id="mine-t"></b><div id="mine-rock"></div><div class="heat" aria-hidden="true"><i id="mine-heat"></i><u></u></div><div class="heat-lab" aria-hidden="true"><span>Laser heat</span><span>sweet spot</span></div><div id="mine-say"></div><div id="mine-hold"></div></div>
+    <div id="mine-panel" hidden aria-live="off"><b id="mine-t"></b><div id="mine-rock"></div><div class="heat" aria-hidden="true"><i id="mine-heat"></i><u></u></div><div class="heat-lab" aria-hidden="true"><span>Laser heat</span><span>sweet spot</span></div><div class="crack" id="mine-crack" hidden aria-hidden="true"><u id="mine-zone"></u><i id="mine-mark"></i></div><div id="mine-say"></div><div id="mine-hold"></div></div>
     <section id="dlg" hidden aria-label="Decision" aria-live="polite">
       <canvas id="dlg-face" width="192" height="192"></canvas>
       <div><div class="who" id="dlg-who"></div><div id="dlg-text"></div><div id="dlg-hint"></div><div id="dlg-time"><i id="dlg-bar"></i></div></div>
@@ -100,7 +103,7 @@
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.56</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.57</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
@@ -122,6 +125,7 @@
       <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
       <div><dt>M</dt><dd>System map</dd></div>
       <div><dt>F (hold)</dt><dd>Mining laser</dd></div>
+      <div><dt>R · V · Space</dt><dd>In an asteroid field: survey, choose a rock, strike a crack</dd></div>
       <div><dt>Double-click</dt><dd>Zoom in, and back out</dd></div>
       <div><dt>L</dt><dd>Walk around ship / return to cockpit</dd></div>
     </dl>
@@ -136,6 +140,7 @@
         <div><dt>Warp</dt><dd>Warp drive on / off</dd></div>
         <div><dt>Auto</dt><dd>Autopilot steers to your destination</dd></div>
         <div><dt>Mine (hold)</dt><dd>Mining laser, aimed at a rock in your sights</dd></div>
+        <div><dt>Survey · Rock · Crack</dt><dd>In an asteroid field: survey the rocks, choose one, strike a crack</dd></div>
         <div><dt>Horn</dt><dd>Sound the horn</dd></div>
         <div><dt>Hail</dt><dd>Talk to the nearest pilot</dd></div>
         <div><dt>Next</dt><dd>Next destination</dd></div>

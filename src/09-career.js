@@ -157,7 +157,7 @@ const Career = {
       M('met','Meet every regular',met,REGULARS.length),M('fr1','Become an old friend of one regular',friends,1),M('frall','Become an old friend of every regular',friends,REGULARS.length),
       M('ch1','Finish a story',S.chains,1),M('chall','Finish every story',S.chains,CHAINS.length),
       M('fix1','End a port\'s troubles',st.fixed|0,1),M('fix5','End five ports\' troubles',st.fixed|0,5),
-      M('ore1','Mine a first unit of ore',st.mined|0,1),M('ore100','Mine 100 units of ore',st.mined|0,100),M('gem','Cut out the heart of a rock',st.gems|0,1),M('fields','Visit every asteroid field',Object.keys(st.fields||{}).length,FIELDS.length),
+      M('ore1','Mine a first unit of ore',st.mined|0,1),M('ore100','Mine 100 units of ore',st.mined|0,100),M('gem','Cut out the heart of a rock',st.gems|0,1),M('crack','Make 10 clean breaks',st.cracks|0,10),M('fields','Visit every asteroid field',Object.keys(st.fields||{}).length,FIELDS.length),
       M('legs','Fly 10 different legs with cargo',nb,10),M('rec','Beat your own best time 5 times',S.recs,5),
       M('top','Own the '+SHIPS[SHIPS.length-1].name,G.shipId>=SHIPS.length-1?1:0,1),M('won','Eat at the Diner',G.won?1:0,1)]; },
   /* say so the first time each is reached. quiet: an old save is brought up to date without a string of pop-ups */
