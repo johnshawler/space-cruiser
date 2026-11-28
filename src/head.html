@@ -94,8 +94,13 @@ button:focus-visible,.opt:focus-visible{outline:2px solid var(--cyan);outline-of
 #loading{font-family:var(--mono);color:var(--dim);letter-spacing:.2em;font-size:24px;text-transform:uppercase}
 
 /* Port */
-#bubble{position:absolute;z-index:14;left:0;top:0;max-width:min(460px,42vw);background:#f6f2e6;color:#1d1a14;border-radius:20px;padding:12px 18px 14px;transform:translate(-22%,calc(-100% - 22px));pointer-events:auto;cursor:pointer;border:3px solid #2a2116}
-#bubble::after{content:'';position:absolute;left:22%;bottom:-19px;margin-left:-14px;border:14px solid transparent;border-top:18px solid #2a2116;border-bottom:0}
+#bubble{position:absolute;z-index:14;left:0;top:0;max-width:min(460px,42vw);background:#f6f2e6;color:#1d1a14;border-radius:20px;padding:12px 18px 14px;pointer-events:auto;cursor:pointer;border:3px solid #2a2116}
+#bubble::after{content:'';position:absolute;left:var(--tx,22%);bottom:-19px;margin-left:-14px;border:14px solid transparent;border-top:18px solid #2a2116;border-bottom:0}
+/* beside or below the head, the tail points at it from that side */
+#bubble.down::after{bottom:auto;top:-19px;border-top:0;border-bottom:18px solid #2a2116}
+#bubble.right::after,#bubble.left::after{bottom:auto;top:var(--ty,50%);margin:-14px 0 0;border:14px solid transparent}
+#bubble.right::after{left:-19px;border-left:0;border-right:18px solid #2a2116}
+#bubble.left::after{left:auto;right:-19px;border-right:0;border-left:18px solid #2a2116}
 #bubble .who{font-family:var(--mono);font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:#6b5a44}#bubble .say{font-size:26px;line-height:1.3;margin-top:2px}#bubble .qk{font-size:17px;font-style:italic;color:#6b5a44;margin-top:6px}
 #shelf-tip{position:absolute;z-index:16;pointer-events:none;background:rgba(6,10,14,.92);border:2px solid var(--amber);color:var(--ink);padding:10px 14px;font-size:22px;line-height:1.3;max-width:360px;transform:translate(16px,16px)}#shelf-tip b{color:var(--amber);display:block}#shelf-tip i{font-style:normal;color:var(--dim);font-size:18px}
 @media (max-width:900px){ #bubble .say{font-size:19px}#bubble .who,#bubble .qk{font-size:14px} }
