@@ -353,6 +353,39 @@ body.walking #keys,body.walking #t-thr{display:none}body.walking #t-btns .tb:not
 @media (max-width:700px){#port-bar{flex-wrap:wrap}#port .sub{display:none}#port-top{flex-wrap:wrap;margin-left:0;flex:1 1 100%}#port-top-btns{margin-left:auto}#port-tabs.dock{width:calc(100vw - 32px);grid-template-columns:1fr 1fr;column-gap:10px}#port-tabs.dock .arm{font-size:16px;padding:9px 10px}}
 @media (max-width:900px){#port-title{padding:8px 12px}#port h2{font-size:24px}#port .sub{font-size:14px}#port-foot .cr{font-size:22px}#port-foot{font-size:15px}#port-top{gap:8px;padding:8px}#port-top .btn{font-size:16px;padding:8px 10px}#port-top .big{font-size:18px;padding:10px 16px}#port .arm{font-size:16px;padding:8px 10px}#port .card{width:250px}}
 #help .gfx-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0;font-size:20px;color:var(--dim)}#help .gfx-row .btn{font-size:20px}
+/* Options: keys, mouse and controller. Same look as the flight manual, large text */
+#options{position:absolute;inset:0;z-index:40;background:rgba(2,4,8,.9);display:flex;align-items:center;justify-content:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#options .box{max-width:1280px;width:100%;max-height:100%;overflow:auto;box-sizing:border-box;border:1px solid var(--line);border-top:3px solid var(--amber);background:var(--glass);padding:0 28px 24px}
+#options header{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0 12px;background:#0a131c}
+#options h2{font-family:var(--display);letter-spacing:.2em;text-transform:uppercase;margin:0;font-size:36px}
+#options header .big{font-size:24px;padding:14px 30px}
+#opt-msg{position:sticky;top:84px;z-index:1;margin:0;min-height:1.45em;padding:4px 0 8px;background:#0a131c;font-size:24px;color:var(--good)}#opt-msg.warn{color:var(--amber)}
+#options h3{font-family:var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--amber);font-size:28px;margin:26px 0 10px}
+#options p.note{font-size:23px;line-height:1.45;color:var(--dim);margin:8px 0 12px;max-width:62ch}#options p.note b{color:var(--ink);font-weight:600}
+#options .orow{display:flex;flex-wrap:wrap;align-items:center;gap:12px 14px;font-size:24px;margin:12px 0}
+#options .orow>span:first-child{min-width:13em;color:var(--ink)}
+#options .orow .btn{font-size:22px;padding:10px 18px;background:rgba(8,15,23,.6)}
+#options .orow .btn.on{background:var(--cyan);color:#04121a}
+#options .orow .btn:hover:not(.on),#options .orow .btn:focus-visible:not(.on){background:rgba(98,226,255,.18)}
+#options input[type=range]{width:min(420px,60vw);height:40px;accent-color:var(--amber)}#options .orow b{font-family:var(--mono);font-size:26px;color:var(--amber);min-width:2.5em}
+#options table{border-collapse:collapse;width:100%;font-size:23px}
+#options th{text-align:left;font-family:var(--mono);color:var(--dim);font-weight:400;letter-spacing:.08em;padding:6px 8px;font-size:20px;text-transform:uppercase}
+#options td{padding:5px 8px;border-top:1px solid rgba(39,71,90,.6);color:var(--ink)}
+#options td.grp{color:var(--amber);font-family:var(--display);letter-spacing:.16em;text-transform:uppercase;padding-top:22px;border:0;font-size:24px}
+#options .slot{font-family:var(--mono);font-size:22px;min-width:7.5em;padding:9px 14px;background:rgba(8,15,23,.7);border:1px solid var(--line);color:var(--ink);border-radius:2px;cursor:pointer;text-align:left;white-space:nowrap}
+#options .slot:hover,#options .slot:focus-visible{border-color:var(--cyan);background:rgba(98,226,255,.12)}
+#options .slot.wait{border:2px solid var(--amber);color:var(--amber);background:rgba(255,180,84,.12)}#options .slot.none{color:var(--dim)}#options .slot:disabled{opacity:.55;cursor:default}
+/* a controller moving the focus: make the focus impossible to miss */
+body.pad-nav :focus{outline:4px solid var(--amber)!important;outline-offset:3px}
+/* relative mouse steering: the virtual stick, in the middle of the view */
+#msteer{position:absolute;left:50%;top:50%;width:180px;height:180px;margin:-90px 0 0 -90px;border:2px solid rgba(98,226,255,.55);border-radius:50%;pointer-events:none;z-index:8;box-shadow:0 0 0 1px rgba(2,4,8,.5)}
+#msteer::before{content:'';position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px;border:2px solid rgba(98,226,255,.45);border-radius:50%}
+#msteer i{position:absolute;left:50%;top:50%;width:24px;height:24px;margin:-12px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px rgba(255,180,84,.7)}
+#msteer span{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:12px;white-space:nowrap;font-family:var(--mono);font-size:20px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);text-shadow:0 1px 3px #000}
+@media (max-width:760px){ #options .box{padding:0 14px 16px}#options h2{font-size:26px}#options header .big{font-size:18px;padding:10px 18px}#opt-msg{top:66px;font-size:18px}#options h3{font-size:21px}
+  #options p.note,#options .orow{font-size:18px}#options .orow>span:first-child{min-width:0;width:100%}#options .orow .btn{font-size:17px}#options table{font-size:17px}#options th{font-size:15px}#options .slot{font-size:16px;min-width:0;width:100%;padding:8px 9px;white-space:normal;overflow-wrap:anywhere}#options .orow .btn{white-space:normal}
+  /* the key table stacks: the action's name, then its three boxes under it */
+  #options thead{display:none}#options tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px 0;border-top:1px solid rgba(39,71,90,.6)}#options td{padding:0;border:0}#options td:first-child{grid-column:1/-1}#options td.grp{padding-top:14px} }
 /* In flight, warnings, calls and notices share one narrow column in the top-left corner, so the view ahead stays clear */
 #alerts>*{max-width:100%}
 /* the mining card: what you are aimed at, how hot the laser is, what to do next */

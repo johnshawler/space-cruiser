@@ -5,7 +5,7 @@
   <div id="cine-title"><h2 id="cine-h"></h2><p id="cine-p"></p></div>
   <button id="skip" hidden>Skip ▸ Space</button>
   <div id="tooltip" hidden></div>
-  <div id="keys" hidden><span class="kb-only">? Help · O Pedia · M Map · I Hold · B Scoop · L Walk · P Autopilot</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
+  <div id="keys" hidden><span class="kb-only" data-k="? Help · {pedia} Pedia · {map} Map · {hold} Hold · {scoop} Scoop · {walk} Walk · {auto} Autopilot">? Help · O Pedia · M Map · I Hold · B Scoop · L Walk · P Autopilot</span><span class="touch-only">Drag the view to look · Double-tap a panel to lean in</span></div>
   <div id="caption" hidden aria-live="polite"></div>
 
   <div id="touch" aria-label="Touch controls">
@@ -103,12 +103,13 @@
   <section id="title">
     <div class="eyebrow">Nine worlds · four far stations · no questions</div>
     <h1>Long <span>Haul</span></h1>
-    <div class="byline">By John Shawler &amp; Claude · v0.57</div>
+    <div class="byline">By John Shawler &amp; Claude · v0.58</div>
     <p class="pitch">You own one tired freighter and a hold full of someone else's problems. Pick up cargo, cross the system, land, get paid. Buy a better ship. Talk to the neighbours.</p>
     <div class="row">
       <button class="big" id="btn-new" disabled>Loading…</button>
       <button class="big ghost" id="btn-continue" hidden>Continue</button>
       <button class="big ghost" id="btn-pedia">Haul-O-Pedia</button>
+      <button class="big ghost" id="btn-options">Options</button>
     </div>
     <dl class="touch-only">
       <div><dt>Left stick</dt><dd>Steer</dd></div>
@@ -118,19 +119,27 @@
       <div><dt>Walk · Seat</dt><dd>Walk around ship / return to cockpit</dd></div>
     </dl>
     <dl class="kb-only">
-      <div><dt>W A S D</dt><dd>Steer</dd></div>
+      <div><dt data-k="{pitchUp} {yawLeft} {pitchDown} {yawRight}">W A S D</dt><dd>Steer</dd></div>
       <div><dt>1 – 0</dt><dd>Throttle, slow to full</dd></div>
-      <div><dt>Z</dt><dd>Warp drive</dd></div>
-      <div><dt>T</dt><dd>Next destination</dd></div>
-      <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
-      <div><dt>M</dt><dd>System map</dd></div>
-      <div><dt>F (hold)</dt><dd>Mining laser</dd></div>
-      <div><dt>R · V · Space</dt><dd>In an asteroid field: survey, choose a rock, strike a crack</dd></div>
+      <div><dt data-k="{warp}">Z</dt><dd>Warp drive</dd></div>
+      <div><dt data-k="{next}">T</dt><dd>Next destination</dd></div>
+      <div><dt data-k="{hail}">H</dt><dd>Hail nearest pilot</dd></div>
+      <div><dt data-k="{map}">M</dt><dd>System map</dd></div>
+      <div><dt data-k="{mine} (hold)">F (hold)</dt><dd>Mining laser</dd></div>
+      <div><dt data-k="{survey} · {rock} · {strike}">R · V · Space</dt><dd>In an asteroid field: survey, choose a rock, strike a crack</dd></div>
       <div><dt>Double-click</dt><dd>Zoom in, and back out</dd></div>
-      <div><dt>L</dt><dd>Walk around ship / return to cockpit</dd></div>
+      <div><dt data-k="{walk}">L</dt><dd>Walk around ship / return to cockpit</dd></div>
     </dl>
   </section>
 
+  <section id="options" hidden aria-label="Options">
+    <div class="box">
+      <header><h2>Options</h2><button class="big" id="opt-close">Done</button></header>
+      <p id="opt-msg" aria-live="polite"></p>
+      <div id="opt-body"></div>
+    </div>
+  </section>
+  <div id="msteer" hidden aria-hidden="true"><i id="msteer-dot"></i><span>Mouse steering · Esc frees the mouse</span></div>
   <section id="help" hidden>
     <div class="box">
       <h2>Flight manual</h2>
@@ -154,32 +163,34 @@
         <div><dt>Tap or drag</dt><dd>Work any knob, switch or lever in the cockpit</dd></div>
       </dl>
       <dl class="kb-only">
-        <div><dt>W / S</dt><dd>Pitch up / down</dd></div>
-        <div><dt>A / D</dt><dd>Yaw left / right</dd></div>
-        <div><dt>Q / E</dt><dd>Roll</dd></div>
+        <div><dt data-k="{pitchUp} / {pitchDown}">W / S</dt><dd>Pitch up / down</dd></div>
+        <div><dt data-k="{yawLeft} / {yawRight}">A / D</dt><dd>Yaw left / right</dd></div>
+        <div><dt data-k="{rollLeft} / {rollRight}">Q / E</dt><dd>Roll</dd></div>
         <div><dt>1 – 9, 0</dt><dd>Throttle 1 (slowest) to 10</dd></div>
-        <div><dt>X</dt><dd>Full stop</dd></div>
-        <div><dt>Z</dt><dd>Warp drive on / off</dd></div>
-        <div><dt>T / Shift+T</dt><dd>Next / previous destination</dd></div>
-        <div><dt>P</dt><dd>Autopilot (steers to destination)</dd></div>
-        <div><dt>H</dt><dd>Hail nearest pilot</dd></div>
-        <div><dt>G</dt><dd>Horn</dd></div>
+        <div><dt data-k="{stop}">X</dt><dd>Full stop</dd></div>
+        <div><dt data-k="{warp}">Z</dt><dd>Warp drive on / off</dd></div>
+        <div><dt data-k="{next} / Shift+{next}">T / Shift+T</dt><dd>Next / previous destination</dd></div>
+        <div><dt data-k="{auto}">P</dt><dd>Autopilot (steers to destination)</dd></div>
+        <div><dt data-k="{hail}">H</dt><dd>Hail nearest pilot</dd></div>
+        <div><dt data-k="{horn}">G</dt><dd>Horn</dd></div>
         <div><dt>Drag / arrows</dt><dd>Look around</dd></div>
-        <div><dt>M</dt><dd>System map (click a world to set destination)</dd></div>
-        <div><dt>N</dt><dd>Cabin music on / off</dd></div>
-        <div><dt>F (hold)</dt><dd>Mining laser, aimed at a rock in your sights</dd></div>
-        <div><dt>I</dt><dd>Cargo hold: see your cargo and drop any of it</dd></div>
-        <div><dt>B</dt><dd>Cargo scoop open / closed (slow down to scoop)</dd></div>
-        <div><dt>L</dt><dd>Leave the seat and walk around the ship; L at the cockpit door to sit</dd></div>
-        <div><dt>Walking</dt><dd>W A S D to move, Q / E to turn, drag or arrows to look, hold F to repair, F to chat</dd></div>
+        <div><dt>Options</dt><dd>Change any key, steer with the mouse, or fly with a controller</dd></div>
+        <div><dt data-k="{map}">M</dt><dd>System map (click a world to set destination)</dd></div>
+        <div><dt data-k="{music}">N</dt><dd>Cabin music on / off</dd></div>
+        <div><dt data-k="{mine} (hold)">F (hold)</dt><dd>Mining laser, aimed at a rock in your sights</dd></div>
+        <div><dt data-k="{hold}">I</dt><dd>Cargo hold: see your cargo and drop any of it</dd></div>
+        <div><dt data-k="{scoop}">B</dt><dd>Cargo scoop open / closed (slow down to scoop)</dd></div>
+        <div><dt data-k="{walk}">L</dt><dd>Leave the seat and walk around the ship; L at the cockpit door to sit</dd></div>
+        <div><dt>Walking</dt><dd data-k="{pitchUp} {yawLeft} {pitchDown} {yawRight} to move, {rollLeft} / {rollRight} to turn, drag or arrows to look, hold {mine} to repair, {mine} to chat">W A S D to move, Q / E to turn, drag or arrows to look, hold F to repair, F to chat</dd></div>
         <div><dt>1 – 4</dt><dd>Pick an answer when a message pops up</dd></div>
         <div><dt>Double-click</dt><dd>Zoom on that part of the cockpit; again to return</dd></div>
-        <div><dt>C / Esc</dt><dd>Centre the view</dd></div>
+        <div><dt data-k="{centre} / Esc">C / Esc</dt><dd>Centre the view</dd></div>
         <div><dt>Click, drag, scroll</dt><dd>Work any knob, switch or lever</dd></div>
       </dl>
       <p class="note">Point at your destination, set throttle, press Z. The drive drops out by itself near a planet. Fly on toward it and the port brings you down automatically. Deliveries pay on landing.</p>
       <p class="note">Side work: answer maydays (or don't), mine the asteroid fields on the map and sell the ore at an assay office, take risky contraband runs, or escort nervous VIPs. Your reputation changes what people pay you and how hard customs look at you.</p>
       <p class="gfx-row"><button class="btn" id="gfx-toggle"></button> <span id="gfx-note"></span></p>
+      <button class="big ghost" id="help-options">Options: keys, mouse, controller</button>
       <button class="big ghost" id="help-pedia">Open the Haul-O-Pedia</button>
       <button class="big" id="help-close">Back to the cockpit</button>
     </div>

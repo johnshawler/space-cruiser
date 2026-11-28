@@ -9,7 +9,7 @@ window.G = G;
 
 const Game = {
   clock:new THREE.Clock(), time:0, flash:0, fade:0, fadeCol:new THREE.Color(0,0,0), towFee:0, towing:false, hintT:0, hintI:99, mk:0,
-  HINTS:[[2.5,'Steer with W A S D until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press Z for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in, and again to lean back. Every control works'],[38,'H hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically'],[66,'M opens the system map. Click a world there to set your destination'],[84,'Asteroid fields are on the map. Hold F with a rock in your sights to mine ore']],
+  HINTS:[[2.5,'Steer with {pitchUp} {yawLeft} {pitchDown} {yawRight} until the amber marker is dead ahead'],[11,'Throttle 1 to 0. Press {warp} for warp once the nav screen says aligned'],[24,'Double-click any panel to lean in, and again to lean back. Every control works'],[38,'{hail} hails the nearest pilot. The translator is on the glare shield'],[52,'Fly at a planet and the port lands you automatically'],[66,'{map} opens the system map. Click a world there to set your destination'],[84,'Asteroid fields are on the map. Hold {mine} with a rock in your sights to mine ore']],
   THINTS:[[2.5,'Steer with the stick on the left until the amber marker is dead ahead'],[11,'Slide the throttle on the right. Tap WARP once the nav screen says aligned'],[24,'Double-tap any panel to lean in, and double-tap open space to lean back. Every control works'],[38,'HAIL calls the nearest pilot. What they say shows at the top of the screen'],[52,'Fly at a planet and the port lands you automatically'],[66,'MAP opens the system map. Tap a world there to set your destination'],[84,'Asteroid fields are on the map. Hold MINE with a rock in your sights to mine ore']],
 
   /* the player's paint job (from a paint shop) on top of the ship's factory finish */
@@ -93,7 +93,9 @@ const Game = {
 
   updateFlight(dt){
     const s=G.ship, def=SHIPS[G.shipId], K=G.keys, sys=G.sys;
-    let cp=(K.KeyW?1:0)-(K.KeyS?1:0), cy=(K.KeyA?1:0)-(K.KeyD?1:0), cr=(K.KeyQ?1:0)-(K.KeyE?1:0); if(!cp&&!cy&&!TouchUI.stale){ cp=TouchUI.stick.y; cy=-TouchUI.stick.x; } if(sys.invert) cp=-cp; if(!sys.power||Walk.on) cp=cy=cr=0;
+    let cp=(K.KeyW?1:0)-(K.KeyS?1:0), cy=(K.KeyA?1:0)-(K.KeyD?1:0), cr=(K.KeyQ?1:0)-(K.KeyE?1:0); if(!cp&&!cy&&!TouchUI.stale){ cp=TouchUI.stick.y; cy=-TouchUI.stick.x; }
+    { const A=Controls.an, M=Controls.ms; cp=clamp(cp+A.pitchUp-A.pitchDown+M.oy,-1,1); cy=clamp(cy+A.yawLeft-A.yawRight-M.ox,-1,1); cr=clamp(cr+A.rollLeft-A.rollRight,-1,1); }
+    if(sys.invert) cp=-cp; if(!sys.power||Walk.on) cp=cy=cr=0;
     if(sys.autopilot&&sys.power&&!cp&&!cy&&!cr){ const v=Cockpit.targetLocal().v; cy=clamp(-v.x*4,-1,1); cp=clamp(v.y*4,-1,1); if(v.z>0) cy=v.x<0?1:-1; }
     s.ctl.set(cp,cy,cr); const rate=def.turn*(1-0.82*s.warpF);
     s.angVel.x=damp(s.angVel.x,cp*rate,4.5,dt); s.angVel.y=damp(s.angVel.y,cy*rate,4.5,dt); s.angVel.z=damp(s.angVel.z,cr*rate*1.6,4.5,dt);
@@ -113,7 +115,7 @@ const Game = {
   },
   syncCamera(dt){
     const H=G.head, s=G.ship, K=G.keys;
-    if(G.mode==='flight'){ if(K.ArrowLeft) H.yawT+=dt*1.5; if(K.ArrowRight) H.yawT-=dt*1.5; if(K.ArrowUp) H.pitchT+=dt*1.2; if(K.ArrowDown) H.pitchT-=dt*1.2; H.yawT=clamp(H.yawT,-2.5,2.5); H.pitchT=clamp(H.pitchT,-1.25,1.3); }
+    if(G.mode==='flight'){ if(K.ArrowLeft) H.yawT+=dt*1.5; if(K.ArrowRight) H.yawT-=dt*1.5; if(K.ArrowUp) H.pitchT+=dt*1.2; if(K.ArrowDown) H.pitchT-=dt*1.2; if(!Walk.on){ const A=Controls.an; H.yawT+=dt*2.2*(A.lookLeft-A.lookRight); H.pitchT+=dt*1.6*(A.lookUp-A.lookDown); } H.yawT=clamp(H.yawT,-2.5,2.5); H.pitchT=clamp(H.pitchT,-1.25,1.3); }
     H.yaw=damp(H.yaw,H.yawT,9,dt); H.pitch=damp(H.pitch,H.pitchT,9,dt); H.pos.lerp(H.posT,1-Math.exp(-dt*7)); H.fov=damp(H.fov,H.fovT+(H.zoomed?0:s.warpF*24),5,dt);
     const q=s.quat.clone().multiply(new Q4().setFromEuler(new THREE.Euler(H.pitch,H.yaw,0,'YXZ'))), p=H.pos.clone(), sh=s.warpF*0.003+this.flash*0.012;
     p.x+=(Math.random()-0.5)*sh; p.y+=(Math.random()-0.5)*sh; p.applyQuaternion(s.quat);
@@ -131,11 +133,11 @@ const Game = {
     requestAnimationFrame(()=>this.loop()); this.frame(Math.min(this.clock.getDelta(),0.05));
   },
   frame(dt){
-    const t=this.time+=dt, s=G.ship; let fov=72;
+    const t=this.time+=dt, s=G.ship; let fov=72; Controls.update(dt);
     if(G.mode==='flight'){
       G.playTime+=dt; this.updateFlight(dt);
       if(G.mode==='flight'){ Ev.update(dt); Npc.update(dt,t); Radio.update(dt); Comms.update(dt); Cockpit.update(dt,t); Cargo.tick(dt); Faults.update(dt); Mech.update(dt); Restaurant.update(dt,t); Pedia.update(dt); Throttle.update(dt); this.syncCamera(dt); if(Walk.on){ Walk.update(dt,t); Walk.camera(); } World.updateDust(s.vel,dt,s.warpF); fov=Walk.on?74:G.head.fov;
-        const HS=TouchUI.on?this.THINTS:this.HINTS; if(this.hintI<HS.length&&!Walk.on){ this.hintT+=dt; if(this.hintT>HS[this.hintI][0]) UI.toast(HS[this.hintI++][1]); } }
+        const HS=TouchUI.on?this.THINTS:this.HINTS; if(this.hintI<HS.length&&!Walk.on){ this.hintT+=dt; if(this.hintT>HS[this.hintI][0]) UI.toast(TouchUI.on?HS[this.hintI++][1]:Controls.fill(HS[this.hintI++][1])); } }
     } else if(G.mode==='title'){
       s.quat.multiply(new Q4().setFromEuler(new THREE.Euler(0,dt*0.004,dt*0.006))); Cockpit.update(dt,t); this.syncCamera(dt); World.updateDust(new V3(0,0,-1).applyQuaternion(s.quat).multiplyScalar(160),dt,0); fov=G.head.fov;
     }
@@ -175,9 +177,17 @@ const Game = {
   },
   bind(){
     const help=on=>{ $('help').hidden=!on; };
+    // a key becomes its action's own code (see Controls), so a rebound key works everywhere the old one did
     window.addEventListener('keydown',e=>{
-      if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return; const c=e.code;
-      if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(c)) e.preventDefault();
+      if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; Controls.last='key'; if(Controls.navOn) Controls.padNav(false);
+      if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+      const c=Controls.code(e.code); if(c) this.onKey(e,c); });
+    window.addEventListener('keyup',e=>{ const c=Controls.code(e.code); if(c) this.keyUp(c); });
+  },
+  keyUp(c){ G.keys[c]=false; Walk.stale.delete(c); },
+  onKey(e, c){
+      const help=on=>{ $('help').hidden=!on; };
+      if(Controls.open) return;
       if(Pedia.open){ if(c==='Escape'||c==='KeyO'){ Pedia.close(); e.preventDefault(); } return; }
       if(c==='KeyO'&&!e.repeat&&!(e.metaKey||e.ctrlKey||e.altKey)&&G.mode!=='boot'&&$('help').hidden){ Pedia.toggle(); e.preventDefault(); return; }
       if(!$('help').hidden){ if(c==='Escape'||c==='Slash'||c==='F1'){ help(false); e.preventDefault(); } return; }
@@ -194,17 +204,19 @@ const Game = {
       if(c==='KeyB'&&!e.repeat&&G.mode==='flight'){ Scoop.toggle(); return; }
       // keys still held from walking (W A S D Q E, arrows) must not start flying the ship once you sit: ignore them until let go
       if(c==='KeyL'&&!e.repeat&&G.mode==='flight'){ const held=Object.keys(G.keys).filter(k=>G.keys[k]), was=Walk.on; G.keys={}; Walk.toggle(); if(was&&!Walk.on) held.forEach(k=>Walk.stale.add(k)); return; }
-      if(Walk.on&&G.mode==='flight'){ if(!e.repeat) G.keys[c]=true; if(/^(Key[XZTPHGC]|Digit\d|Numpad\d)$/.test(c)&&!e.repeat) UI.toast(`You need to be in the pilot's seat for that. ${TouchUI.on?'Tap Seat':'Press L'}.`,'warn'); if(c==='Escape'){ const held=Object.keys(G.keys).filter(k=>G.keys[k]); Walk.toggle(); if(!Walk.on){ G.keys={}; held.forEach(k=>Walk.stale.add(k)); } } return; }
+      if(Walk.on&&G.mode==='flight'){ if(!e.repeat) G.keys[c]=true; if(/^(Key[XZTPHGC]|Digit\d|Numpad\d)$/.test(c)&&!e.repeat) UI.toast(`You need to be in the pilot's seat for that. ${TouchUI.on?'Tap Seat':'Press '+Controls.k('walk')}.`,'warn'); if(c==='Escape'){ const held=Object.keys(G.keys).filter(k=>G.keys[k]); Walk.toggle(); if(!Walk.on){ G.keys={}; held.forEach(k=>Walk.stale.add(k)); } } return; }
       if(Walk.stale.has(c)) return;
-      if(G.mode!=='flight'||e.repeat&&!/^Key[WASDQE]$|^Arrow/.test(c)) return; G.keys[c]=true; if(e.metaKey||e.ctrlKey||e.altKey) return;
+      if(G.mode!=='flight'||e.repeat&&!/^Key[WASDQE]$|^Arrow|^Thr/.test(c)) return; G.keys[c]=true; if(e.metaKey||e.ctrlKey||e.altKey) return;
       const dm=c.match(/^(?:Digit|Numpad)(\d)$/);
       if(dm){ const n=+dm[1]; if(Comms.open&&n>=1&&n<=5) Comms.choose(n-1); else this.setThrottle(n===0?10:n); return; }
       switch(c){ case 'KeyX': this.setThrottle(0); break; case 'KeyZ': this.toggleWarp(); break; case 'KeyT': this.setTarget(G.target+(e.shiftKey?-1:1)); break; case 'KeyP': this.setAutopilot(!G.sys.autopilot); break;
-        case 'KeyH': Comms.hail(); break; case 'KeyG': this.honk(); break; case 'KeyC': Cockpit.zoomOut(); break; case 'Escape': if(Comms.open) Comms.close(); else if(!Throttle.hideBanner()) Cockpit.zoomOut(); break;
+        case 'KeyH': Comms.hail(); break; case 'KeyG': this.honk(); break; case 'KeyC': Cockpit.zoomOut(); Controls.ms.x=Controls.ms.y=0; break;
+        case 'ThrUp': this.setThrottle(G.ship.throttle+1); break; case 'ThrDown': this.setThrottle(G.ship.throttle-1); break; case 'Escape': if(Comms.open) Comms.close(); else if(!Throttle.hideBanner()) Cockpit.zoomOut(); break;
         case 'KeyR': Mining.ping(); break; case 'KeyV': Mining.next(); break; case 'Space': Mining.strike(); break;
         case 'KeyN': G.sys.music=G.sys.music>0.02?0:0.45; Sfx.setMusicVol(G.sys.music); break; }
-    });
-    window.addEventListener('keyup',e=>{ G.keys[e.code]=false; Walk.stale.delete(e.code); });
+  },
+  bindRest(){
+    const help=on=>{ $('help').hidden=!on; };
     // in port, the goods shelf answers the mouse: hover for what it is, click to open its contract
     { const gl=$('gl'), tip=$('shelf-tip'); let down=null; const nd=e=>{ const r=gl.getBoundingClientRect(); return new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); };
       const show=(j,e)=>{ if(!j){ if(!tip.hidden) tip.hidden=true; gl.style.cursor=''; Venues.hoverShelf(null); return; } Venues.hoverShelf(j); gl.style.cursor='pointer'; tip.hidden=false;
@@ -226,7 +238,7 @@ const Game = {
   async boot(){
     try{ await Promise.race([document.fonts&&document.fonts.load?Promise.all([document.fonts.load(`600 20px ${FONT_DISP}`),document.fonts.load(`20px ${FONT_MONO}`)]):0,new Promise(r=>setTimeout(r,2500))]); }catch(e){}
     try{ World.init($('gl')); Mining.build(); }catch(err){ console.error(err); const b=$('btn-new'); b.textContent='This browser cannot start WebGL'; return; }
-    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); Pedia.bind(); this.bind(); TouchUI.init(); this.setupTitle(); this.loop();
+    Cockpit.build(SHIPS[0]); Cockpit.bindInput($('gl')); SysMap.bind(); Pedia.bind(); Controls.init(); this.bind(); this.bindRest(); TouchUI.init(); this.setupTitle(); this.loop();
   },
 };
 Game.boot();

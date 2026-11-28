@@ -64,7 +64,7 @@ const Faults = {
   speedMul(){ return (this.has('thruster')?0.6:1)*(this.has('seal')?0.8:1); },
   lagMul(c){ return c.kind==='pax'?(this.has('scrubber')?2:1):(this.has('strap')?2:1); },
   add(id, why){ const L=this.list(); if(!id||L.includes(id)) return; L.push(id); Pedia.fault(id); const d=FAULT_DEFS[id];
-    UI.toast(`⚠ ${d.name} in the ${this.room(id)}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${d.garage?'Only a garage can weld it shut.':(TouchUI.on?'Tap Walk':'Press L')+' to go and fix it.'}`,'warn');
+    UI.toast(`⚠ ${d.name} in the ${this.room(id)}${why?' ('+why+')':''}. ${d.effect[0].toUpperCase()+d.effect.slice(1)}. ${d.garage?'Only a garage can weld it shut.':(TouchUI.on?'Tap Walk':'Press '+Controls.k('walk'))+' to go and fix it.'}`,'warn');
     if(Sfx.ok()){ Sfx.beep(880); setTimeout(()=>Sfx.beep(880),220); } Interior.syncFaults(); this.badge(); },
   /* which faults have been mended on this hull: a mended fitting shows its field repair from then on */
   mended(id){ return (G.fixed||[]).includes(id); },
@@ -584,7 +584,7 @@ const Walk = {
     const lift=layout.lifts.find(l=>l.decks.includes(this.level)&&Math.abs(this.pos.x-l.position[0])<l.size[0]*.46&&Math.abs(this.pos.z-l.position[1])<l.size[1]*.46);
     const held=!!G.keys.KeyF; if(!held) this.liftLock=false; if(!lift) return false;
     const next=lift.decks.find(i=>i!==this.level), prompt=$('prompt');
-    prompt.hidden=false; prompt.innerHTML=`<b>Lift</b><span>${TouchUI.on?'Tap Fix':'Press F'} for the ${esc(layout.levels[next].name)}</span>`;
+    prompt.hidden=false; prompt.innerHTML=`<b>Lift</b><span>${TouchUI.on?'Tap Fix':'Press '+Controls.k('mine')} for the ${esc(layout.levels[next].name)}</span>`;
     if(held&&!this.liftLock){
       this.liftLock=true; this.level=next; this.pos.set(lift.position[0],layout.levels[next].floor+EYE-FLOOR,lift.position[1]);
       Sfx.clunk(); UI.toast(layout.levels[next].name);
@@ -600,7 +600,7 @@ const Walk = {
     this.on=true; $('tooltip').hidden=true; this.tr=0; this.trDir=1; this.pos.set(0,EYE,1.25); this.yaw=Math.PI; this.pitch=-0.05; this.hold=0;
     this.level=0; if(Interior.fitted) this.boardFitted();
     Interior.group.visible=true; Interior.syncCargo(); Interior.syncFaults(); document.body.classList.add('walking'); Sfx.clunk();
-    if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat at the cockpit door to sit down.':'Walking. W A S D to move, Q and E to turn, drag to look, hold F to fix things, L at the cockpit door to sit down.','good'); }
+    if(!this.told){ this.told=true; UI.toast(TouchUI.on?'Walking. Left stick to move, drag to look, hold Fix to repair things, Seat at the cockpit door to sit down.':Controls.fill(Controls.last==='pad'&&Controls.pad?'Walking. Left stick to move, right stick to look, hold {mine} to fix things, {walk} at the cockpit door to sit down.':'Walking. {pitchUp} {yawLeft} {pitchDown} {yawRight} to move, {rollLeft} and {rollRight} to turn, drag to look, hold {mine} to fix things, {walk} at the cockpit door to sit down.'),'good'); }
     TouchUI.sync&&TouchUI.sync(true); },
   exit(instant){
     if(!this.on) return; this.on=false; Radio.cur=null; if(TouchUI.stick.x||TouchUI.stick.y) TouchUI.stale=true; setTimeout(()=>Dlg.flush(),900); document.body.classList.remove('walking'); $('reticle').hidden=true; $('prompt').hidden=true; Cockpit.setDoor(0);
@@ -609,7 +609,10 @@ const Walk = {
   update(dt, t){
     if(!this.on) return; const K=G.keys, s=G.ship;
     if(K.ArrowLeft||K.KeyQ) this.yaw+=dt*1.9; if(K.ArrowRight||K.KeyE) this.yaw-=dt*1.9; if(K.ArrowUp) this.pitch=Math.min(1.2,this.pitch+dt*1.4); if(K.ArrowDown) this.pitch=Math.max(-1.2,this.pitch-dt*1.4);
-    let f=(K.KeyW?1:0)-(K.KeyS?1:0), r=(K.KeyD?1:0)-(K.KeyA?1:0); if(!f&&!r){ f=TouchUI.stick.y; r=TouchUI.stick.x; } if(f<0) f*=0.5; // nobody walks backwards quickly without falling over something
+    let f=(K.KeyW?1:0)-(K.KeyS?1:0), r=(K.KeyD?1:0)-(K.KeyA?1:0); const A=Controls.an;
+    if(!f&&!r){ f=A.pitchUp-A.pitchDown; r=A.yawRight-A.yawLeft; } if(Math.abs(f)+Math.abs(r)<0.05){ f=TouchUI.stick.y; r=TouchUI.stick.x; }
+    // the controller's right stick looks, its shoulder buttons turn
+    this.yaw+=dt*(2.4*(A.lookLeft-A.lookRight)+1.9*(A.rollLeft-A.rollRight)); this.pitch=clamp(this.pitch+dt*1.6*(A.lookUp-A.lookDown),-1.2,1.2); if(f<0) f*=0.5; // nobody walks backwards quickly without falling over something
     const sp=(K.ShiftLeft||K.ShiftRight?4.4:2.8), fx=-Math.sin(this.yaw), fz=-Math.cos(this.yaw), rx=Math.cos(this.yaw), rz=-Math.sin(this.yaw);
     let mx=(fx*f+rx*r)*sp*dt, mz=(fz*f+rz*r)*sp*dt; const p=this.pos;
     if(Interior.inside(p.x+mx,p.z+mz)){ p.x+=mx; p.z+=mz; } else if(Interior.inside(p.x+mx,p.z)) p.x+=mx; else if(Interior.inside(p.x,p.z+mz)) p.z+=mz;
@@ -629,14 +632,14 @@ const Walk = {
     if(!best) best=Mech.aim(eye,dir);
     const pr=$('prompt'), K=G.keys, held=!!K.KeyF;
     if(!best){ this.hold=0; this.target=null;
-      if(this.atDoor()){ pr.hidden=false; pr.innerHTML=`<b>Cockpit</b><span>${TouchUI.on?'Tap Seat':'Press L'} to sit down</span>`; } else pr.hidden=true; return; }
+      if(this.atDoor()){ pr.hidden=false; pr.innerHTML=`<b>Cockpit</b><span>${TouchUI.on?'Tap Seat':'Press '+Controls.k('walk')} to sit down</span>`; } else pr.hidden=true; return; }
     if(best.kind==='fault'&&FAULT_DEFS[best.id].garage){ this.target=null; this.hold=0; pr.hidden=false; pr.innerHTML=`<b>${esc(FAULT_DEFS[best.id].name)}</b><span>Too big to patch from in here. Only a garage can weld it shut.</span>`; return; }
     if(best.kind==='fault'){ const D=FAULT_DEFS[best.id], s=G.ship, rough=s.throttle>5||s.warpF>0.2, rate=rough?0.35:1, need=2.6;
       if(this.target!==best.id){ this.target=best.id; this.hold=0; }
       if(held){ this.hold+=dt*rate; if(Math.floor(this.hold*3)!==Math.floor((this.hold-dt*rate)*3)) Sfx.click(); if(this.hold>=need){ Faults.fix(best.id); this.hold=0; pr.hidden=true; return; } } else this.hold=Math.max(0,this.hold-dt*2);
-      pr.hidden=false; pr.innerHTML=`<b>${esc(D.name)}</b><span>${TouchUI.on?'Hold Fix':'Hold F'} to repair${rough?' · the ship is shaking: throttle 5 or below to work faster':''}</span><i style="width:${Math.round(this.hold/need*100)}%"></i>`; }
+      pr.hidden=false; pr.innerHTML=`<b>${esc(D.name)}</b><span>${TouchUI.on?'Hold Fix':'Hold '+Controls.k('mine')} to repair${rough?' · the ship is shaking: throttle 5 or below to work faster':''}</span><i style="width:${Math.round(this.hold/need*100)}%"></i>`; }
     else if(best.kind==='mech'){ this.target=null; Mech.prompt(pr,held); }
-    else { const c=best.F.userData.cargo, who=c.kind==='escort'?c.vip.title:c.good; this.target=null; pr.hidden=false; pr.innerHTML=`<b>${esc(who)}</b><span>${TouchUI.on?'Tap Fix':'Press F'} to chat · going to ${esc(PLANETS[c.to].name)}</span>`;
+    else { const c=best.F.userData.cargo, who=c.kind==='escort'?c.vip.title:c.good; this.target=null; pr.hidden=false; pr.innerHTML=`<b>${esc(who)}</b><span>${TouchUI.on?'Tap Fix':'Press '+Controls.k('mine')} to chat · going to ${esc(PLANETS[c.to].name)}</span>`;
       if(held&&!this.chatLock){ this.chatLock=true; setTimeout(()=>{ this.chatLock=false; },2500); const S=SPECIES[c.kind==='escort'?c.vip.sp:c.sp], f=Cargo.factor(c);
         const line=Faults.has('scrubber')?pick(["It is very stuffy back here. Is the air meant to be this chewy?","Something is wrong with the air. It tastes of feet. Not my feet."]):f<1?pick([`Are we nearly at ${PLANETS[c.to].name}? We were meant to be there ages ago.`,"I am not paying full fare for this. I am barely paying any fare for this.","I could have walked. I cannot walk in space, but I would have tried."]):fill(pick(S.chat),{planet:PLANETS[c.to].name,good:pick(GOODS)[0]});
         if(c.kind==='escort'){ Escort.chat(); const v=c.vip; Radio.play({sp:v.sp,seed:v.seed,name:v.title,english:Escort.hazard?pick(["Is it the pirates? It is the pirates. Do something with the horn!","Why is everything shaking? Is shaking normal? Tell me shaking is normal."]):pick(["Thank you for checking on me. I feel slightly less doomed.","Is the ship meant to make that noise? Never mind. I trust you. Mostly.","When we land, I shall mention you favourably in my memoirs. Chapter nine, probably."])}); return; }

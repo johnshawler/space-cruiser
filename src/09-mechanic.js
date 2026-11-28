@@ -110,7 +110,7 @@ const Mech = {
     this.ph+=dt*7.5; U.rig.rotation.x=0; U.head.rotation.x=0; Folk.walk(F,this.ph,0.9); },
   /* looked at from close by: a word with the mechanic */
   aim(eye, dir){ const F=this.F; if(!F||!F.visible||!G.mech||(Interior.fitted&&this.level!==Walk.level)) return null; const q=new V3(); F.getWorldPosition(q); Interior.group.worldToLocal(q); q.y+=0.75; const to=q.sub(eye), d=to.length(), dot=to.normalize().dot(dir); return d<3.2&&dot>0.85?{kind:'mech',d}:null; },
-  prompt(pr, held){ const m=G.mech, T=this.tier(m); pr.hidden=false; pr.innerHTML=`<b>${esc(m.name)}</b><span>Your mechanic · ${TouchUI.on?'Tap Fix':'Press F'} to chat${this.status()?' · '+esc(this.st==='work'?'working':'on the way'):''}</span>`;
+  prompt(pr, held){ const m=G.mech, T=this.tier(m); pr.hidden=false; pr.innerHTML=`<b>${esc(m.name)}</b><span>Your mechanic · ${TouchUI.on?'Tap Fix':'Press '+Controls.k('mine')} to chat${this.status()?' · '+esc(this.st==='work'?'working':'on the way'):''}</span>`;
     if(held&&!this.chatLock){ this.chatLock=true; setTimeout(()=>{ this.chatLock=false; },2500);
       const line=G.credits<this.wage(m)&&Faults.list().length?`I am owed ${this.wage(m)} credits a job. I checked. I have a little book.`:Deck.deal('m:chat:'+this.st,MECH_LINES[this.st==='work'?'working':this.st==='going'?'going':'idle']);
       Radio.play({sp:m.sp,seed:m.seed,name:`${m.name} · ${T.label} mechanic`,english:line}); } },

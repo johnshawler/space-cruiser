@@ -373,7 +373,7 @@ const Cockpit = {
       x.textAlign='left'; const row=(lab,val,y,col)=>{ x.fillStyle='#5f8fa0'; x.font=`42px ${FONT_MONO}`; x.fillText(lab,226,y); x.fillStyle=col||'#dcedf3'; x.font=`60px ${FONT_MONO}`; x.fillText(val,226,y+58,W-240); };
       row(behind?'BEHIND YOU':'DISTANCE',fmtDist(T.d),234,behind?'#ff6f61':null); const eta=s.speed>5?T.d/s.speed:Infinity; row('ETA',eta===Infinity?'--:--':eta>5999?'>99 min':String(Math.floor(eta/60)).padStart(2,'0')+':'+String(Math.floor(eta%60)).padStart(2,'0'),346);
       const cw=Game.canWarp(); let msg, col='#62e2ff';
-      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(P.rock){ msg=Mining.target?'IN RANGE · HOLD F TO CUT':G.sys.autopilot?'CLOSING ON THE ROCK':'PRESS P FOR AUTOPILOT'; col=Mining.target?'#7dffa8':'#ffb454'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.isWp&&P.dist<P.arriveR*4){ msg='ARRIVING'; col='#7dffa8'; } else if(!P.isWp&&P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
+      if(s.warp){ msg='WARP ACTIVE'; col='#9fc0ff'; } else if(P.rock){ msg=Mining.target?'IN RANGE · HOLD '+Controls.k('mine').toUpperCase()+' TO CUT':G.sys.autopilot?'CLOSING ON THE ROCK':'PRESS '+Controls.k('auto').toUpperCase()+' FOR AUTOPILOT'; col=Mining.target?'#7dffa8':'#ffb454'; } else if(cw!==true){ msg=cw; col='#ffb454'; } else if(P.isWp&&P.dist<P.arriveR*4){ msg='ARRIVING'; col='#7dffa8'; } else if(!P.isWp&&P.dist<P.dropR){ msg='AUTO-LAND IN '+fmtDist(Math.max(0,P.dist-P.landR)); col='#7dffa8'; }
       else if(T.ang<0.14){ msg='ALIGNED · PRESS Z TO WARP'; col='#7dffa8'; } else msg='TURN TO DESTINATION';
       if(Math.floor(t*2)%2||col!=='#7dffa8'){ x.fillStyle=col; x.font=`42px ${FONT_MONO}`; x.textAlign='center'; x.fillText(msg,W/2,H-12,W-24); }
     } else if(page===1){
@@ -501,24 +501,28 @@ const Cockpit = {
     const nd=e=>{ const r=cv.getBoundingClientRect(); return new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); };
     const showTip=(c,e)=>{ if(!c){ tip.hidden=true; cv.style.cursor=this.drag&&this.drag.look?'grabbing':'default'; return; } const v=c.get?c.get():null; tip.innerHTML=c.label+(c.fmt&&v!==null?' <b>'+c.fmt(v)+'</b>':c.type==='switch'&&v!==null?' <b>'+(v?'ON':'OFF')+'</b>':c.tip?' <b>'+c.tip+'</b>':'');
       tip.hidden=false; this.tipAt=performance.now(); this.tipView=G.head.yaw+G.head.pitch*3+G.head.fov*0.1; const r=cv.getBoundingClientRect(); tip.style.left=Math.min(e.clientX-r.left+16,r.width-tip.offsetWidth-8)+'px'; tip.style.top=(e.clientY-r.top+18)+'px'; cv.style.cursor='pointer'; };
-    cv.addEventListener('pointerdown',e=>{ this.lastType=e.pointerType; if(G.mode!=='flight'||e.button!==0) return; Sfx.init(); cv.focus(); const c=Walk.on?null:this.pick(nd(e));
+    cv.addEventListener('pointerdown',e=>{ this.lastType=e.pointerType; if(G.mode!=='flight') return; if(Controls.mouseDown(e)){ e.preventDefault(); return; } if(e.button!==0) return; Sfx.init(); cv.focus(); const c=Walk.on?null:this.pick(nd(e));
+      // with mouse steering on, a click on open space takes the mouse and flies the ship with it
+      // (until the browser hands it over, or if it never does, holding the button and dragging steers instead)
+      if(!c&&Controls.wantLock(e)){ tip.hidden=true; this.drag={steer:true,x:e.clientX,y:e.clientY,moved:0}; Controls.ms.drag=true; try{ cv.setPointerCapture(e.pointerId); }catch(_){} Controls.lock(); return; }
       this.drag=c?{c,x:e.clientX,y:e.clientY,moved:0,acc:0,start:c.get?c.get():0}:{look:true,x:e.clientX,y:e.clientY,moved:0}; if(c&&c.type==='button'){ c.down=1.4; } try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
-    cv.addEventListener('pointermove',e=>{ if(G.mode!=='flight'){ tip.hidden=true; return; } const d=this.drag;
+    cv.addEventListener('pointermove',e=>{ if(G.mode!=='flight'||Controls.ms.on){ tip.hidden=true; return; } const d=this.drag;
       if(!d){ if(Walk.on){ tip.hidden=true; return; } const c=this.pick(nd(e)); this.hover=c; showTip(c,e); return; }
       const dx=e.clientX-d.x, dy=e.clientY-d.y; d.x=e.clientX; d.y=e.clientY; d.moved+=Math.abs(dx)+Math.abs(dy);
+      if(d.steer){ Controls.move(dx,dy); return; }
       if(d.look&&Walk.on){ Walk.look(dx,dy); return; }
       if(d.look){ const H=G.head, k=0.0032*(H.fov/72); H.yawT=clamp(H.yawT-dx*k,-2.5,2.5); H.pitchT=clamp(H.pitchT-dy*k,-1.25,1.3); cv.style.cursor='grabbing'; return; }
       const c=d.c; if(c.type==='knob'||c.type==='lever'){ const delta=c.type==='lever'?-dy:(dx-dy);
         if(c.step){ d.acc+=delta; const stepPx=c.type==='lever'?14:24; while(Math.abs(d.acc)>=stepPx){ const dir=Math.sign(d.acc); d.acc-=dir*stepPx; this.stepCtrl(c,dir); } }
         else c.set(clamp(c.get()+delta/170*(c.max-c.min),c.min,c.max)); showTip(c,e); } });
-    const up=e=>{ const d=this.drag; this.drag=null; if(!d||G.mode!=='flight') return; cv.style.cursor='default'; const touch=e.pointerType==='touch', tap=d.moved<(touch?12:5);
+    const up=e=>{ if(Controls.mouseUp(e)) return; const d=this.drag; this.drag=null; if(d&&d.steer){ Controls.ms.drag=false; return; } if(!d||G.mode!=='flight') return; cv.style.cursor='default'; const touch=e.pointerType==='touch', tap=d.moved<(touch?12:5);
       if(touch){ clearTimeout(this.tipT); this.tipT=setTimeout(()=>{ tip.hidden=true; },1600);
         // finger double-tap on open space or a panel face leans in (or back out); taps on controls just work the control
         if(!d.c&&tap&&!Walk.on){ const now=performance.now(), L=this.lastTap; if(L&&now-L.t<380&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<60){ this.lastTap=null; this.zoomAt(nd(e)); } else this.lastTap={t:now,x:e.clientX,y:e.clientY}; } }
       if(d.c&&tap){ const c=d.c; if(c.type==='switch'){ c.set(!c.get()); Sfx.clunk(); } else if(c.type==='button'){ Sfx.click(); c.press(); } else if(c.type==='screen') c.press(); else if(c.step) this.stepCtrl(c,e.shiftKey?-1:1); showTip(c.type==='screen'?null:c,e); } };
-    cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',()=>{ this.drag=null; });
-    cv.addEventListener('wheel',e=>{ if(G.mode!=='flight') return; const c=this.pick(nd(e)); if(c){ e.preventDefault(); this.stepCtrl(c,e.deltaY<0?1:-1); showTip(c,e); } },{passive:false});
-    cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight'||this.lastType==='touch'||Walk.on) return; this.zoomAt(nd(e)); });
+    cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',()=>{ this.drag=null; Controls.ms.drag=false; });
+    cv.addEventListener('wheel',e=>{ if(G.mode!=='flight'||Controls.wheel(e)) return; const c=this.pick(nd(e)); if(c){ e.preventDefault(); this.stepCtrl(c,e.deltaY<0?1:-1); showTip(c,e); } },{passive:false});
+    cv.addEventListener('dblclick',e=>{ if(G.mode!=='flight'||this.lastType==='touch'||Walk.on||Controls.ms.on) return; this.zoomAt(nd(e)); });
     cv.addEventListener('pointerleave',()=>{ tip.hidden=true; });
   },
 };
